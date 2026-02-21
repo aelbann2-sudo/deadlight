@@ -19,11 +19,21 @@ namespace Deadlight.Player
         [Header("References")]
         [SerializeField] private Camera mainCamera;
 
+        [Header("Dodge Roll")]
+        [SerializeField] private float dodgeSpeed = 15f;
+        [SerializeField] private float dodgeDuration = 0.3f;
+        [SerializeField] private float dodgeCooldown = 0.8f;
+        [SerializeField] private float dodgeStaminaCost = 30f;
+
         private Rigidbody2D rb;
         private Vector2 moveInput;
         private Vector2 mouseWorldPosition;
         private bool isSprinting;
         private bool canMove = true;
+        private bool isDodging;
+        private bool isInvincible;
+        private float lastDodgeTime = -999f;
+        private Vector2 dodgeDirection;
 
         public float MoveSpeed => moveSpeed;
         public float CurrentStamina => currentStamina;
@@ -31,6 +41,8 @@ namespace Deadlight.Player
         public Vector2 MoveDirection => moveInput;
         public Vector2 AimDirection => (mouseWorldPosition - (Vector2)transform.position).normalized;
         public bool IsSprinting => isSprinting && moveInput.magnitude > 0;
+        public bool IsDodging => isDodging;
+        public bool IsInvincible => isInvincible;
 
         public System.Action<float> OnStaminaChanged;
 
@@ -74,6 +86,12 @@ namespace Deadlight.Player
         {
             if (!canMove) return;
 
+            if (isDodging)
+            {
+                rb.linearVelocity = dodgeDirection * dodgeSpeed;
+                return;
+            }
+
             HandleMovement();
         }
 
@@ -84,6 +102,47 @@ namespace Deadlight.Player
             moveInput = new Vector2(horizontal, vertical).normalized;
 
             isSprinting = Input.GetKey(KeyCode.LeftShift) && currentStamina > 0;
+
+            if (Input.GetKeyDown(KeyCode.Space) && !isDodging &&
+                Time.time >= lastDodgeTime + dodgeCooldown &&
+                currentStamina >= dodgeStaminaCost)
+            {
+                StartDodge();
+            }
+        }
+
+        private void StartDodge()
+        {
+            dodgeDirection = moveInput.magnitude > 0.1f ? moveInput : AimDirection;
+            if (dodgeDirection.magnitude < 0.1f) dodgeDirection = Vector2.down;
+
+            isDodging = true;
+            isInvincible = true;
+            lastDodgeTime = Time.time;
+            currentStamina -= dodgeStaminaCost;
+            OnStaminaChanged?.Invoke(currentStamina);
+
+            var health = GetComponent<PlayerHealth>();
+            if (health != null) health.SetInvincible(true);
+
+            var sr = GetComponent<SpriteRenderer>();
+            if (sr != null) sr.color = new Color(1f, 1f, 1f, 0.4f);
+
+            StartCoroutine(DodgeRoutine());
+        }
+
+        private System.Collections.IEnumerator DodgeRoutine()
+        {
+            yield return new WaitForSeconds(dodgeDuration);
+            isDodging = false;
+            isInvincible = false;
+            rb.linearVelocity = Vector2.zero;
+
+            var health = GetComponent<PlayerHealth>();
+            if (health != null) health.SetInvincible(false);
+
+            var sr = GetComponent<SpriteRenderer>();
+            if (sr != null) sr.color = Color.white;
         }
 
         private void HandleAiming()

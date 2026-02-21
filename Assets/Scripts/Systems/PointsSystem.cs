@@ -32,6 +32,9 @@ namespace Deadlight.Systems
         [Header("Statistics")]
         [SerializeField] private int enemiesKilled = 0;
         [SerializeField] private int nightsSurvived = 0;
+        [SerializeField] private int shotsFired = 0;
+        [SerializeField] private int hitsLanded = 0;
+        [SerializeField] private string highestNightGrade = "D";
 
         [Header("Point Values")]
         [SerializeField] private int pointsPerKill = 10;
@@ -46,10 +49,12 @@ namespace Deadlight.Systems
         public int EnemiesKilled => enemiesKilled;
         public int NightsSurvived => nightsSurvived;
         public float ScoreMultiplier => GetScoreMultiplier();
+        public string HighestNightGrade => highestNightGrade;
 
         public event Action<int> OnPointsChanged;
         public event Action<int, string> OnPointsEarned;
         public event Action<int, string> OnPointsSpent;
+        public event Action<NightGradeResult> OnNightGraded;
 
         private void Awake()
         {
@@ -67,6 +72,7 @@ namespace Deadlight.Systems
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.OnGameStateChanged += HandleGameStateChanged;
+                GameManager.Instance.OnNightChanged += HandleNightChanged;
             }
 
             var waveManager = FindObjectOfType<WaveManager>();
@@ -74,6 +80,8 @@ namespace Deadlight.Systems
             {
                 waveManager.OnEnemyKilled += HandleEnemyKilled;
             }
+
+            ResolvePlayerCombatSubscriptions();
         }
 
         private void OnDestroy()
@@ -81,6 +89,7 @@ namespace Deadlight.Systems
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.OnGameStateChanged -= HandleGameStateChanged;
+                GameManager.Instance.OnNightChanged -= HandleNightChanged;
             }
         }
 
@@ -90,12 +99,35 @@ namespace Deadlight.Systems
             {
                 nightsSurvived++;
                 AddPoints(pointsPerNightSurvived + (bonusPointsPerNight * nightsSurvived), "Night Survived");
+                GradeCurrentNight();
+            }
+
+            if (newState == GameState.GameOver || newState == GameState.Victory)
+            {
+                var cosmetics = CosmeticUnlockSystem.Instance;
+                if (cosmetics != null)
+                {
+                    cosmetics.RegisterRunResult(new RunSummary
+                    {
+                        nightsSurvived = nightsSurvived,
+                        enemiesKilled = enemiesKilled,
+                        finalScore = GetFinalScore(),
+                        topGrade = highestNightGrade
+                    });
+                }
             }
         }
 
         private void HandleEnemyKilled(int totalKilled)
         {
             enemiesKilled++;
+        }
+
+        private void HandleNightChanged(int _)
+        {
+            ResolvePlayerCombatSubscriptions();
+            shotsFired = 0;
+            hitsLanded = 0;
         }
 
         public void AddPoints(int amount, string source = "Unknown")
@@ -179,6 +211,9 @@ namespace Deadlight.Systems
             totalPointsSpent = 0;
             enemiesKilled = 0;
             nightsSurvived = 0;
+            shotsFired = 0;
+            hitsLanded = 0;
+            highestNightGrade = "D";
             pointsHistory.Clear();
 
             OnPointsChanged?.Invoke(currentPoints);
@@ -187,6 +222,88 @@ namespace Deadlight.Systems
         public List<PointsEntry> GetPointsHistory()
         {
             return new List<PointsEntry>(pointsHistory);
+        }
+
+        private void ResolvePlayerCombatSubscriptions()
+        {
+            var shooting = FindObjectOfType<Player.PlayerShooting>();
+            if (shooting != null)
+            {
+                shooting.OnWeaponFired -= OnWeaponFired;
+                shooting.OnWeaponFired += OnWeaponFired;
+            }
+
+            if (GameEffects.Instance != null)
+            {
+                GameEffects.Instance.OnHitConfirmed -= OnHitConfirmed;
+                GameEffects.Instance.OnHitConfirmed += OnHitConfirmed;
+            }
+        }
+
+        private void OnWeaponFired()
+        {
+            shotsFired++;
+        }
+
+        private void OnHitConfirmed()
+        {
+            hitsLanded++;
+        }
+
+        private void GradeCurrentNight()
+        {
+            float accuracy = shotsFired <= 0 ? 0.5f : Mathf.Clamp01((float)hitsLanded / shotsFired);
+            float damageTaken = 0.3f;
+            var player = GameObject.FindWithTag("Player");
+            if (player != null)
+            {
+                var playerHealth = player.GetComponent<Player.PlayerHealth>();
+                if (playerHealth != null)
+                {
+                    damageTaken = 1f - Mathf.Clamp01(playerHealth.CurrentHealth / Mathf.Max(1f, playerHealth.MaxHealth));
+                }
+            }
+
+            float speedScore = 0.8f;
+            var cycle = FindObjectOfType<DayNightCycle>();
+            if (cycle != null)
+            {
+                speedScore = Mathf.Clamp01(1f - cycle.NormalizedTime);
+            }
+
+            bool objectiveDone = DayObjectiveSystem.Instance != null &&
+                                 DayObjectiveSystem.Instance.ActiveObjective != null &&
+                                 DayObjectiveSystem.Instance.ActiveObjective.IsComplete;
+
+            var result = RunGradingSystem.ComputeNightGrade(new NightRunStats
+            {
+                accuracy = accuracy,
+                damageTaken = damageTaken,
+                clearSpeedScore = speedScore,
+                objectiveCompleted = objectiveDone
+            });
+
+            highestNightGrade = CompareGrade(result.grade, highestNightGrade) < 0 ? highestNightGrade : result.grade;
+            int bonus = Mathf.RoundToInt(result.bonusPoints * result.multiplier);
+            AddPoints(bonus, $"Night Grade {result.grade}");
+            OnNightGraded?.Invoke(result);
+        }
+
+        private static int CompareGrade(string a, string b)
+        {
+            int Rank(string g)
+            {
+                return g switch
+                {
+                    "S" => 5,
+                    "A" => 4,
+                    "B" => 3,
+                    "C" => 2,
+                    _ => 1
+                };
+            }
+
+            return Rank(a).CompareTo(Rank(b));
         }
     }
 

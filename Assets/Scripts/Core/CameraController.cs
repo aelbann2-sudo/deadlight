@@ -12,6 +12,18 @@ namespace Deadlight.Core
         [SerializeField] private float smoothSpeed = 5f;
         [SerializeField] private Vector3 offset = new Vector3(0, 0, -10f);
 
+        [Header("Zoom")]
+        [SerializeField] private float defaultZoom = 4.5f;
+        [SerializeField] private float combatZoom = 4f;
+        [SerializeField] private float zoomSpeed = 3f;
+        private float targetZoom;
+        private bool inCombat;
+
+        [Header("Aim Lead")]
+        [SerializeField] private float aimLeadAmount = 0.8f;
+        [SerializeField] private float aimLeadSmooth = 4f;
+        private Vector3 aimLeadOffset;
+
         [Header("Bounds")]
         [SerializeField] private bool useBounds = false;
         [SerializeField] private float minX = -50f;
@@ -24,9 +36,17 @@ namespace Deadlight.Core
         [SerializeField] private float shakeIntensity = 0.1f;
 
         private Vector3 shakeOffset;
+        private Camera cam;
 
         private void Start()
         {
+            cam = GetComponent<Camera>();
+            if (cam != null)
+            {
+                cam.orthographicSize = defaultZoom;
+            }
+            targetZoom = defaultZoom;
+
             if (autoFindPlayer && target == null)
             {
                 FindPlayer();
@@ -41,7 +61,10 @@ namespace Deadlight.Core
                 return;
             }
 
-            Vector3 desiredPosition = target.position + offset;
+            UpdateAimLead();
+            UpdateZoom();
+
+            Vector3 desiredPosition = target.position + offset + aimLeadOffset;
 
             if (useBounds)
             {
@@ -58,6 +81,31 @@ namespace Deadlight.Core
             }
 
             transform.position = smoothedPosition;
+        }
+
+        private void UpdateAimLead()
+        {
+            if (cam == null) return;
+            Vector3 mouseWorld = cam.ScreenToWorldPoint(Input.mousePosition);
+            mouseWorld.z = 0;
+            Vector3 playerPos = target.position;
+            playerPos.z = 0;
+            Vector3 aimDir = (mouseWorld - playerPos).normalized;
+            Vector3 targetLead = aimDir * aimLeadAmount;
+            targetLead.z = 0;
+            aimLeadOffset = Vector3.Lerp(aimLeadOffset, targetLead, aimLeadSmooth * Time.deltaTime);
+        }
+
+        private void UpdateZoom()
+        {
+            if (cam == null) return;
+            cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, targetZoom, zoomSpeed * Time.deltaTime);
+        }
+
+        public void SetCombatMode(bool combat)
+        {
+            inCombat = combat;
+            targetZoom = combat ? combatZoom : defaultZoom;
         }
 
         private void FindPlayer()
@@ -112,6 +160,12 @@ namespace Deadlight.Core
         public void SetSmoothSpeed(float speed)
         {
             smoothSpeed = speed;
+        }
+
+        public void SetDefaultZoom(float zoom)
+        {
+            defaultZoom = zoom;
+            if (!inCombat) targetZoom = zoom;
         }
     }
 }

@@ -313,6 +313,57 @@ namespace Deadlight.Core
             transmissionPanel.SetActive(false);
         }
 
+        private bool firstKillPlayed;
+        private bool lowHealthPlayed;
+        private bool killStreakPlayed;
+
+        public void TriggerFirstKill()
+        {
+            if (firstKillPlayed) return;
+            firstKillPlayed = true;
+            ShowMessage("RADIO: Good shot. Don't get cocky. There are thousands more.", 3f);
+        }
+
+        public void TriggerLowHealth()
+        {
+            if (lowHealthPlayed) return;
+            lowHealthPlayed = true;
+            ShowMessage("RADIO: Survivor, your vitals are critical! Find cover!", 3f);
+            lowHealthPlayed = false;
+            StartCoroutine(ResetFlagAfterDelay(() => lowHealthPlayed = false, 30f));
+        }
+
+        private System.Collections.IEnumerator ResetFlagAfterDelay(System.Action reset, float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            reset?.Invoke();
+        }
+
+        public void TriggerKillStreak()
+        {
+            if (killStreakPlayed) return;
+            killStreakPlayed = true;
+            ShowMessage("RADIO: Impressive! Command hasn't seen numbers like that since the fall.", 3f);
+            StartCoroutine(ResetFlagAfterDelay(() => killStreakPlayed = false, 60f));
+        }
+
+        public void TriggerBossHalfHealth()
+        {
+            ShowMessage("RADIO: It's weakening! Keep up the pressure!", 3f);
+        }
+
+        public void TriggerBossDefeated()
+        {
+            StartCoroutine(PlayVictoryTransmission());
+        }
+
+        private IEnumerator PlayVictoryTransmission()
+        {
+            yield return ShowTransmission("RADIO: \"You did it... Subject 23 is down.\"", 4f);
+            yield return new WaitForSeconds(1f);
+            yield return ShowTransmission("RADIO: \"Helicopter inbound. Welcome home, soldier.\"", 4f);
+        }
+
         public void ShowSubject23Warning()
         {
             StartCoroutine(ShowBossWarning());

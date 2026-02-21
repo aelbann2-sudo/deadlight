@@ -16,7 +16,8 @@ namespace Deadlight.Core
         public static GameFlowController Instance { get; private set; }
 
         [Header("Phase Settings")]
-        [SerializeField] private float dayPhaseDuration = 45f;
+        [SerializeField] private float[] dayDurationsByNight = { 60f, 50f, 45f, 40f, 35f };
+        [SerializeField] private float nightDuration = 120f;
         [SerializeField] private int healthPickupCount = 3;
         [SerializeField] private int ammoPickupCount = 4;
         [SerializeField] private float pickupSpawnRadius = 8f;
@@ -92,7 +93,7 @@ namespace Deadlight.Core
             // Use an absolute duration so repeated restarts do not compound scaling.
             if (dayNightCycle != null)
             {
-                dayNightCycle.SetDayDuration(dayPhaseDuration);
+                ApplyNightPacing(1);
             }
 
             ClearSpawnedPickups();
@@ -223,7 +224,7 @@ namespace Deadlight.Core
             {
                 case GameState.DayPhase:
                     SpawnPickups();
-                    OnStatusMessage?.Invoke($"Day Phase - Night {GameManager.Instance?.CurrentNight ?? 1} ({dayPhaseDuration}s)");
+                    OnStatusMessage?.Invoke($"Day Phase - Night {GameManager.Instance?.CurrentNight ?? 1}");
                     break;
                 case GameState.NightPhase:
                     OnNightStarted?.Invoke(GameManager.Instance?.CurrentNight ?? 1);
@@ -244,13 +245,40 @@ namespace Deadlight.Core
 
         private void HandleNightChanged(int night)
         {
-            // Can be used for UI updates
+            ApplyNightPacing(night);
+
+            if (DayObjectiveSystem.Instance != null)
+            {
+                DayObjectiveSystem.Instance.GenerateObjective(night, Time.frameCount + night * 991);
+            }
+
+            if (RunModifierSystem.Instance != null)
+            {
+                RunModifierSystem.Instance.RollNightEvent(night, Time.frameCount + night * 67);
+            }
         }
 
         private void HandleAllWavesCleared()
         {
             // WaveSpawner already calls GameManager.OnNightSurvived() - state will transition to DawnPhase or Victory
             // This listener allows GameFlowController to react; OnDawnPhaseStarted is raised via HandleGameStateChanged
+        }
+
+        private void ApplyNightPacing(int night)
+        {
+            if (dayNightCycle == null)
+            {
+                dayNightCycle = FindObjectOfType<DayNightCycle>();
+            }
+
+            if (dayNightCycle == null)
+            {
+                return;
+            }
+
+            int idx = Mathf.Clamp(night - 1, 0, dayDurationsByNight.Length - 1);
+            dayNightCycle.SetDayDuration(dayDurationsByNight[idx]);
+            dayNightCycle.SetNightDuration(nightDuration);
         }
 
     }
@@ -312,6 +340,12 @@ namespace Deadlight.Core
 
             if (consumed)
             {
+                if (DayObjectiveSystem.Instance != null && GameManager.Instance != null &&
+                    GameManager.Instance.CurrentState == GameState.DayPhase)
+                {
+                    DayObjectiveSystem.Instance.AddProgress(1);
+                }
+
                 Destroy(gameObject);
             }
         }

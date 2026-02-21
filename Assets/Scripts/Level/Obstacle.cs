@@ -170,7 +170,11 @@ namespace Deadlight.Level
 
         private void OnCollisionEnter2D(Collision2D collision)
         {
-            if (collision.gameObject.CompareTag("Enemy"))
+            bool isEnemy = collision.gameObject.GetComponent<Deadlight.Enemy.EnemyHealth>() != null ||
+                           collision.gameObject.GetComponent<Deadlight.Enemy.EnemyAI>() != null ||
+                           collision.gameObject.GetComponent<Deadlight.Enemy.SimpleEnemyAI>() != null;
+
+            if (isEnemy)
             {
                 if (obstacleType == ObstacleType.Barricade || obstacleType == ObstacleType.Destructible)
                 {

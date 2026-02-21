@@ -27,6 +27,10 @@ namespace Deadlight.Enemy
         [SerializeField] private float patrolSpeed = 1.5f;
         [SerializeField] private float chaseSpeed = 4f;
 
+        [Header("Telegraph")]
+        [SerializeField] private float attackWindup = 0.15f;
+        [SerializeField] private Color telegraphColor = new Color(1f, 0.8f, 0.25f, 1f);
+
         [Header("State")]
         [SerializeField] private EnemyState currentState = EnemyState.Idle;
         [SerializeField] private bool isAggressive = false;
@@ -43,6 +47,9 @@ namespace Deadlight.Enemy
         private float basePatrolSpeed;
         private float baseChaseSpeed;
         private DayNightCycle dayNightCycle;
+        private SpriteRenderer spriteRenderer;
+        private Color baseColor = Color.white;
+        private bool isWindingUpAttack;
 
         public EnemyState CurrentState => currentState;
         public float Damage => damage * damageMultiplier;
@@ -52,6 +59,11 @@ namespace Deadlight.Enemy
         {
             agent = GetComponent<NavMeshAgent>();
             animator = GetComponent<Animator>();
+            spriteRenderer = GetComponent<SpriteRenderer>();
+            if (spriteRenderer != null)
+            {
+                baseColor = spriteRenderer.color;
+            }
 
             agent.updateRotation = false;
             agent.updateUpAxis = false;
@@ -124,7 +136,11 @@ namespace Deadlight.Enemy
 
             FindTarget();
 
-            if (target == null) return;
+            if (target == null)
+            {
+                isWindingUpAttack = false;
+                return;
+            }
 
             float distanceToTarget = Vector2.Distance(transform.position, target.position);
 
@@ -231,30 +247,58 @@ namespace Deadlight.Enemy
 
             if (Time.time >= lastAttackTime + attackCooldown)
             {
-                PerformAttack();
+                StartCoroutine(PerformAttack());
             }
         }
 
-        private void PerformAttack()
+        private System.Collections.IEnumerator PerformAttack()
         {
+            if (isWindingUpAttack)
+            {
+                yield break;
+            }
+
+            isWindingUpAttack = true;
             lastAttackTime = Time.time;
 
-            if (target == null) return;
+            if (target == null)
+            {
+                isWindingUpAttack = false;
+                yield break;
+            }
+
+            var worldUi = GetComponent<Deadlight.UI.EnemyWorldUI>();
+            worldUi?.ShowTelegraph(attackWindup + 0.1f);
+
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.color = telegraphColor;
+            }
+
+            yield return new WaitForSeconds(attackWindup);
 
             float distanceToTarget = Vector2.Distance(transform.position, target.position);
-            if (distanceToTarget > attackRange * 1.2f) return;
-
-            var playerHealth = target.GetComponent<Player.PlayerHealth>();
-            if (playerHealth != null)
+            if (distanceToTarget <= attackRange * 1.2f)
             {
-                playerHealth.TakeDamage(Damage);
-                Debug.Log($"[EnemyAI] Attacked player for {Damage} damage");
+                var playerHealth = target.GetComponent<Player.PlayerHealth>();
+                if (playerHealth != null)
+                {
+                    playerHealth.TakeDamage(Damage);
+                    Debug.Log($"[EnemyAI] Attacked player for {Damage} damage");
+                }
+
+                if (animator != null)
+                {
+                    animator.SetTrigger("Attack");
+                }
             }
 
-            if (animator != null)
+            if (spriteRenderer != null)
             {
-                animator.SetTrigger("Attack");
+                spriteRenderer.color = baseColor;
             }
+
+            isWindingUpAttack = false;
         }
 
         private void UpdateRotation()

@@ -12,6 +12,12 @@ namespace Deadlight.Player
         [SerializeField] private Transform firePoint;
         [SerializeField] private GameObject bulletPrefab;
 
+        [Header("Weapon Switching")]
+        [SerializeField] private WeaponData[] weaponSlots = new WeaponData[2];
+        [SerializeField] private int[] slotAmmo = new int[2];
+        [SerializeField] private int[] slotReserve = new int[2];
+        private int activeSlot = 0;
+
         [Header("Ammo")]
         [SerializeField] private int currentAmmo;
         [SerializeField] private int reserveAmmo;
@@ -37,6 +43,8 @@ namespace Deadlight.Player
         public event Action OnWeaponFired;
         public event Action OnReloadStarted;
         public event Action OnReloadCompleted;
+        public event Action OnEmptyTriggerPulled;
+        public event Action<int, int> OnLowAmmoWarning;
 
         private void Start()
         {
@@ -74,21 +82,49 @@ namespace Deadlight.Player
             if (currentWeapon.isAutomatic)
             {
                 if (Input.GetMouseButton(0))
-                {
                     TryFire();
-                }
             }
             else
             {
                 if (Input.GetMouseButtonDown(0))
-                {
                     TryFire();
-                }
             }
 
             if (Input.GetKeyDown(KeyCode.R) && !isReloading)
-            {
                 TryReload();
+
+            if (Input.GetKeyDown(KeyCode.Alpha1)) SwitchToSlot(0);
+            if (Input.GetKeyDown(KeyCode.Alpha2)) SwitchToSlot(1);
+
+            float scroll = Input.GetAxis("Mouse ScrollWheel");
+            if (Mathf.Abs(scroll) > 0.01f)
+                SwitchToSlot(activeSlot == 0 ? 1 : 0);
+        }
+
+        private void SwitchToSlot(int slot)
+        {
+            if (slot == activeSlot || isReloading) return;
+            if (slot < 0 || slot >= weaponSlots.Length) return;
+            if (weaponSlots[slot] == null) return;
+
+            slotAmmo[activeSlot] = currentAmmo;
+            slotReserve[activeSlot] = reserveAmmo;
+
+            activeSlot = slot;
+            currentWeapon = weaponSlots[slot];
+            currentAmmo = slotAmmo[slot];
+            reserveAmmo = slotReserve[slot];
+
+            OnAmmoChanged?.Invoke(currentAmmo, reserveAmmo);
+        }
+
+        public void SetSecondWeapon(WeaponData weapon)
+        {
+            weaponSlots[1] = weapon;
+            if (weapon != null)
+            {
+                slotAmmo[1] = weapon.magazineSize;
+                slotReserve[1] = weapon.magazineSize * 3;
             }
         }
 
@@ -99,6 +135,7 @@ namespace Deadlight.Player
             if (currentAmmo <= 0)
             {
                 PlaySound(emptyClickSound);
+                OnEmptyTriggerPulled?.Invoke();
                 
                 if (reserveAmmo > 0)
                 {
@@ -122,6 +159,7 @@ namespace Deadlight.Player
             PlaySound(shootSound ?? currentWeapon.fireSound);
             OnWeaponFired?.Invoke();
             OnAmmoChanged?.Invoke(currentAmmo, reserveAmmo);
+            EmitLowAmmoWarningIfNeeded();
 
             if (currentAmmo <= 0 && reserveAmmo > 0)
             {
@@ -174,7 +212,17 @@ namespace Deadlight.Player
 
             if (Core.GameEffects.Instance != null)
             {
-                Core.GameEffects.Instance.SpawnMuzzleFlash(spawnPos, spawnRot);
+                float flashScale = 0.35f;
+                if ((currentWeapon?.isAutomatic ?? false))
+                {
+                    flashScale = 0.45f;
+                }
+                if ((currentWeapon?.pelletsPerShot ?? 1) > 1)
+                {
+                    flashScale = 0.6f;
+                }
+
+                Core.GameEffects.Instance.SpawnMuzzleFlash(spawnPos, spawnRot, flashScale);
                 Core.GameEffects.Instance.ScreenShake(0.03f, 0.05f);
             }
         }
@@ -205,6 +253,7 @@ namespace Deadlight.Player
             isReloading = false;
             OnReloadCompleted?.Invoke();
             OnAmmoChanged?.Invoke(currentAmmo, reserveAmmo);
+            EmitLowAmmoWarningIfNeeded();
         }
 
         private void PlaySound(AudioClip clip)
@@ -224,13 +273,17 @@ namespace Deadlight.Player
         public void SetWeapon(WeaponData weapon)
         {
             currentWeapon = weapon;
-            
+            weaponSlots[0] = weapon;
+
             if (weapon != null)
             {
                 int defaultReserve = weapon.magazineSize * 3;
                 reserveAmmo = Mathf.Max(reserveAmmo, defaultReserve);
                 currentAmmo = weapon.magazineSize;
+                slotAmmo[0] = currentAmmo;
+                slotReserve[0] = reserveAmmo;
                 OnAmmoChanged?.Invoke(currentAmmo, reserveAmmo);
+                EmitLowAmmoWarningIfNeeded();
             }
         }
 
@@ -252,6 +305,7 @@ namespace Deadlight.Player
             isReloading = false;
 
             OnAmmoChanged?.Invoke(currentAmmo, reserveAmmo);
+            EmitLowAmmoWarningIfNeeded();
         }
 
         public void SetBulletPrefab(GameObject prefab)
@@ -262,6 +316,20 @@ namespace Deadlight.Player
         public void SetFirePoint(Transform point)
         {
             firePoint = point;
+        }
+
+        private void EmitLowAmmoWarningIfNeeded()
+        {
+            if (currentWeapon == null)
+            {
+                return;
+            }
+
+            int threshold = Mathf.Max(2, Mathf.RoundToInt(currentWeapon.magazineSize * 0.2f));
+            if (currentAmmo <= threshold)
+            {
+                OnLowAmmoWarning?.Invoke(currentAmmo, reserveAmmo);
+            }
         }
     }
 }

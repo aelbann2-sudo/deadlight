@@ -58,7 +58,7 @@ namespace Deadlight.Narrative
 
         private void CheckPlayerDistance()
         {
-            var player = GameObject.FindGameObjectWithTag("Player");
+            var player = GameObject.Find("Player");
             if (player == null) return;
 
             float distance = Vector3.Distance(transform.position, player.transform.position);

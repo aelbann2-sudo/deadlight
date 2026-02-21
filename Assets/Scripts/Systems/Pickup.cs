@@ -113,6 +113,12 @@ namespace Deadlight.Systems
 
             if (consumed)
             {
+                if (Core.DayObjectiveSystem.Instance != null && Core.GameManager.Instance != null &&
+                    Core.GameManager.Instance.CurrentState == Core.GameState.DayPhase)
+                {
+                    Core.DayObjectiveSystem.Instance.AddProgress(1);
+                }
+
                 PlayPickupSound();
                 Destroy(gameObject);
             }

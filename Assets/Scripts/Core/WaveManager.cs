@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Deadlight.Level;
+using Deadlight.Visuals;
 using UnityEngine;
 
 namespace Deadlight.Core
@@ -30,6 +31,13 @@ namespace Deadlight.Core
         [SerializeField] private int totalEnemiesKilled = 0;
         [SerializeField] private bool isSpawning = false;
 
+        [Header("Pacing")]
+        [SerializeField] private bool enableDaySkirmish = true;
+        [SerializeField] private int daySkirmishMin = 2;
+        [SerializeField] private int daySkirmishMax = 4;
+        [SerializeField] private float daySkirmishTriggerTime = 20f;
+        [SerializeField] private float emergencySpawnDelay = 5f;
+
         public int CurrentWave => currentWave;
         public int EnemiesRemaining => enemiesRemaining;
         public int TotalEnemiesKilled => totalEnemiesKilled;
@@ -44,6 +52,9 @@ namespace Deadlight.Core
         private Coroutine nightSequenceCoroutine;
         private DayNightCycle dayNightCycle;
         private GameObject runtimeZombiePrefab;
+        private float idleNightTimer;
+        private bool daySkirmishTriggered;
+        private bool bossSpawned;
 
         private void Start()
         {
@@ -58,6 +69,42 @@ namespace Deadlight.Core
             if (dayNightCycle != null)
             {
                 dayNightCycle.OnNightStart += StartNightWaves;
+            }
+        }
+
+        private void Update()
+        {
+            if (GameManager.Instance == null)
+            {
+                return;
+            }
+
+            if (GameManager.Instance.CurrentState == GameState.DayPhase)
+            {
+                TrySpawnDaySkirmish();
+                idleNightTimer = 0f;
+                return;
+            }
+
+            if (GameManager.Instance.CurrentState != GameState.NightPhase)
+            {
+                idleNightTimer = 0f;
+                return;
+            }
+
+            bool stalled = !isSpawning && enemiesRemaining <= 0;
+            if (stalled)
+            {
+                idleNightTimer += Time.deltaTime;
+                if (idleNightTimer >= emergencySpawnDelay)
+                {
+                    SpawnEmergencyBurst();
+                    idleNightTimer = 0f;
+                }
+            }
+            else
+            {
+                idleNightTimer = 0f;
             }
         }
 
@@ -108,6 +155,7 @@ namespace Deadlight.Core
             {
                 ResetForNewNight();
                 StopAllSpawning();
+                daySkirmishTriggered = false;
             }
             else if (newState != GameState.NightPhase)
             {
@@ -160,6 +208,11 @@ namespace Deadlight.Core
                 return;
             }
 
+            if (nightSequenceCoroutine != null)
+            {
+                return;
+            }
+
             EnsureRuntimeDefaults();
             LoadNightConfig();
 
@@ -197,7 +250,7 @@ namespace Deadlight.Core
 
                 if (wave < waveCount)
                 {
-                    float interval = (currentNightConfig?.timeBetweenWaves ?? 5f);
+                    float interval = Mathf.Clamp((currentNightConfig?.timeBetweenWaves ?? 5f), 3f, 5f);
                     yield return new WaitForSeconds(interval);
                 }
             }
@@ -271,12 +324,6 @@ namespace Deadlight.Core
         {
             EnsureRuntimeDefaults();
 
-            if (basicZombiePrefab == null)
-            {
-                Debug.LogWarning("[WaveManager] No zombie prefab available");
-                return;
-            }
-
             var spawnPosition = GetSpawnPosition(out SpawnPoint usedSpawnPoint);
             if (spawnPosition == Vector3.zero && spawnPoints.Count == 0)
             {
@@ -284,36 +331,167 @@ namespace Deadlight.Core
                 return;
             }
 
-            GameObject enemy = Instantiate(basicZombiePrefab, spawnPosition, Quaternion.identity);
+            int nightNum = GameManager.Instance?.CurrentNight ?? 1;
+            var spawnType = SelectSpawnType(nightNum);
+            var enemyType = spawnType switch
+            {
+                SpawnType.Runner => Visuals.ProceduralSpriteGenerator.ZombieType.Runner,
+                SpawnType.Exploder => Visuals.ProceduralSpriteGenerator.ZombieType.Exploder,
+                SpawnType.Tank => Visuals.ProceduralSpriteGenerator.ZombieType.Tank,
+                _ => Visuals.ProceduralSpriteGenerator.ZombieType.Basic
+            };
+
+            GameObject enemy;
+            if (basicZombiePrefab != null && spawnType == SpawnType.Basic)
+            {
+                enemy = Instantiate(basicZombiePrefab, spawnPosition, Quaternion.identity);
+            }
+            else
+            {
+                enemy = CreateEnemyOfType(enemyType, spawnPosition);
+            }
             enemy.SetActive(true);
 
-            if (!enemy.CompareTag("Enemy"))
+            if (spawnType == SpawnType.Spitter)
             {
-                enemy.tag = "Enemy";
+                var existingAI = enemy.GetComponent<Enemy.SimpleEnemyAI>();
+                if (existingAI != null) Destroy(existingAI);
+                enemy.AddComponent<Enemy.SpitterAI>();
+                var sr = enemy.GetComponent<SpriteRenderer>();
+                if (sr != null) sr.color = new Color(0.4f, 0.9f, 0.2f);
             }
 
             if (usedSpawnPoint != null)
             {
                 var tracker = enemy.GetComponent<SpawnPointOccupancyTracker>();
                 if (tracker == null)
-                {
                     tracker = enemy.AddComponent<SpawnPointOccupancyTracker>();
-                }
-
                 tracker.Initialize(usedSpawnPoint);
             }
 
             ApplyNightModifiers(enemy);
 
+            if (enemy.GetComponent<Visuals.ZombieAnimator>() == null)
+                enemy.AddComponent<Visuals.ZombieAnimator>();
+            if (enemy.GetComponent<Audio.ZombieSounds>() == null)
+                enemy.AddComponent<Audio.ZombieSounds>();
+
+            if (UnityEngine.Random.value < 0.1f && nightNum >= 2)
+            {
+                var affix = enemy.AddComponent<Enemy.EnemyAffix>();
+                affix.SetAffix(Enemy.EnemyAffix.GetRandomAffix());
+            }
+
+            var worldUi = enemy.GetComponent<Deadlight.UI.EnemyWorldUI>();
+            if (worldUi == null)
+                worldUi = enemy.AddComponent<Deadlight.UI.EnemyWorldUI>();
+            var health = enemy.GetComponent<Enemy.EnemyHealth>();
+            if (health != null)
+                worldUi.Bind(health);
+
             totalEnemiesSpawned++;
             enemiesRemaining++;
+        }
+
+        private enum SpawnType { Basic, Runner, Exploder, Tank, Spitter }
+
+        private SpawnType SelectSpawnType(int night)
+        {
+            float roll = UnityEngine.Random.value;
+
+            if (night >= 5 && currentWave >= (currentNightConfig?.waveCount ?? 3) && !bossSpawned)
+            {
+                bossSpawned = true;
+                return SpawnType.Tank;
+            }
+
+            if (night >= 4 && roll < 0.10f)
+                return SpawnType.Tank;
+            if (night >= 3 && roll < 0.22f)
+                return SpawnType.Spitter;
+            if (night >= 3 && roll < 0.35f)
+                return SpawnType.Exploder;
+            if (night >= 2 && roll < 0.55f)
+                return SpawnType.Runner;
+
+            return SpawnType.Basic;
+        }
+
+        private Visuals.ProceduralSpriteGenerator.ZombieType SelectEnemyType(int night)
+        {
+            var spawn = SelectSpawnType(night);
+            return spawn switch
+            {
+                SpawnType.Runner => Visuals.ProceduralSpriteGenerator.ZombieType.Runner,
+                SpawnType.Exploder => Visuals.ProceduralSpriteGenerator.ZombieType.Exploder,
+                SpawnType.Tank => Visuals.ProceduralSpriteGenerator.ZombieType.Tank,
+                SpawnType.Spitter => Visuals.ProceduralSpriteGenerator.ZombieType.Basic,
+                _ => Visuals.ProceduralSpriteGenerator.ZombieType.Basic
+            };
+        }
+
+        private GameObject CreateEnemyOfType(Visuals.ProceduralSpriteGenerator.ZombieType type, Vector3 position)
+        {
+            var go = new GameObject($"Zombie_{type}");
+            go.transform.position = position;
+
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = Visuals.ProceduralSpriteGenerator.CreateZombieSprite(type, 0, 0);
+            sr.sortingOrder = 9;
+
+            var rb = go.AddComponent<Rigidbody2D>();
+            rb.gravityScale = 0;
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+            rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+
+            go.AddComponent<CircleCollider2D>().radius = 0.35f;
+
+            var health = go.AddComponent<Enemy.EnemyHealth>();
+            var ai = go.AddComponent<Enemy.SimpleEnemyAI>();
+
+            switch (type)
+            {
+                case Visuals.ProceduralSpriteGenerator.ZombieType.Runner:
+                    health.SetMaxHealth(30f);
+                    health.SetPointsOnDeath(15);
+                    ai.ApplySpeedMultiplier(1.8f);
+                    break;
+                case Visuals.ProceduralSpriteGenerator.ZombieType.Tank:
+                    health.SetMaxHealth(200f);
+                    health.SetPointsOnDeath(50);
+                    ai.ApplySpeedMultiplier(0.6f);
+                    ai.ApplyDamageMultiplier(2.5f);
+                    go.transform.localScale = Vector3.one * 1.5f;
+                    break;
+                case Visuals.ProceduralSpriteGenerator.ZombieType.Exploder:
+                    health.SetMaxHealth(40f);
+                    health.SetPointsOnDeath(20);
+                    health.SetIsExploder(true);
+                    ai.ApplySpeedMultiplier(1.2f);
+                    break;
+                default:
+                    health.SetMaxHealth(50f);
+                    health.SetPointsOnDeath(10);
+                    break;
+            }
+
+            if (type == Visuals.ProceduralSpriteGenerator.ZombieType.Tank &&
+                GameManager.Instance?.CurrentNight >= 5 && !bossSpawned)
+            {
+                health.SetMaxHealth(1000f);
+                health.SetPointsOnDeath(200);
+                go.AddComponent<Enemy.BossController>();
+                go.name = "Subject23_Boss";
+            }
+
+            return go;
         }
 
         private Vector3 GetSpawnPosition(out SpawnPoint usedSpawnPoint)
         {
             usedSpawnPoint = null;
 
-            var player = GameObject.FindGameObjectWithTag("Player");
+            var player = GameObject.Find("Player");
             Vector3 playerPos = player != null ? player.transform.position : Vector3.zero;
 
             if (LevelManager.Instance != null)
@@ -348,6 +526,7 @@ namespace Deadlight.Core
             float healthMultiplier = currentNightConfig.healthMultiplier;
             float damageMultiplier = currentNightConfig.damageMultiplier;
             float speedMultiplier = currentNightConfig.speedMultiplier;
+            float objectiveBuff = 1f;
 
             if (GameManager.Instance?.CurrentSettings != null)
             {
@@ -355,6 +534,13 @@ namespace Deadlight.Core
                 healthMultiplier *= settings.enemyHealthMultiplier;
                 damageMultiplier *= settings.enemyDamageMultiplier;
                 speedMultiplier *= settings.enemySpeedMultiplier;
+            }
+
+            if (DayObjectiveSystem.Instance != null)
+            {
+                objectiveBuff = DayObjectiveSystem.Instance.ActiveNightBuffMultiplier;
+                healthMultiplier /= objectiveBuff;
+                damageMultiplier /= objectiveBuff;
             }
 
             var enemyHealth = enemy.GetComponent<Enemy.EnemyHealth>();
@@ -376,6 +562,11 @@ namespace Deadlight.Core
                 simpleAI.ApplyDamageMultiplier(damageMultiplier);
                 simpleAI.ApplySpeedMultiplier(speedMultiplier);
             }
+
+            if (RunModifierSystem.Instance != null)
+            {
+                RunModifierSystem.Instance.ApplyToEnemy(enemy);
+            }
         }
 
         private Transform GetRandomSpawnPoint()
@@ -388,11 +579,52 @@ namespace Deadlight.Core
             return spawnPoints[UnityEngine.Random.Range(0, spawnPoints.Count)];
         }
 
+        private void TrySpawnDaySkirmish()
+        {
+            if (!enableDaySkirmish || daySkirmishTriggered || dayNightCycle == null)
+            {
+                return;
+            }
+
+            if (!dayNightCycle.IsDay || dayNightCycle.TimeRemaining > daySkirmishTriggerTime)
+            {
+                return;
+            }
+
+            daySkirmishTriggered = true;
+            int count = UnityEngine.Random.Range(daySkirmishMin, daySkirmishMax + 1);
+            for (int i = 0; i < count; i++)
+            {
+                SpawnEnemy();
+            }
+        }
+
+        private void SpawnEmergencyBurst()
+        {
+            if (GameManager.Instance?.CurrentState != GameState.NightPhase)
+            {
+                return;
+            }
+
+            int burstCount = Mathf.Clamp(2 + (GameManager.Instance.CurrentNight / 2), 2, 6);
+            for (int i = 0; i < burstCount; i++)
+            {
+                SpawnEnemy();
+            }
+        }
+
         public void RegisterEnemyDeath()
         {
             enemiesRemaining = Mathf.Max(0, enemiesRemaining - 1);
             totalEnemiesKilled++;
             OnEnemyKilled?.Invoke(totalEnemiesKilled);
+
+            if (GameManager.Instance != null &&
+                GameManager.Instance.CurrentState == GameState.DayPhase &&
+                DayObjectiveSystem.Instance != null)
+            {
+                DayObjectiveSystem.Instance.AddProgress(1);
+            }
         }
 
         public void AddSpawnPoint(Transform point)
@@ -448,7 +680,6 @@ namespace Deadlight.Core
 
             runtimeZombiePrefab.AddComponent<Enemy.SimpleEnemyAI>();
             runtimeZombiePrefab.AddComponent<Enemy.EnemyHealth>();
-            runtimeZombiePrefab.tag = "Enemy";
 
             return runtimeZombiePrefab;
         }

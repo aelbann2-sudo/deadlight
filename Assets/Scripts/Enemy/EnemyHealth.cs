@@ -1,6 +1,7 @@
 using UnityEngine;
 using Deadlight.Core;
 using Deadlight.Systems;
+using Deadlight.Visuals;
 using System;
 
 namespace Deadlight.Enemy
@@ -29,6 +30,11 @@ namespace Deadlight.Enemy
         [SerializeField] private float destroyDelay = 0.5f;
         [SerializeField] private GameObject deathEffectPrefab;
 
+        [Header("Type")]
+        [SerializeField] private bool isExploder = false;
+        [SerializeField] private float explosionRadius = 3f;
+        [SerializeField] private float explosionDamage = 30f;
+
         public float MaxHealth => maxHealth;
         public float CurrentHealth => currentHealth;
         public float HealthPercentage => currentHealth / maxHealth;
@@ -36,6 +42,7 @@ namespace Deadlight.Enemy
 
         public event Action<float> OnDamageTaken;
         public event Action OnEnemyDeath;
+        public event Action<float, float> OnHealthChanged;
 
         private Color originalColor;
         private bool isDead = false;
@@ -53,12 +60,15 @@ namespace Deadlight.Enemy
             {
                 originalColor = spriteRenderer.color;
             }
+
+            OnHealthChanged?.Invoke(currentHealth, maxHealth);
         }
 
         public void ApplyHealthMultiplier(float multiplier)
         {
             maxHealth *= multiplier;
             currentHealth = maxHealth;
+            OnHealthChanged?.Invoke(currentHealth, maxHealth);
         }
 
         public void TakeDamage(float damage)
@@ -67,11 +77,19 @@ namespace Deadlight.Enemy
 
             currentHealth = Mathf.Max(0, currentHealth - damage);
             OnDamageTaken?.Invoke(damage);
+            OnHealthChanged?.Invoke(currentHealth, maxHealth);
 
             PlaySound(hurtSound);
             StartCoroutine(DamageFlashCoroutine());
 
-            Debug.Log($"[EnemyHealth] Took {damage} damage. Health: {currentHealth}/{maxHealth}");
+            if (DecalManager.Instance != null)
+                DecalManager.Instance.SpawnBloodDecal(transform.position, 0.6f);
+
+            var zombieSounds = GetComponent<Audio.ZombieSounds>();
+            if (zombieSounds != null) zombieSounds.PlayHitReact();
+
+            var zombieAnim = GetComponent<ZombieAnimator>();
+            if (zombieAnim != null) zombieAnim.PlayHit();
 
             if (currentHealth <= 0)
             {
@@ -84,45 +102,85 @@ namespace Deadlight.Enemy
             if (isDead) return;
             isDead = true;
 
-            Debug.Log("[EnemyHealth] Enemy died!");
-
             PlaySound(deathSound);
             OnEnemyDeath?.Invoke();
 
+            var zombieSounds = GetComponent<Audio.ZombieSounds>();
+            if (zombieSounds != null) zombieSounds.PlayDeath();
+
+            var zombieAnim = GetComponent<ZombieAnimator>();
+            if (zombieAnim != null) zombieAnim.PlayDeath();
+
+            if (isExploder) HandleExploderDeath();
+
+            if (DecalManager.Instance != null)
+            {
+                var sr = GetComponent<SpriteRenderer>();
+                DecalManager.Instance.SpawnBloodDecal(transform.position, 1.2f);
+                DecalManager.Instance.SpawnCorpse(transform.position,
+                    sr != null ? sr.sprite : null,
+                    sr != null ? sr.color : Color.gray);
+            }
+
             var waveManager = FindObjectOfType<WaveManager>();
             if (waveManager != null)
-            {
                 waveManager.RegisterEnemyDeath();
-            }
 
             var pointsSystem = FindObjectOfType<PointsSystem>();
             if (pointsSystem != null)
-            {
                 pointsSystem.AddPoints(pointsOnDeath, "Enemy Kill");
-            }
 
             var enemyAI = GetComponent<EnemyAI>();
             if (enemyAI != null)
-            {
                 enemyAI.OnDeath();
-            }
 
             var spawnTracker = GetComponent<Core.SpawnPointOccupancyTracker>();
             if (spawnTracker != null)
-            {
                 spawnTracker.Release();
-            }
 
             TryDropLoot();
             SpawnDeathEffect();
 
-            var collider = GetComponent<Collider2D>();
-            if (collider != null)
-            {
-                collider.enabled = false;
-            }
+            var collider2d = GetComponent<Collider2D>();
+            if (collider2d != null) collider2d.enabled = false;
 
             Destroy(gameObject, destroyDelay);
+        }
+
+        private void HandleExploderDeath()
+        {
+            if (VFXManager.Instance != null)
+            {
+                VFXManager.Instance.PlayDeathExplosion(transform.position, true);
+                VFXManager.Instance.TriggerScreenShake(0.4f, 0.3f);
+            }
+
+            var hits = Physics2D.OverlapCircleAll(transform.position, explosionRadius);
+            foreach (var hit in hits)
+            {
+                if (hit.gameObject == gameObject) continue;
+
+                var playerHealth = hit.GetComponent<Player.PlayerHealth>();
+                if (playerHealth != null)
+                {
+                    float dist = Vector2.Distance(transform.position, hit.transform.position);
+                    float falloff = 1f - (dist / explosionRadius);
+                    playerHealth.TakeDamage(explosionDamage * Mathf.Max(0, falloff));
+                }
+
+                var otherEnemy = hit.GetComponent<EnemyHealth>();
+                if (otherEnemy != null && otherEnemy != this)
+                {
+                    float dist = Vector2.Distance(transform.position, hit.transform.position);
+                    float falloff = 1f - (dist / explosionRadius);
+                    otherEnemy.TakeDamage(explosionDamage * 0.5f * Mathf.Max(0, falloff));
+                }
+            }
+        }
+
+        public void SetIsExploder(bool exploder)
+        {
+            isExploder = exploder;
         }
 
         private void TryDropLoot()
@@ -135,6 +193,11 @@ namespace Deadlight.Enemy
             if (GameManager.Instance?.CurrentSettings != null)
             {
                 actualDropChance *= GameManager.Instance.CurrentSettings.resourceSpawnMultiplier;
+            }
+
+            if (RunModifierSystem.Instance != null)
+            {
+                actualDropChance *= RunModifierSystem.Instance.GetAmmoDropMultiplier();
             }
 
             if (dropRoll <= actualDropChance)
@@ -197,6 +260,7 @@ namespace Deadlight.Enemy
         {
             if (isDead) return;
             currentHealth = Mathf.Min(maxHealth, currentHealth + amount);
+            OnHealthChanged?.Invoke(currentHealth, maxHealth);
         }
     }
 }

@@ -50,6 +50,8 @@ namespace Deadlight.Core
         [SerializeField] private bool autoBootstrapGameScene = true;
         [SerializeField] private bool autoStartWhenGameSceneLoads = true;
         [SerializeField] private float dawnAutoAdvanceDelay = 4f;
+        [SerializeField] private float[] dayDurationsByNight = { 60f, 50f, 45f, 40f, 35f };
+        [SerializeField] private float targetNightDuration = 120f;
 
         public GameState CurrentState => currentState;
         public Difficulty CurrentDifficulty => currentDifficulty;
@@ -196,6 +198,7 @@ namespace Deadlight.Core
         public void StartNewGame()
         {
             EnsureDifficultySettings();
+            EnsureCoreManagers();
 
             currentNight = 1;
             ResetRunState();
@@ -208,6 +211,14 @@ namespace Deadlight.Core
             if (shooting != null)
             {
                 shooting.ResetLoadout(WeaponData.CreatePistol());
+            }
+
+            var modifierSystem = FindObjectOfType<RunModifierSystem>();
+            if (modifierSystem != null)
+            {
+                int runSeed = DateTime.Now.Millisecond + (int)Time.realtimeSinceStartup;
+                modifierSystem.GenerateRunModifiers(runSeed);
+                modifierSystem.RollNightEvent(currentNight, runSeed + 37);
             }
 
             if (LevelManager.Instance != null)
@@ -227,6 +238,7 @@ namespace Deadlight.Core
             }
 
             SetPaused(false);
+            ApplyPhaseDurationsForNight(currentNight);
             ChangeState(GameState.DayPhase);
             OnNightChanged?.Invoke(currentNight);
         }
@@ -250,6 +262,12 @@ namespace Deadlight.Core
         public void StartNightPhase()
         {
             ChangeState(GameState.NightPhase);
+
+            var waveManager = FindObjectOfType<WaveManager>();
+            if (waveManager != null && !waveManager.IsSpawning && waveManager.EnemiesRemaining <= 0)
+            {
+                waveManager.StartNightWaves();
+            }
         }
 
         public void OnNightSurvived()
@@ -281,6 +299,7 @@ namespace Deadlight.Core
             }
 
             currentNight = Mathf.Min(currentNight + 1, maxNights);
+            ApplyPhaseDurationsForNight(currentNight);
             OnNightChanged?.Invoke(currentNight);
             ChangeState(GameState.DayPhase);
         }
@@ -382,14 +401,84 @@ namespace Deadlight.Core
             {
                 new GameObject("ProgressionManager").AddComponent<ProgressionManager>();
             }
+
+            if (FindObjectOfType<DayObjectiveSystem>() == null)
+            {
+                new GameObject("DayObjectiveSystem").AddComponent<DayObjectiveSystem>();
+            }
+
+            if (FindObjectOfType<RunModifierSystem>() == null)
+            {
+                new GameObject("RunModifierSystem").AddComponent<RunModifierSystem>();
+            }
+
+            if (FindObjectOfType<CosmeticUnlockSystem>() == null)
+            {
+                new GameObject("CosmeticUnlockSystem").AddComponent<CosmeticUnlockSystem>();
+            }
         }
 
         private GameObject EnsurePlayerExists()
         {
-            var existingPlayer = GameObject.FindGameObjectWithTag("Player");
-            if (existingPlayer != null)
+            var playerControllers = FindObjectsOfType<PlayerController>();
+            GameObject primaryPlayer = null;
+
+            if (playerControllers.Length > 0)
             {
-                return existingPlayer;
+                int bestIndex = 0;
+                bool foundSpritePlayer = false;
+
+                for (int i = 0; i < playerControllers.Length; i++)
+                {
+                    var candidateRenderer = playerControllers[i].GetComponent<SpriteRenderer>();
+                    if (candidateRenderer != null && candidateRenderer.sprite != null)
+                    {
+                        bestIndex = i;
+                        foundSpritePlayer = true;
+                        break;
+                    }
+                }
+
+                if (!foundSpritePlayer)
+                {
+                    bestIndex = 0;
+                }
+
+                primaryPlayer = playerControllers[bestIndex].gameObject;
+
+                for (int i = 0; i < playerControllers.Length; i++)
+                {
+                    if (i == bestIndex) continue;
+                    if (playerControllers[i] != null && playerControllers[i].gameObject.activeSelf)
+                    {
+                        Debug.LogWarning("[GameManager] Multiple players detected. Disabling duplicate player object.");
+                        playerControllers[i].gameObject.SetActive(false);
+                    }
+                }
+            }
+
+            if (primaryPlayer == null)
+            {
+                var taggedPlayer = GameObject.FindGameObjectWithTag("Player");
+                if (taggedPlayer != null)
+                {
+                    primaryPlayer = taggedPlayer;
+                }
+            }
+
+            if (primaryPlayer == null)
+            {
+                var namedPlayer = GameObject.Find("Player");
+                if (namedPlayer != null)
+                {
+                    primaryPlayer = namedPlayer;
+                }
+            }
+
+            if (primaryPlayer != null)
+            {
+                primaryPlayer.tag = "Player";
+                return primaryPlayer;
             }
 
             var player = new GameObject("Player")
@@ -419,7 +508,18 @@ namespace Deadlight.Core
                 spriteRenderer = player.AddComponent<SpriteRenderer>();
             }
 
-            if (spriteRenderer.sprite == null)
+            bool hasAnySprite = false;
+            var allRenderers = player.GetComponentsInChildren<SpriteRenderer>(true);
+            for (int i = 0; i < allRenderers.Length; i++)
+            {
+                if (allRenderers[i] != null && allRenderers[i].sprite != null)
+                {
+                    hasAnySprite = true;
+                    break;
+                }
+            }
+
+            if (spriteRenderer.sprite == null && !hasAnySprite)
             {
                 spriteRenderer.sprite = CreateRuntimeCircleSprite(new Color(0.2f, 0.8f, 0.3f), 32, 14f);
                 spriteRenderer.sortingOrder = 10;
@@ -632,6 +732,9 @@ namespace Deadlight.Core
                 progressionManager.ResetProgress();
             }
 
+            var objectiveSystem = FindObjectOfType<DayObjectiveSystem>();
+            objectiveSystem?.ResetObjective();
+
             foreach (var enemy in FindObjectsOfType<EnemyHealth>())
             {
                 if (enemy != null)
@@ -709,6 +812,20 @@ namespace Deadlight.Core
         private static bool IsMainMenuSceneEmpty()
         {
             return FindObjectOfType<MenuManager>() == null && FindObjectOfType<Canvas>() == null;
+        }
+
+        private void ApplyPhaseDurationsForNight(int night)
+        {
+            var dayNight = FindObjectOfType<DayNightCycle>();
+            if (dayNight == null)
+            {
+                return;
+            }
+
+            int idx = Mathf.Clamp(night - 1, 0, Mathf.Max(0, dayDurationsByNight.Length - 1));
+            float dayDuration = dayDurationsByNight.Length > 0 ? dayDurationsByNight[idx] : 60f;
+            dayNight.SetDayDuration(dayDuration);
+            dayNight.SetNightDuration(targetNightDuration);
         }
     }
 }

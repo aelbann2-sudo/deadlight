@@ -502,10 +502,13 @@ namespace Deadlight.UI
             {
                 var stats = PointsSystem.Instance.GetGameStats();
                 int nightReached = Core.GameManager.Instance != null ? Core.GameManager.Instance.CurrentNight : stats.nightsSurvived + 1;
+                int cosmeticCount = CosmeticUnlockSystem.Instance != null ? CosmeticUnlockSystem.Instance.GetUnlockedCosmetics().Count : 0;
                 _statsText.text = $"Night Reached: {nightReached}\n" +
                     $"Enemies Killed: {stats.enemiesKilled}\n" +
                     $"Points Earned: {stats.totalEarned}\n" +
-                    $"Final Score: {stats.finalScore}";
+                    $"Final Score: {stats.finalScore}\n" +
+                    $"Top Grade: {PointsSystem.Instance.HighestNightGrade}\n" +
+                    $"Cosmetics Unlocked: {cosmeticCount}";
             }
         }
     }
@@ -524,10 +527,13 @@ namespace Deadlight.UI
             if (_statsText != null && PointsSystem.Instance != null)
             {
                 var stats = PointsSystem.Instance.GetGameStats();
+                int cosmeticCount = CosmeticUnlockSystem.Instance != null ? CosmeticUnlockSystem.Instance.GetUnlockedCosmetics().Count : 0;
                 _statsText.text = $"Nights Survived: {stats.nightsSurvived}\n" +
                     $"Enemies Killed: {stats.enemiesKilled}\n" +
                     $"Points Earned: {stats.totalEarned}\n" +
-                    $"Final Score: {stats.finalScore}";
+                    $"Final Score: {stats.finalScore}\n" +
+                    $"Top Grade: {PointsSystem.Instance.HighestNightGrade}\n" +
+                    $"Cosmetics Unlocked: {cosmeticCount}";
             }
         }
     }

@@ -84,7 +84,13 @@ namespace Deadlight.Level
                 {
                     if (hit.collider == null) continue;
 
-                    if (hit.collider.CompareTag("Player") || hit.collider.CompareTag("Enemy"))
+                    bool isPlayer = hit.collider.GetComponent<Deadlight.Player.PlayerController>() != null ||
+                                    hit.collider.GetComponent<Deadlight.Player.PlayerHealth>() != null;
+                    bool isEnemy = hit.collider.GetComponent<Deadlight.Enemy.EnemyHealth>() != null ||
+                                   hit.collider.GetComponent<Deadlight.Enemy.EnemyAI>() != null ||
+                                   hit.collider.GetComponent<Deadlight.Enemy.SimpleEnemyAI>() != null;
+
+                    if (isPlayer || isEnemy)
                     {
                         continue;
                     }

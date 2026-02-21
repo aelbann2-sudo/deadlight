@@ -70,6 +70,12 @@ namespace Deadlight.UI
         private string cachedDifficulty = "NORMAL";
         private float cachedTimeRemaining;
         private bool cachedReloading;
+        private string cachedObjectiveTitle = "No objective";
+        private string cachedObjectiveProgress = "";
+        private string cachedModifierText = "MOD: STANDARD";
+        private string cachedWorldEvent = "";
+        private bool showHitMarker;
+        private float hitMarkerUntil;
 
         private GUIStyle bodyStyle;
         private GUIStyle headerStyle;
@@ -180,7 +186,28 @@ namespace Deadlight.UI
                 {
                     cachedPhase = "PAUSED";
                 }
+                else
+                {
+                    switch (GameManager.Instance.CurrentState)
+                    {
+                        case GameState.DawnPhase:
+                            cachedPhase = "DAWN";
+                            break;
+                        case GameState.Transition:
+                            cachedPhase = "TRANSITION";
+                            break;
+                        case GameState.GameOver:
+                            cachedPhase = "GAME OVER";
+                            break;
+                        case GameState.Victory:
+                            cachedPhase = "VICTORY";
+                            break;
+                    }
+                }
             }
+
+            UpdateObjectiveFromState();
+            UpdateModifierFromState();
         }
 
         private void OnDestroy()
@@ -287,6 +314,8 @@ namespace Deadlight.UI
                 playerShooting.OnAmmoChanged += UpdateAmmoUI;
                 playerShooting.OnReloadStarted += ShowReloadIndicator;
                 playerShooting.OnReloadCompleted += HideReloadIndicator;
+                playerShooting.OnLowAmmoWarning += HandleLowAmmoWarning;
+                playerShooting.OnEmptyTriggerPulled += HandleEmptyTrigger;
             }
 
             if (PointsSystem.Instance != null)
@@ -314,6 +343,24 @@ namespace Deadlight.UI
             {
                 GameManager.Instance.OnNightChanged += UpdateNightUI;
             }
+
+            if (DayObjectiveSystem.Instance != null)
+            {
+                DayObjectiveSystem.Instance.OnObjectiveGenerated += UpdateObjectiveUI;
+                DayObjectiveSystem.Instance.OnObjectiveUpdated += UpdateObjectiveUI;
+                DayObjectiveSystem.Instance.OnObjectiveCompleted += UpdateObjectiveUI;
+            }
+
+            if (RunModifierSystem.Instance != null)
+            {
+                RunModifierSystem.Instance.OnModifiersGenerated += UpdateModifierUI;
+                RunModifierSystem.Instance.OnWorldEventChanged += UpdateWorldEventUI;
+            }
+
+            if (Core.GameEffects.Instance != null)
+            {
+                Core.GameEffects.Instance.OnHitConfirmed += ShowHitMarker;
+            }
         }
 
         private void UnsubscribeFromEvents()
@@ -329,6 +376,8 @@ namespace Deadlight.UI
                 playerShooting.OnAmmoChanged -= UpdateAmmoUI;
                 playerShooting.OnReloadStarted -= ShowReloadIndicator;
                 playerShooting.OnReloadCompleted -= HideReloadIndicator;
+                playerShooting.OnLowAmmoWarning -= HandleLowAmmoWarning;
+                playerShooting.OnEmptyTriggerPulled -= HandleEmptyTrigger;
             }
 
             if (PointsSystem.Instance != null)
@@ -354,6 +403,24 @@ namespace Deadlight.UI
             {
                 GameManager.Instance.OnNightChanged -= UpdateNightUI;
             }
+
+            if (DayObjectiveSystem.Instance != null)
+            {
+                DayObjectiveSystem.Instance.OnObjectiveGenerated -= UpdateObjectiveUI;
+                DayObjectiveSystem.Instance.OnObjectiveUpdated -= UpdateObjectiveUI;
+                DayObjectiveSystem.Instance.OnObjectiveCompleted -= UpdateObjectiveUI;
+            }
+
+            if (RunModifierSystem.Instance != null)
+            {
+                RunModifierSystem.Instance.OnModifiersGenerated -= UpdateModifierUI;
+                RunModifierSystem.Instance.OnWorldEventChanged -= UpdateWorldEventUI;
+            }
+
+            if (Core.GameEffects.Instance != null)
+            {
+                Core.GameEffects.Instance.OnHitConfirmed -= ShowHitMarker;
+            }
         }
 
         private void InitializeUI()
@@ -372,6 +439,8 @@ namespace Deadlight.UI
 
             UpdateNightUI(GameManager.Instance?.CurrentNight ?? 1);
             HideReloadIndicator();
+            UpdateObjectiveFromState();
+            UpdateModifierFromState();
 
             if (pointsPopup != null)
                 pointsPopup.gameObject.SetActive(false);
@@ -572,6 +641,7 @@ namespace Deadlight.UI
             GUI.Label(new Rect(commandPanel.x + 14f, commandPanel.y + 34f, 580f, 20f),
                 $"PHASE {cachedPhase}  |  NIGHT {cachedNight}/{(GameManager.Instance?.MaxNights ?? 5)}  |  TIMER {FormatTime(cachedTimeRemaining)}", bodyStyle);
             GUI.Label(new Rect(commandPanel.x + 14f, commandPanel.y + 56f, 580f, 18f), GetObjectiveText(), accentStyle);
+            GUI.Label(new Rect(commandPanel.x + 620f, commandPanel.y + 56f, commandPanel.width - 900f, 18f), cachedModifierText, smallStyle);
 
             GUI.Label(new Rect(commandPanel.xMax - 280f, commandPanel.y + 8f, 260f, 20f), $"DIFFICULTY: {cachedDifficulty}", rightStyle);
             GUI.Label(new Rect(commandPanel.xMax - 280f, commandPanel.y + 30f, 260f, 20f), $"POINTS: {cachedPoints:N0}", rightStyle);
@@ -617,9 +687,12 @@ namespace Deadlight.UI
             GUI.Label(new Rect(weaponPanel.x + 14f, weaponPanel.y + 168f, weaponPanel.width - 28f, 16f),
                 "LMB FIRE  |  R RELOAD  |  SHIFT SPRINT  |  ESC PAUSE", smallStyle);
 
-            DrawCenterReticle(screenWidth, screenHeight);
+            DrawAimReticle(screenHeight);
             DrawWarnings(screenWidth);
             DrawControlDock(screenWidth, pad);
+            DrawObjectiveCard(screenWidth, screenHeight, pad);
+            DrawHitMarker(screenWidth, screenHeight);
+            DrawPauseOverlay(screenWidth, screenHeight);
         }
 
         private void DrawPanel(Rect rect)
@@ -664,15 +737,18 @@ namespace Deadlight.UI
             GUI.DrawTexture(new Rect(rect.x, rect.yMax - 1f, rect.width, 1f), borderTex);
         }
 
-        private void DrawCenterReticle(float screenWidth, float screenHeight)
+        private void DrawAimReticle(float screenHeight)
         {
             if (reticleTex == null)
             {
                 return;
             }
 
-            float size = 38f;
-            Rect reticleRect = new Rect((screenWidth - size) * 0.5f, (screenHeight - size) * 0.5f, size, size);
+            float size = 34f;
+            Vector3 mouse = Input.mousePosition;
+            float x = Mathf.Clamp(mouse.x - (size * 0.5f), 0f, Screen.width - size);
+            float y = Mathf.Clamp((screenHeight - mouse.y) - (size * 0.5f), 0f, screenHeight - size);
+            Rect reticleRect = new Rect(x, y, size, size);
             GUI.DrawTexture(reticleRect, reticleTex);
         }
 
@@ -734,6 +810,11 @@ namespace Deadlight.UI
 
         private string GetObjectiveText()
         {
+            if (!string.IsNullOrEmpty(cachedObjectiveTitle))
+            {
+                return $"OBJ: {cachedObjectiveTitle} {cachedObjectiveProgress}";
+            }
+
             if (cachedPhase == "DAY")
             {
                 return "OBJECTIVE: SCAVENGE SUPPLIES AND PREPARE DEFENSES";
@@ -750,6 +831,113 @@ namespace Deadlight.UI
             }
 
             return "OBJECTIVE: SURVIVE FIVE NIGHTS";
+        }
+
+        private void UpdateObjectiveUI(DayObjective objective)
+        {
+            if (objective == null)
+            {
+                cachedObjectiveTitle = "No objective";
+                cachedObjectiveProgress = string.Empty;
+                return;
+            }
+
+            cachedObjectiveTitle = objective.title.ToUpper();
+            cachedObjectiveProgress = $"[{objective.progress}/{objective.targetCount}]";
+        }
+
+        private void UpdateModifierUI(System.Collections.Generic.IReadOnlyList<RunModifier> modifiers)
+        {
+            if (modifiers == null || modifiers.Count == 0)
+            {
+                cachedModifierText = "MOD: STANDARD";
+                return;
+            }
+
+            cachedModifierText = $"MOD: {modifiers[0].title.ToUpper()}";
+        }
+
+        private void UpdateWorldEventUI(string worldEvent)
+        {
+            cachedWorldEvent = string.IsNullOrWhiteSpace(worldEvent) ? string.Empty : $"EVENT: {worldEvent.ToUpper()}";
+        }
+
+        private void UpdateObjectiveFromState()
+        {
+            if (DayObjectiveSystem.Instance != null)
+            {
+                UpdateObjectiveUI(DayObjectiveSystem.Instance.GetActiveObjective());
+            }
+        }
+
+        private void UpdateModifierFromState()
+        {
+            if (RunModifierSystem.Instance != null)
+            {
+                UpdateModifierUI(RunModifierSystem.Instance.GetActiveModifiers());
+                UpdateWorldEventUI(RunModifierSystem.Instance.ActiveWorldEvent);
+            }
+        }
+
+        private void DrawObjectiveCard(float screenWidth, float screenHeight, float pad)
+        {
+            Rect objectiveRect = new Rect((screenWidth * 0.5f) - 190f, screenHeight - 112f - pad, 380f, 90f);
+            DrawPanel(objectiveRect);
+            GUI.Label(new Rect(objectiveRect.x + 12f, objectiveRect.y + 8f, 340f, 20f), "MISSION TRACKER", sectionStyle);
+            GUI.Label(new Rect(objectiveRect.x + 12f, objectiveRect.y + 34f, 340f, 18f), $"{cachedObjectiveTitle} {cachedObjectiveProgress}", bodyStyle);
+            GUI.Label(new Rect(objectiveRect.x + 12f, objectiveRect.y + 56f, 350f, 16f), string.IsNullOrEmpty(cachedWorldEvent) ? "EVENT: NONE" : cachedWorldEvent, smallStyle);
+        }
+
+        private void DrawPauseOverlay(float screenWidth, float screenHeight)
+        {
+            if (GameManager.Instance == null || !GameManager.Instance.IsPaused)
+            {
+                return;
+            }
+
+            Color prev = GUI.color;
+            GUI.color = new Color(0f, 0f, 0f, 0.35f);
+            GUI.DrawTexture(new Rect(0f, 0f, screenWidth, screenHeight), panelTex);
+            GUI.color = Color.white;
+            GUI.Label(new Rect((screenWidth * 0.5f) - 150f, (screenHeight * 0.5f) - 20f, 300f, 40f), "PAUSED - PRESS ESC TO RESUME", warningStyle);
+            GUI.color = prev;
+        }
+
+        private void ShowHitMarker()
+        {
+            showHitMarker = true;
+            hitMarkerUntil = Time.unscaledTime + 0.08f;
+        }
+
+        private void DrawHitMarker(float screenWidth, float screenHeight)
+        {
+            if (!showHitMarker)
+            {
+                return;
+            }
+
+            if (Time.unscaledTime > hitMarkerUntil)
+            {
+                showHitMarker = false;
+                return;
+            }
+
+            float cx = screenWidth * 0.5f;
+            float cy = screenHeight * 0.5f;
+            GUI.DrawTexture(new Rect(cx - 10f, cy - 1f, 20f, 2f), warningTex);
+            GUI.DrawTexture(new Rect(cx - 1f, cy - 10f, 2f, 20f), warningTex);
+        }
+
+        private void HandleLowAmmoWarning(int current, int reserve)
+        {
+            cachedAmmoCurrent = current;
+            cachedAmmoReserve = reserve;
+        }
+
+        private void HandleEmptyTrigger()
+        {
+            cachedReloading = true;
+            Invoke(nameof(HideReloadIndicator), 0.2f);
         }
 
         private string GetThreatLabel(float threatRatio)
@@ -807,17 +995,6 @@ namespace Deadlight.UI
                 {
                     texture.SetPixel(center + i, center, color);
                     texture.SetPixel(center, center + i, color);
-                }
-            }
-
-            for (int y = -2; y <= 2; y++)
-            {
-                for (int x = -2; x <= 2; x++)
-                {
-                    if (x * x + y * y <= 3)
-                    {
-                        texture.SetPixel(center + x, center + y, color);
-                    }
                 }
             }
 

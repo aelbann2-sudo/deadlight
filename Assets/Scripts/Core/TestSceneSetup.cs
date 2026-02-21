@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using Deadlight.Audio;
 using Deadlight.Level;
 using Deadlight.Narrative;
 using Deadlight.Visuals;
@@ -107,7 +108,7 @@ namespace Deadlight.Core
             camObj.tag = "MainCamera";
             var cam = camObj.AddComponent<Camera>();
             cam.orthographic = true;
-            cam.orthographicSize = 7;
+            cam.orthographicSize = 4.5f;
             cam.backgroundColor = new Color(0.12f, 0.14f, 0.1f);
             cam.clearFlags = CameraClearFlags.SolidColor;
             camObj.AddComponent<AudioListener>();
@@ -245,9 +246,25 @@ namespace Deadlight.Core
             firePoint.transform.SetParent(playerObj.transform);
             firePoint.transform.localPosition = new Vector3(0.5f, 0, 0);
 
+            playerObj.AddComponent<Narrative.PlayerVoice>();
+            playerObj.AddComponent<Player.ThrowableSystem>();
+
             var shooting = playerObj.GetComponent<Player.PlayerShooting>();
             shooting.SetFirePoint(firePoint.transform);
             CreateBulletPrefab(shooting);
+
+            var shotgun = ScriptableObject.CreateInstance<Data.WeaponData>();
+            shotgun.weaponName = "Shotgun";
+            shotgun.damage = 12f;
+            shotgun.fireRate = 0.7f;
+            shotgun.magazineSize = 6;
+            shotgun.reloadTime = 2f;
+            shotgun.bulletSpeed = 25f;
+            shotgun.range = 12f;
+            shotgun.spread = 12f;
+            shotgun.isAutomatic = false;
+            shotgun.pelletsPerShot = 5;
+            shooting.SetSecondWeapon(shotgun);
         }
 
         private void CreateBulletPrefab(Player.PlayerShooting shooting)
@@ -363,6 +380,18 @@ namespace Deadlight.Core
                 var atmObj = new GameObject("AtmosphereController");
                 atmObj.transform.SetParent(managersParent);
                 atmObj.AddComponent<AtmosphereController>();
+
+                var decalObj = new GameObject("DecalManager");
+                decalObj.transform.SetParent(managersParent);
+                decalObj.AddComponent<DecalManager>();
+
+                var endingObj = new GameObject("EndingSequence");
+                endingObj.transform.SetParent(managersParent);
+                endingObj.AddComponent<Narrative.EndingSequence>();
+
+                var storyObj = new GameObject("StoryEventManager");
+                storyObj.transform.SetParent(managersParent);
+                storyObj.AddComponent<Narrative.StoryEventManager>();
             }
 
             if (VFXManager.Instance == null)
@@ -379,6 +408,14 @@ namespace Deadlight.Core
                 if (managersParent != null)
                     atmObj.transform.SetParent(managersParent);
                 atmObj.AddComponent<AtmosphereController>();
+            }
+
+            if (DecalManager.Instance == null)
+            {
+                var decalObj = new GameObject("DecalManager");
+                if (managersParent != null)
+                    decalObj.transform.SetParent(managersParent);
+                decalObj.AddComponent<DecalManager>();
             }
 
             if (Deadlight.UI.GameUI.Instance == null)
@@ -398,6 +435,64 @@ namespace Deadlight.Core
             var envParent = new GameObject("Environment");
             CreateTown(envParent.transform);
             CreatePerimeter(envParent.transform);
+            SpawnLorePickups(envParent.transform);
+        }
+
+        private void SpawnLorePickups(Transform parent)
+        {
+            var loreParent = new GameObject("LorePickups");
+            loreParent.transform.SetParent(parent);
+
+            string[] loreIds = { "lab_note_1", "chen_1", "chen_2", "journal_1", "military_1", "chen_3", "chen_4", "newspaper_1", "chen_5", "chen_6", "chen_7", "chen_8" };
+            Vector3[] positions = {
+                new Vector3(-7, 11, 0), new Vector3(9, 11, 0),
+                new Vector3(-13, -5, 0), new Vector3(13, -5, 0),
+                new Vector3(-5, -13, 0), new Vector3(5, -13, 0),
+                new Vector3(1, 19, 0), new Vector3(-19, 8, 0),
+                new Vector3(19, -8, 0), new Vector3(-15, -15, 0),
+                new Vector3(15, 15, 0), new Vector3(0, -17, 0)
+            };
+
+            int count = Mathf.Min(loreIds.Length, positions.Length);
+            for (int i = 0; i < count; i++)
+            {
+                var loreObj = new GameObject($"Lore_{loreIds[i]}");
+                loreObj.transform.SetParent(loreParent.transform);
+                loreObj.transform.position = positions[i];
+
+                var sr = loreObj.AddComponent<SpriteRenderer>();
+                var tex = new Texture2D(8, 8);
+                var pixels = new Color[64];
+                for (int p = 0; p < 64; p++)
+                    pixels[p] = new Color(1f, 0.9f, 0.5f, 0.9f);
+                tex.SetPixels(pixels);
+                tex.Apply();
+                tex.filterMode = FilterMode.Point;
+                sr.sprite = Sprite.Create(tex, new Rect(0, 0, 8, 8), new Vector2(0.5f, 0.5f), 16f);
+                sr.sortingOrder = 5;
+
+                var pickup = loreObj.AddComponent<LorePickup>();
+                pickup.SetLoreId(loreIds[i]);
+
+                var glow = new GameObject("Glow");
+                glow.transform.SetParent(loreObj.transform);
+                glow.transform.localPosition = Vector3.zero;
+                var glowSr = glow.AddComponent<SpriteRenderer>();
+                var glowTex = new Texture2D(16, 16);
+                var glowPx = new Color[256];
+                Vector2 c = new Vector2(8, 8);
+                for (int y = 0; y < 16; y++)
+                    for (int x = 0; x < 16; x++)
+                    {
+                        float d = Vector2.Distance(new Vector2(x, y), c) / 8f;
+                        glowPx[y * 16 + x] = d < 1f ? new Color(1f, 0.8f, 0.3f, 0.4f * (1f - d)) : Color.clear;
+                    }
+                glowTex.SetPixels(glowPx);
+                glowTex.Apply();
+                glowTex.filterMode = FilterMode.Bilinear;
+                glowSr.sprite = Sprite.Create(glowTex, new Rect(0, 0, 16, 16), new Vector2(0.5f, 0.5f), 8f);
+                glowSr.sortingOrder = 4;
+            }
         }
 
         private void CreateTown(Transform parent)
@@ -657,6 +752,8 @@ namespace Deadlight.Core
             enemyObj.AddComponent<Enemy.EnemyHealth>();
             enemyObj.AddComponent<Enemy.SimpleEnemyAI>();
             enemyObj.AddComponent<EnemyHealthBar>();
+            enemyObj.AddComponent<ZombieAnimator>();
+            enemyObj.AddComponent<Audio.ZombieSounds>();
         }
 
         // ===================== HUD =====================
@@ -735,29 +832,31 @@ namespace Deadlight.Core
             sfImage.type = Image.Type.Filled;
             sfImage.fillMethod = Image.FillMethod.Horizontal;
 
-            // Ammo
+            // Ammo display (bottom right, large CoD Zombies style)
             var ammoText = CreateUIText(canvas.transform, "AmmoText",
-                new Vector2(0, 1), "15 / 60", font, 22, TextAnchor.MiddleLeft, Color.white,
-                new Vector2(0, 1), new Vector2(0, 1), new Vector2(20, -78), new Vector2(200, 30));
+                new Vector2(1, 0), "15 / 60", font, 36, TextAnchor.LowerRight, Color.white,
+                new Vector2(1, 0), new Vector2(1, 0), new Vector2(-20, 50), new Vector2(300, 45));
+            ammoText.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
-            var ammoIcon = CreateUIText(canvas.transform, "AmmoIcon",
-                new Vector2(1, 0.5f), ">>", font, 16, TextAnchor.MiddleRight, new Color(1f, 0.9f, 0.4f),
-                new Vector2(0, 1), new Vector2(0, 1), new Vector2(160, -78), new Vector2(50, 30));
+            var weaponName = CreateUIText(canvas.transform, "WeaponName",
+                new Vector2(1, 0), "PISTOL", font, 14, TextAnchor.LowerRight, new Color(1f, 0.9f, 0.6f, 0.7f),
+                new Vector2(1, 0), new Vector2(1, 0), new Vector2(-20, 90), new Vector2(200, 20));
 
-            // Night & Wave (top center)
+            // Night & Round (top center)
             var nightText = CreateUIText(canvas.transform, "NightText",
-                new Vector2(0.5f, 1), "Night 1", font, 28, TextAnchor.UpperCenter, new Color(0.9f, 0.8f, 0.5f),
-                new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -15), new Vector2(200, 35));
+                new Vector2(0.5f, 1), "NIGHT 1", font, 32, TextAnchor.UpperCenter, new Color(0.9f, 0.8f, 0.5f),
+                new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -12), new Vector2(300, 40));
             nightText.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
             var waveText = CreateUIText(canvas.transform, "WaveText",
                 new Vector2(0.5f, 1), "", font, 18, TextAnchor.UpperCenter, new Color(0.8f, 0.6f, 0.5f),
-                new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -50), new Vector2(200, 25));
+                new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -52), new Vector2(200, 25));
 
             // Enemy count (top right)
             var enemyCount = CreateUIText(canvas.transform, "EnemyCount",
-                new Vector2(1, 1), "Enemies: 0", font, 18, TextAnchor.UpperRight, new Color(0.8f, 0.5f, 0.5f),
-                new Vector2(1, 1), new Vector2(1, 1), new Vector2(-20, -20), new Vector2(200, 30));
+                new Vector2(1, 1), "0", font, 24, TextAnchor.UpperRight, new Color(0.8f, 0.5f, 0.5f),
+                new Vector2(1, 1), new Vector2(1, 1), new Vector2(-20, -20), new Vector2(100, 30));
+            enemyCount.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
             // Status text (center)
             var statusText = CreateUIText(canvas.transform, "StatusText",
@@ -775,19 +874,26 @@ namespace Deadlight.Core
 
             // Controls hint
             var controlsHint = CreateUIText(canvas.transform, "Controls",
-                new Vector2(1, 0), "WASD - Move    Mouse - Aim    Click - Shoot    Shift - Sprint    R - Reload",
-                font, 13, TextAnchor.LowerRight, new Color(1, 1, 1, 0.5f),
-                new Vector2(1, 0), new Vector2(1, 0), new Vector2(-20, 15), new Vector2(600, 25));
+                new Vector2(1, 0), "WASD-Move  Mouse-Aim  Click-Shoot  Space-Dodge  Shift-Sprint  R-Reload  1/2-Switch Weapon  E-Interact",
+                font, 12, TextAnchor.LowerRight, new Color(1, 1, 1, 0.5f),
+                new Vector2(1, 0), new Vector2(1, 0), new Vector2(-20, 15), new Vector2(800, 25));
 
             // Day timer
             var dayTimerText = CreateUIText(canvas.transform, "DayTimer",
                 new Vector2(0.5f, 1), "", font, 20, TextAnchor.UpperCenter, new Color(1f, 0.9f, 0.6f),
                 new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -75), new Vector2(200, 25));
 
-            // Points display
+            // Points display (bottom center, CoD Zombies style)
             var pointsText = CreateUIText(canvas.transform, "PointsDisplay",
-                new Vector2(1, 1), "Score: 0", font, 20, TextAnchor.UpperRight, new Color(1f, 0.85f, 0.3f),
-                new Vector2(1, 1), new Vector2(1, 1), new Vector2(-20, -50), new Vector2(200, 25));
+                new Vector2(0.5f, 0), "0", font, 28, TextAnchor.LowerCenter, new Color(1f, 0.85f, 0.3f),
+                new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 50), new Vector2(200, 35));
+            pointsText.GetComponent<Text>().fontStyle = FontStyle.Bold;
+
+            // Throwables display (bottom left)
+            var throwablesText = CreateUIText(canvas.transform, "ThrowablesDisplay",
+                new Vector2(0, 0), "Q:Grenade(2)  E:Molotov(1)", font, 14, TextAnchor.LowerLeft,
+                new Color(0.8f, 0.8f, 0.8f, 0.7f),
+                new Vector2(0, 0), new Vector2(0, 0), new Vector2(20, 50), new Vector2(300, 20));
 
             // Radio transmission panel
             var radioPanel = CreateUIPanel(canvas.transform, "RadioPanel",

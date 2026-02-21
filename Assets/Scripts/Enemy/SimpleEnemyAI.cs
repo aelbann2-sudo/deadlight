@@ -14,6 +14,8 @@ namespace Deadlight.Enemy
         [Header("Combat")]
         [SerializeField] private float damage = 10f;
         [SerializeField] private float attackCooldown = 1f;
+        [SerializeField] private float attackWindup = 0.12f;
+        [SerializeField] private Color telegraphColor = new Color(1f, 0.8f, 0.25f, 1f);
         
         [Header("Behavior")]
         [SerializeField] private bool alwaysAggressive = true;
@@ -34,6 +36,8 @@ namespace Deadlight.Enemy
         private float damageMultiplier = 1f;
         private float baseMoveSpeed;
         private float baseChaseSpeed;
+        private bool isAttackWindingUp;
+        private Color baseColor = Color.white;
 
         private void Awake()
         {
@@ -43,6 +47,10 @@ namespace Deadlight.Enemy
             startPosition = transform.position;
             baseMoveSpeed = moveSpeed;
             baseChaseSpeed = chaseSpeed;
+            if (spriteRenderer != null)
+            {
+                baseColor = spriteRenderer.color;
+            }
         }
 
         private void Start()
@@ -160,12 +168,41 @@ namespace Deadlight.Enemy
             if (Time.time - lastAttackTime < attackCooldown) return;
             
             lastAttackTime = Time.time;
-            
-            var playerHealth = target.GetComponent<Player.PlayerHealth>();
-            if (playerHealth != null)
+            StartCoroutine(AttackRoutine());
+        }
+
+        private System.Collections.IEnumerator AttackRoutine()
+        {
+            if (isAttackWindingUp || target == null)
             {
-                playerHealth.TakeDamage(damage * damageMultiplier);
+                yield break;
             }
+
+            isAttackWindingUp = true;
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.color = telegraphColor;
+            }
+
+            var worldUi = GetComponent<Deadlight.UI.EnemyWorldUI>();
+            worldUi?.ShowTelegraph(attackWindup + 0.1f);
+            yield return new WaitForSeconds(attackWindup);
+
+            if (target != null)
+            {
+                var playerHealth = target.GetComponent<Player.PlayerHealth>();
+                if (playerHealth != null)
+                {
+                    playerHealth.TakeDamage(damage * damageMultiplier);
+                }
+            }
+
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.color = baseColor;
+            }
+
+            isAttackWindingUp = false;
         }
 
         private void UpdateVisuals()

@@ -115,6 +115,70 @@ namespace Deadlight.Narrative
                 category = LoreCategory.RadioLog,
                 content = "*static* ...repeat, this is not a drill. The subjects have escaped containment. I don't know how they got past the security... *screaming in background* ...they're learning. Dear God, they're LEARNING... *static*"
             });
+
+            allLoreEntries.Add(new LoreEntry
+            {
+                id = "chen_1",
+                title = "Dr. Chen's Personal Log - Entry 1",
+                category = LoreCategory.LabNotes,
+                content = "Project Lazarus began with the best of intentions. Immortality. An end to death itself. I saw a future where no parent would bury their child, where no disease was a death sentence. How naive I was."
+            });
+
+            allLoreEntries.Add(new LoreEntry
+            {
+                id = "chen_2",
+                title = "Dr. Chen's Personal Log - Entry 2",
+                category = LoreCategory.LabNotes,
+                content = "The military saw what I could not. Soldiers who heal instantly. Warriors who cannot die. They doubled our funding overnight. I told myself the research would still save lives. I was lying to myself."
+            });
+
+            allLoreEntries.Add(new LoreEntry
+            {
+                id = "chen_3",
+                title = "Dr. Chen's Personal Log - Entry 3",
+                category = LoreCategory.LabNotes,
+                content = "Subject 23 is different from the others. It doesn't just regenerate. It learns. It remembers. Yesterday it solved a puzzle we gave Subject 12 last week. Subject 12 is in a different wing. How did it know?"
+            });
+
+            allLoreEntries.Add(new LoreEntry
+            {
+                id = "chen_4",
+                title = "Dr. Chen's Personal Log - Entry 4",
+                category = LoreCategory.LabNotes,
+                content = "I should have stopped when 23 looked at me through the observation glass. Really looked. Not the vacant stare of the others. It studied me. Catalogued me. I saw intelligence in those eyes. And hunger."
+            });
+
+            allLoreEntries.Add(new LoreEntry
+            {
+                id = "chen_5",
+                title = "Dr. Chen's Personal Log - Entry 5",
+                category = LoreCategory.LabNotes,
+                content = "Command wants to weaponize it. Turn my life's work into a tool for killing. I filed a formal objection. They responded by restricting my access to my own lab. My own creation. I won't let them have it."
+            });
+
+            allLoreEntries.Add(new LoreEntry
+            {
+                id = "chen_6",
+                title = "Dr. Chen's Personal Log - Entry 6",
+                category = LoreCategory.LabNotes,
+                content = "I released Subject 23. God forgive me, I opened the containment doors myself. I thought it would escape into the wilderness, live free. Instead it went to the other subjects first. It freed them all."
+            });
+
+            allLoreEntries.Add(new LoreEntry
+            {
+                id = "chen_7",
+                title = "Dr. Chen's Personal Log - Entry 7",
+                category = LoreCategory.LabNotes,
+                content = "It's not mindless rage. 23 is building something. An army. A hive. Every person it infects becomes part of its network. It's not a virus. It's a consciousness. And it's growing."
+            });
+
+            allLoreEntries.Add(new LoreEntry
+            {
+                id = "chen_8",
+                title = "Dr. Chen's Final Entry",
+                category = LoreCategory.LabNotes,
+                content = "If you're reading this, I'm already gone. I created the thing that ended the world. I can't undo what I've done, but maybe you can. Subject 23 has a weakness: it can't regenerate from complete cellular destruction. Overwhelm it. Burn it. End what I started. Please."
+            });
         }
 
         public void DiscoverLore(string loreId)
