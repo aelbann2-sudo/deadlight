@@ -9,20 +9,34 @@ A 2D top-down zombie survival game built in Unity for CS4483B - Game Design.
 ## Game Features
 
 ### Controls
+
+**Movement & Combat**
 | Key | Action |
 |-----|--------|
-| WASD | Move |
-| Mouse | Aim |
-| Left Click | Shoot |
-| R | Reload |
-| Space | Dodge Roll |
-| Shift | Sprint |
-| 1 / 2 | Switch Weapon Slot |
-| Scroll Wheel | Switch Weapon |
-| F | Interact / Loot Crate |
+| W / A / S / D | Move Up / Left / Down / Right |
+| Mouse | Aim Direction |
+| Left Click | Shoot (hold for automatic weapons) |
+| R | Reload Weapon |
+| Space | Dodge Roll (uses stamina) |
+| Left Shift | Sprint (hold, uses stamina) |
+| 1 | Switch to Weapon Slot 1 |
+| 2 | Switch to Weapon Slot 2 |
+| Scroll Wheel | Cycle Weapons |
 | Q | Throw Grenade |
 | E | Throw Molotov |
-| ESC | Pause Menu |
+
+**Interaction**
+| Key | Action |
+|-----|--------|
+| F | Interact (loot crates, activate objectives, read lore) |
+| Space / Left Click | Advance Dialogue |
+
+**Menus & UI**
+| Key | Action |
+|-----|--------|
+| ESC | Pause Game / Skip Intro |
+| Enter | Restart Game (on Game Over screen) |
+| F1 | Toggle Debug HUD |
 
 ---
 
