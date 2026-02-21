@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15f4484f8e58a463cb2109a993868fea, type: 3}
+  m_Name: EasySettings
+  m_EditorClassIdentifier: Deadlight::Deadlight.Core.DifficultySettings
+  difficulty: 0
+  displayName: Easy
+  description: Reduced enemy health and damage. More resources available.
+  playerHealthMultiplier: 1.25
+  playerDamageTakenMultiplier: 0.75
+  enemyHealthMultiplier: 0.75
+  enemyDamageMultiplier: 0.75
+  enemySpeedMultiplier: 0.9
+  waveEnemyCountMultiplier: 0.7
+  spawnIntervalMultiplier: 1.3
+  resourceSpawnMultiplier: 1.5
+  ammoDropMultiplier: 1.5
+  healthPickupMultiplier: 1.25
+  scoreMultiplier: 0.75

@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7dd37d0dd8e384ebf85993ccbe374582, type: 3}
+  m_Name: Night_4
+  m_EditorClassIdentifier: Deadlight::Deadlight.Core.NightConfig
+  nightNumber: 4
+  description: Heavy waves with Tank zombies. All mutations possible.
+  nightTitle: The Horde
+  waveCount: 5
+  baseEnemyCount: 18
+  timeBetweenWaves: 4
+  spawnInterval: 1.5
+  healthMultiplier: 1.75
+  damageMultiplier: 1.5
+  speedMultiplier: 1.2
+  availableEnemies: []
+  hasBoss: 0
+  bossEnemy: {fileID: 0}
+  completionBonus: 300
+  weaponUnlocks: []
+  radioMessage: One more night after this. The infected are massing. We're detecting
+    massive life signs. Something big is coming.
+  warningMessage: 'Warning: Elite enemies detected'

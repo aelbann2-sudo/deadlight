@@ -1,4 +1,6 @@
 using UnityEngine;
+using Deadlight.Level;
+using Deadlight.Narrative;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -51,6 +53,7 @@ namespace Deadlight.Core
             CreateCamera();
             CreatePlayer();
             CreateManagers();
+            CreateTestLevel();
             CreateTestEnemy();
             
             Debug.Log("[TestSceneSetup] Test scene ready! Use WASD to move, mouse to aim, click to shoot.");
@@ -168,7 +171,81 @@ namespace Deadlight.Core
             psObj.transform.SetParent(managersObj.transform);
             psObj.AddComponent<Systems.PointsSystem>();
 
+            var lmObj = new GameObject("LevelManager");
+            lmObj.transform.SetParent(managersObj.transform);
+            lmObj.AddComponent<LevelManager>();
+
+            var nmObj = new GameObject("NarrativeManager");
+            nmObj.transform.SetParent(managersObj.transform);
+            nmObj.AddComponent<NarrativeManager>();
+            nmObj.AddComponent<EnvironmentalLore>();
+
             Debug.Log("[TestSceneSetup] Managers created");
+        }
+
+        private void CreateTestLevel()
+        {
+            var levelObj = new GameObject("TestLevel");
+
+            CreateZone(levelObj.transform, "SafeZone", ZoneType.SafeZone, Vector3.zero, new Vector2(12, 12), Color.green);
+            CreateZone(levelObj.transform, "DangerZone_North", ZoneType.DangerZone, new Vector3(0, 15, 0), new Vector2(20, 10), Color.red);
+            CreateZone(levelObj.transform, "ResourceZone_East", ZoneType.ResourceZone, new Vector3(12, 0, 0), new Vector2(8, 8), Color.yellow);
+            CreateZone(levelObj.transform, "ResourceZone_West", ZoneType.ResourceZone, new Vector3(-12, 0, 0), new Vector2(8, 8), Color.yellow);
+
+            CreateSpawnPointObj(levelObj.transform, new Vector3(15, 10, 0), 1);
+            CreateSpawnPointObj(levelObj.transform, new Vector3(-15, 10, 0), 1);
+            CreateSpawnPointObj(levelObj.transform, new Vector3(0, 20, 0), 2);
+            CreateSpawnPointObj(levelObj.transform, new Vector3(18, 0, 0), 3);
+            CreateSpawnPointObj(levelObj.transform, new Vector3(-18, 0, 0), 3);
+
+            Debug.Log("[TestSceneSetup] Test level created with zones and spawn points");
+        }
+
+        private void CreateZone(Transform parent, string name, ZoneType type, Vector3 position, Vector2 size, Color color)
+        {
+            var zoneObj = new GameObject($"Zone_{name}");
+            zoneObj.transform.SetParent(parent);
+            zoneObj.transform.position = position;
+
+            var zone = zoneObj.AddComponent<MapZone>();
+
+            var visualObj = new GameObject("Visual");
+            visualObj.transform.SetParent(zoneObj.transform);
+            visualObj.transform.localPosition = Vector3.zero;
+
+            var sr = visualObj.AddComponent<SpriteRenderer>();
+            sr.sprite = CreateRectSprite(color, size);
+            sr.sortingOrder = -100;
+            color.a = 0.15f;
+            sr.color = color;
+        }
+
+        private void CreateSpawnPointObj(Transform parent, Vector3 position, int activationNight)
+        {
+            var spawnObj = new GameObject($"SpawnPoint_N{activationNight}");
+            spawnObj.transform.SetParent(parent);
+            spawnObj.transform.position = position;
+            spawnObj.AddComponent<SpawnPoint>();
+        }
+
+        private Sprite CreateRectSprite(Color color, Vector2 size)
+        {
+            int width = Mathf.Max(1, Mathf.RoundToInt(size.x * 10));
+            int height = Mathf.Max(1, Mathf.RoundToInt(size.y * 10));
+            
+            var texture = new Texture2D(width, height);
+            var pixels = new Color[width * height];
+            
+            for (int i = 0; i < pixels.Length; i++)
+            {
+                pixels[i] = Color.white;
+            }
+            
+            texture.SetPixels(pixels);
+            texture.Apply();
+            texture.filterMode = FilterMode.Point;
+            
+            return Sprite.Create(texture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 10f);
         }
 
         private void CreateTestEnemy()

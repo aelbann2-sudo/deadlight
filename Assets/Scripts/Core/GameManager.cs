@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System;
+using Deadlight.Level;
+using Deadlight.Narrative;
 
 namespace Deadlight.Core
 {
@@ -77,6 +79,18 @@ namespace Deadlight.Core
         public void StartNewGame()
         {
             currentNight = 1;
+            
+            if (LevelManager.Instance != null)
+            {
+                LevelManager.Instance.ResetAllSpawnPoints();
+            }
+
+            if (NarrativeManager.Instance != null)
+            {
+                NarrativeManager.Instance.ResetPlayedDialogues();
+                NarrativeManager.Instance.TriggerDialogue(DialogueTriggerType.GameStart, currentNight);
+            }
+
             ChangeState(GameState.DayPhase);
             OnNightChanged?.Invoke(currentNight);
         }

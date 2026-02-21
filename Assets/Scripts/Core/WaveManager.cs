@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Deadlight.Level;
 
 namespace Deadlight.Core
 {
@@ -190,20 +191,45 @@ namespace Deadlight.Core
                 return;
             }
 
-            Transform spawnPoint = GetRandomSpawnPoint();
-            if (spawnPoint == null)
+            Vector3 spawnPosition = GetSpawnPosition();
+            if (spawnPosition == Vector3.zero && spawnPoints.Count == 0)
             {
                 Debug.LogWarning("[WaveManager] No spawn points available!");
                 return;
             }
 
-            Vector3 spawnPosition = spawnPoint.position + (Vector3)UnityEngine.Random.insideUnitCircle * 2f;
             GameObject enemy = Instantiate(basicZombiePrefab, spawnPosition, Quaternion.identity);
 
             ApplyNightModifiers(enemy);
 
             totalEnemiesSpawned++;
             enemiesRemaining++;
+        }
+
+        private Vector3 GetSpawnPosition()
+        {
+            var player = GameObject.FindGameObjectWithTag("Player");
+            Vector3 playerPos = player != null ? player.transform.position : Vector3.zero;
+
+            if (LevelManager.Instance != null)
+            {
+                int currentNight = GameManager.Instance?.CurrentNight ?? 1;
+                var spawnPoint = LevelManager.Instance.GetRandomSpawnPoint(currentNight, playerPos);
+                
+                if (spawnPoint != null)
+                {
+                    spawnPoint.OnEnemySpawned();
+                    return spawnPoint.GetSpawnPosition();
+                }
+            }
+
+            Transform legacyPoint = GetRandomSpawnPoint();
+            if (legacyPoint != null)
+            {
+                return legacyPoint.position + (Vector3)UnityEngine.Random.insideUnitCircle * 2f;
+            }
+
+            return playerPos + (Vector3)(UnityEngine.Random.insideUnitCircle.normalized * 10f);
         }
 
         private void ApplyNightModifiers(GameObject enemy)

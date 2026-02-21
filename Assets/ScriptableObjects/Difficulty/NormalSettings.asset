@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15f4484f8e58a463cb2109a993868fea, type: 3}
+  m_Name: NormalSettings
+  m_EditorClassIdentifier: Deadlight::Deadlight.Core.DifficultySettings
+  difficulty: 1
+  displayName: Normal
+  description: The standard survival experience.
+  playerHealthMultiplier: 1
+  playerDamageTakenMultiplier: 1
+  enemyHealthMultiplier: 1
+  enemyDamageMultiplier: 1
+  enemySpeedMultiplier: 1
+  waveEnemyCountMultiplier: 1
+  spawnIntervalMultiplier: 1
+  resourceSpawnMultiplier: 1
+  ammoDropMultiplier: 1
+  healthPickupMultiplier: 1
+  scoreMultiplier: 1
