@@ -233,54 +233,67 @@ namespace Deadlight.Core
 
         private void CreateManagers()
         {
-            if (GameManager.Instance != null) return;
+            Transform managersParent = null;
+            
+            if (GameManager.Instance != null)
+            {
+                managersParent = GameManager.Instance.transform.parent;
+            }
+            else
+            {
+                var managersObj = new GameObject("Managers");
+                managersParent = managersObj.transform;
 
-            var managersObj = new GameObject("Managers");
+                var gmObj = new GameObject("GameManager");
+                gmObj.transform.SetParent(managersParent);
+                gmObj.AddComponent<GameManager>();
 
-            var gmObj = new GameObject("GameManager");
-            gmObj.transform.SetParent(managersObj.transform);
-            gmObj.AddComponent<GameManager>();
+                var dncObj = new GameObject("DayNightCycle");
+                dncObj.transform.SetParent(managersParent);
+                dncObj.AddComponent<DayNightCycle>();
 
-            var dncObj = new GameObject("DayNightCycle");
-            dncObj.transform.SetParent(managersObj.transform);
-            dncObj.AddComponent<DayNightCycle>();
+                var wsObj = new GameObject("WaveSpawner");
+                wsObj.transform.SetParent(managersParent);
+                wsObj.AddComponent<WaveSpawner>();
 
-            var wsObj = new GameObject("WaveSpawner");
-            wsObj.transform.SetParent(managersObj.transform);
-            wsObj.AddComponent<WaveSpawner>();
+                var rmObj = new GameObject("ResourceManager");
+                rmObj.transform.SetParent(managersParent);
+                rmObj.AddComponent<Systems.ResourceManager>();
 
-            var rmObj = new GameObject("ResourceManager");
-            rmObj.transform.SetParent(managersObj.transform);
-            rmObj.AddComponent<Systems.ResourceManager>();
+                var psObj = new GameObject("PointsSystem");
+                psObj.transform.SetParent(managersParent);
+                psObj.AddComponent<Systems.PointsSystem>();
 
-            var psObj = new GameObject("PointsSystem");
-            psObj.transform.SetParent(managersObj.transform);
-            psObj.AddComponent<Systems.PointsSystem>();
+                var lmObj = new GameObject("LevelManager");
+                lmObj.transform.SetParent(managersParent);
+                lmObj.AddComponent<LevelManager>();
 
-            var lmObj = new GameObject("LevelManager");
-            lmObj.transform.SetParent(managersObj.transform);
-            lmObj.AddComponent<LevelManager>();
+                var nmObj = new GameObject("NarrativeManager");
+                nmObj.transform.SetParent(managersParent);
+                nmObj.AddComponent<NarrativeManager>();
+                nmObj.AddComponent<EnvironmentalLore>();
 
-            var nmObj = new GameObject("NarrativeManager");
-            nmObj.transform.SetParent(managersObj.transform);
-            nmObj.AddComponent<NarrativeManager>();
-            nmObj.AddComponent<EnvironmentalLore>();
+                var geObj = new GameObject("GameEffects");
+                geObj.transform.SetParent(managersParent);
+                geObj.AddComponent<GameEffects>();
 
-            var geObj = new GameObject("GameEffects");
-            geObj.transform.SetParent(managersObj.transform);
-            geObj.AddComponent<GameEffects>();
+                var gfObj = new GameObject("GameFlowController");
+                gfObj.transform.SetParent(managersParent);
+                gfObj.AddComponent<GameFlowController>();
 
-            var gfObj = new GameObject("GameFlowController");
-            gfObj.transform.SetParent(managersObj.transform);
-            gfObj.AddComponent<GameFlowController>();
+                var rtObj = new GameObject("RadioTransmissions");
+                rtObj.transform.SetParent(managersParent);
+                rtObj.AddComponent<RadioTransmissions>();
+            }
 
-            var rtObj = new GameObject("RadioTransmissions");
-            rtObj.transform.SetParent(managersObj.transform);
-            rtObj.AddComponent<RadioTransmissions>();
-
-            var guiObj = new GameObject("GameUI");
-            guiObj.transform.SetParent(managersObj.transform);
-            guiObj.AddComponent<Deadlight.UI.GameUI>();
+            if (Deadlight.UI.GameUI.Instance == null)
+            {
+                var guiObj = new GameObject("GameUI");
+                if (managersParent != null)
+                    guiObj.transform.SetParent(managersParent);
+                guiObj.AddComponent<Deadlight.UI.GameUI>();
+                Debug.Log("[TestSceneSetup] Created GameUI");
+            }
         }
 
         // ===================== ENVIRONMENT =====================

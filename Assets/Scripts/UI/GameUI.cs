@@ -64,6 +64,11 @@ namespace Deadlight.UI
                 GameManager.Instance.OnGameStateChanged += OnGameStateChanged;
                 OnGameStateChanged(GameManager.Instance.CurrentState);
             }
+            else
+            {
+                Debug.Log("[GameUI] GameManager not found, showing main menu by default");
+                _mainMenuPanel?.SetActive(true);
+            }
         }
 
         private void OnDestroy()
@@ -104,14 +109,18 @@ namespace Deadlight.UI
 
         private void BuildMainMenu()
         {
+            Debug.Log("[GameUI] Building main menu...");
             _mainMenuPanel = CreatePanel(_canvasRoot.transform, "MainMenuPanel");
             var bg = _mainMenuPanel.GetComponent<Image>();
-            bg.color = new Color(0, 0, 0, 0.85f);
+            bg.color = new Color(0.1f, 0.1f, 0.15f, 0.95f);
 
             var title = CreateText(_mainMenuPanel.transform, "Title",
                 "DEADLIGHT: Survival After Dark", 42, TextAnchor.MiddleCenter, Color.white,
                 new Vector2(0.5f, 0.85f), new Vector2(0.5f, 0.85f), Vector2.zero, new Vector2(900, 80));
-            title.GetComponent<Text>().fontStyle = FontStyle.Bold;
+            if (title.GetComponent<Text>() != null)
+                title.GetComponent<Text>().fontStyle = FontStyle.Bold;
+
+            Debug.Log($"[GameUI] Font loaded: {_font != null}, Font name: {(_font != null ? _font.name : "null")}");
 
             CreateButton(_mainMenuPanel.transform, "EasyButton", "Easy", new Color(0.2f, 0.8f, 0.2f),
                 new Vector2(0.5f, 0.55f), new Vector2(250, 50), () => StartGame(Difficulty.Easy));
@@ -122,8 +131,10 @@ namespace Deadlight.UI
             CreateButton(_mainMenuPanel.transform, "HardButton", "Hard", new Color(0.9f, 0.2f, 0.2f),
                 new Vector2(0.5f, 0.35f), new Vector2(250, 50), () => StartGame(Difficulty.Hard));
 
-            CreateButton(_mainMenuPanel.transform, "QuitButton", "Quit", new Color(0.4f, 0.4f, 0.4f),
+            CreateButton(_mainMenuPanel.transform, "QuitButton", "Quit", new Color(0.5f, 0.5f, 0.5f),
                 new Vector2(0.5f, 0.15f), new Vector2(200, 45), QuitGame);
+
+            Debug.Log("[GameUI] Main menu built successfully");
         }
 
         private void StartGame(Difficulty difficulty)
