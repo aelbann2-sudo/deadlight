@@ -24,6 +24,12 @@ namespace Deadlight.Core
         [MenuItem("Deadlight/Create Test Scene and Play")]
         public static void CreateTestSceneAndPlay()
         {
+            if (EditorApplication.isPlaying)
+            {
+                Debug.LogWarning("Cannot create test scene while in play mode. Stop playing first.");
+                return;
+            }
+            
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             
             var setupObj = new GameObject("TestSceneSetup");
@@ -35,6 +41,12 @@ namespace Deadlight.Core
         [MenuItem("Deadlight/Create Test Scene (No Play)")]
         public static void CreateTestSceneNoPlay()
         {
+            if (EditorApplication.isPlaying)
+            {
+                Debug.LogWarning("Cannot create test scene while in play mode. Stop playing first.");
+                return;
+            }
+            
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             
             var setupObj = new GameObject("TestSceneSetup");
