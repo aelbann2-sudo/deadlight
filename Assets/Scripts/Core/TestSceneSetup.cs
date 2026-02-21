@@ -669,10 +669,10 @@ namespace Deadlight.Core
             dmgRect.offsetMax = Vector2.zero;
             dmgOverlay.GetComponent<Image>().raycastTarget = false;
 
-            // Fade overlay
+            // Fade overlay (starts transparent, will be used for transitions)
             var fadeOverlay = CreateUIImage(canvas.transform, "FadeOverlay",
                 Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero,
-                Color.black);
+                Color.clear);
             var fadeRect = fadeOverlay.GetComponent<RectTransform>();
             fadeRect.offsetMin = Vector2.zero;
             fadeRect.offsetMax = Vector2.zero;
@@ -705,7 +705,6 @@ namespace Deadlight.Core
                     fadeOverlay.GetComponent<Image>(),
                     camCtrl
                 );
-                GameEffects.Instance.FadeScreen(true, 1.5f);
             }
         }
 
