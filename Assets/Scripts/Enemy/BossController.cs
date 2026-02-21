@@ -44,8 +44,34 @@ namespace Deadlight.Enemy
             
             transform.localScale = Vector3.one * 2f;
             
+            StartCoroutine(DramaticEntrance());
+        }
+        
+        private IEnumerator DramaticEntrance()
+        {
+            if (VFXManager.Instance != null)
+            {
+                VFXManager.Instance.TriggerScreenShake(1f, 0.8f);
+            }
+            
+            if (GameEffects.Instance != null)
+            {
+                GameEffects.Instance.FlashScreen(new Color(0.5f, 0f, 0f, 0.5f), 0.3f);
+            }
+            
+            Time.timeScale = 0.3f;
+            yield return new WaitForSecondsRealtime(0.5f);
+            
             if (RadioTransmissions.Instance != null)
                 RadioTransmissions.Instance.ShowSubject23Warning();
+            
+            yield return new WaitForSecondsRealtime(2f);
+            Time.timeScale = 1f;
+            
+            if (VFXManager.Instance != null)
+            {
+                VFXManager.Instance.TriggerScreenShake(0.5f, 0.3f);
+            }
         }
         
         void Update()

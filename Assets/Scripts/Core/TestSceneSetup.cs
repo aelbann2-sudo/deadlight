@@ -108,7 +108,7 @@ namespace Deadlight.Core
             camObj.tag = "MainCamera";
             var cam = camObj.AddComponent<Camera>();
             cam.orthographic = true;
-            cam.orthographicSize = 4.5f;
+            cam.orthographicSize = 3.5f;
             cam.backgroundColor = new Color(0.12f, 0.14f, 0.1f);
             cam.clearFlags = CameraClearFlags.SolidColor;
             camObj.AddComponent<AudioListener>();
@@ -129,9 +129,9 @@ namespace Deadlight.Core
                 var pathSprite = ProceduralSpriteGenerator.CreateGroundTile(1);
                 var concreteSprite = ProceduralSpriteGenerator.CreateGroundTile(2);
                 
-                for (int x = -25; x <= 25; x++)
+                for (int x = -13; x <= 13; x++)
                 {
-                    for (int y = -20; y <= 30; y++)
+                    for (int y = -13; y <= 13; y++)
                     {
                         var tile = new GameObject($"T_{x}_{y}");
                         tile.transform.SetParent(groundParent.transform);
@@ -141,7 +141,7 @@ namespace Deadlight.Core
                         sr.sortingOrder = -200;
 
                         bool isPath = (Mathf.Abs(x) < 2) || (Mathf.Abs(y) < 2);
-                        bool isConcrete = (Mathf.Abs(x - y) < 3 && Mathf.Abs(x) < 15);
+                        bool isConcrete = (Mathf.Abs(x - y) < 3 && Mathf.Abs(x) < 8);
                         
                         if (isPath)
                         {
@@ -172,9 +172,9 @@ namespace Deadlight.Core
 
                 Sprite pathSprite = GetSprite(tileSprites, "Sand 0");
                 
-                for (int x = -25; x <= 25; x++)
+                for (int x = -13; x <= 13; x++)
                 {
-                    for (int y = -20; y <= 30; y++)
+                    for (int y = -13; y <= 13; y++)
                     {
                         var tile = new GameObject($"T_{x}_{y}");
                         tile.transform.SetParent(groundParent.transform);
@@ -392,6 +392,34 @@ namespace Deadlight.Core
                 var storyObj = new GameObject("StoryEventManager");
                 storyObj.transform.SetParent(managersParent);
                 storyObj.AddComponent<Narrative.StoryEventManager>();
+                
+                var pickupObj = new GameObject("PickupSpawner");
+                pickupObj.transform.SetParent(managersParent);
+                pickupObj.AddComponent<Systems.PickupSpawner>();
+                
+                var powerupObj = new GameObject("PowerupSystem");
+                powerupObj.transform.SetParent(managersParent);
+                powerupObj.AddComponent<Systems.PowerupSystem>();
+                
+                var floatTextObj = new GameObject("FloatingTextManager");
+                floatTextObj.transform.SetParent(managersParent);
+                floatTextObj.AddComponent<Systems.FloatingTextManager>();
+                
+                var killStreakObj = new GameObject("KillStreakSystem");
+                killStreakObj.transform.SetParent(managersParent);
+                killStreakObj.AddComponent<Systems.KillStreakSystem>();
+                
+                var introObj = new GameObject("IntroSequence");
+                introObj.transform.SetParent(managersParent);
+                introObj.AddComponent<Narrative.IntroSequence>();
+                
+                var corruptionObj = new GameObject("CorruptionSystem");
+                corruptionObj.transform.SetParent(managersParent);
+                corruptionObj.AddComponent<Systems.CorruptionSystem>();
+                
+                var storyObjObj = new GameObject("StoryObjective");
+                storyObjObj.transform.SetParent(managersParent);
+                storyObjObj.AddComponent<Narrative.StoryObjective>();
             }
 
             if (VFXManager.Instance == null)
@@ -436,6 +464,11 @@ namespace Deadlight.Core
             CreateTown(envParent.transform);
             CreatePerimeter(envParent.transform);
             SpawnLorePickups(envParent.transform);
+            
+            var landmarksObj = new GameObject("MapLandmarks");
+            landmarksObj.transform.SetParent(envParent.transform);
+            var landmarks = landmarksObj.AddComponent<Level.MapLandmarks>();
+            landmarks.CreateAllLandmarks(envParent.transform);
         }
 
         private void SpawnLorePickups(Transform parent)
@@ -443,14 +476,11 @@ namespace Deadlight.Core
             var loreParent = new GameObject("LorePickups");
             loreParent.transform.SetParent(parent);
 
-            string[] loreIds = { "lab_note_1", "chen_1", "chen_2", "journal_1", "military_1", "chen_3", "chen_4", "newspaper_1", "chen_5", "chen_6", "chen_7", "chen_8" };
+            string[] loreIds = { "lab_note_1", "chen_1", "chen_2", "journal_1", "military_1", "chen_3" };
             Vector3[] positions = {
-                new Vector3(-7, 11, 0), new Vector3(9, 11, 0),
-                new Vector3(-13, -5, 0), new Vector3(13, -5, 0),
-                new Vector3(-5, -13, 0), new Vector3(5, -13, 0),
-                new Vector3(1, 19, 0), new Vector3(-19, 8, 0),
-                new Vector3(19, -8, 0), new Vector3(-15, -15, 0),
-                new Vector3(15, 15, 0), new Vector3(0, -17, 0)
+                new Vector3(-5, 9, 0), new Vector3(7, 9, 0),
+                new Vector3(-9, -3, 0), new Vector3(9, -3, 0),
+                new Vector3(-3, -9, 0), new Vector3(3, -9, 0)
             };
 
             int count = Mathf.Min(loreIds.Length, positions.Length);
@@ -501,13 +531,12 @@ namespace Deadlight.Core
             town.transform.SetParent(parent);
 
             var housePositions = new (Vector3 pos, string sprite, float scale)[] {
-                (new Vector3(-8, 10, 0), "House A0", 2.5f),
-                (new Vector3(8, 10, 0), "House B0", 2.5f),
-                (new Vector3(-12, -6, 0), "House A2", 2f),
-                (new Vector3(12, -6, 0), "House B2", 2f),
-                (new Vector3(-6, -12, 0), "House A4", 2f),
-                (new Vector3(6, -12, 0), "House B4", 2f),
-                (new Vector3(0, 18, 0), "House A0", 3f),
+                (new Vector3(-6, 8, 0), "House A0", 1.8f),
+                (new Vector3(6, 8, 0), "House B0", 1.8f),
+                (new Vector3(-8, -4, 0), "House A2", 1.5f),
+                (new Vector3(8, -4, 0), "House B2", 1.5f),
+                (new Vector3(-4, -8, 0), "House A4", 1.5f),
+                (new Vector3(4, -8, 0), "House B4", 1.5f),
             };
 
             for (int i = 0; i < housePositions.Length; i++)
@@ -535,13 +564,10 @@ namespace Deadlight.Core
             }
 
             var treePositions = new Vector3[] {
-                new Vector3(-15, 5, 0), new Vector3(15, 5, 0),
-                new Vector3(-18, -2, 0), new Vector3(18, -2, 0),
-                new Vector3(-4, 14, 0), new Vector3(4, 14, 0),
-                new Vector3(-10, -15, 0), new Vector3(10, -15, 0),
-                new Vector3(-20, 10, 0), new Vector3(20, 10, 0),
-                new Vector3(-14, 18, 0), new Vector3(14, 18, 0),
-                new Vector3(-22, -8, 0), new Vector3(22, -8, 0),
+                new Vector3(-10, 4, 0), new Vector3(10, 4, 0),
+                new Vector3(-10, -2, 0), new Vector3(10, -2, 0),
+                new Vector3(-3, 10, 0), new Vector3(3, 10, 0),
+                new Vector3(-7, -10, 0), new Vector3(7, -10, 0),
             };
 
             foreach (var pos in treePositions)
@@ -569,9 +595,8 @@ namespace Deadlight.Core
             }
 
             var rockPositions = new Vector3[] {
-                new Vector3(-7, 3, 0), new Vector3(7, 3, 0),
-                new Vector3(-3, -7, 0), new Vector3(3, 8, 0),
-                new Vector3(-16, 15, 0), new Vector3(16, -12, 0)
+                new Vector3(-5, 3, 0), new Vector3(5, 3, 0),
+                new Vector3(-3, -5, 0), new Vector3(3, 6, 0),
             };
 
             foreach (var pos in rockPositions)
@@ -598,8 +623,8 @@ namespace Deadlight.Core
             }
 
             Vector3[] cratePositions = {
-                new Vector3(-4, 5, 0), new Vector3(4, -5, 0),
-                new Vector3(2, 6, 0), new Vector3(-3, -4, 0),
+                new Vector3(-3, 4, 0), new Vector3(3, -4, 0),
+                new Vector3(2, 5, 0), new Vector3(-2, -3, 0),
             };
 
             foreach (var pos in cratePositions)
@@ -627,8 +652,8 @@ namespace Deadlight.Core
             if (useProceduralSprites)
             {
                 var barrelPositions = new Vector3[] {
-                    new Vector3(-5, 7, 0), new Vector3(5, -3, 0),
-                    new Vector3(-9, -9, 0), new Vector3(9, 9, 0),
+                    new Vector3(-4, 6, 0), new Vector3(4, -2, 0),
+                    new Vector3(-7, -7, 0), new Vector3(7, 7, 0),
                 };
 
                 foreach (var pos in barrelPositions)
@@ -647,7 +672,7 @@ namespace Deadlight.Core
                 }
 
                 var carPositions = new Vector3[] {
-                    new Vector3(-12, 3, 0), new Vector3(14, -3, 0),
+                    new Vector3(-8, 2, 0), new Vector3(9, -2, 0),
                 };
 
                 foreach (var pos in carPositions)
@@ -672,8 +697,8 @@ namespace Deadlight.Core
             var perimeter = new GameObject("Perimeter");
             perimeter.transform.SetParent(parent);
             
-            float halfW = 24f, halfH = 19f;
-            float thickness = 2f;
+            float halfW = 12f, halfH = 12f;
+            float thickness = 1.5f;
 
             CreateWall(perimeter.transform, new Vector3(0, halfH, 0), new Vector2(halfW * 2, thickness));
             CreateWall(perimeter.transform, new Vector3(0, -halfH, 0), new Vector2(halfW * 2, thickness));
@@ -704,9 +729,9 @@ namespace Deadlight.Core
             string[] npcVariants = { "TopDown_NPC_0", "TopDown_NPC_1", "TopDown_NPC_2", "TopDown_NPC_3" };
 
             Vector3[] positions = {
-                new Vector3(10, 8, 0),
-                new Vector3(-10, 8, 0),
-                new Vector3(12, -8, 0),
+                new Vector3(8, 6, 0),
+                new Vector3(-8, 6, 0),
+                new Vector3(9, -6, 0),
             };
 
             for (int i = 0; i < positions.Length; i++)
@@ -895,18 +920,22 @@ namespace Deadlight.Core
                 new Color(0.8f, 0.8f, 0.8f, 0.7f),
                 new Vector2(0, 0), new Vector2(0, 0), new Vector2(20, 50), new Vector2(300, 20));
 
-            // Radio transmission panel
+            // Radio transmission panel (centered, large, prominent)
             var radioPanel = CreateUIPanel(canvas.transform, "RadioPanel",
-                new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 0),
-                new Vector2(20, 60), new Vector2(600, 60));
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0, 80), new Vector2(800, 100));
             var radioBg = radioPanel.AddComponent<Image>();
             radioBg.color = Color.clear;
             
             var radioText = CreateUIText(radioPanel.transform, "RadioText",
-                new Vector2(0, 0.5f), "", font, 16, TextAnchor.MiddleLeft, new Color(0.3f, 1f, 0.3f),
-                new Vector2(0, 0), new Vector2(1, 1), new Vector2(10, 0), new Vector2(-20, 0));
-            radioText.GetComponent<RectTransform>().offsetMin = new Vector2(10, 5);
-            radioText.GetComponent<RectTransform>().offsetMax = new Vector2(-10, -5);
+                new Vector2(0.5f, 0.5f), "", font, 28, TextAnchor.MiddleCenter, new Color(0.3f, 1f, 0.3f),
+                new Vector2(0, 0), new Vector2(1, 1), new Vector2(0, 0), new Vector2(0, 0));
+            radioText.GetComponent<RectTransform>().offsetMin = new Vector2(20, 10);
+            radioText.GetComponent<RectTransform>().offsetMax = new Vector2(-20, -10);
+            radioText.GetComponent<Text>().fontStyle = FontStyle.Bold;
+            var radioOutline = radioText.AddComponent<Outline>();
+            radioOutline.effectColor = Color.black;
+            radioOutline.effectDistance = new Vector2(2, -2);
             radioPanel.SetActive(false);
 
             if (RadioTransmissions.Instance != null)

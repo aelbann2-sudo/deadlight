@@ -214,6 +214,16 @@ namespace Deadlight.Player
         {
             moveSpeed = speed;
         }
+        
+        private float speedMultiplier = 1f;
+        private float baseMoveSpeed = 5f;
+        
+        public void ApplySpeedMultiplier(float multiplier)
+        {
+            if (baseMoveSpeed == 0f) baseMoveSpeed = moveSpeed;
+            speedMultiplier = multiplier;
+            moveSpeed = baseMoveSpeed * speedMultiplier;
+        }
 
         private void OnDrawGizmosSelected()
         {

@@ -11,7 +11,8 @@ namespace Deadlight.Systems
         Wood,
         Chemicals,
         Electronics,
-        Points
+        Points,
+        Powerup
     }
 
     public class Pickup : MonoBehaviour

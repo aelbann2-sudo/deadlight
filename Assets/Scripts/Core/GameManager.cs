@@ -49,9 +49,9 @@ namespace Deadlight.Core
         [Header("Runtime Fallback")]
         [SerializeField] private bool autoBootstrapGameScene = true;
         [SerializeField] private bool autoStartWhenGameSceneLoads = true;
-        [SerializeField] private float dawnAutoAdvanceDelay = 4f;
-        [SerializeField] private float[] dayDurationsByNight = { 60f, 50f, 45f, 40f, 35f };
-        [SerializeField] private float targetNightDuration = 120f;
+        [SerializeField] private float dawnAutoAdvanceDelay = 2f;
+        [SerializeField] private float[] dayDurationsByNight = { 15f, 12f, 10f, 8f, 8f };
+        [SerializeField] private float targetNightDuration = 45f;
 
         public GameState CurrentState => currentState;
         public Difficulty CurrentDifficulty => currentDifficulty;

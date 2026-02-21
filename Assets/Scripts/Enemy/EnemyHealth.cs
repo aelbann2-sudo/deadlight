@@ -129,6 +129,21 @@ namespace Deadlight.Enemy
             var pointsSystem = FindObjectOfType<PointsSystem>();
             if (pointsSystem != null)
                 pointsSystem.AddPoints(pointsOnDeath, "Enemy Kill");
+            
+            if (FloatingTextManager.Instance != null)
+            {
+                FloatingTextManager.Instance.SpawnPointsText(pointsOnDeath, transform.position + Vector3.up * 0.5f);
+            }
+            
+            if (KillStreakSystem.Instance != null)
+            {
+                KillStreakSystem.Instance.RegisterKill(transform.position);
+            }
+            
+            if (PickupSpawner.Instance != null)
+            {
+                PickupSpawner.Instance.SpawnRandomPickup(transform.position);
+            }
 
             var enemyAI = GetComponent<EnemyAI>();
             if (enemyAI != null)

@@ -233,12 +233,6 @@ namespace Deadlight.UI
                 healthBar == null && healthText == null && staminaBar == null &&
                 ammoText == null && pointsText == null && timeText == null &&
                 waveText == null && nightText == null && enemiesText == null;
-
-            if (useRuntimeFallbackHUD)
-            {
-                BuildRuntimeStyle();
-                BuildRuntimeTextures();
-            }
         }
 
         private void BuildRuntimeStyle()

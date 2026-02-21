@@ -13,8 +13,8 @@ namespace Deadlight.Core
         [SerializeField] private Vector3 offset = new Vector3(0, 0, -10f);
 
         [Header("Zoom")]
-        [SerializeField] private float defaultZoom = 4.5f;
-        [SerializeField] private float combatZoom = 4f;
+        [SerializeField] private float defaultZoom = 3.5f;
+        [SerializeField] private float combatZoom = 3.2f;
         [SerializeField] private float zoomSpeed = 3f;
         private float targetZoom;
         private bool inCombat;

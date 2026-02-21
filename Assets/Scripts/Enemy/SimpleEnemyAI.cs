@@ -6,9 +6,9 @@ namespace Deadlight.Enemy
     public class SimpleEnemyAI : MonoBehaviour
     {
         [Header("Movement")]
-        [SerializeField] private float moveSpeed = 2f;
-        [SerializeField] private float chaseSpeed = 3.5f;
-        [SerializeField] private float detectionRange = 12f;
+        [SerializeField] private float moveSpeed = 2.8f;
+        [SerializeField] private float chaseSpeed = 4.9f;
+        [SerializeField] private float detectionRange = 25f;
         [SerializeField] private float attackRange = 1f;
         
         [Header("Combat")]
@@ -19,8 +19,13 @@ namespace Deadlight.Enemy
         
         [Header("Behavior")]
         [SerializeField] private bool alwaysAggressive = true;
-        [SerializeField] private float wanderRadius = 5f;
-        [SerializeField] private float wanderInterval = 3f;
+        [SerializeField] private float wanderRadius = 3f;
+        [SerializeField] private float wanderInterval = 1.5f;
+        
+        [Header("Pursuit Memory")]
+        [SerializeField] private float pursuitMemoryDuration = 30f;
+        private float lastSeenPlayerTime;
+        private Vector3 lastKnownPlayerPosition;
         
         private Transform target;
         private Rigidbody2D rb;
@@ -104,29 +109,45 @@ namespace Deadlight.Enemy
             
             if (target == null)
             {
-                Wander();
+                if (Time.time - lastSeenPlayerTime < pursuitMemoryDuration && lastKnownPlayerPosition != Vector3.zero)
+                {
+                    ChaseLastKnownPosition();
+                }
+                else
+                {
+                    Wander();
+                }
+                UpdateVisuals();
                 return;
             }
 
             float distanceToPlayer = Vector2.Distance(transform.position, target.position);
+            
+            lastSeenPlayerTime = Time.time;
+            lastKnownPlayerPosition = target.position;
 
-            if (isAggressive && distanceToPlayer <= detectionRange)
+            if (distanceToPlayer <= attackRange)
             {
-                if (distanceToPlayer <= attackRange)
-                {
-                    Attack();
-                }
-                else
-                {
-                    ChasePlayer();
-                }
+                Attack();
             }
             else
             {
-                Wander();
+                ChasePlayer();
             }
 
             UpdateVisuals();
+        }
+        
+        private void ChaseLastKnownPosition()
+        {
+            float dist = Vector2.Distance(transform.position, lastKnownPlayerPosition);
+            if (dist < 1f)
+            {
+                lastKnownPlayerPosition = Vector3.zero;
+                return;
+            }
+            Vector2 direction = ((Vector2)lastKnownPlayerPosition - (Vector2)transform.position).normalized;
+            rb.linearVelocity = direction * (baseChaseSpeed * speedMultiplier * 0.8f);
         }
 
         private void ChasePlayer()

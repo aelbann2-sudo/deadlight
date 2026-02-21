@@ -69,6 +69,28 @@ namespace Deadlight.Core
             }
             damageOverlay.color = Color.clear;
         }
+        
+        public void FlashScreen(Color color, float duration)
+        {
+            if (damageOverlay != null)
+            {
+                StartCoroutine(FlashScreenRoutine(color, duration));
+            }
+        }
+        
+        private IEnumerator FlashScreenRoutine(Color color, float duration)
+        {
+            damageOverlay.color = color;
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float alpha = Mathf.Lerp(color.a, 0f, elapsed / duration);
+                damageOverlay.color = new Color(color.r, color.g, color.b, alpha);
+                yield return null;
+            }
+            damageOverlay.color = Color.clear;
+        }
 
         public void SpawnMuzzleFlash(Vector3 position, Quaternion rotation, float scale = 0.4f, Color? tint = null)
         {

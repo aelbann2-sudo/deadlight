@@ -232,11 +232,13 @@ namespace Deadlight.Core
                 }
 
                 currentWave = wave;
+                int waveEnemyCount = CalculateEnemyCount(wave);
+                int waveOverlapThreshold = Mathf.RoundToInt(waveEnemyCount * 0.3f);
                 OnWaveStarted?.Invoke(wave);
 
                 yield return StartCoroutine(SpawnWave(wave));
 
-                while (enemiesRemaining > 0)
+                while (enemiesRemaining > waveOverlapThreshold)
                 {
                     if (GameManager.Instance?.CurrentState != GameState.NightPhase)
                     {
@@ -250,9 +252,18 @@ namespace Deadlight.Core
 
                 if (wave < waveCount)
                 {
-                    float interval = Mathf.Clamp((currentNightConfig?.timeBetweenWaves ?? 5f), 3f, 5f);
+                    float interval = Mathf.Clamp((currentNightConfig?.timeBetweenWaves ?? 2f), 1f, 2.5f);
                     yield return new WaitForSeconds(interval);
                 }
+            }
+
+            while (enemiesRemaining > 0)
+            {
+                if (GameManager.Instance?.CurrentState != GameState.NightPhase)
+                {
+                    yield break;
+                }
+                yield return null;
             }
 
             OnAllWavesCompleted?.Invoke();
@@ -493,6 +504,17 @@ namespace Deadlight.Core
 
             var player = GameObject.Find("Player");
             Vector3 playerPos = player != null ? player.transform.position : Vector3.zero;
+            
+            bool useFlankSpawn = UnityEngine.Random.value < 0.3f;
+            
+            if (useFlankSpawn && player != null)
+            {
+                Vector3 flankPos = GetFlankSpawnPosition(player);
+                if (flankPos != Vector3.zero)
+                {
+                    return flankPos;
+                }
+            }
 
             if (LevelManager.Instance != null)
             {
@@ -513,7 +535,41 @@ namespace Deadlight.Core
                 return legacyPoint.position + (Vector3)UnityEngine.Random.insideUnitCircle * 2f;
             }
 
-            return playerPos + (Vector3)(UnityEngine.Random.insideUnitCircle.normalized * 10f);
+            return playerPos + (Vector3)(UnityEngine.Random.insideUnitCircle.normalized * 8f);
+        }
+        
+        private Vector3 GetFlankSpawnPosition(GameObject player)
+        {
+            var playerRb = player.GetComponent<Rigidbody2D>();
+            Vector2 playerFacing = Vector2.right;
+            
+            if (playerRb != null && playerRb.linearVelocity.sqrMagnitude > 0.1f)
+            {
+                playerFacing = playerRb.linearVelocity.normalized;
+            }
+            else
+            {
+                var shooting = player.GetComponent<Player.PlayerShooting>();
+                if (shooting != null)
+                {
+                    Vector3 mouseWorld = Camera.main != null ? Camera.main.ScreenToWorldPoint(Input.mousePosition) : Vector3.zero;
+                    playerFacing = ((Vector2)mouseWorld - (Vector2)player.transform.position).normalized;
+                }
+            }
+            
+            Vector2 behindPlayer = -playerFacing;
+            Vector2 perpendicular = new Vector2(-playerFacing.y, playerFacing.x);
+            
+            float spawnDist = UnityEngine.Random.Range(6f, 9f);
+            float lateralOffset = UnityEngine.Random.Range(-3f, 3f);
+            
+            Vector2 spawnDir = (behindPlayer + perpendicular * (lateralOffset / spawnDist)).normalized;
+            Vector3 spawnPos = player.transform.position + (Vector3)(spawnDir * spawnDist);
+            
+            spawnPos.x = Mathf.Clamp(spawnPos.x, -11f, 11f);
+            spawnPos.y = Mathf.Clamp(spawnPos.y, -11f, 11f);
+            
+            return spawnPos;
         }
 
         private void ApplyNightModifiers(GameObject enemy)
