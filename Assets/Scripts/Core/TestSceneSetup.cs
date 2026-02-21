@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using Deadlight.Level;
 using Deadlight.Narrative;
+using Deadlight.Visuals;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -14,6 +15,7 @@ namespace Deadlight.Core
     {
         [Header("Auto Setup")]
         [SerializeField] private bool setupOnStart = true;
+        [SerializeField] private bool useProceduralSprites = true;
         
         private Sprite[] playerSprites;
         private Sprite[] npcSprites;
@@ -120,40 +122,81 @@ namespace Deadlight.Core
         {
             var groundParent = new GameObject("Ground");
             
-            string[] grassNames = { "Grass 0", "Grass 1", "Grass 2", "Grass 3" };
-            Sprite[] grassSprites = new Sprite[grassNames.Length];
-            for (int i = 0; i < grassNames.Length; i++)
+            if (useProceduralSprites)
             {
-                grassSprites[i] = GetSprite(tileSprites, grassNames[i]);
-            }
-
-            Sprite pathSprite = GetSprite(tileSprites, "Sand 0");
-            
-            for (int x = -25; x <= 25; x++)
-            {
-                for (int y = -20; y <= 30; y++)
+                var grassSprite = ProceduralSpriteGenerator.CreateGroundTile(0);
+                var pathSprite = ProceduralSpriteGenerator.CreateGroundTile(1);
+                var concreteSprite = ProceduralSpriteGenerator.CreateGroundTile(2);
+                
+                for (int x = -25; x <= 25; x++)
                 {
-                    var tile = new GameObject($"T_{x}_{y}");
-                    tile.transform.SetParent(groundParent.transform);
-                    tile.transform.position = new Vector3(x, y, 0);
-                    
-                    var sr = tile.AddComponent<SpriteRenderer>();
-                    sr.sortingOrder = -200;
-
-                    bool isPath = (Mathf.Abs(x) < 2) || (Mathf.Abs(y) < 2);
-                    
-                    if (isPath && pathSprite != null)
+                    for (int y = -20; y <= 30; y++)
                     {
-                        sr.sprite = pathSprite;
-                        sr.color = new Color(0.9f, 0.85f, 0.7f);
-                    }
-                    else
-                    {
-                        Sprite gs = grassSprites[Random.Range(0, grassSprites.Length)];
-                        sr.sprite = gs != null ? gs : CreatePixelSprite(new Color(0.3f, 0.4f, 0.25f));
+                        var tile = new GameObject($"T_{x}_{y}");
+                        tile.transform.SetParent(groundParent.transform);
+                        tile.transform.position = new Vector3(x, y, 0);
                         
-                        float shade = Random.Range(0.85f, 1.05f);
-                        sr.color = new Color(0.85f * shade, 0.95f * shade, 0.8f * shade);
+                        var sr = tile.AddComponent<SpriteRenderer>();
+                        sr.sortingOrder = -200;
+
+                        bool isPath = (Mathf.Abs(x) < 2) || (Mathf.Abs(y) < 2);
+                        bool isConcrete = (Mathf.Abs(x - y) < 3 && Mathf.Abs(x) < 15);
+                        
+                        if (isPath)
+                        {
+                            sr.sprite = pathSprite;
+                        }
+                        else if (isConcrete)
+                        {
+                            sr.sprite = concreteSprite;
+                        }
+                        else
+                        {
+                            sr.sprite = grassSprite;
+                        }
+                        
+                        float shade = Random.Range(0.9f, 1.05f);
+                        sr.color = new Color(shade, shade, shade);
+                    }
+                }
+            }
+            else
+            {
+                string[] grassNames = { "Grass 0", "Grass 1", "Grass 2", "Grass 3" };
+                Sprite[] grassSprites = new Sprite[grassNames.Length];
+                for (int i = 0; i < grassNames.Length; i++)
+                {
+                    grassSprites[i] = GetSprite(tileSprites, grassNames[i]);
+                }
+
+                Sprite pathSprite = GetSprite(tileSprites, "Sand 0");
+                
+                for (int x = -25; x <= 25; x++)
+                {
+                    for (int y = -20; y <= 30; y++)
+                    {
+                        var tile = new GameObject($"T_{x}_{y}");
+                        tile.transform.SetParent(groundParent.transform);
+                        tile.transform.position = new Vector3(x, y, 0);
+                        
+                        var sr = tile.AddComponent<SpriteRenderer>();
+                        sr.sortingOrder = -200;
+
+                        bool isPath = (Mathf.Abs(x) < 2) || (Mathf.Abs(y) < 2);
+                        
+                        if (isPath && pathSprite != null)
+                        {
+                            sr.sprite = pathSprite;
+                            sr.color = new Color(0.9f, 0.85f, 0.7f);
+                        }
+                        else
+                        {
+                            Sprite gs = grassSprites[Random.Range(0, grassSprites.Length)];
+                            sr.sprite = gs != null ? gs : CreatePixelSprite(new Color(0.3f, 0.4f, 0.25f));
+                            
+                            float shade = Random.Range(0.85f, 1.05f);
+                            sr.color = new Color(0.85f * shade, 0.95f * shade, 0.8f * shade);
+                        }
                     }
                 }
             }
@@ -169,8 +212,16 @@ namespace Deadlight.Core
             playerObj.transform.position = Vector3.zero;
 
             var sr = playerObj.AddComponent<SpriteRenderer>();
-            var playerSprite = GetSprite(playerSprites, "Down 0");
-            sr.sprite = playerSprite != null ? playerSprite : CreateCircleSprite(Color.green);
+            
+            if (useProceduralSprites)
+            {
+                sr.sprite = ProceduralSpriteGenerator.CreatePlayerSprite(0, 0);
+            }
+            else
+            {
+                var playerSprite = GetSprite(playerSprites, "Down 0");
+                sr.sprite = playerSprite != null ? playerSprite : CreateCircleSprite(Color.green);
+            }
             sr.sortingOrder = 10;
 
             var rb = playerObj.AddComponent<Rigidbody2D>();
@@ -188,6 +239,7 @@ namespace Deadlight.Core
             
             var animator = playerObj.AddComponent<PlayerAnimator>();
             animator.SetSprites(playerSprites);
+            animator.SetUseProceduralSprites(useProceduralSprites);
 
             var firePoint = new GameObject("FirePoint");
             firePoint.transform.SetParent(playerObj.transform);
@@ -204,7 +256,14 @@ namespace Deadlight.Core
             bulletObj.SetActive(false);
 
             var sr = bulletObj.AddComponent<SpriteRenderer>();
-            sr.sprite = CreateBulletSprite();
+            if (useProceduralSprites)
+            {
+                sr.sprite = ProceduralSpriteGenerator.CreateBulletSprite();
+            }
+            else
+            {
+                sr.sprite = CreateBulletSprite();
+            }
             sr.sortingOrder = 8;
 
             var rb = bulletObj.AddComponent<Rigidbody2D>();
@@ -296,6 +355,30 @@ namespace Deadlight.Core
                 var rtObj = new GameObject("RadioTransmissions");
                 rtObj.transform.SetParent(managersParent);
                 rtObj.AddComponent<RadioTransmissions>();
+
+                var vfxObj = new GameObject("VFXManager");
+                vfxObj.transform.SetParent(managersParent);
+                vfxObj.AddComponent<VFXManager>();
+
+                var atmObj = new GameObject("AtmosphereController");
+                atmObj.transform.SetParent(managersParent);
+                atmObj.AddComponent<AtmosphereController>();
+            }
+
+            if (VFXManager.Instance == null)
+            {
+                var vfxObj = new GameObject("VFXManager");
+                if (managersParent != null)
+                    vfxObj.transform.SetParent(managersParent);
+                vfxObj.AddComponent<VFXManager>();
+            }
+
+            if (AtmosphereController.Instance == null)
+            {
+                var atmObj = new GameObject("AtmosphereController");
+                if (managersParent != null)
+                    atmObj.transform.SetParent(managersParent);
+                atmObj.AddComponent<AtmosphereController>();
             }
 
             if (Deadlight.UI.GameUI.Instance == null)
@@ -332,16 +415,24 @@ namespace Deadlight.Core
                 (new Vector3(0, 18, 0), "House A0", 3f),
             };
 
-            foreach (var h in housePositions)
+            for (int i = 0; i < housePositions.Length; i++)
             {
+                var h = housePositions[i];
                 var house = new GameObject("House");
                 house.transform.SetParent(town.transform);
                 house.transform.position = h.pos;
                 house.transform.localScale = Vector3.one * h.scale;
 
                 var sr = house.AddComponent<SpriteRenderer>();
-                var houseSprite = GetSprite(objectSprites, h.sprite);
-                sr.sprite = houseSprite != null ? houseSprite : CreateRectSprite(new Color(0.5f, 0.4f, 0.3f), new Vector2(2, 2));
+                if (useProceduralSprites)
+                {
+                    sr.sprite = ProceduralSpriteGenerator.CreateBuildingSprite(i % 3);
+                }
+                else
+                {
+                    var houseSprite = GetSprite(objectSprites, h.sprite);
+                    sr.sprite = houseSprite != null ? houseSprite : CreateRectSprite(new Color(0.5f, 0.4f, 0.3f), new Vector2(2, 2));
+                }
                 sr.sortingOrder = Mathf.RoundToInt(-h.pos.y);
 
                 var col = house.AddComponent<BoxCollider2D>();
@@ -366,8 +457,15 @@ namespace Deadlight.Core
                 tree.transform.localScale = Vector3.one * Random.Range(1.2f, 2f);
 
                 var sr = tree.AddComponent<SpriteRenderer>();
-                var treeSprite = GetSprite(objectSprites, $"Tree {Random.Range(0, 4)}");
-                sr.sprite = treeSprite != null ? treeSprite : CreateCircleSprite(new Color(0.2f, 0.45f, 0.2f));
+                if (useProceduralSprites)
+                {
+                    sr.sprite = ProceduralSpriteGenerator.CreateTreeSprite();
+                }
+                else
+                {
+                    var treeSprite = GetSprite(objectSprites, $"Tree {Random.Range(0, 4)}");
+                    sr.sprite = treeSprite != null ? treeSprite : CreateCircleSprite(new Color(0.2f, 0.45f, 0.2f));
+                }
                 sr.sortingOrder = Mathf.RoundToInt(-pos.y) + 1;
 
                 var col = tree.AddComponent<CircleCollider2D>();
@@ -389,8 +487,15 @@ namespace Deadlight.Core
                 rock.transform.localScale = Vector3.one * Random.Range(0.8f, 1.3f);
 
                 var sr = rock.AddComponent<SpriteRenderer>();
-                var rockSprite = GetSprite(objectSprites, "Rock");
-                sr.sprite = rockSprite != null ? rockSprite : CreateCircleSprite(Color.gray);
+                if (useProceduralSprites)
+                {
+                    sr.sprite = ProceduralSpriteGenerator.CreateRockSprite();
+                }
+                else
+                {
+                    var rockSprite = GetSprite(objectSprites, "Rock");
+                    sr.sprite = rockSprite != null ? rockSprite : CreateCircleSprite(Color.gray);
+                }
                 sr.sortingOrder = Mathf.RoundToInt(-pos.y);
 
                 var col = rock.AddComponent<CircleCollider2D>();
@@ -409,12 +514,61 @@ namespace Deadlight.Core
                 crate.transform.position = pos;
 
                 var sr = crate.AddComponent<SpriteRenderer>();
-                var boxSprite = GetSprite(objectSprites, "Box");
-                sr.sprite = boxSprite != null ? boxSprite : CreateRectSprite(new Color(0.6f, 0.45f, 0.25f), Vector2.one);
+                if (useProceduralSprites)
+                {
+                    sr.sprite = ProceduralSpriteGenerator.CreateCrateSprite();
+                }
+                else
+                {
+                    var boxSprite = GetSprite(objectSprites, "Box");
+                    sr.sprite = boxSprite != null ? boxSprite : CreateRectSprite(new Color(0.6f, 0.45f, 0.25f), Vector2.one);
+                }
                 sr.sortingOrder = Mathf.RoundToInt(-pos.y);
 
                 var col = crate.AddComponent<BoxCollider2D>();
                 col.size = new Vector2(0.8f, 0.8f);
+            }
+
+            if (useProceduralSprites)
+            {
+                var barrelPositions = new Vector3[] {
+                    new Vector3(-5, 7, 0), new Vector3(5, -3, 0),
+                    new Vector3(-9, -9, 0), new Vector3(9, 9, 0),
+                };
+
+                foreach (var pos in barrelPositions)
+                {
+                    var barrel = new GameObject("Barrel");
+                    barrel.transform.SetParent(town.transform);
+                    barrel.transform.position = pos;
+
+                    var sr = barrel.AddComponent<SpriteRenderer>();
+                    bool explosive = Random.value > 0.6f;
+                    sr.sprite = ProceduralSpriteGenerator.CreateBarrelSprite(explosive);
+                    sr.sortingOrder = Mathf.RoundToInt(-pos.y);
+
+                    var col = barrel.AddComponent<CircleCollider2D>();
+                    col.radius = 0.25f;
+                }
+
+                var carPositions = new Vector3[] {
+                    new Vector3(-12, 3, 0), new Vector3(14, -3, 0),
+                };
+
+                foreach (var pos in carPositions)
+                {
+                    var car = new GameObject("Car");
+                    car.transform.SetParent(town.transform);
+                    car.transform.position = pos;
+                    car.transform.rotation = Quaternion.Euler(0, 0, Random.Range(-15f, 15f));
+
+                    var sr = car.AddComponent<SpriteRenderer>();
+                    sr.sprite = ProceduralSpriteGenerator.CreateCarSprite(Random.Range(0, 4));
+                    sr.sortingOrder = Mathf.RoundToInt(-pos.y);
+
+                    var col = car.AddComponent<BoxCollider2D>();
+                    col.size = new Vector2(1.5f, 0.7f);
+                }
             }
         }
 
@@ -473,10 +627,24 @@ namespace Deadlight.Core
             enemyObj.transform.position = position;
 
             var sr = enemyObj.AddComponent<SpriteRenderer>();
-            var enemySprite = GetSprite(npcSprites, spriteName);
-            sr.sprite = enemySprite != null ? enemySprite : CreateCircleSprite(new Color(0.4f, 0.5f, 0.3f));
+            
+            if (useProceduralSprites)
+            {
+                var zombieTypes = new[] { 
+                    ProceduralSpriteGenerator.ZombieType.Basic,
+                    ProceduralSpriteGenerator.ZombieType.Runner,
+                    ProceduralSpriteGenerator.ZombieType.Exploder
+                };
+                var randomType = zombieTypes[Random.Range(0, zombieTypes.Length)];
+                sr.sprite = ProceduralSpriteGenerator.CreateZombieSprite(randomType, 0, 0);
+            }
+            else
+            {
+                var enemySprite = GetSprite(npcSprites, spriteName);
+                sr.sprite = enemySprite != null ? enemySprite : CreateCircleSprite(new Color(0.4f, 0.5f, 0.3f));
+                sr.color = new Color(0.65f, 0.75f, 0.55f);
+            }
             sr.sortingOrder = 9;
-            sr.color = new Color(0.65f, 0.75f, 0.55f);
 
             var rb = enemyObj.AddComponent<Rigidbody2D>();
             rb.gravityScale = 0;
@@ -845,14 +1013,21 @@ namespace Deadlight.Core
         private SpriteRenderer spriteRenderer;
         private Sprite[] sprites;
         private Rigidbody2D rb;
+        private bool useProceduralSprites = false;
         
         private float animTimer;
         private int currentFrame;
         private string currentDirection = "Down";
+        private int currentDirectionIndex = 0;
 
         public void SetSprites(Sprite[] playerSprites)
         {
             sprites = playerSprites;
+        }
+
+        public void SetUseProceduralSprites(bool useProcedural)
+        {
+            useProceduralSprites = useProcedural;
         }
 
         private void Start()
@@ -863,7 +1038,7 @@ namespace Deadlight.Core
 
         private void Update()
         {
-            if (sprites == null || sprites.Length == 0) return;
+            if (!useProceduralSprites && (sprites == null || sprites.Length == 0)) return;
             UpdateDirection();
             UpdateAnimation();
         }
@@ -874,9 +1049,15 @@ namespace Deadlight.Core
             if (velocity.magnitude < 0.1f) return;
 
             if (Mathf.Abs(velocity.x) > Mathf.Abs(velocity.y))
+            {
                 currentDirection = velocity.x > 0 ? "Right" : "Left";
+                currentDirectionIndex = velocity.x > 0 ? 3 : 2;
+            }
             else
+            {
                 currentDirection = velocity.y > 0 ? "Up" : "Down";
+                currentDirectionIndex = velocity.y > 0 ? 1 : 0;
+            }
         }
 
         private void UpdateAnimation()
@@ -899,13 +1080,20 @@ namespace Deadlight.Core
                 animTimer = 0f;
             }
 
-            string spriteName = $"{currentDirection} {currentFrame}";
-            foreach (var sprite in sprites)
+            if (useProceduralSprites)
             {
-                if (sprite.name == spriteName)
+                spriteRenderer.sprite = ProceduralSpriteGenerator.CreatePlayerSprite(currentDirectionIndex, currentFrame);
+            }
+            else
+            {
+                string spriteName = $"{currentDirection} {currentFrame}";
+                foreach (var sprite in sprites)
                 {
-                    spriteRenderer.sprite = sprite;
-                    break;
+                    if (sprite.name == spriteName)
+                    {
+                        spriteRenderer.sprite = sprite;
+                        break;
+                    }
                 }
             }
         }
