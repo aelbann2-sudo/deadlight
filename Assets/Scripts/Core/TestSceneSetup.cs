@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using Deadlight.Level;
 using Deadlight.Narrative;
 #if UNITY_EDITOR
@@ -62,8 +63,6 @@ namespace Deadlight.Core
             CreateEnvironment();
             CreateEnemies();
             BuildHUD();
-            
-            GameManager.Instance?.StartNewGame();
         }
 
         private void LoadAllSprites()
@@ -270,6 +269,18 @@ namespace Deadlight.Core
             var geObj = new GameObject("GameEffects");
             geObj.transform.SetParent(managersObj.transform);
             geObj.AddComponent<GameEffects>();
+
+            var gfObj = new GameObject("GameFlowController");
+            gfObj.transform.SetParent(managersObj.transform);
+            gfObj.AddComponent<GameFlowController>();
+
+            var rtObj = new GameObject("RadioTransmissions");
+            rtObj.transform.SetParent(managersObj.transform);
+            rtObj.AddComponent<RadioTransmissions>();
+
+            var guiObj = new GameObject("GameUI");
+            guiObj.transform.SetParent(managersObj.transform);
+            guiObj.AddComponent<Deadlight.UI.GameUI>();
         }
 
         // ===================== ENVIRONMENT =====================
@@ -565,6 +576,39 @@ namespace Deadlight.Core
                 font, 13, TextAnchor.LowerRight, new Color(1, 1, 1, 0.5f),
                 new Vector2(1, 0), new Vector2(1, 0), new Vector2(-20, 15), new Vector2(600, 25));
 
+            // Day timer
+            var dayTimerText = CreateUIText(canvas.transform, "DayTimer",
+                new Vector2(0.5f, 1), "", font, 20, TextAnchor.UpperCenter, new Color(1f, 0.9f, 0.6f),
+                new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -75), new Vector2(200, 25));
+
+            // Points display
+            var pointsText = CreateUIText(canvas.transform, "PointsDisplay",
+                new Vector2(1, 1), "Score: 0", font, 20, TextAnchor.UpperRight, new Color(1f, 0.85f, 0.3f),
+                new Vector2(1, 1), new Vector2(1, 1), new Vector2(-20, -50), new Vector2(200, 25));
+
+            // Radio transmission panel
+            var radioPanel = CreateUIPanel(canvas.transform, "RadioPanel",
+                new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 0),
+                new Vector2(20, 60), new Vector2(600, 60));
+            var radioBg = radioPanel.AddComponent<Image>();
+            radioBg.color = Color.clear;
+            
+            var radioText = CreateUIText(radioPanel.transform, "RadioText",
+                new Vector2(0, 0.5f), "", font, 16, TextAnchor.MiddleLeft, new Color(0.3f, 1f, 0.3f),
+                new Vector2(0, 0), new Vector2(1, 1), new Vector2(10, 0), new Vector2(-20, 0));
+            radioText.GetComponent<RectTransform>().offsetMin = new Vector2(10, 5);
+            radioText.GetComponent<RectTransform>().offsetMax = new Vector2(-10, -5);
+            radioPanel.SetActive(false);
+
+            if (RadioTransmissions.Instance != null)
+            {
+                RadioTransmissions.Instance.SetUI(
+                    radioText.GetComponent<Text>(),
+                    radioBg,
+                    radioPanel
+                );
+            }
+
             // Game Over panel
             var goPanel = new GameObject("GameOverPanel");
             goPanel.transform.SetParent(canvas.transform);
@@ -612,7 +656,9 @@ namespace Deadlight.Core
                 statusText.GetComponent<Text>(),
                 goPanel,
                 goText.GetComponent<Text>(),
-                reloadHint.GetComponent<Text>()
+                reloadHint.GetComponent<Text>(),
+                dayTimerText.GetComponent<Text>(),
+                pointsText.GetComponent<Text>()
             );
 
             // Hook up GameEffects

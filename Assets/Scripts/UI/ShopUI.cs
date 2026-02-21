@@ -267,7 +267,14 @@ namespace Deadlight.UI
         private void OnContinueClicked()
         {
             HideShop();
-            GameManager.Instance?.AdvanceToNextNight();
+            if (GameFlowController.Instance != null)
+            {
+                GameFlowController.Instance.RequestDawnContinue();
+            }
+            else
+            {
+                GameManager.Instance?.AdvanceToNextNight();
+            }
         }
 
         public void AddWeaponItem(ShopItem item)

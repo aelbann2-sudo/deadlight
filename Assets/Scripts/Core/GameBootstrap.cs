@@ -54,6 +54,12 @@ namespace Deadlight.Core
                 dncObj.AddComponent<DayNightCycle>();
             }
 
+            if (GameFlowController.Instance == null)
+            {
+                var gfcObj = new GameObject("GameFlowController");
+                gfcObj.AddComponent<GameFlowController>();
+            }
+
             if (FindObjectOfType<WaveManager>() == null)
             {
                 var wmObj = new GameObject("WaveManager");

@@ -18,6 +18,8 @@ namespace Deadlight.UI
         private GameObject gameOverPanel;
         private Text gameOverText;
         private Text reloadHint;
+        private Text dayTimerText;
+        private Text pointsText;
 
         private Player.PlayerHealth playerHealth;
         private Player.PlayerShooting playerShooting;
@@ -26,7 +28,8 @@ namespace Deadlight.UI
         public void Initialize(
             Text health, Image hFill, Text ammo, Image sFill,
             Text wave, Text night, Text enemyCount, Text status,
-            GameObject goPanel, Text goText, Text reload)
+            GameObject goPanel, Text goText, Text reload,
+            Text dayTimer = null, Text points = null)
         {
             healthText = health;
             healthFill = hFill;
@@ -39,6 +42,8 @@ namespace Deadlight.UI
             gameOverPanel = goPanel;
             gameOverText = goText;
             reloadHint = reload;
+            dayTimerText = dayTimer;
+            pointsText = points;
 
             if (gameOverPanel != null)
                 gameOverPanel.SetActive(false);
@@ -89,6 +94,16 @@ namespace Deadlight.UI
             {
                 WaveSpawner.Instance.OnWaveChanged += UpdateWave;
                 WaveSpawner.Instance.OnEnemyCountChanged += UpdateEnemyCount;
+            }
+
+            if (GameFlowController.Instance != null)
+            {
+                GameFlowController.Instance.OnDayTimerUpdate += UpdateDayTimer;
+            }
+
+            if (Systems.PointsSystem.Instance != null)
+            {
+                Systems.PointsSystem.Instance.OnPointsChanged += UpdatePoints;
             }
         }
 
@@ -184,6 +199,28 @@ namespace Deadlight.UI
         {
             if (enemyCountText != null)
                 enemyCountText.text = $"Enemies: {count}";
+        }
+
+        private void UpdateDayTimer(float timeRemaining)
+        {
+            if (dayTimerText == null) return;
+            if (GameManager.Instance?.CurrentState == GameState.DayPhase)
+            {
+                int mins = Mathf.FloorToInt(timeRemaining / 60f);
+                int secs = Mathf.FloorToInt(timeRemaining % 60f);
+                dayTimerText.text = $"Day ends in {mins}:{secs:00}";
+                dayTimerText.gameObject.SetActive(true);
+            }
+            else
+            {
+                dayTimerText.gameObject.SetActive(false);
+            }
+        }
+
+        private void UpdatePoints(int points)
+        {
+            if (pointsText != null)
+                pointsText.text = $"Score: {points}";
         }
 
         private void ShowReloading()
