@@ -229,60 +229,6 @@ Assets/
 └── Audio/               # Sound effects and music
 ```
 
-## Team Responsibilities
-
-### Simranjeet - Player Systems
-**Files to extend**: `Assets/Scripts/Player/`
-- `PlayerController.cs` - WASD movement, mouse aiming, sprinting
-- `PlayerShooting.cs` - Weapon system, firing, reloading
-- `PlayerHealth.cs` - Health management, damage, death
-- `Bullet.cs` - Projectile behavior
-
-**To add new weapons**:
-1. Create a new `WeaponData` ScriptableObject in `Assets/ScriptableObjects/Weapons/`
-2. Configure stats (damage, fire rate, magazine size, etc.)
-3. Assign to PlayerShooting component or add to shop
-
-### Abdelrahman - AI Systems
-**Files to extend**: `Assets/Scripts/Enemy/`
-- `EnemyAI.cs` - Pathfinding, state machine (Idle, Chase, Attack)
-- `EnemyHealth.cs` - Damage, death, loot drops
-- `EnemySpawner.cs` - Spawn point logic
-
-**To add new enemy types**:
-1. Create a new `EnemyData` ScriptableObject in `Assets/ScriptableObjects/Enemies/`
-2. Create a prefab with EnemyAI + EnemyHealth components
-3. Add to WaveManager's available enemies or NightConfig
-
-**Enemy States**: Idle → Chase (when player detected) → Attack (when in range)
-
-### Koroush - Level Design
-**Key systems**:
-- `EnemySpawner.cs` - Place these around the map for spawn points
-- `Pickup.cs` - Place health/ammo/resource pickups
-- `CameraController.cs` - Set map bounds
-
-**To create a map**:
-1. Create a new scene
-2. Add `GameBootstrap` to an empty object
-3. Place spawn points around the edges
-4. Add colliders for walls/obstacles
-5. Bake NavMesh (Window → AI → Navigation → Bake)
-
-### Ashraf - UI & Audio
-**Files to extend**: `Assets/Scripts/UI/`
-- `HUDManager.cs` - In-game HUD (health, ammo, timer, wave)
-- `MenuManager.cs` - Main menu, pause, game over screens
-- `ShopUI.cs` - Between-night shop
-
-**Files to extend**: `Assets/Scripts/Core/`
-- `AudioManager.cs` - Music and sound effects
-
-**To add UI elements**:
-1. Create Canvas in scene if not exists
-2. Add UI elements (Image, Text - TextMeshPro)
-3. Link references in HUDManager/MenuManager inspector
-
 ## Core Systems Documentation
 
 ### GameManager (Singleton)
