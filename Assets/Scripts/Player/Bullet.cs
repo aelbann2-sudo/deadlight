@@ -58,14 +58,17 @@ namespace Deadlight.Player
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            if (other.CompareTag("Player")) return;
+            if (other.GetComponent<Player.PlayerController>() != null) return;
+            if (other.GetComponent<Player.PlayerHealth>() != null) return;
 
-            if (other.CompareTag("Enemy"))
+            var enemyHealth = other.GetComponent<Enemy.EnemyHealth>();
+            if (enemyHealth != null)
             {
-                var enemyHealth = other.GetComponent<Enemy.EnemyHealth>();
-                if (enemyHealth != null)
+                enemyHealth.TakeDamage(damage);
+                if (Core.GameEffects.Instance != null)
                 {
-                    enemyHealth.TakeDamage(damage);
+                    Core.GameEffects.Instance.SpawnHitEffect(transform.position);
+                    Core.GameEffects.Instance.ScreenShake(0.05f, 0.08f);
                 }
             }
 
@@ -75,14 +78,17 @@ namespace Deadlight.Player
 
         private void OnCollisionEnter2D(Collision2D collision)
         {
-            if (collision.gameObject.CompareTag("Player")) return;
+            if (collision.gameObject.GetComponent<Player.PlayerController>() != null) return;
+            if (collision.gameObject.GetComponent<Player.PlayerHealth>() != null) return;
 
-            if (collision.gameObject.CompareTag("Enemy"))
+            var enemyHealth = collision.gameObject.GetComponent<Enemy.EnemyHealth>();
+            if (enemyHealth != null)
             {
-                var enemyHealth = collision.gameObject.GetComponent<Enemy.EnemyHealth>();
-                if (enemyHealth != null)
+                enemyHealth.TakeDamage(damage);
+                if (Core.GameEffects.Instance != null)
                 {
-                    enemyHealth.TakeDamage(damage);
+                    Core.GameEffects.Instance.SpawnHitEffect(transform.position);
+                    Core.GameEffects.Instance.ScreenShake(0.05f, 0.08f);
                 }
             }
 

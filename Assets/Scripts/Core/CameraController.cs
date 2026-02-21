@@ -62,7 +62,7 @@ namespace Deadlight.Core
 
         private void FindPlayer()
         {
-            var player = GameObject.FindGameObjectWithTag("Player");
+            var player = GameObject.Find("Player");
             if (player != null)
             {
                 target = player.transform;

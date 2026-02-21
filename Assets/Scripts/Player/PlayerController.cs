@@ -91,10 +91,6 @@ namespace Deadlight.Player
             if (mainCamera == null) return;
 
             mouseWorldPosition = mainCamera.ScreenToWorldPoint(Input.mousePosition);
-
-            Vector2 aimDirection = mouseWorldPosition - (Vector2)transform.position;
-            float angle = Mathf.Atan2(aimDirection.y, aimDirection.x) * Mathf.Rad2Deg;
-            transform.rotation = Quaternion.Euler(0f, 0f, angle - 90f);
         }
 
         private void HandleMovement()

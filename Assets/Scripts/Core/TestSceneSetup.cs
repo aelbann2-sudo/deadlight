@@ -54,8 +54,6 @@ namespace Deadlight.Core
         [ContextMenu("Setup Test Scene")]
         public void SetupTestScene()
         {
-            Debug.Log("[TestSceneSetup] Setting up test scene...");
-            
             LoadAllSprites();
             CreateCamera();
             CreateGround();
@@ -63,10 +61,9 @@ namespace Deadlight.Core
             CreateManagers();
             CreateEnvironment();
             CreateEnemies();
-            CreateHUD();
+            BuildHUD();
             
-            Debug.Log("[TestSceneSetup] Test scene ready!");
-            Debug.Log("Controls: WASD=Move, Mouse=Aim, Click=Shoot, Shift=Sprint, R=Reload");
+            GameManager.Instance?.StartNewGame();
         }
 
         private void LoadAllSprites()
@@ -75,8 +72,6 @@ namespace Deadlight.Core
             npcSprites = Resources.LoadAll<Sprite>("NPC");
             objectSprites = Resources.LoadAll<Sprite>("Objects");
             tileSprites = Resources.LoadAll<Sprite>("Tiles");
-            
-            Debug.Log($"[TestSceneSetup] Loaded sprites - Player:{playerSprites?.Length ?? 0}, NPC:{npcSprites?.Length ?? 0}, Objects:{objectSprites?.Length ?? 0}, Tiles:{tileSprites?.Length ?? 0}");
         }
 
         private Sprite GetSprite(Sprite[] sprites, string name)
@@ -84,11 +79,12 @@ namespace Deadlight.Core
             if (sprites == null) return null;
             foreach (var sprite in sprites)
             {
-                if (sprite.name == name)
-                    return sprite;
+                if (sprite.name == name) return sprite;
             }
             return null;
         }
+
+        // ===================== CAMERA =====================
 
         private void CreateCamera()
         {
@@ -99,41 +95,60 @@ namespace Deadlight.Core
             var cam = camObj.AddComponent<Camera>();
             cam.orthographic = true;
             cam.orthographicSize = 7;
-            cam.backgroundColor = new Color(0.15f, 0.18f, 0.12f);
+            cam.backgroundColor = new Color(0.12f, 0.14f, 0.1f);
+            cam.clearFlags = CameraClearFlags.SolidColor;
             camObj.AddComponent<AudioListener>();
-            camObj.AddComponent<CameraController>();
+            var camCtrl = camObj.AddComponent<CameraController>();
+            camCtrl.SetSmoothSpeed(8f);
             camObj.transform.position = new Vector3(0, 0, -10);
         }
+
+        // ===================== GROUND =====================
 
         private void CreateGround()
         {
             var groundParent = new GameObject("Ground");
             
-            var groundSprite = GetSprite(tileSprites, "Grass 0");
-            if (groundSprite == null)
+            string[] grassNames = { "Grass 0", "Grass 1", "Grass 2", "Grass 3" };
+            Sprite[] grassSprites = new Sprite[grassNames.Length];
+            for (int i = 0; i < grassNames.Length; i++)
             {
-                groundSprite = CreateRectSprite(new Color(0.2f, 0.25f, 0.15f), new Vector2(1, 1));
+                grassSprites[i] = GetSprite(tileSprites, grassNames[i]);
             }
+
+            Sprite pathSprite = GetSprite(tileSprites, "Sand 0");
             
-            for (int x = -20; x <= 20; x += 2)
+            for (int x = -25; x <= 25; x++)
             {
-                for (int y = -15; y <= 25; y += 2)
+                for (int y = -20; y <= 30; y++)
                 {
-                    var tile = new GameObject($"Tile_{x}_{y}");
+                    var tile = new GameObject($"T_{x}_{y}");
                     tile.transform.SetParent(groundParent.transform);
                     tile.transform.position = new Vector3(x, y, 0);
                     
                     var sr = tile.AddComponent<SpriteRenderer>();
-                    sr.sprite = groundSprite;
                     sr.sortingOrder = -200;
-                    sr.color = new Color(
-                        0.85f + Random.Range(-0.1f, 0.1f),
-                        0.9f + Random.Range(-0.1f, 0.1f),
-                        0.85f + Random.Range(-0.1f, 0.1f)
-                    );
+
+                    bool isPath = (Mathf.Abs(x) < 2) || (Mathf.Abs(y) < 2);
+                    
+                    if (isPath && pathSprite != null)
+                    {
+                        sr.sprite = pathSprite;
+                        sr.color = new Color(0.9f, 0.85f, 0.7f);
+                    }
+                    else
+                    {
+                        Sprite gs = grassSprites[Random.Range(0, grassSprites.Length)];
+                        sr.sprite = gs != null ? gs : CreatePixelSprite(new Color(0.3f, 0.4f, 0.25f));
+                        
+                        float shade = Random.Range(0.85f, 1.05f);
+                        sr.color = new Color(0.85f * shade, 0.95f * shade, 0.8f * shade);
+                    }
                 }
             }
         }
+
+        // ===================== PLAYER =====================
 
         private void CreatePlayer()
         {
@@ -155,9 +170,9 @@ namespace Deadlight.Core
             var col = playerObj.AddComponent<CircleCollider2D>();
             col.radius = 0.3f;
 
-            var controller = playerObj.AddComponent<Player.PlayerController>();
-            var shooting = playerObj.AddComponent<Player.PlayerShooting>();
-            var health = playerObj.AddComponent<Player.PlayerHealth>();
+            playerObj.AddComponent<Player.PlayerController>();
+            playerObj.AddComponent<Player.PlayerShooting>();
+            playerObj.AddComponent<Player.PlayerHealth>();
             playerObj.AddComponent<AudioSource>();
             
             var animator = playerObj.AddComponent<PlayerAnimator>();
@@ -167,10 +182,9 @@ namespace Deadlight.Core
             firePoint.transform.SetParent(playerObj.transform);
             firePoint.transform.localPosition = new Vector3(0.5f, 0, 0);
 
+            var shooting = playerObj.GetComponent<Player.PlayerShooting>();
             shooting.SetFirePoint(firePoint.transform);
             CreateBulletPrefab(shooting);
-
-            Debug.Log("[TestSceneSetup] Player created with animations");
         }
 
         private void CreateBulletPrefab(Player.PlayerShooting shooting)
@@ -193,63 +207,30 @@ namespace Deadlight.Core
             bulletObj.AddComponent<Player.Bullet>();
 
             var trail = bulletObj.AddComponent<TrailRenderer>();
-            trail.time = 0.1f;
-            trail.startWidth = 0.15f;
+            trail.time = 0.08f;
+            trail.startWidth = 0.12f;
             trail.endWidth = 0f;
             trail.material = new Material(Shader.Find("Sprites/Default"));
-            trail.startColor = new Color(1f, 0.9f, 0.3f, 0.8f);
+            trail.startColor = new Color(1f, 0.9f, 0.4f, 0.8f);
             trail.endColor = new Color(1f, 0.5f, 0.2f, 0f);
 
             shooting.SetBulletPrefab(bulletObj);
 
             var weaponData = ScriptableObject.CreateInstance<Data.WeaponData>();
             weaponData.weaponName = "Pistol";
-            weaponData.damage = 25f;
-            weaponData.fireRate = 0.25f;
-            weaponData.magazineSize = 12;
-            weaponData.reloadTime = 1.5f;
-            weaponData.bulletSpeed = 25f;
-            weaponData.range = 30f;
-            weaponData.spread = 3f;
+            weaponData.damage = 20f;
+            weaponData.fireRate = 0.2f;
+            weaponData.magazineSize = 15;
+            weaponData.reloadTime = 1.2f;
+            weaponData.bulletSpeed = 30f;
+            weaponData.range = 25f;
+            weaponData.spread = 2f;
             weaponData.isAutomatic = false;
 
             shooting.SetWeapon(weaponData);
         }
 
-        private Sprite CreateBulletSprite()
-        {
-            int width = 16;
-            int height = 8;
-            var texture = new Texture2D(width, height);
-            var pixels = new Color[width * height];
-
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    float distFromCenter = Mathf.Abs(y - height / 2f) / (height / 2f);
-                    float xFade = (float)x / width;
-                    
-                    Color bulletColor = Color.Lerp(
-                        new Color(1f, 0.9f, 0.3f),
-                        new Color(1f, 0.6f, 0.2f),
-                        distFromCenter
-                    );
-                    bulletColor.a = xFade > 0.7f ? 1f : xFade + 0.3f;
-                    
-                    float edgeDist = Mathf.Min(y, height - 1 - y) / 2f;
-                    if (edgeDist < 1) bulletColor.a *= edgeDist;
-                    
-                    pixels[y * width + x] = bulletColor;
-                }
-            }
-
-            texture.SetPixels(pixels);
-            texture.Apply();
-            texture.filterMode = FilterMode.Bilinear;
-
-            return Sprite.Create(texture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 16f);
-        }
+        // ===================== MANAGERS =====================
 
         private void CreateManagers()
         {
@@ -265,9 +246,9 @@ namespace Deadlight.Core
             dncObj.transform.SetParent(managersObj.transform);
             dncObj.AddComponent<DayNightCycle>();
 
-            var wmObj = new GameObject("WaveManager");
-            wmObj.transform.SetParent(managersObj.transform);
-            wmObj.AddComponent<WaveManager>();
+            var wsObj = new GameObject("WaveSpawner");
+            wsObj.transform.SetParent(managersObj.transform);
+            wsObj.AddComponent<WaveSpawner>();
 
             var rmObj = new GameObject("ResourceManager");
             rmObj.transform.SetParent(managersObj.transform);
@@ -286,222 +267,172 @@ namespace Deadlight.Core
             nmObj.AddComponent<NarrativeManager>();
             nmObj.AddComponent<EnvironmentalLore>();
 
-            Debug.Log("[TestSceneSetup] Managers created");
+            var geObj = new GameObject("GameEffects");
+            geObj.transform.SetParent(managersObj.transform);
+            geObj.AddComponent<GameEffects>();
         }
+
+        // ===================== ENVIRONMENT =====================
 
         private void CreateEnvironment()
         {
             var envParent = new GameObject("Environment");
-
-            CreateSafeZone(envParent.transform);
-            CreateTownArea(envParent.transform);
-            CreateSpawnPoints(envParent.transform);
-            CreateObstacles(envParent.transform);
-
-            Debug.Log("[TestSceneSetup] Environment created");
+            CreateTown(envParent.transform);
+            CreatePerimeter(envParent.transform);
         }
 
-        private void CreateSafeZone(Transform parent)
+        private void CreateTown(Transform parent)
         {
-            var safeZone = new GameObject("SafeZone");
-            safeZone.transform.SetParent(parent);
-            safeZone.transform.position = Vector3.zero;
-            safeZone.AddComponent<MapZone>();
-            
-            for (int i = 0; i < 4; i++)
-            {
-                float angle = i * 90f;
-                Vector3 pos = Quaternion.Euler(0, 0, angle) * Vector3.right * 5f;
-                CreateBarricade(safeZone.transform, pos, angle == 0 || angle == 180);
-            }
-        }
-
-        private void CreateBarricade(Transform parent, Vector3 position, bool horizontal)
-        {
-            var barricade = new GameObject("Barricade");
-            barricade.transform.SetParent(parent);
-            barricade.transform.position = position;
-            
-            var sr = barricade.AddComponent<SpriteRenderer>();
-            var boxSprite = GetSprite(objectSprites, "Box");
-            sr.sprite = boxSprite != null ? boxSprite : CreateRectSprite(new Color(0.5f, 0.35f, 0.2f), new Vector2(1, 1));
-            sr.sortingOrder = 5;
-            sr.color = new Color(0.8f, 0.6f, 0.4f);
-            
-            var col = barricade.AddComponent<BoxCollider2D>();
-            col.size = horizontal ? new Vector2(3f, 0.5f) : new Vector2(0.5f, 3f);
-            
-            barricade.transform.localScale = horizontal ? new Vector3(3f, 1f, 1f) : new Vector3(1f, 3f, 1f);
-        }
-
-        private void CreateTownArea(Transform parent)
-        {
-            var town = new GameObject("TownArea");
+            var town = new GameObject("Town");
             town.transform.SetParent(parent);
 
-            Vector3[] housePositions = {
-                new Vector3(-12, 8, 0),
-                new Vector3(12, 8, 0),
-                new Vector3(-10, -8, 0),
-                new Vector3(10, -8, 0),
-                new Vector3(0, 15, 0)
+            var housePositions = new (Vector3 pos, string sprite, float scale)[] {
+                (new Vector3(-8, 10, 0), "House A0", 2.5f),
+                (new Vector3(8, 10, 0), "House B0", 2.5f),
+                (new Vector3(-12, -6, 0), "House A2", 2f),
+                (new Vector3(12, -6, 0), "House B2", 2f),
+                (new Vector3(-6, -12, 0), "House A4", 2f),
+                (new Vector3(6, -12, 0), "House B4", 2f),
+                (new Vector3(0, 18, 0), "House A0", 3f),
             };
 
-            for (int i = 0; i < housePositions.Length; i++)
+            foreach (var h in housePositions)
             {
-                CreateHouse(town.transform, housePositions[i], i);
+                var house = new GameObject("House");
+                house.transform.SetParent(town.transform);
+                house.transform.position = h.pos;
+                house.transform.localScale = Vector3.one * h.scale;
+
+                var sr = house.AddComponent<SpriteRenderer>();
+                var houseSprite = GetSprite(objectSprites, h.sprite);
+                sr.sprite = houseSprite != null ? houseSprite : CreateRectSprite(new Color(0.5f, 0.4f, 0.3f), new Vector2(2, 2));
+                sr.sortingOrder = Mathf.RoundToInt(-h.pos.y);
+
+                var col = house.AddComponent<BoxCollider2D>();
+                col.size = new Vector2(1.2f, 1.2f);
             }
 
-            Vector3[] treePositions = {
-                new Vector3(-8, 5, 0), new Vector3(8, 5, 0),
-                new Vector3(-15, 0, 0), new Vector3(15, 0, 0),
-                new Vector3(-6, 12, 0), new Vector3(6, 12, 0),
-                new Vector3(-3, -10, 0), new Vector3(3, -10, 0)
+            var treePositions = new Vector3[] {
+                new Vector3(-15, 5, 0), new Vector3(15, 5, 0),
+                new Vector3(-18, -2, 0), new Vector3(18, -2, 0),
+                new Vector3(-4, 14, 0), new Vector3(4, 14, 0),
+                new Vector3(-10, -15, 0), new Vector3(10, -15, 0),
+                new Vector3(-20, 10, 0), new Vector3(20, 10, 0),
+                new Vector3(-14, 18, 0), new Vector3(14, 18, 0),
+                new Vector3(-22, -8, 0), new Vector3(22, -8, 0),
             };
 
             foreach (var pos in treePositions)
             {
-                CreateTree(town.transform, pos);
+                var tree = new GameObject("Tree");
+                tree.transform.SetParent(town.transform);
+                tree.transform.position = pos;
+                tree.transform.localScale = Vector3.one * Random.Range(1.2f, 2f);
+
+                var sr = tree.AddComponent<SpriteRenderer>();
+                var treeSprite = GetSprite(objectSprites, $"Tree {Random.Range(0, 4)}");
+                sr.sprite = treeSprite != null ? treeSprite : CreateCircleSprite(new Color(0.2f, 0.45f, 0.2f));
+                sr.sortingOrder = Mathf.RoundToInt(-pos.y) + 1;
+
+                var col = tree.AddComponent<CircleCollider2D>();
+                col.radius = 0.3f;
+                col.offset = new Vector2(0, -0.3f);
             }
 
-            Vector3[] rockPositions = {
-                new Vector3(-5, 8, 0), new Vector3(5, 8, 0),
-                new Vector3(-12, -3, 0), new Vector3(12, -3, 0)
+            var rockPositions = new Vector3[] {
+                new Vector3(-7, 3, 0), new Vector3(7, 3, 0),
+                new Vector3(-3, -7, 0), new Vector3(3, 8, 0),
+                new Vector3(-16, 15, 0), new Vector3(16, -12, 0)
             };
 
             foreach (var pos in rockPositions)
             {
-                CreateRock(town.transform, pos);
+                var rock = new GameObject("Rock");
+                rock.transform.SetParent(town.transform);
+                rock.transform.position = pos;
+                rock.transform.localScale = Vector3.one * Random.Range(0.8f, 1.3f);
+
+                var sr = rock.AddComponent<SpriteRenderer>();
+                var rockSprite = GetSprite(objectSprites, "Rock");
+                sr.sprite = rockSprite != null ? rockSprite : CreateCircleSprite(Color.gray);
+                sr.sortingOrder = Mathf.RoundToInt(-pos.y);
+
+                var col = rock.AddComponent<CircleCollider2D>();
+                col.radius = 0.3f;
             }
-        }
 
-        private void CreateHouse(Transform parent, Vector3 position, int variant)
-        {
-            var house = new GameObject($"House_{variant}");
-            house.transform.SetParent(parent);
-            house.transform.position = position;
-
-            var sr = house.AddComponent<SpriteRenderer>();
-            string spriteName = variant % 2 == 0 ? "House A0" : "House B0";
-            var houseSprite = GetSprite(objectSprites, spriteName);
-            sr.sprite = houseSprite != null ? houseSprite : CreateRectSprite(new Color(0.6f, 0.5f, 0.4f), new Vector2(3, 3));
-            sr.sortingOrder = 2;
-            
-            var col = house.AddComponent<BoxCollider2D>();
-            col.size = new Vector2(2.5f, 2.5f);
-            
-            house.transform.localScale = Vector3.one * 2f;
-        }
-
-        private void CreateTree(Transform parent, Vector3 position)
-        {
-            var tree = new GameObject("Tree");
-            tree.transform.SetParent(parent);
-            tree.transform.position = position;
-
-            var sr = tree.AddComponent<SpriteRenderer>();
-            int treeVariant = Random.Range(0, 4);
-            var treeSprite = GetSprite(objectSprites, $"Tree {treeVariant}");
-            sr.sprite = treeSprite != null ? treeSprite : CreateCircleSprite(new Color(0.2f, 0.5f, 0.2f));
-            sr.sortingOrder = (int)(-position.y);
-            
-            var col = tree.AddComponent<CircleCollider2D>();
-            col.radius = 0.4f;
-            col.offset = new Vector2(0, -0.3f);
-            
-            tree.transform.localScale = Vector3.one * 1.5f;
-        }
-
-        private void CreateRock(Transform parent, Vector3 position)
-        {
-            var rock = new GameObject("Rock");
-            rock.transform.SetParent(parent);
-            rock.transform.position = position;
-
-            var sr = rock.AddComponent<SpriteRenderer>();
-            var rockSprite = GetSprite(objectSprites, "Rock");
-            sr.sprite = rockSprite != null ? rockSprite : CreateCircleSprite(new Color(0.5f, 0.5f, 0.5f));
-            sr.sortingOrder = 1;
-            
-            var col = rock.AddComponent<CircleCollider2D>();
-            col.radius = 0.3f;
-        }
-
-        private void CreateSpawnPoints(Transform parent)
-        {
-            var spawnsObj = new GameObject("SpawnPoints");
-            spawnsObj.transform.SetParent(parent);
-
-            Vector3[] spawnPositions = {
-                new Vector3(-18, 12, 0),
-                new Vector3(18, 12, 0),
-                new Vector3(-18, -10, 0),
-                new Vector3(18, -10, 0),
-                new Vector3(0, 20, 0),
-                new Vector3(-20, 0, 0),
-                new Vector3(20, 0, 0)
+            Vector3[] cratePositions = {
+                new Vector3(-4, 5, 0), new Vector3(4, -5, 0),
+                new Vector3(2, 6, 0), new Vector3(-3, -4, 0),
             };
 
-            for (int i = 0; i < spawnPositions.Length; i++)
+            foreach (var pos in cratePositions)
             {
-                var spawnObj = new GameObject($"SpawnPoint_{i}");
-                spawnObj.transform.SetParent(spawnsObj.transform);
-                spawnObj.transform.position = spawnPositions[i];
-                spawnObj.AddComponent<SpawnPoint>();
+                var crate = new GameObject("Crate");
+                crate.transform.SetParent(town.transform);
+                crate.transform.position = pos;
+
+                var sr = crate.AddComponent<SpriteRenderer>();
+                var boxSprite = GetSprite(objectSprites, "Box");
+                sr.sprite = boxSprite != null ? boxSprite : CreateRectSprite(new Color(0.6f, 0.45f, 0.25f), Vector2.one);
+                sr.sortingOrder = Mathf.RoundToInt(-pos.y);
+
+                var col = crate.AddComponent<BoxCollider2D>();
+                col.size = new Vector2(0.8f, 0.8f);
             }
         }
 
-        private void CreateObstacles(Transform parent)
+        private void CreatePerimeter(Transform parent)
         {
-            var obstaclesObj = new GameObject("Obstacles");
-            obstaclesObj.transform.SetParent(parent);
+            var perimeter = new GameObject("Perimeter");
+            perimeter.transform.SetParent(parent);
+            
+            float halfW = 24f, halfH = 19f;
+            float thickness = 2f;
 
-            Vector3[] wallPositions = {
-                new Vector3(-7, 0, 0),
-                new Vector3(7, 0, 0),
-                new Vector3(0, 8, 0)
-            };
-
-            foreach (var pos in wallPositions)
-            {
-                var wall = new GameObject("Wall");
-                wall.transform.SetParent(obstaclesObj.transform);
-                wall.transform.position = pos;
-                
-                var sr = wall.AddComponent<SpriteRenderer>();
-                sr.sprite = CreateRectSprite(new Color(0.4f, 0.35f, 0.3f), new Vector2(0.5f, 2f));
-                sr.sortingOrder = 3;
-                
-                var col = wall.AddComponent<BoxCollider2D>();
-                col.size = new Vector2(0.5f, 2f);
-            }
+            CreateWall(perimeter.transform, new Vector3(0, halfH, 0), new Vector2(halfW * 2, thickness));
+            CreateWall(perimeter.transform, new Vector3(0, -halfH, 0), new Vector2(halfW * 2, thickness));
+            CreateWall(perimeter.transform, new Vector3(-halfW, 0, 0), new Vector2(thickness, halfH * 2));
+            CreateWall(perimeter.transform, new Vector3(halfW, 0, 0), new Vector2(thickness, halfH * 2));
         }
+
+        private void CreateWall(Transform parent, Vector3 position, Vector2 size)
+        {
+            var wall = new GameObject("Wall");
+            wall.transform.SetParent(parent);
+            wall.transform.position = position;
+
+            var sr = wall.AddComponent<SpriteRenderer>();
+            sr.sprite = CreateRectSprite(new Color(0.35f, 0.3f, 0.25f), size);
+            sr.sortingOrder = -1;
+
+            var col = wall.AddComponent<BoxCollider2D>();
+            col.size = size;
+        }
+
+        // ===================== ENEMIES =====================
 
         private void CreateEnemies()
         {
             var enemiesParent = new GameObject("Enemies");
-
-            Vector3[] enemyPositions = {
-                new Vector3(8, 6, 0),
-                new Vector3(-8, 6, 0),
-                new Vector3(10, -5, 0),
-                new Vector3(-10, -5, 0),
-                new Vector3(0, 12, 0)
-            };
-
+            
             string[] npcVariants = { "TopDown_NPC_0", "TopDown_NPC_1", "TopDown_NPC_2", "TopDown_NPC_3" };
 
-            for (int i = 0; i < enemyPositions.Length; i++)
-            {
-                CreateEnemy(enemiesParent.transform, enemyPositions[i], npcVariants[i % npcVariants.Length], i);
-            }
+            Vector3[] positions = {
+                new Vector3(10, 8, 0),
+                new Vector3(-10, 8, 0),
+                new Vector3(12, -8, 0),
+            };
 
-            Debug.Log($"[TestSceneSetup] Created {enemyPositions.Length} enemies");
+            for (int i = 0; i < positions.Length; i++)
+            {
+                CreateEnemy(enemiesParent.transform, positions[i], npcVariants[i % npcVariants.Length]);
+            }
         }
 
-        private void CreateEnemy(Transform parent, Vector3 position, string spriteName, int id)
+        private void CreateEnemy(Transform parent, Vector3 position, string spriteName)
         {
-            var enemyObj = new GameObject($"Zombie_{id}");
+            var enemyObj = new GameObject("Zombie");
             enemyObj.transform.SetParent(parent);
             enemyObj.transform.position = position;
 
@@ -509,7 +440,7 @@ namespace Deadlight.Core
             var enemySprite = GetSprite(npcSprites, spriteName);
             sr.sprite = enemySprite != null ? enemySprite : CreateCircleSprite(new Color(0.4f, 0.5f, 0.3f));
             sr.sortingOrder = 9;
-            sr.color = new Color(0.7f, 0.8f, 0.6f);
+            sr.color = new Color(0.65f, 0.75f, 0.55f);
 
             var rb = enemyObj.AddComponent<Rigidbody2D>();
             rb.gravityScale = 0;
@@ -521,122 +452,245 @@ namespace Deadlight.Core
 
             enemyObj.AddComponent<Enemy.EnemyHealth>();
             enemyObj.AddComponent<Enemy.SimpleEnemyAI>();
+            enemyObj.AddComponent<EnemyHealthBar>();
         }
 
-        private void CreateHUD()
+        // ===================== HUD =====================
+
+        private void BuildHUD()
         {
             var canvas = new GameObject("GameCanvas");
             var canvasComp = canvas.AddComponent<Canvas>();
             canvasComp.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.AddComponent<CanvasScaler>();
+            canvasComp.sortingOrder = 100;
+            var scaler = canvas.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920, 1080);
             canvas.AddComponent<GraphicRaycaster>();
 
-            CreateHealthBar(canvas.transform);
-            CreateAmmoDisplay(canvas.transform);
-            CreateNightDisplay(canvas.transform);
-            CreateControlsHint(canvas.transform);
+            Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
-            Debug.Log("[TestSceneSetup] HUD created");
+            // Health bar
+            var healthPanel = CreateUIPanel(canvas.transform, "HealthPanel",
+                new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1),
+                new Vector2(20, -20), new Vector2(250, 30));
+
+            var healthBg = CreateUIImage(healthPanel.transform, "HealthBG",
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero,
+                new Color(0.15f, 0.15f, 0.15f, 0.85f));
+            healthBg.GetComponent<RectTransform>().offsetMin = Vector2.zero;
+            healthBg.GetComponent<RectTransform>().offsetMax = Vector2.zero;
+
+            var healthFill = CreateUIImage(healthPanel.transform, "HealthFill",
+                Vector2.zero, new Vector2(1, 1), new Vector2(0, 0.5f), Vector2.zero,
+                new Color(0.2f, 0.8f, 0.2f, 0.9f));
+            var hfRect = healthFill.GetComponent<RectTransform>();
+            hfRect.offsetMin = new Vector2(2, 2);
+            hfRect.offsetMax = new Vector2(-2, -2);
+            var hfImage = healthFill.GetComponent<Image>();
+            hfImage.type = Image.Type.Filled;
+            hfImage.fillMethod = Image.FillMethod.Horizontal;
+            hfImage.fillAmount = 1f;
+
+            var healthLabel = CreateUIText(healthPanel.transform, "HealthText",
+                new Vector2(0, 0.5f), "100 / 100", font, 14, TextAnchor.MiddleCenter, Color.white,
+                Vector2.zero, Vector2.one, new Vector2(0, 0), new Vector2(0, 0));
+
+            var healthIcon = CreateUIText(healthPanel.transform, "HealthIcon",
+                new Vector2(0, 0.5f), "+", font, 18, TextAnchor.MiddleCenter, new Color(0.9f, 0.3f, 0.3f),
+                new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(-20, 0), new Vector2(20, 30));
+
+            // Stamina bar
+            var staminaPanel = CreateUIPanel(canvas.transform, "StaminaPanel",
+                new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1),
+                new Vector2(20, -55), new Vector2(250, 12));
+
+            var staminaBg = CreateUIImage(staminaPanel.transform, "StaminaBG",
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero,
+                new Color(0.15f, 0.15f, 0.15f, 0.7f));
+            staminaBg.GetComponent<RectTransform>().offsetMin = Vector2.zero;
+            staminaBg.GetComponent<RectTransform>().offsetMax = Vector2.zero;
+
+            var staminaFill = CreateUIImage(staminaPanel.transform, "StaminaFill",
+                Vector2.zero, Vector2.one, new Vector2(0, 0.5f), Vector2.zero,
+                new Color(0.2f, 0.6f, 0.9f, 0.8f));
+            var sfRect = staminaFill.GetComponent<RectTransform>();
+            sfRect.offsetMin = new Vector2(1, 1);
+            sfRect.offsetMax = new Vector2(-1, -1);
+            var sfImage = staminaFill.GetComponent<Image>();
+            sfImage.type = Image.Type.Filled;
+            sfImage.fillMethod = Image.FillMethod.Horizontal;
+
+            // Ammo
+            var ammoText = CreateUIText(canvas.transform, "AmmoText",
+                new Vector2(0, 1), "15 / 60", font, 22, TextAnchor.MiddleLeft, Color.white,
+                new Vector2(0, 1), new Vector2(0, 1), new Vector2(20, -78), new Vector2(200, 30));
+
+            var ammoIcon = CreateUIText(canvas.transform, "AmmoIcon",
+                new Vector2(1, 0.5f), ">>", font, 16, TextAnchor.MiddleRight, new Color(1f, 0.9f, 0.4f),
+                new Vector2(0, 1), new Vector2(0, 1), new Vector2(160, -78), new Vector2(50, 30));
+
+            // Night & Wave (top center)
+            var nightText = CreateUIText(canvas.transform, "NightText",
+                new Vector2(0.5f, 1), "Night 1", font, 28, TextAnchor.UpperCenter, new Color(0.9f, 0.8f, 0.5f),
+                new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -15), new Vector2(200, 35));
+            nightText.GetComponent<Text>().fontStyle = FontStyle.Bold;
+
+            var waveText = CreateUIText(canvas.transform, "WaveText",
+                new Vector2(0.5f, 1), "", font, 18, TextAnchor.UpperCenter, new Color(0.8f, 0.6f, 0.5f),
+                new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -50), new Vector2(200, 25));
+
+            // Enemy count (top right)
+            var enemyCount = CreateUIText(canvas.transform, "EnemyCount",
+                new Vector2(1, 1), "Enemies: 0", font, 18, TextAnchor.UpperRight, new Color(0.8f, 0.5f, 0.5f),
+                new Vector2(1, 1), new Vector2(1, 1), new Vector2(-20, -20), new Vector2(200, 30));
+
+            // Status text (center)
+            var statusText = CreateUIText(canvas.transform, "StatusText",
+                new Vector2(0.5f, 0.5f), "", font, 32, TextAnchor.MiddleCenter, Color.white,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 50), new Vector2(500, 50));
+            statusText.GetComponent<Text>().fontStyle = FontStyle.Bold;
+            statusText.SetActive(false);
+
+            // Reload hint
+            var reloadHint = CreateUIText(canvas.transform, "ReloadHint",
+                new Vector2(0.5f, 0.5f), "RELOADING...", font, 20, TextAnchor.MiddleCenter,
+                new Color(1, 0.8f, 0.4f),
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -40), new Vector2(200, 30));
+            reloadHint.SetActive(false);
+
+            // Controls hint
+            var controlsHint = CreateUIText(canvas.transform, "Controls",
+                new Vector2(1, 0), "WASD - Move    Mouse - Aim    Click - Shoot    Shift - Sprint    R - Reload",
+                font, 13, TextAnchor.LowerRight, new Color(1, 1, 1, 0.5f),
+                new Vector2(1, 0), new Vector2(1, 0), new Vector2(-20, 15), new Vector2(600, 25));
+
+            // Game Over panel
+            var goPanel = new GameObject("GameOverPanel");
+            goPanel.transform.SetParent(canvas.transform);
+            var goPanelRect = goPanel.AddComponent<RectTransform>();
+            goPanelRect.anchorMin = Vector2.zero;
+            goPanelRect.anchorMax = Vector2.one;
+            goPanelRect.offsetMin = Vector2.zero;
+            goPanelRect.offsetMax = Vector2.zero;
+            var goPanelImg = goPanel.AddComponent<Image>();
+            goPanelImg.color = new Color(0, 0, 0, 0.75f);
+
+            var goText = CreateUIText(goPanel.transform, "GameOverText",
+                new Vector2(0.5f, 0.5f), "GAME OVER", font, 48, TextAnchor.MiddleCenter, Color.red,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(500, 200));
+            goText.GetComponent<Text>().fontStyle = FontStyle.Bold;
+
+            // Damage overlay
+            var dmgOverlay = CreateUIImage(canvas.transform, "DamageOverlay",
+                Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero,
+                Color.clear);
+            var dmgRect = dmgOverlay.GetComponent<RectTransform>();
+            dmgRect.offsetMin = Vector2.zero;
+            dmgRect.offsetMax = Vector2.zero;
+            dmgOverlay.GetComponent<Image>().raycastTarget = false;
+
+            // Fade overlay
+            var fadeOverlay = CreateUIImage(canvas.transform, "FadeOverlay",
+                Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero,
+                Color.black);
+            var fadeRect = fadeOverlay.GetComponent<RectTransform>();
+            fadeRect.offsetMin = Vector2.zero;
+            fadeRect.offsetMax = Vector2.zero;
+            fadeOverlay.GetComponent<Image>().raycastTarget = false;
+
+            // Hook up LiveHUD
+            var hudComp = canvas.AddComponent<Deadlight.UI.LiveHUD>();
+            hudComp.Initialize(
+                healthLabel.GetComponent<Text>(),
+                hfImage,
+                ammoText.GetComponent<Text>(),
+                sfImage,
+                waveText.GetComponent<Text>(),
+                nightText.GetComponent<Text>(),
+                enemyCount.GetComponent<Text>(),
+                statusText.GetComponent<Text>(),
+                goPanel,
+                goText.GetComponent<Text>(),
+                reloadHint.GetComponent<Text>()
+            );
+
+            // Hook up GameEffects
+            if (GameEffects.Instance != null)
+            {
+                var camCtrl = Camera.main?.GetComponent<CameraController>();
+                GameEffects.Instance.SetupEffects(
+                    dmgOverlay.GetComponent<Image>(),
+                    fadeOverlay.GetComponent<Image>(),
+                    camCtrl
+                );
+                GameEffects.Instance.FadeScreen(true, 1.5f);
+            }
         }
 
-        private void CreateHealthBar(Transform parent)
+        // ===================== UI HELPERS =====================
+
+        private GameObject CreateUIPanel(Transform parent, string name,
+            Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot,
+            Vector2 anchoredPos, Vector2 size)
         {
-            var healthBarBg = new GameObject("HealthBarBG");
-            healthBarBg.transform.SetParent(parent);
-            var bgRect = healthBarBg.AddComponent<RectTransform>();
-            bgRect.anchorMin = new Vector2(0, 1);
-            bgRect.anchorMax = new Vector2(0, 1);
-            bgRect.pivot = new Vector2(0, 1);
-            bgRect.anchoredPosition = new Vector2(20, -20);
-            bgRect.sizeDelta = new Vector2(200, 25);
-            
-            var bgImage = healthBarBg.AddComponent<Image>();
-            bgImage.color = new Color(0.2f, 0.2f, 0.2f, 0.8f);
-
-            var healthBar = new GameObject("HealthBar");
-            healthBar.transform.SetParent(healthBarBg.transform);
-            var hbRect = healthBar.AddComponent<RectTransform>();
-            hbRect.anchorMin = Vector2.zero;
-            hbRect.anchorMax = Vector2.one;
-            hbRect.offsetMin = new Vector2(3, 3);
-            hbRect.offsetMax = new Vector2(-3, -3);
-            
-            var hbImage = healthBar.AddComponent<Image>();
-            hbImage.color = new Color(0.8f, 0.2f, 0.2f, 1f);
-
-            var label = new GameObject("HealthLabel");
-            label.transform.SetParent(healthBarBg.transform);
-            var labelRect = label.AddComponent<RectTransform>();
-            labelRect.anchorMin = Vector2.zero;
-            labelRect.anchorMax = Vector2.one;
-            labelRect.offsetMin = Vector2.zero;
-            labelRect.offsetMax = Vector2.zero;
-            
-            var text = label.AddComponent<Text>();
-            text.text = "HEALTH";
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            text.fontSize = 14;
-            text.alignment = TextAnchor.MiddleCenter;
-            text.color = Color.white;
+            var obj = new GameObject(name);
+            obj.transform.SetParent(parent);
+            var rect = obj.AddComponent<RectTransform>();
+            rect.anchorMin = anchorMin;
+            rect.anchorMax = anchorMax;
+            rect.pivot = pivot;
+            rect.anchoredPosition = anchoredPos;
+            rect.sizeDelta = size;
+            return obj;
         }
 
-        private void CreateAmmoDisplay(Transform parent)
+        private GameObject CreateUIImage(Transform parent, string name,
+            Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot,
+            Vector2 anchoredPos, Color color)
         {
-            var ammoDisplay = new GameObject("AmmoDisplay");
-            ammoDisplay.transform.SetParent(parent);
-            var rect = ammoDisplay.AddComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0, 1);
-            rect.anchorMax = new Vector2(0, 1);
-            rect.pivot = new Vector2(0, 1);
-            rect.anchoredPosition = new Vector2(20, -55);
-            rect.sizeDelta = new Vector2(150, 30);
-            
-            var text = ammoDisplay.AddComponent<Text>();
-            text.text = "AMMO: 12 / 12";
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            text.fontSize = 18;
-            text.alignment = TextAnchor.MiddleLeft;
-            text.color = Color.white;
+            var obj = new GameObject(name);
+            obj.transform.SetParent(parent);
+            var rect = obj.AddComponent<RectTransform>();
+            rect.anchorMin = anchorMin;
+            rect.anchorMax = anchorMax;
+            rect.pivot = pivot;
+            rect.anchoredPosition = anchoredPos;
+            var img = obj.AddComponent<Image>();
+            img.color = color;
+            return obj;
         }
 
-        private void CreateNightDisplay(Transform parent)
+        private GameObject CreateUIText(Transform parent, string name,
+            Vector2 pivot, string text, Font font, int fontSize,
+            TextAnchor alignment, Color color,
+            Vector2 anchorMin, Vector2 anchorMax,
+            Vector2 anchoredPos, Vector2 size)
         {
-            var nightDisplay = new GameObject("NightDisplay");
-            nightDisplay.transform.SetParent(parent);
-            var rect = nightDisplay.AddComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.5f, 1);
-            rect.anchorMax = new Vector2(0.5f, 1);
-            rect.pivot = new Vector2(0.5f, 1);
-            rect.anchoredPosition = new Vector2(0, -20);
-            rect.sizeDelta = new Vector2(200, 40);
+            var obj = new GameObject(name);
+            obj.transform.SetParent(parent);
+            var rect = obj.AddComponent<RectTransform>();
+            rect.anchorMin = anchorMin;
+            rect.anchorMax = anchorMax;
+            rect.pivot = pivot;
+            rect.anchoredPosition = anchoredPos;
+            rect.sizeDelta = size;
+            var txt = obj.AddComponent<Text>();
+            txt.text = text;
+            txt.font = font;
+            txt.fontSize = fontSize;
+            txt.alignment = alignment;
+            txt.color = color;
+            txt.horizontalOverflow = HorizontalWrapMode.Overflow;
             
-            var text = nightDisplay.AddComponent<Text>();
-            text.text = "NIGHT 1";
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            text.fontSize = 24;
-            text.alignment = TextAnchor.MiddleCenter;
-            text.color = new Color(0.9f, 0.8f, 0.6f);
-            text.fontStyle = FontStyle.Bold;
+            var shadow = obj.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0, 0, 0, 0.5f);
+            shadow.effectDistance = new Vector2(1, -1);
+            
+            return obj;
         }
 
-        private void CreateControlsHint(Transform parent)
-        {
-            var hint = new GameObject("ControlsHint");
-            hint.transform.SetParent(parent);
-            var rect = hint.AddComponent<RectTransform>();
-            rect.anchorMin = new Vector2(1, 0);
-            rect.anchorMax = new Vector2(1, 0);
-            rect.pivot = new Vector2(1, 0);
-            rect.anchoredPosition = new Vector2(-20, 20);
-            rect.sizeDelta = new Vector2(250, 100);
-            
-            var text = hint.AddComponent<Text>();
-            text.text = "WASD - Move\nMouse - Aim\nClick - Shoot\nShift - Sprint\nR - Reload";
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            text.fontSize = 14;
-            text.alignment = TextAnchor.LowerRight;
-            text.color = new Color(1f, 1f, 1f, 0.7f);
-        }
+        // ===================== SPRITE HELPERS =====================
 
         private Sprite CreateRectSprite(Color color, Vector2 size)
         {
@@ -645,11 +699,7 @@ namespace Deadlight.Core
             
             var texture = new Texture2D(width, height);
             var pixels = new Color[width * height];
-            
-            for (int i = 0; i < pixels.Length; i++)
-            {
-                pixels[i] = color;
-            }
+            for (int i = 0; i < pixels.Length; i++) pixels[i] = color;
             
             texture.SetPixels(pixels);
             texture.Apply();
@@ -663,24 +713,50 @@ namespace Deadlight.Core
             int size = 32;
             var texture = new Texture2D(size, size);
             var pixels = new Color[size * size];
-
             Vector2 center = new Vector2(size / 2f, size / 2f);
             float radius = size / 2f - 2;
 
             for (int y = 0; y < size; y++)
-            {
                 for (int x = 0; x < size; x++)
+                    pixels[y * size + x] = Vector2.Distance(new Vector2(x, y), center) < radius
+                        ? color : Color.clear;
+
+            texture.SetPixels(pixels);
+            texture.Apply();
+            texture.filterMode = FilterMode.Point;
+            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+        }
+
+        private Sprite CreateBulletSprite()
+        {
+            int width = 12, height = 6;
+            var texture = new Texture2D(width, height);
+            var pixels = new Color[width * height];
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
                 {
-                    float dist = Vector2.Distance(new Vector2(x, y), center);
-                    pixels[y * size + x] = dist < radius ? color : Color.clear;
+                    float cx = (float)x / width;
+                    float cy = Mathf.Abs(y - height / 2f) / (height / 2f);
+                    float alpha = Mathf.Clamp01((1f - cy) * (0.3f + cx * 0.7f));
+                    pixels[y * width + x] = new Color(1f, 0.9f, 0.4f, alpha);
                 }
             }
 
             texture.SetPixels(pixels);
             texture.Apply();
-            texture.filterMode = FilterMode.Point;
+            texture.filterMode = FilterMode.Bilinear;
+            return Sprite.Create(texture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 12f);
+        }
 
-            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+        private Sprite CreatePixelSprite(Color color)
+        {
+            var tex = new Texture2D(1, 1);
+            tex.SetPixel(0, 0, color);
+            tex.Apply();
+            tex.filterMode = FilterMode.Point;
+            return Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1);
         }
     }
 
@@ -693,8 +769,6 @@ namespace Deadlight.Core
         private float animTimer;
         private int currentFrame;
         private string currentDirection = "Down";
-        
-        private readonly string[] directions = { "Down", "Up", "Left", "Right" };
 
         public void SetSprites(Sprite[] playerSprites)
         {
@@ -710,7 +784,6 @@ namespace Deadlight.Core
         private void Update()
         {
             if (sprites == null || sprites.Length == 0) return;
-
             UpdateDirection();
             UpdateAnimation();
         }
@@ -718,27 +791,22 @@ namespace Deadlight.Core
         private void UpdateDirection()
         {
             Vector2 velocity = rb.linearVelocity;
-            
             if (velocity.magnitude < 0.1f) return;
 
             if (Mathf.Abs(velocity.x) > Mathf.Abs(velocity.y))
-            {
                 currentDirection = velocity.x > 0 ? "Right" : "Left";
-            }
             else
-            {
                 currentDirection = velocity.y > 0 ? "Up" : "Down";
-            }
         }
 
         private void UpdateAnimation()
         {
-            Vector2 velocity = rb.linearVelocity;
-            bool isMoving = velocity.magnitude > 0.1f;
+            bool isMoving = rb.linearVelocity.magnitude > 0.1f;
 
             if (isMoving)
             {
-                animTimer += Time.deltaTime * 8f;
+                float speed = rb.linearVelocity.magnitude;
+                animTimer += Time.deltaTime * Mathf.Max(6f, speed * 1.5f);
                 if (animTimer >= 1f)
                 {
                     animTimer = 0f;
@@ -752,20 +820,13 @@ namespace Deadlight.Core
             }
 
             string spriteName = $"{currentDirection} {currentFrame}";
-            Sprite targetSprite = null;
-            
             foreach (var sprite in sprites)
             {
                 if (sprite.name == spriteName)
                 {
-                    targetSprite = sprite;
+                    spriteRenderer.sprite = sprite;
                     break;
                 }
-            }
-
-            if (targetSprite != null)
-            {
-                spriteRenderer.sprite = targetSprite;
             }
         }
     }

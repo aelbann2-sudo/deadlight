@@ -133,10 +133,19 @@ namespace Deadlight.Player
         {
             if (bulletPrefab == null || firePoint == null) return;
 
-            Vector3 spawnPos = firePoint.position;
-            Quaternion spawnRot = firePoint.rotation;
+            Camera cam = Camera.main;
+            if (cam == null) return;
+            
+            Vector3 mouseWorld = cam.ScreenToWorldPoint(Input.mousePosition);
+            mouseWorld.z = 0;
+            
+            Vector2 aimDir = ((Vector2)mouseWorld - (Vector2)transform.position).normalized;
+            float aimAngle = Mathf.Atan2(aimDir.y, aimDir.x) * Mathf.Rad2Deg;
+            
+            Vector3 spawnPos = (Vector2)transform.position + aimDir * 0.5f;
 
             float spread = currentWeapon?.spread ?? 0f;
+            Quaternion spawnRot = Quaternion.Euler(0, 0, aimAngle - 90f);
             if (spread > 0)
             {
                 float randomAngle = UnityEngine.Random.Range(-spread, spread);
@@ -154,12 +163,19 @@ namespace Deadlight.Player
                 }
 
                 GameObject bullet = Instantiate(bulletPrefab, spawnPos, pelletRot);
+                bullet.SetActive(true);
                 
                 var bulletComponent = bullet.GetComponent<Bullet>();
                 if (bulletComponent != null)
                 {
                     bulletComponent.Initialize(currentWeapon.damage, currentWeapon.bulletSpeed, currentWeapon.range);
                 }
+            }
+
+            if (Core.GameEffects.Instance != null)
+            {
+                Core.GameEffects.Instance.SpawnMuzzleFlash(spawnPos, spawnRot);
+                Core.GameEffects.Instance.ScreenShake(0.03f, 0.05f);
             }
         }
 
