@@ -100,8 +100,10 @@ namespace Deadlight.Systems
 
         public void AddPoints(int amount, string source = "Unknown")
         {
-            int adjustedAmount = Mathf.RoundToInt(amount * ScoreMultiplier);
-            
+            // Keep spendable currency consistent across difficulties.
+            // Difficulty affects leaderboard score in GetFinalScore().
+            int adjustedAmount = Mathf.Max(0, amount);
+
             currentPoints += adjustedAmount;
             totalPointsEarned += adjustedAmount;
 

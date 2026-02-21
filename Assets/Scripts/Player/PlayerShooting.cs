@@ -227,9 +227,31 @@ namespace Deadlight.Player
             
             if (weapon != null)
             {
+                int defaultReserve = weapon.magazineSize * 3;
+                reserveAmmo = Mathf.Max(reserveAmmo, defaultReserve);
                 currentAmmo = weapon.magazineSize;
                 OnAmmoChanged?.Invoke(currentAmmo, reserveAmmo);
             }
+        }
+
+        public void ResetLoadout(WeaponData weapon, int reserveMagazines = 3)
+        {
+            currentWeapon = weapon;
+
+            if (weapon == null)
+            {
+                currentAmmo = 0;
+                reserveAmmo = 0;
+                OnAmmoChanged?.Invoke(currentAmmo, reserveAmmo);
+                return;
+            }
+
+            reserveMagazines = Mathf.Max(1, reserveMagazines);
+            currentAmmo = weapon.magazineSize;
+            reserveAmmo = Mathf.Clamp(weapon.magazineSize * reserveMagazines, 0, maxReserveAmmo);
+            isReloading = false;
+
+            OnAmmoChanged?.Invoke(currentAmmo, reserveAmmo);
         }
 
         public void SetBulletPrefab(GameObject prefab)

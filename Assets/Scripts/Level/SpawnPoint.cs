@@ -78,10 +78,17 @@ namespace Deadlight.Level
             if (requiresLineOfSight)
             {
                 Vector3 direction = (transform.position - playerPosition).normalized;
-                RaycastHit2D hit = Physics2D.Raycast(playerPosition, direction, distance);
-                
-                if (hit.collider != null && !hit.collider.CompareTag("Enemy"))
+                RaycastHit2D[] hits = Physics2D.RaycastAll(playerPosition, direction, distance);
+
+                foreach (var hit in hits)
                 {
+                    if (hit.collider == null) continue;
+
+                    if (hit.collider.CompareTag("Player") || hit.collider.CompareTag("Enemy"))
+                    {
+                        continue;
+                    }
+
                     return false;
                 }
             }

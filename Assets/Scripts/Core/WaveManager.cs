@@ -1,8 +1,8 @@
-using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using Deadlight.Level;
+using UnityEngine;
 
 namespace Deadlight.Core
 {
@@ -41,16 +41,20 @@ namespace Deadlight.Core
         public event Action<int> OnEnemyKilled;
 
         private NightConfig currentNightConfig;
-        private Coroutine spawnCoroutine;
+        private Coroutine nightSequenceCoroutine;
+        private DayNightCycle dayNightCycle;
+        private GameObject runtimeZombiePrefab;
 
         private void Start()
         {
+            EnsureRuntimeDefaults();
+
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.OnGameStateChanged += HandleGameStateChanged;
             }
 
-            var dayNightCycle = FindObjectOfType<DayNightCycle>();
+            dayNightCycle = FindObjectOfType<DayNightCycle>();
             if (dayNightCycle != null)
             {
                 dayNightCycle.OnNightStart += StartNightWaves;
@@ -63,6 +67,39 @@ namespace Deadlight.Core
             {
                 GameManager.Instance.OnGameStateChanged -= HandleGameStateChanged;
             }
+
+            if (dayNightCycle != null)
+            {
+                dayNightCycle.OnNightStart -= StartNightWaves;
+            }
+        }
+
+        public void EnsureRuntimeDefaults()
+        {
+            if (nightConfigs == null || nightConfigs.Length == 0)
+            {
+                nightConfigs = new[]
+                {
+                    NightConfig.CreateNight1(),
+                    NightConfig.CreateNight2(),
+                    NightConfig.CreateNight3(),
+                    NightConfig.CreateNight4(),
+                    NightConfig.CreateNight5()
+                };
+            }
+
+            if (basicZombiePrefab == null)
+            {
+                basicZombiePrefab = GetOrCreateRuntimeZombiePrefab();
+            }
+
+            if (spawnPoints.Count == 0)
+            {
+                foreach (var spawner in FindObjectsOfType<Enemy.EnemySpawner>())
+                {
+                    AddSpawnPoint(spawner.transform);
+                }
+            }
         }
 
         private void HandleGameStateChanged(GameState newState)
@@ -70,8 +107,9 @@ namespace Deadlight.Core
             if (newState == GameState.DayPhase)
             {
                 ResetForNewNight();
+                StopAllSpawning();
             }
-            else if (newState == GameState.GameOver || newState == GameState.Victory)
+            else if (newState != GameState.NightPhase)
             {
                 StopAllSpawning();
             }
@@ -91,13 +129,13 @@ namespace Deadlight.Core
         {
             int nightIndex = GameManager.Instance != null ? GameManager.Instance.CurrentNight - 1 : 0;
 
-            if (nightConfigs != null && nightIndex < nightConfigs.Length && nightConfigs[nightIndex] != null)
+            if (nightConfigs != null && nightIndex >= 0 && nightIndex < nightConfigs.Length && nightConfigs[nightIndex] != null)
             {
                 currentNightConfig = nightConfigs[nightIndex];
             }
             else
             {
-                currentNightConfig = CreateDefaultNightConfig(nightIndex + 1);
+                currentNightConfig = CreateDefaultNightConfig(Mathf.Max(1, nightIndex + 1));
             }
         }
 
@@ -105,45 +143,67 @@ namespace Deadlight.Core
         {
             var config = ScriptableObject.CreateInstance<NightConfig>();
             config.nightNumber = night;
-            config.waveCount = 2 + night;
+            config.waveCount = Mathf.Clamp(2 + night, 2, 6);
             config.baseEnemyCount = 5 + (night * 3);
             config.healthMultiplier = 1f + (night * 0.25f);
             config.damageMultiplier = 1f + (night * 0.15f);
-            config.spawnInterval = Mathf.Max(1f, 2.5f - (night * 0.2f));
+            config.speedMultiplier = 1f + (night * 0.1f);
+            config.spawnInterval = Mathf.Max(0.8f, 2.5f - (night * 0.2f));
+            config.timeBetweenWaves = Mathf.Max(2f, 6f - night);
             return config;
         }
 
         public void StartNightWaves()
         {
+            if (GameManager.Instance?.CurrentState != GameState.NightPhase)
+            {
+                return;
+            }
+
+            EnsureRuntimeDefaults();
             LoadNightConfig();
-            StartCoroutine(NightWaveSequence());
+
+            StopAllSpawning();
+            nightSequenceCoroutine = StartCoroutine(NightWaveSequence());
         }
 
         private IEnumerator NightWaveSequence()
         {
-            int waveCount = currentNightConfig?.waveCount ?? 3;
+            int waveCount = Mathf.Max(1, currentNightConfig?.waveCount ?? 3);
 
             for (int wave = 1; wave <= waveCount; wave++)
             {
+                if (GameManager.Instance?.CurrentState != GameState.NightPhase)
+                {
+                    yield break;
+                }
+
                 currentWave = wave;
                 OnWaveStarted?.Invoke(wave);
 
-                Debug.Log($"[WaveManager] Starting wave {wave} of {waveCount}");
-
                 yield return StartCoroutine(SpawnWave(wave));
 
-                yield return new WaitUntil(() => enemiesRemaining <= 0);
+                while (enemiesRemaining > 0)
+                {
+                    if (GameManager.Instance?.CurrentState != GameState.NightPhase)
+                    {
+                        yield break;
+                    }
+
+                    yield return null;
+                }
 
                 OnWaveCompleted?.Invoke(wave);
 
                 if (wave < waveCount)
                 {
-                    yield return new WaitForSeconds(currentNightConfig?.timeBetweenWaves ?? 5f);
+                    float interval = (currentNightConfig?.timeBetweenWaves ?? 5f);
+                    yield return new WaitForSeconds(interval);
                 }
             }
 
             OnAllWavesCompleted?.Invoke();
-            Debug.Log("[WaveManager] All waves completed!");
+            nightSequenceCoroutine = null;
         }
 
         private IEnumerator SpawnWave(int waveNumber)
@@ -151,10 +211,15 @@ namespace Deadlight.Core
             isSpawning = true;
 
             int enemyCount = CalculateEnemyCount(waveNumber);
-            float spawnInterval = currentNightConfig?.spawnInterval ?? 2f;
+            float spawnInterval = Mathf.Max(0.1f, (currentNightConfig?.spawnInterval ?? 2f) * GetSpawnIntervalMultiplier());
 
             for (int i = 0; i < enemyCount; i++)
             {
+                if (GameManager.Instance?.CurrentState != GameState.NightPhase)
+                {
+                    break;
+                }
+
                 SpawnEnemy();
                 yield return new WaitForSeconds(spawnInterval);
             }
@@ -165,14 +230,23 @@ namespace Deadlight.Core
         private int CalculateEnemyCount(int waveNumber)
         {
             int baseCount = currentNightConfig?.baseEnemyCount ?? 10;
-            float difficultyMultiplier = GetDifficultyMultiplier();
+            float waveScaling = 1f + (waveNumber - 1) * 0.3f;
+            float difficultyMultiplier = GetDifficultyWaveMultiplier();
 
-            return Mathf.RoundToInt(baseCount * (1 + (waveNumber - 1) * 0.3f) * difficultyMultiplier);
+            return Mathf.Max(1, Mathf.RoundToInt(baseCount * waveScaling * difficultyMultiplier));
         }
 
-        private float GetDifficultyMultiplier()
+        private float GetDifficultyWaveMultiplier()
         {
-            if (GameManager.Instance == null) return 1f;
+            if (GameManager.Instance?.CurrentSettings != null)
+            {
+                return Mathf.Max(0.2f, GameManager.Instance.CurrentSettings.waveEnemyCountMultiplier);
+            }
+
+            if (GameManager.Instance == null)
+            {
+                return 1f;
+            }
 
             return GameManager.Instance.CurrentDifficulty switch
             {
@@ -183,22 +257,51 @@ namespace Deadlight.Core
             };
         }
 
+        private float GetSpawnIntervalMultiplier()
+        {
+            if (GameManager.Instance?.CurrentSettings != null)
+            {
+                return Mathf.Max(0.2f, GameManager.Instance.CurrentSettings.spawnIntervalMultiplier);
+            }
+
+            return 1f;
+        }
+
         private void SpawnEnemy()
         {
+            EnsureRuntimeDefaults();
+
             if (basicZombiePrefab == null)
             {
-                Debug.LogWarning("[WaveManager] No zombie prefab assigned!");
+                Debug.LogWarning("[WaveManager] No zombie prefab available");
                 return;
             }
 
-            Vector3 spawnPosition = GetSpawnPosition();
+            var spawnPosition = GetSpawnPosition(out SpawnPoint usedSpawnPoint);
             if (spawnPosition == Vector3.zero && spawnPoints.Count == 0)
             {
-                Debug.LogWarning("[WaveManager] No spawn points available!");
+                Debug.LogWarning("[WaveManager] No spawn points available");
                 return;
             }
 
             GameObject enemy = Instantiate(basicZombiePrefab, spawnPosition, Quaternion.identity);
+            enemy.SetActive(true);
+
+            if (!enemy.CompareTag("Enemy"))
+            {
+                enemy.tag = "Enemy";
+            }
+
+            if (usedSpawnPoint != null)
+            {
+                var tracker = enemy.GetComponent<SpawnPointOccupancyTracker>();
+                if (tracker == null)
+                {
+                    tracker = enemy.AddComponent<SpawnPointOccupancyTracker>();
+                }
+
+                tracker.Initialize(usedSpawnPoint);
+            }
 
             ApplyNightModifiers(enemy);
 
@@ -206,18 +309,21 @@ namespace Deadlight.Core
             enemiesRemaining++;
         }
 
-        private Vector3 GetSpawnPosition()
+        private Vector3 GetSpawnPosition(out SpawnPoint usedSpawnPoint)
         {
+            usedSpawnPoint = null;
+
             var player = GameObject.FindGameObjectWithTag("Player");
             Vector3 playerPos = player != null ? player.transform.position : Vector3.zero;
 
             if (LevelManager.Instance != null)
             {
-                int currentNight = GameManager.Instance?.CurrentNight ?? 1;
-                var spawnPoint = LevelManager.Instance.GetRandomSpawnPoint(currentNight, playerPos);
-                
+                int night = GameManager.Instance?.CurrentNight ?? 1;
+                var spawnPoint = LevelManager.Instance.GetRandomSpawnPoint(night, playerPos);
+
                 if (spawnPoint != null)
                 {
+                    usedSpawnPoint = spawnPoint;
                     spawnPoint.OnEnemySpawned();
                     return spawnPoint.GetSpawnPosition();
                 }
@@ -234,24 +340,51 @@ namespace Deadlight.Core
 
         private void ApplyNightModifiers(GameObject enemy)
         {
-            if (currentNightConfig == null) return;
+            if (currentNightConfig == null)
+            {
+                return;
+            }
+
+            float healthMultiplier = currentNightConfig.healthMultiplier;
+            float damageMultiplier = currentNightConfig.damageMultiplier;
+            float speedMultiplier = currentNightConfig.speedMultiplier;
+
+            if (GameManager.Instance?.CurrentSettings != null)
+            {
+                var settings = GameManager.Instance.CurrentSettings;
+                healthMultiplier *= settings.enemyHealthMultiplier;
+                damageMultiplier *= settings.enemyDamageMultiplier;
+                speedMultiplier *= settings.enemySpeedMultiplier;
+            }
 
             var enemyHealth = enemy.GetComponent<Enemy.EnemyHealth>();
             if (enemyHealth != null)
             {
-                enemyHealth.ApplyHealthMultiplier(currentNightConfig.healthMultiplier);
+                enemyHealth.ApplyHealthMultiplier(healthMultiplier);
             }
 
             var enemyAI = enemy.GetComponent<Enemy.EnemyAI>();
             if (enemyAI != null)
             {
-                enemyAI.ApplyDamageMultiplier(currentNightConfig.damageMultiplier);
+                enemyAI.ApplyDamageMultiplier(damageMultiplier);
+                enemyAI.ApplySpeedMultiplier(speedMultiplier);
+            }
+
+            var simpleAI = enemy.GetComponent<Enemy.SimpleEnemyAI>();
+            if (simpleAI != null)
+            {
+                simpleAI.ApplyDamageMultiplier(damageMultiplier);
+                simpleAI.ApplySpeedMultiplier(speedMultiplier);
             }
         }
 
         private Transform GetRandomSpawnPoint()
         {
-            if (spawnPoints.Count == 0) return null;
+            if (spawnPoints.Count == 0)
+            {
+                return null;
+            }
+
             return spawnPoints[UnityEngine.Random.Range(0, spawnPoints.Count)];
         }
 
@@ -260,8 +393,6 @@ namespace Deadlight.Core
             enemiesRemaining = Mathf.Max(0, enemiesRemaining - 1);
             totalEnemiesKilled++;
             OnEnemyKilled?.Invoke(totalEnemiesKilled);
-
-            Debug.Log($"[WaveManager] Enemy killed. Remaining: {enemiesRemaining}");
         }
 
         public void AddSpawnPoint(Transform point)
@@ -279,6 +410,12 @@ namespace Deadlight.Core
 
         private void StopAllSpawning()
         {
+            if (nightSequenceCoroutine != null)
+            {
+                StopCoroutine(nightSequenceCoroutine);
+                nightSequenceCoroutine = null;
+            }
+
             StopAllCoroutines();
             isSpawning = false;
         }
@@ -286,6 +423,87 @@ namespace Deadlight.Core
         public void SetZombiePrefab(GameObject prefab)
         {
             basicZombiePrefab = prefab;
+        }
+
+        private GameObject GetOrCreateRuntimeZombiePrefab()
+        {
+            if (runtimeZombiePrefab != null)
+            {
+                return runtimeZombiePrefab;
+            }
+
+            runtimeZombiePrefab = new GameObject("RuntimeZombiePrefab");
+            runtimeZombiePrefab.SetActive(false);
+
+            var spriteRenderer = runtimeZombiePrefab.AddComponent<SpriteRenderer>();
+            spriteRenderer.sprite = CreateRuntimeCircleSprite(new Color(0.35f, 0.75f, 0.35f), 24, 10f);
+            spriteRenderer.sortingOrder = 9;
+
+            var rb = runtimeZombiePrefab.AddComponent<Rigidbody2D>();
+            rb.gravityScale = 0f;
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+
+            var collider = runtimeZombiePrefab.AddComponent<CircleCollider2D>();
+            collider.radius = 0.35f;
+
+            runtimeZombiePrefab.AddComponent<Enemy.SimpleEnemyAI>();
+            runtimeZombiePrefab.AddComponent<Enemy.EnemyHealth>();
+            runtimeZombiePrefab.tag = "Enemy";
+
+            return runtimeZombiePrefab;
+        }
+
+        private static Sprite CreateRuntimeCircleSprite(Color color, int size, float radius)
+        {
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false)
+            {
+                filterMode = FilterMode.Point,
+                wrapMode = TextureWrapMode.Clamp
+            };
+
+            var pixels = new Color[size * size];
+            var center = new Vector2(size / 2f, size / 2f);
+
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float distance = Vector2.Distance(new Vector2(x, y), center);
+                    pixels[y * size + x] = distance <= radius ? color : Color.clear;
+                }
+            }
+
+            texture.SetPixels(pixels);
+            texture.Apply();
+            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+        }
+    }
+
+    public class SpawnPointOccupancyTracker : MonoBehaviour
+    {
+        private SpawnPoint spawnPoint;
+        private bool released;
+
+        public void Initialize(SpawnPoint point)
+        {
+            spawnPoint = point;
+            released = false;
+        }
+
+        public void Release()
+        {
+            if (released)
+            {
+                return;
+            }
+
+            released = true;
+            spawnPoint?.OnEnemyDied();
+        }
+
+        private void OnDestroy()
+        {
+            Release();
         }
     }
 }

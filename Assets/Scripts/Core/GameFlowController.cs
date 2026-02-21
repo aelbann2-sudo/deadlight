@@ -89,10 +89,10 @@ namespace Deadlight.Core
 
             GameManager.Instance.SetDifficulty(difficulty);
 
-            // Set day duration to 45 seconds (DayNightCycle default is typically 180)
+            // Use an absolute duration so repeated restarts do not compound scaling.
             if (dayNightCycle != null)
             {
-                dayNightCycle.AdjustDayDuration(dayPhaseDuration / 180f);
+                dayNightCycle.SetDayDuration(dayPhaseDuration);
             }
 
             ClearSpawnedPickups();

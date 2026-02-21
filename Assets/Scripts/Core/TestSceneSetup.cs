@@ -480,6 +480,16 @@ namespace Deadlight.Core
             canvas.AddComponent<GraphicRaycaster>();
 
             Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            if (font == null)
+                font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            if (font == null)
+                font = Font.CreateDynamicFontFromOSFont("Arial", 14);
+            if (font == null)
+            {
+                string[] fallbacks = Font.GetOSInstalledFontNames();
+                if (fallbacks != null && fallbacks.Length > 0)
+                    font = Font.CreateDynamicFontFromOSFont(fallbacks[0], 14);
+            }
 
             // Health bar
             var healthPanel = CreateUIPanel(canvas.transform, "HealthPanel",

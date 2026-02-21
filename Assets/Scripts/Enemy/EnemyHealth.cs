@@ -107,6 +107,12 @@ namespace Deadlight.Enemy
                 enemyAI.OnDeath();
             }
 
+            var spawnTracker = GetComponent<Core.SpawnPointOccupancyTracker>();
+            if (spawnTracker != null)
+            {
+                spawnTracker.Release();
+            }
+
             TryDropLoot();
             SpawnDeathEffect();
 

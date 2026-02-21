@@ -37,7 +37,12 @@ namespace Deadlight.Enemy
         private NavMeshAgent agent;
         private float lastAttackTime;
         private float damageMultiplier = 1f;
+        private float speedMultiplier = 1f;
         private Animator animator;
+        private float baseMoveSpeed;
+        private float basePatrolSpeed;
+        private float baseChaseSpeed;
+        private DayNightCycle dayNightCycle;
 
         public EnemyState CurrentState => currentState;
         public float Damage => damage * damageMultiplier;
@@ -50,6 +55,10 @@ namespace Deadlight.Enemy
 
             agent.updateRotation = false;
             agent.updateUpAxis = false;
+
+            baseMoveSpeed = moveSpeed;
+            basePatrolSpeed = patrolSpeed;
+            baseChaseSpeed = chaseSpeed;
         }
 
         private void Start()
@@ -67,7 +76,7 @@ namespace Deadlight.Enemy
                 }
             }
 
-            var dayNightCycle = FindObjectOfType<DayNightCycle>();
+            dayNightCycle = FindObjectOfType<DayNightCycle>();
             if (dayNightCycle != null)
             {
                 dayNightCycle.OnNightStart += OnNightStart;
@@ -81,11 +90,17 @@ namespace Deadlight.Enemy
             {
                 GameManager.Instance.OnGameStateChanged -= HandleGameStateChanged;
             }
+
+            if (dayNightCycle != null)
+            {
+                dayNightCycle.OnNightStart -= OnNightStart;
+                dayNightCycle.OnDayStart -= OnDayStart;
+            }
         }
 
         private void SetupNavMeshAgent()
         {
-            agent.speed = moveSpeed;
+            agent.speed = baseMoveSpeed * speedMultiplier;
             agent.stoppingDistance = attackRange * 0.8f;
             agent.acceleration = 8f;
             agent.angularSpeed = 360f;
@@ -196,13 +211,13 @@ namespace Deadlight.Enemy
         private void HandlePatrol()
         {
             agent.isStopped = false;
-            agent.speed = patrolSpeed;
+            agent.speed = basePatrolSpeed * speedMultiplier;
         }
 
         private void HandleChase()
         {
             agent.isStopped = false;
-            agent.speed = chaseSpeed;
+            agent.speed = baseChaseSpeed * speedMultiplier;
 
             if (target != null)
             {
@@ -286,8 +301,14 @@ namespace Deadlight.Enemy
 
         public void SetSpeed(float speed)
         {
-            moveSpeed = speed;
-            chaseSpeed = speed * 1.33f;
+            baseMoveSpeed = speed;
+            basePatrolSpeed = speed * 0.5f;
+            baseChaseSpeed = speed * 1.33f;
+        }
+
+        public void ApplySpeedMultiplier(float multiplier)
+        {
+            speedMultiplier = Mathf.Max(0.1f, multiplier);
         }
 
         public void OnDeath()

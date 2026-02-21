@@ -26,11 +26,13 @@ namespace Deadlight.Core
         [SerializeField] private bool isTransitioning = false;
 
         public float CurrentTime => currentTime;
-        public float TimeRemaining => isDay ? dayDuration - currentTime : nightDuration - currentTime;
+        public float TimeRemaining => Mathf.Max(0f, isDay ? dayDuration - currentTime : nightDuration - currentTime);
         public float TotalPhaseTime => isDay ? dayDuration : nightDuration;
-        public float NormalizedTime => currentTime / TotalPhaseTime;
+        public float NormalizedTime => TotalPhaseTime <= 0f ? 0f : currentTime / TotalPhaseTime;
         public bool IsDay => isDay;
         public bool IsNight => !isDay && !isTransitioning;
+        public float DayDuration => dayDuration;
+        public float NightDuration => nightDuration;
 
         public event Action OnDayStart;
         public event Action OnNightStart;
@@ -230,6 +232,16 @@ namespace Deadlight.Core
         public void AdjustNightDuration(float multiplier)
         {
             nightDuration *= multiplier;
+        }
+
+        public void SetDayDuration(float seconds)
+        {
+            dayDuration = Mathf.Max(5f, seconds);
+        }
+
+        public void SetNightDuration(float seconds)
+        {
+            nightDuration = Mathf.Max(5f, seconds);
         }
     }
 }

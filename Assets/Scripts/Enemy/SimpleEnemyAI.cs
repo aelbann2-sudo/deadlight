@@ -30,6 +30,10 @@ namespace Deadlight.Enemy
         private float lastAttackTime;
         private bool isAggressive;
         private Vector3 startPosition;
+        private float speedMultiplier = 1f;
+        private float damageMultiplier = 1f;
+        private float baseMoveSpeed;
+        private float baseChaseSpeed;
 
         private void Awake()
         {
@@ -37,6 +41,8 @@ namespace Deadlight.Enemy
             spriteRenderer = GetComponent<SpriteRenderer>();
             health = GetComponent<EnemyHealth>();
             startPosition = transform.position;
+            baseMoveSpeed = moveSpeed;
+            baseChaseSpeed = chaseSpeed;
         }
 
         private void Start()
@@ -118,7 +124,7 @@ namespace Deadlight.Enemy
         private void ChasePlayer()
         {
             Vector2 direction = ((Vector2)target.position - (Vector2)transform.position).normalized;
-            rb.linearVelocity = direction * chaseSpeed;
+            rb.linearVelocity = direction * (baseChaseSpeed * speedMultiplier);
         }
 
         private void Wander()
@@ -137,7 +143,7 @@ namespace Deadlight.Enemy
             }
 
             Vector2 direction = (wanderTarget - (Vector2)transform.position).normalized;
-            rb.linearVelocity = direction * moveSpeed;
+            rb.linearVelocity = direction * (baseMoveSpeed * speedMultiplier);
         }
 
         private void SetNewWanderTarget()
@@ -158,7 +164,7 @@ namespace Deadlight.Enemy
             var playerHealth = target.GetComponent<Player.PlayerHealth>();
             if (playerHealth != null)
             {
-                playerHealth.TakeDamage(damage);
+                playerHealth.TakeDamage(damage * damageMultiplier);
             }
         }
 
@@ -179,6 +185,16 @@ namespace Deadlight.Enemy
         public void SetAggressive(bool aggressive)
         {
             isAggressive = aggressive;
+        }
+
+        public void ApplySpeedMultiplier(float multiplier)
+        {
+            speedMultiplier = Mathf.Max(0.1f, multiplier);
+        }
+
+        public void ApplyDamageMultiplier(float multiplier)
+        {
+            damageMultiplier = Mathf.Max(0.1f, multiplier);
         }
 
         private void OnDrawGizmosSelected()

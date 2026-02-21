@@ -41,9 +41,18 @@ namespace Deadlight.UI
         {
             _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             if (_font == null)
+                _font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            if (_font == null)
+                _font = Font.CreateDynamicFontFromOSFont("Arial", 14);
+            if (_font == null)
             {
-                Debug.LogError("[GameUI] Could not load LegacyRuntime.ttf font.");
-                return;
+                string[] fallbacks = Font.GetOSInstalledFontNames();
+                if (fallbacks != null && fallbacks.Length > 0)
+                    _font = Font.CreateDynamicFontFromOSFont(fallbacks[0], 14);
+            }
+            if (_font == null)
+            {
+                Debug.LogError("[GameUI] Could not load any font. UI will not display correctly.");
             }
 
             EnsureEventSystem();
