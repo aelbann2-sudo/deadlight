@@ -80,7 +80,7 @@ namespace Deadlight.Enemy
 
         private void Update()
         {
-            if (health != null && health.IsDead)
+            if (health != null && !health.IsAlive)
             {
                 rb.linearVelocity = Vector2.zero;
                 return;
