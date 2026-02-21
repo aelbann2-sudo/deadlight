@@ -58,8 +58,6 @@ namespace Deadlight.Core
         private ParticleSystem starsParticleSystem;
         private GameObject moonGlow;
         private GameObject sunIndicator;
-        private Canvas skyCanvas;
-        private Image skyGradientImage;
 
         private void Start()
         {
@@ -243,60 +241,9 @@ namespace Deadlight.Core
 
         private void CreateSkySystem()
         {
-            var canvasGO = new GameObject("SkyCanvas");
-            canvasGO.transform.SetParent(transform);
-            
-            skyCanvas = canvasGO.AddComponent<Canvas>();
-            skyCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            skyCanvas.sortingOrder = -100;
-
-            var scaler = canvasGO.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920, 1080);
-
-            CreateSkyGradient();
-            
             if (enableStars) CreateStars();
             if (enableMoonGlow) CreateMoon();
             CreateSun();
-        }
-
-        private void CreateSkyGradient()
-        {
-            var go = new GameObject("SkyGradient");
-            go.transform.SetParent(skyCanvas.transform);
-            
-            var rect = go.AddComponent<RectTransform>();
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-
-            skyGradientImage = go.AddComponent<Image>();
-            skyGradientImage.sprite = CreateGradientSprite(daySkyColor, Color.Lerp(daySkyColor, Color.white, 0.3f));
-            skyGradientImage.type = Image.Type.Simple;
-            skyGradientImage.raycastTarget = false;
-        }
-
-        private Sprite CreateGradientSprite(Color topColor, Color bottomColor)
-        {
-            int width = 4;
-            int height = 64;
-            var texture = new Texture2D(width, height);
-            texture.filterMode = FilterMode.Bilinear;
-
-            for (int y = 0; y < height; y++)
-            {
-                float t = y / (float)(height - 1);
-                Color col = Color.Lerp(bottomColor, topColor, t);
-                for (int x = 0; x < width; x++)
-                {
-                    texture.SetPixel(x, y, col);
-                }
-            }
-
-            texture.Apply();
-            return Sprite.Create(texture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f));
         }
 
         private void CreateStars()
@@ -305,6 +252,7 @@ namespace Deadlight.Core
             go.transform.SetParent(transform);
             
             starsParticleSystem = go.AddComponent<ParticleSystem>();
+            starsParticleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             var main = starsParticleSystem.main;
             main.loop = true;
             main.startLifetime = 999f;
@@ -477,17 +425,6 @@ namespace Deadlight.Core
                 {
                     sr.color = new Color(1f, 0.95f, 0.7f, (1f - dayNightBlend) * 0.8f);
                 }
-            }
-
-            if (skyGradientImage != null)
-            {
-                Color topColor = Color.Lerp(daySkyColor, nightSkyColor, dayNightBlend);
-                Color bottomColor = Color.Lerp(
-                    Color.Lerp(daySkyColor, Color.white, 0.3f),
-                    Color.Lerp(nightSkyColor, Color.black, 0.3f),
-                    dayNightBlend
-                );
-                skyGradientImage.sprite = CreateGradientSprite(topColor, bottomColor);
             }
 
             if (AtmosphereController.Instance != null)

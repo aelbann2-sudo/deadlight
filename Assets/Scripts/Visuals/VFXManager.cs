@@ -51,6 +51,7 @@ namespace Deadlight.Visuals
             var go = new GameObject("MuzzleFlash_PS");
             go.transform.SetParent(transform);
             muzzleFlashPS = go.AddComponent<ParticleSystem>();
+            muzzleFlashPS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             
             var main = muzzleFlashPS.main;
             main.duration = 0.1f;
@@ -100,6 +101,7 @@ namespace Deadlight.Visuals
             var go = new GameObject("BloodSplatter_PS");
             go.transform.SetParent(transform);
             bloodSplatterPS = go.AddComponent<ParticleSystem>();
+            bloodSplatterPS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
 
             var main = bloodSplatterPS.main;
             main.duration = 0.3f;
@@ -146,6 +148,7 @@ namespace Deadlight.Visuals
             var go = new GameObject("Spark_PS");
             go.transform.SetParent(transform);
             sparkPS = go.AddComponent<ParticleSystem>();
+            sparkPS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
 
             var main = sparkPS.main;
             main.duration = 0.2f;
@@ -197,6 +200,7 @@ namespace Deadlight.Visuals
             var go = new GameObject("Dust_PS");
             go.transform.SetParent(transform);
             dustPS = go.AddComponent<ParticleSystem>();
+            dustPS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
 
             var main = dustPS.main;
             main.duration = 0.5f;
@@ -243,6 +247,7 @@ namespace Deadlight.Visuals
             var go = new GameObject("DeathExplosion_PS");
             go.transform.SetParent(transform);
             deathExplosionPS = go.AddComponent<ParticleSystem>();
+            deathExplosionPS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
 
             var main = deathExplosionPS.main;
             main.duration = 0.5f;
@@ -293,6 +298,7 @@ namespace Deadlight.Visuals
             var go = new GameObject("ToxicExplosion_PS");
             go.transform.SetParent(transform);
             toxicExplosionPS = go.AddComponent<ParticleSystem>();
+            toxicExplosionPS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
 
             var main = toxicExplosionPS.main;
             main.duration = 1f;
@@ -347,6 +353,7 @@ namespace Deadlight.Visuals
             var go = new GameObject("Healing_PS");
             go.transform.SetParent(transform);
             healingPS = go.AddComponent<ParticleSystem>();
+            healingPS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
 
             var main = healingPS.main;
             main.duration = 0.8f;
