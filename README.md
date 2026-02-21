@@ -229,30 +229,6 @@ Assets/
 └── Audio/               # Sound effects and music
 ```
 
-## Creating Prefabs
-
-### Player Prefab
-1. Create empty GameObject, name "Player"
-2. Add components: `SpriteRenderer`, `Rigidbody2D`, `CircleCollider2D`
-3. Add scripts: `PlayerController`, `PlayerShooting`, `PlayerHealth`
-4. Set tag to "Player"
-5. Create child "FirePoint" for bullet spawn position
-6. Save to `Assets/Prefabs/Player/`
-
-### Enemy Prefab
-1. Create empty GameObject, name "BasicZombie"
-2. Add components: `SpriteRenderer`, `Rigidbody2D`, `CircleCollider2D`, `NavMeshAgent`
-3. Add scripts: `EnemyAI`, `EnemyHealth`
-4. Set tag to "Enemy"
-5. Configure NavMeshAgent for 2D (Agent Type, etc.)
-6. Save to `Assets/Prefabs/Enemies/`
-
-### Bullet Prefab
-1. Create empty GameObject, name "Bullet"
-2. Add components: `SpriteRenderer`, `Rigidbody2D`, `CircleCollider2D` (Is Trigger)
-3. Add script: `Bullet`
-4. Save to `Assets/Prefabs/Weapons/`
-
 ## Building for Windows
 
 1. `File → Build Settings`
@@ -260,29 +236,3 @@ Assets/
 3. Click "Build"
 4. Choose output folder
 5. The build creates `YourGame.exe` + `YourGame_Data/` folder
-
-## ScriptableObjects
-
-### WeaponData
-Right-click in Project → Create → Deadlight → Weapon Data
-Configure: damage, fire rate, magazine size, reload time, spread, etc.
-
-### EnemyData  
-Right-click in Project → Create → Deadlight → Enemy Data
-Configure: health, damage, speed, detection range, drop chance, etc.
-
-### NightConfig
-Right-click in Project → Create → Deadlight → Night Configuration
-Configure: wave count, enemy count, difficulty multipliers, rewards, etc.
-
-### DifficultySettings
-Right-click in Project → Create → Deadlight → Difficulty Settings
-Configure: player/enemy modifiers, resource rates, score multiplier, etc.
-
-## Recommended Free Assets
-
-Search Unity Asset Store for these free assets:
-- **2D Characters**: "Pixel Adventure" or "Zombie Character Pack"
-- **Tilemap**: "2D Roguelike Tileset" or "Top Down Environment"
-- **UI**: "Simple UI" or "Minimalist UI Pack"
-- **Audio**: "FREE Casual Game SFX" and "Horror Sound Effects"
