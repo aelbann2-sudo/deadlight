@@ -1,4 +1,6 @@
 ﻿<Solution>
   <Project Path="Deadlight.csproj" />
   <Project Path="Deadlight.Editor.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
 </Solution>

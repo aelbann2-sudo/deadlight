@@ -74,6 +74,18 @@ namespace Deadlight.Core
             camObj.transform.position = new Vector3(0, 0, -10);
         }
 
+        private Sprite LoadSprite(string resourceName, string spriteName)
+        {
+            Sprite[] sprites = Resources.LoadAll<Sprite>(resourceName);
+            foreach (var sprite in sprites)
+            {
+                if (sprite.name == spriteName)
+                    return sprite;
+            }
+            Debug.LogWarning($"[TestSceneSetup] Sprite '{spriteName}' not found in '{resourceName}'");
+            return null;
+        }
+
         private void CreatePlayer()
         {
             if (GameObject.Find("Player") != null) return;
@@ -82,7 +94,8 @@ namespace Deadlight.Core
             playerObj.transform.position = Vector3.zero;
 
             var sr = playerObj.AddComponent<SpriteRenderer>();
-            sr.sprite = CreateCircleSprite(Color.green);
+            var playerSprite = LoadSprite("Player", "Down 0");
+            sr.sprite = playerSprite != null ? playerSprite : CreateCircleSprite(Color.green);
             sr.sortingOrder = 10;
 
             var rb = playerObj.AddComponent<Rigidbody2D>();
@@ -253,7 +266,8 @@ namespace Deadlight.Core
             enemyObj.transform.position = new Vector3(5, 3, 0);
 
             var sr = enemyObj.AddComponent<SpriteRenderer>();
-            sr.sprite = CreateCircleSprite(new Color(0.4f, 0.5f, 0.3f));
+            var enemySprite = LoadSprite("NPC", "TopDown_NPC_0");
+            sr.sprite = enemySprite != null ? enemySprite : CreateCircleSprite(new Color(0.4f, 0.5f, 0.3f));
             sr.sortingOrder = 9;
 
             var rb = enemyObj.AddComponent<Rigidbody2D>();
