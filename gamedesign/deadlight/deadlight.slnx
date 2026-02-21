@@ -1,0 +1,4 @@
+﻿<Solution>
+  <Project Path="Deadlight.csproj" />
+  <Project Path="Deadlight.Editor.csproj" />
+</Solution>
