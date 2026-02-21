@@ -249,6 +249,7 @@ namespace Deadlight.Core
             playerObj.AddComponent<Player.PlayerShooting>();
             playerObj.AddComponent<Player.PlayerHealth>();
             playerObj.AddComponent<Player.PlayerUpgrades>();
+            playerObj.AddComponent<Player.PlayerArmor>();
             playerObj.AddComponent<AudioSource>();
             
             var animator = playerObj.AddComponent<PlayerAnimator>();
@@ -885,9 +886,96 @@ namespace Deadlight.Core
                 new Vector2(1, 0), new Vector2(1, 0), new Vector2(-20, 50), new Vector2(300, 45));
             ammoText.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
-            var weaponName = CreateUIText(canvas.transform, "WeaponName",
-                new Vector2(1, 0), "PISTOL", font, 14, TextAnchor.LowerRight, new Color(1f, 0.9f, 0.6f, 0.7f),
-                new Vector2(1, 0), new Vector2(1, 0), new Vector2(-20, 90), new Vector2(200, 20));
+            // Weapon info panel (bottom right, above ammo)
+            var weaponPanel = CreateUIPanel(canvas.transform, "WeaponPanel",
+                new Vector2(1, 0), new Vector2(1, 0), new Vector2(1, 0),
+                new Vector2(-20, 100), new Vector2(220, 55));
+            var wpBg = weaponPanel.AddComponent<Image>();
+            wpBg.color = new Color(0.1f, 0.1f, 0.15f, 0.6f);
+
+            var weaponIconObj = new GameObject("WeaponIcon");
+            weaponIconObj.transform.SetParent(weaponPanel.transform, false);
+            var wiRect = weaponIconObj.AddComponent<RectTransform>();
+            wiRect.anchorMin = new Vector2(0, 0.5f);
+            wiRect.anchorMax = new Vector2(0, 0.5f);
+            wiRect.pivot = new Vector2(0, 0.5f);
+            wiRect.anchoredPosition = new Vector2(8, 0);
+            wiRect.sizeDelta = new Vector2(48, 24);
+            var weaponIconImage = weaponIconObj.AddComponent<Image>();
+            weaponIconImage.preserveAspect = true;
+            try { weaponIconImage.sprite = Deadlight.Visuals.ProceduralSpriteGenerator.CreateWeaponIcon(Data.WeaponType.Pistol); }
+            catch { }
+
+            var weaponName = CreateUIText(weaponPanel.transform, "WeaponName",
+                new Vector2(0, 1), "PISTOL", font, 18, TextAnchor.UpperLeft, new Color(1f, 0.95f, 0.7f),
+                new Vector2(0, 1), new Vector2(0, 1), new Vector2(62, -5), new Vector2(150, 25));
+            weaponName.GetComponent<Text>().fontStyle = FontStyle.Bold;
+
+            var weaponStats = CreateUIText(weaponPanel.transform, "WeaponStats",
+                new Vector2(0, 0), "DMG: 15  ROF: 0.3", font, 12, TextAnchor.LowerLeft,
+                new Color(0.7f, 0.7f, 0.8f, 0.8f),
+                new Vector2(0, 0), new Vector2(0, 0), new Vector2(62, 5), new Vector2(150, 18));
+
+            // Armor display (below health bar)
+            var armorPanelObj = CreateUIPanel(canvas.transform, "ArmorPanel",
+                new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1),
+                new Vector2(20, -72), new Vector2(250, 28));
+
+            var vestBar = CreateUIPanel(armorPanelObj.transform, "VestBar",
+                new Vector2(0, 0), new Vector2(0.48f, 1), new Vector2(0, 0.5f),
+                Vector2.zero, Vector2.zero);
+            vestBar.GetComponent<RectTransform>().offsetMin = new Vector2(0, 2);
+            vestBar.GetComponent<RectTransform>().offsetMax = new Vector2(0, -2);
+            var vestBg = vestBar.AddComponent<Image>();
+            vestBg.color = new Color(0.12f, 0.2f, 0.35f, 0.7f);
+
+            var vestFillObj = new GameObject("VestFill");
+            vestFillObj.transform.SetParent(vestBar.transform, false);
+            var vfRect = vestFillObj.AddComponent<RectTransform>();
+            vfRect.anchorMin = Vector2.zero;
+            vfRect.anchorMax = Vector2.one;
+            vfRect.offsetMin = new Vector2(1, 1);
+            vfRect.offsetMax = new Vector2(-1, -1);
+            var vestFillImage = vestFillObj.AddComponent<Image>();
+            vestFillImage.color = new Color(0.2f, 0.5f, 0.9f, 0.85f);
+            vestFillImage.type = Image.Type.Filled;
+            vestFillImage.fillMethod = Image.FillMethod.Horizontal;
+            vestFillImage.fillAmount = 0;
+
+            var vestLabelObj = CreateUIText(vestBar.transform, "VestLabel",
+                new Vector2(0.5f, 0.5f), "VEST", font, 10, TextAnchor.MiddleCenter, Color.white,
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            vestLabelObj.GetComponent<RectTransform>().offsetMin = Vector2.zero;
+            vestLabelObj.GetComponent<RectTransform>().offsetMax = Vector2.zero;
+
+            var helmBar = CreateUIPanel(armorPanelObj.transform, "HelmBar",
+                new Vector2(0.52f, 0), new Vector2(1, 1), new Vector2(1, 0.5f),
+                Vector2.zero, Vector2.zero);
+            helmBar.GetComponent<RectTransform>().offsetMin = new Vector2(0, 2);
+            helmBar.GetComponent<RectTransform>().offsetMax = new Vector2(0, -2);
+            var helmBg = helmBar.AddComponent<Image>();
+            helmBg.color = new Color(0.25f, 0.25f, 0.3f, 0.7f);
+
+            var helmFillObj = new GameObject("HelmFill");
+            helmFillObj.transform.SetParent(helmBar.transform, false);
+            var hfRect2 = helmFillObj.AddComponent<RectTransform>();
+            hfRect2.anchorMin = Vector2.zero;
+            hfRect2.anchorMax = Vector2.one;
+            hfRect2.offsetMin = new Vector2(1, 1);
+            hfRect2.offsetMax = new Vector2(-1, -1);
+            var helmFillImage = helmFillObj.AddComponent<Image>();
+            helmFillImage.color = new Color(0.7f, 0.7f, 0.8f, 0.85f);
+            helmFillImage.type = Image.Type.Filled;
+            helmFillImage.fillMethod = Image.FillMethod.Horizontal;
+            helmFillImage.fillAmount = 0;
+
+            var helmLabelObj = CreateUIText(helmBar.transform, "HelmLabel",
+                new Vector2(0.5f, 0.5f), "HELM", font, 10, TextAnchor.MiddleCenter, Color.white,
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            helmLabelObj.GetComponent<RectTransform>().offsetMin = Vector2.zero;
+            helmLabelObj.GetComponent<RectTransform>().offsetMax = Vector2.zero;
+
+            armorPanelObj.SetActive(false);
 
             // Night & Round (top center)
             var nightText = CreateUIText(canvas.transform, "NightText",
@@ -1078,6 +1166,9 @@ namespace Deadlight.Core
                 dayTimerText.GetComponent<Text>(),
                 pointsText.GetComponent<Text>()
             );
+            hudComp.SetWeaponHUD(weaponIconImage, weaponName.GetComponent<Text>(), weaponStats.GetComponent<Text>());
+            hudComp.SetArmorHUD(vestFillImage, helmFillImage,
+                vestLabelObj.GetComponent<Text>(), helmLabelObj.GetComponent<Text>(), armorPanelObj);
 
             // Hook up GameEffects
             if (GameEffects.Instance != null)

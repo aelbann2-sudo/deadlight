@@ -331,6 +331,32 @@ namespace Deadlight.UI
                 new Vector2(0.75f, 0.5f), new Vector2(220, 40), BuyAmmoRefill);
             _shopBuyButtons.Add(ammoBtn.GetComponent<Button>());
 
+            // Armor row
+            var armorRow = new GameObject("ArmorRow");
+            armorRow.transform.SetParent(_dawnShopPanel.transform);
+            var arRect = armorRow.AddComponent<RectTransform>();
+            arRect.anchorMin = new Vector2(0.5f, 0.77f);
+            arRect.anchorMax = new Vector2(0.5f, 0.77f);
+            arRect.pivot = new Vector2(0.5f, 0.5f);
+            arRect.anchoredPosition = Vector2.zero;
+            arRect.sizeDelta = new Vector2(600, 45);
+
+            var vest1Btn = CreateButton(armorRow.transform, "Vest1Btn", "Vest Lv1 (80)", new Color(0.2f, 0.4f, 0.7f),
+                new Vector2(0.15f, 0.5f), new Vector2(160, 36), () => BuyArmor(ArmorTier.Level1, false, 80));
+            _shopBuyButtons.Add(vest1Btn.GetComponent<Button>());
+
+            var vest2Btn = CreateButton(armorRow.transform, "Vest2Btn", "Vest Lv2 (180)", new Color(0.2f, 0.4f, 0.7f),
+                new Vector2(0.38f, 0.5f), new Vector2(160, 36), () => BuyArmor(ArmorTier.Level2, false, 180));
+            _shopBuyButtons.Add(vest2Btn.GetComponent<Button>());
+
+            var helm1Btn = CreateButton(armorRow.transform, "Helm1Btn", "Helm Lv1 (60)", new Color(0.5f, 0.5f, 0.6f),
+                new Vector2(0.62f, 0.5f), new Vector2(160, 36), () => BuyArmor(ArmorTier.Level1, true, 60));
+            _shopBuyButtons.Add(helm1Btn.GetComponent<Button>());
+
+            var helm2Btn = CreateButton(armorRow.transform, "Helm2Btn", "Helm Lv2 (140)", new Color(0.5f, 0.5f, 0.6f),
+                new Vector2(0.85f, 0.5f), new Vector2(160, 36), () => BuyArmor(ArmorTier.Level2, true, 140));
+            _shopBuyButtons.Add(helm2Btn.GetComponent<Button>());
+
             // Tab buttons
             _weaponsTabBtn = CreateButton(_dawnShopPanel.transform, "WeaponsTab", "WEAPONS",
                 new Color(0.3f, 0.45f, 0.6f),
@@ -377,10 +403,16 @@ namespace Deadlight.UI
                 WeaponType.Shotgun, ref y, h);
             AddWeaponShopItem(_weaponsTabContent.transform, "SMG", "Auto, fast fire rate", 150, 2,
                 WeaponType.SMG, ref y, h);
+            AddWeaponShopItem(_weaponsTabContent.transform, "Sniper Rifle", "High damage, long range", 250, 2,
+                WeaponType.SniperRifle, ref y, h);
             AddWeaponShopItem(_weaponsTabContent.transform, "Assault Rifle", "Auto, balanced stats", 200, 3,
                 WeaponType.AssaultRifle, ref y, h);
             AddWeaponShopItem(_weaponsTabContent.transform, "Grenade Launcher", "Explosive, area damage", 350, 4,
                 WeaponType.GrenadeLauncher, ref y, h);
+            AddWeaponShopItem(_weaponsTabContent.transform, "Flamethrower", "Burn damage over time", 400, 4,
+                WeaponType.Flamethrower, ref y, h);
+            AddWeaponShopItem(_weaponsTabContent.transform, "Railgun", "Piercing charged shot", 500, 5,
+                WeaponType.Railgun, ref y, h);
         }
 
         private void AddWeaponShopItem(Transform parent, string name, string desc, int cost, int unlockNight,
@@ -508,6 +540,9 @@ namespace Deadlight.UI
                 WeaponType.SMG => WeaponData.CreateSMG(),
                 WeaponType.AssaultRifle => WeaponData.CreateAssaultRifle(),
                 WeaponType.GrenadeLauncher => WeaponData.CreateGrenadeLauncher(),
+                WeaponType.SniperRifle => WeaponData.CreateSniperRifle(),
+                WeaponType.Flamethrower => WeaponData.CreateFlamethrower(),
+                WeaponType.Railgun => WeaponData.CreateRailgun(),
                 _ => null
             };
 
@@ -539,6 +574,26 @@ namespace Deadlight.UI
             RefreshShop();
         }
 
+        private void BuyArmor(ArmorTier tier, bool isHelmet, int cost)
+        {
+            if (PointsSystem.Instance == null || !PointsSystem.Instance.CanAfford(cost)) return;
+            if (PlayerArmor.Instance == null) return;
+
+            bool worthBuying = isHelmet
+                ? (tier > PlayerArmor.Instance.HelmetTier || PlayerArmor.Instance.HelmetDurability <= 0)
+                : (tier > PlayerArmor.Instance.VestTier || PlayerArmor.Instance.VestDurability <= 0);
+            if (!worthBuying) return;
+
+            if (!PointsSystem.Instance.SpendPoints(cost, isHelmet ? $"Lv{(int)tier} Helmet" : $"Lv{(int)tier} Vest")) return;
+
+            if (isHelmet)
+                PlayerArmor.Instance.EquipHelmet(tier);
+            else
+                PlayerArmor.Instance.EquipVest(tier);
+
+            RefreshShop();
+        }
+
         private void RefreshShop()
         {
             UpdateShopDisplay();
@@ -564,10 +619,10 @@ namespace Deadlight.UI
             UpdateSupplyButton(0, 50);
             UpdateSupplyButton(1, 30);
 
-            // Weapon buttons (indices 2..5)
-            WeaponType[] weaponTypes = { WeaponType.Shotgun, WeaponType.SMG, WeaponType.AssaultRifle, WeaponType.GrenadeLauncher };
-            int[] weaponCosts = { 100, 150, 200, 350 };
-            int[] weaponNights = { 1, 2, 3, 4 };
+            // Weapon buttons (indices 2..8)
+            WeaponType[] weaponTypes = { WeaponType.Shotgun, WeaponType.SMG, WeaponType.SniperRifle, WeaponType.AssaultRifle, WeaponType.GrenadeLauncher, WeaponType.Flamethrower, WeaponType.Railgun };
+            int[] weaponCosts = { 100, 150, 250, 200, 350, 400, 500 };
+            int[] weaponNights = { 1, 2, 2, 3, 4, 4, 5 };
             for (int i = 0; i < weaponTypes.Length; i++)
             {
                 int btnIdx = 2 + i;

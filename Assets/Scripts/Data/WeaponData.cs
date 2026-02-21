@@ -10,7 +10,9 @@ namespace Deadlight.Data
         SMG,
         GrenadeLauncher,
         Flamethrower,
-        PlasmaCutter
+        PlasmaCutter,
+        SniperRifle,
+        Railgun
     }
 
     [CreateAssetMenu(fileName = "NewWeapon", menuName = "Deadlight/Weapon Data")]
@@ -180,6 +182,44 @@ namespace Deadlight.Data
             weapon.isAutomatic = true;
             weapon.nightRequired = 4;
             weapon.pointCost = 400;
+            return weapon;
+        }
+
+        public static WeaponData CreateSniperRifle()
+        {
+            var weapon = CreateInstance<WeaponData>();
+            weapon.weaponName = "Sniper Rifle";
+            weapon.description = "Long-range precision. High damage, slow rate.";
+            weapon.weaponType = WeaponType.SniperRifle;
+            weapon.damage = 75f;
+            weapon.fireRate = 1.2f;
+            weapon.range = 50f;
+            weapon.bulletSpeed = 60f;
+            weapon.magazineSize = 5;
+            weapon.reloadTime = 2.5f;
+            weapon.spread = 0.5f;
+            weapon.isAutomatic = false;
+            weapon.nightRequired = 2;
+            weapon.pointCost = 250;
+            return weapon;
+        }
+
+        public static WeaponData CreateRailgun()
+        {
+            var weapon = CreateInstance<WeaponData>();
+            weapon.weaponName = "Railgun";
+            weapon.description = "Devastating charged shot. Pierces all enemies.";
+            weapon.weaponType = WeaponType.Railgun;
+            weapon.damage = 150f;
+            weapon.fireRate = 2.5f;
+            weapon.range = 40f;
+            weapon.bulletSpeed = 80f;
+            weapon.magazineSize = 3;
+            weapon.reloadTime = 3.5f;
+            weapon.spread = 0f;
+            weapon.isAutomatic = false;
+            weapon.nightRequired = 5;
+            weapon.pointCost = 500;
             return weapon;
         }
     }

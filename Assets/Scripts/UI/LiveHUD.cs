@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using Deadlight.Core;
+using Deadlight.Data;
 
 namespace Deadlight.UI
 {
@@ -20,6 +21,16 @@ namespace Deadlight.UI
         private Text reloadHint;
         private Text dayTimerText;
         private Text pointsText;
+
+        private Image weaponIcon;
+        private Text weaponNameText;
+        private Text weaponStatsText;
+
+        private Image vestFill;
+        private Image helmetFill;
+        private Text vestLabel;
+        private Text helmetLabel;
+        private GameObject armorPanel;
 
         private Player.PlayerHealth playerHealth;
         private Player.PlayerShooting playerShooting;
@@ -49,6 +60,22 @@ namespace Deadlight.UI
                 gameOverPanel.SetActive(false);
 
             StartCoroutine(FindPlayerDelayed());
+        }
+
+        public void SetWeaponHUD(Image icon, Text wName, Text wStats)
+        {
+            weaponIcon = icon;
+            weaponNameText = wName;
+            weaponStatsText = wStats;
+        }
+
+        public void SetArmorHUD(Image vFill, Image hFill, Text vLabel, Text hLabel, GameObject panel)
+        {
+            vestFill = vFill;
+            helmetFill = hFill;
+            vestLabel = vLabel;
+            helmetLabel = hLabel;
+            armorPanel = panel;
         }
 
         private IEnumerator FindPlayerDelayed()
@@ -82,6 +109,20 @@ namespace Deadlight.UI
                 playerShooting.OnAmmoChanged += UpdateAmmo;
                 playerShooting.OnReloadStarted += ShowReloading;
                 playerShooting.OnReloadCompleted += HideReloading;
+                playerShooting.OnWeaponChanged += UpdateWeaponDisplay;
+
+                if (playerShooting.CurrentWeapon != null)
+                    UpdateWeaponDisplay(playerShooting.CurrentWeapon);
+            }
+
+            if (Player.PlayerArmor.Instance != null)
+            {
+                Player.PlayerArmor.Instance.OnArmorChanged += UpdateArmorDisplay;
+                UpdateArmorDisplay(
+                    Player.PlayerArmor.Instance.VestDurability,
+                    Player.PlayerArmor.Instance.VestMax,
+                    Player.PlayerArmor.Instance.HelmetDurability,
+                    Player.PlayerArmor.Instance.HelmetMax);
             }
 
             if (GameManager.Instance != null)
@@ -120,6 +161,11 @@ namespace Deadlight.UI
                 playerShooting.OnAmmoChanged -= UpdateAmmo;
                 playerShooting.OnReloadStarted -= ShowReloading;
                 playerShooting.OnReloadCompleted -= HideReloading;
+                playerShooting.OnWeaponChanged -= UpdateWeaponDisplay;
+            }
+            if (Player.PlayerArmor.Instance != null)
+            {
+                Player.PlayerArmor.Instance.OnArmorChanged -= UpdateArmorDisplay;
             }
             if (GameManager.Instance != null)
             {
@@ -221,6 +267,45 @@ namespace Deadlight.UI
         {
             if (pointsText != null)
                 pointsText.text = $"Score: {points}";
+        }
+
+        private void UpdateWeaponDisplay(WeaponData weapon)
+        {
+            if (weapon == null) return;
+
+            if (weaponNameText != null)
+                weaponNameText.text = weapon.weaponName.ToUpper();
+
+            if (weaponStatsText != null)
+                weaponStatsText.text = $"DMG: {weapon.damage:0}  ROF: {weapon.fireRate:0.0}";
+
+            if (weaponIcon != null)
+            {
+                try { weaponIcon.sprite = Visuals.ProceduralSpriteGenerator.CreateWeaponIcon(weapon.weaponType); }
+                catch { }
+            }
+        }
+
+        private void UpdateArmorDisplay(float vest, float vestMax, float helmet, float helmetMax)
+        {
+            bool hasArmor = vestMax > 0 || helmetMax > 0;
+            if (armorPanel != null) armorPanel.SetActive(hasArmor);
+
+            if (vestFill != null)
+            {
+                vestFill.fillAmount = vestMax > 0 ? vest / vestMax : 0;
+                vestFill.gameObject.SetActive(vestMax > 0);
+            }
+            if (vestLabel != null)
+                vestLabel.text = vestMax > 0 ? $"VEST {Mathf.CeilToInt(vest)}" : "";
+
+            if (helmetFill != null)
+            {
+                helmetFill.fillAmount = helmetMax > 0 ? helmet / helmetMax : 0;
+                helmetFill.gameObject.SetActive(helmetMax > 0);
+            }
+            if (helmetLabel != null)
+                helmetLabel.text = helmetMax > 0 ? $"HELM {Mathf.CeilToInt(helmet)}" : "";
         }
 
         private void ShowReloading()

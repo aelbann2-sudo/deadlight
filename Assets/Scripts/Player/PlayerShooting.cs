@@ -45,6 +45,7 @@ namespace Deadlight.Player
         public event Action OnReloadCompleted;
         public event Action OnEmptyTriggerPulled;
         public event Action<int, int> OnLowAmmoWarning;
+        public event Action<WeaponData> OnWeaponChanged;
 
         private void Start()
         {
@@ -148,7 +149,9 @@ namespace Deadlight.Player
             currentAmmo = slotAmmo[slot];
             reserveAmmo = slotReserve[slot];
 
+            UpdateWeaponSound();
             OnAmmoChanged?.Invoke(currentAmmo, reserveAmmo);
+            OnWeaponChanged?.Invoke(currentWeapon);
         }
 
         public void SetSecondWeapon(WeaponData weapon)
@@ -158,6 +161,7 @@ namespace Deadlight.Player
             {
                 slotAmmo[1] = weapon.magazineSize;
                 slotReserve[1] = weapon.magazineSize * 3;
+                SwitchToSlot(1);
             }
         }
 
@@ -324,6 +328,7 @@ namespace Deadlight.Player
                 slotAmmo[0] = currentAmmo;
                 slotReserve[0] = reserveAmmo;
                 OnAmmoChanged?.Invoke(currentAmmo, reserveAmmo);
+                OnWeaponChanged?.Invoke(currentWeapon);
                 EmitLowAmmoWarningIfNeeded();
             }
         }

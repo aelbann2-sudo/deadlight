@@ -79,7 +79,12 @@ namespace Deadlight.Player
             if (!IsAlive || isInvincible) return;
 
             float actualDamage = damage;
-            
+
+            if (PlayerArmor.Instance != null)
+            {
+                actualDamage = PlayerArmor.Instance.AbsorbDamage(actualDamage);
+            }
+
             if (GameManager.Instance?.CurrentSettings != null)
             {
                 actualDamage *= GameManager.Instance.CurrentSettings.playerDamageTakenMultiplier;

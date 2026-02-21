@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Deadlight.Data;
 
 namespace Deadlight.Visuals
 {
@@ -627,6 +628,120 @@ namespace Deadlight.Visuals
 
             texture.Apply();
             var sprite = Sprite.Create(texture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 32);
+            spriteCache[key] = sprite;
+            return sprite;
+        }
+
+        public static Sprite CreateWeaponIcon(WeaponType type)
+        {
+            string key = $"weaponicon_{type}";
+            if (spriteCache.TryGetValue(key, out Sprite cached)) return cached;
+
+            int w = 32, h = 16;
+            var tex = new Texture2D(w, h);
+            tex.filterMode = FilterMode.Point;
+            ClearTexture(tex, Color.clear);
+
+            switch (type)
+            {
+                case WeaponType.Pistol:
+                    DrawRect(tex, 4, 6, 18, 4, Palette.MetalDark);
+                    DrawRect(tex, 10, 2, 5, 5, Palette.MetalDark);
+                    DrawRect(tex, 6, 7, 14, 2, Palette.MetalLight);
+                    break;
+                case WeaponType.Shotgun:
+                    DrawRect(tex, 1, 7, 28, 3, Palette.MetalDark);
+                    DrawRect(tex, 1, 6, 22, 1, Palette.WoodDark);
+                    DrawRect(tex, 12, 4, 6, 3, Palette.MetalLight);
+                    DrawRect(tex, 3, 8, 20, 1, Palette.MetalLight);
+                    break;
+                case WeaponType.SMG:
+                    DrawRect(tex, 3, 6, 22, 4, Palette.MetalDark);
+                    DrawRect(tex, 13, 3, 4, 4, Palette.MetalLight);
+                    DrawRect(tex, 7, 7, 16, 2, Palette.MetalLight);
+                    DrawRect(tex, 20, 4, 3, 2, Palette.MetalDark);
+                    break;
+                case WeaponType.AssaultRifle:
+                    DrawRect(tex, 0, 6, 30, 4, Palette.MetalDark);
+                    DrawRect(tex, 4, 3, 5, 4, Palette.MetalDark);
+                    DrawRect(tex, 14, 2, 6, 4, Palette.MetalLight);
+                    DrawRect(tex, 6, 7, 22, 2, Palette.MetalLight);
+                    DrawRect(tex, 24, 8, 5, 2, Palette.WoodDark);
+                    break;
+                case WeaponType.SniperRifle:
+                    DrawRect(tex, 0, 7, 32, 3, Palette.MetalDark);
+                    DrawRect(tex, 20, 4, 4, 3, new Color(0.4f, 0.6f, 0.8f));
+                    DrawRect(tex, 8, 3, 5, 4, Palette.MetalDark);
+                    DrawRect(tex, 2, 8, 28, 1, Palette.MetalLight);
+                    DrawRect(tex, 26, 9, 4, 2, Palette.WoodDark);
+                    break;
+                case WeaponType.GrenadeLauncher:
+                    DrawRect(tex, 4, 5, 20, 6, Palette.MetalDark);
+                    DrawRect(tex, 2, 6, 4, 4, new Color(0.4f, 0.5f, 0.3f));
+                    DrawRect(tex, 8, 7, 14, 3, Palette.MetalLight);
+                    DrawRect(tex, 12, 3, 6, 3, Palette.MetalDark);
+                    break;
+                case WeaponType.Flamethrower:
+                    DrawRect(tex, 2, 5, 24, 5, Palette.MetalDark);
+                    DrawRect(tex, 0, 6, 6, 3, new Color(0.6f, 0.3f, 0.2f));
+                    DrawRect(tex, 20, 4, 4, 2, new Color(1f, 0.5f, 0.1f));
+                    DrawRect(tex, 24, 3, 3, 3, new Color(1f, 0.3f, 0f));
+                    DrawRect(tex, 8, 7, 16, 2, Palette.MetalLight);
+                    break;
+                case WeaponType.Railgun:
+                    DrawRect(tex, 2, 5, 26, 5, new Color(0.25f, 0.3f, 0.45f));
+                    DrawRect(tex, 0, 6, 4, 3, new Color(0.3f, 0.5f, 0.8f));
+                    DrawRect(tex, 26, 6, 4, 3, new Color(0.4f, 0.7f, 1f));
+                    DrawRect(tex, 10, 7, 18, 2, new Color(0.5f, 0.7f, 1f));
+                    DrawRect(tex, 14, 3, 4, 3, new Color(0.3f, 0.5f, 0.8f));
+                    break;
+                default:
+                    DrawRect(tex, 4, 6, 18, 4, Palette.MetalDark);
+                    DrawRect(tex, 10, 2, 5, 5, Palette.MetalDark);
+                    break;
+            }
+
+            tex.Apply();
+            var sprite = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 16);
+            spriteCache[key] = sprite;
+            return sprite;
+        }
+
+        public static Sprite CreateArmorIcon(bool isHelmet)
+        {
+            string key = isHelmet ? "armoricon_helmet" : "armoricon_vest";
+            if (spriteCache.TryGetValue(key, out Sprite cached)) return cached;
+
+            int s = 16;
+            var tex = new Texture2D(s, s);
+            tex.filterMode = FilterMode.Point;
+            ClearTexture(tex, Color.clear);
+
+            if (isHelmet)
+            {
+                for (int y = 4; y < 14; y++)
+                {
+                    int hw = y < 10 ? 6 : 6 - (y - 10);
+                    if (hw < 2) hw = 2;
+                    for (int x = 8 - hw; x < 8 + hw; x++)
+                        if (x >= 0 && x < s) DrawPixel(tex, x, y, Palette.MetalLight);
+                }
+                DrawRect(tex, 5, 12, 6, 2, Palette.MetalDark);
+            }
+            else
+            {
+                for (int y = 2; y < 14; y++)
+                {
+                    float frac = y < 8 ? 1f : 1f - (y - 8f) / 8f;
+                    int hw = Mathf.Max(2, Mathf.RoundToInt(6 * frac));
+                    for (int x = 8 - hw; x < 8 + hw; x++)
+                        if (x >= 0 && x < s) DrawPixel(tex, x, y, new Color(0.2f, 0.4f, 0.7f));
+                }
+                DrawRect(tex, 5, 10, 6, 2, new Color(0.15f, 0.3f, 0.6f));
+            }
+
+            tex.Apply();
+            var sprite = Sprite.Create(tex, new Rect(0, 0, s, s), new Vector2(0.5f, 0.5f), s);
             spriteCache[key] = sprite;
             return sprite;
         }

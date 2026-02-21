@@ -29,6 +29,11 @@ namespace Deadlight.Core
         private readonly List<GameObject> spawnedObjectiveObjects = new List<GameObject>();
         private bool nightWarningShown;
 
+        private float helicopterCooldown = 45f;
+        private float lastHelicopterTime;
+        private int maxDropsPerPhase = 2;
+        private int dropsThisPhase;
+
         public event Action<float> OnDayTimerUpdate;
         public event Action<int> OnNightStarted;
         public event Action OnDawnPhaseStarted;
@@ -63,6 +68,11 @@ namespace Deadlight.Core
             {
                 WaveSpawner.Instance.OnAllWavesCleared += HandleAllWavesCleared;
             }
+        }
+
+        private void Update()
+        {
+            TrySpawnHelicopterDrop();
         }
 
         private void OnDestroy()
@@ -243,6 +253,8 @@ namespace Deadlight.Core
                     break;
                 case GameState.NightPhase:
                     CleanupDayObjects();
+                    dropsThisPhase = 0;
+                    lastHelicopterTime = Time.time;
                     OnNightStarted?.Invoke(GameManager.Instance?.CurrentNight ?? 1);
                     OnStatusMessage?.Invoke($"Night {GameManager.Instance?.CurrentNight ?? 1} - Survive the waves!");
                     break;
@@ -284,6 +296,7 @@ namespace Deadlight.Core
         {
             var player = GameObject.Find("Player");
             Vector3 playerPos = player != null ? player.transform.position : Vector3.zero;
+            int night = GameManager.Instance?.CurrentNight ?? 1;
             int crateCount = UnityEngine.Random.Range(5, 9);
 
             for (int i = 0; i < crateCount; i++)
@@ -291,11 +304,53 @@ namespace Deadlight.Core
                 Vector3 pos = GetRandomPickupSpawnPosition(playerPos);
                 pos += new Vector3(UnityEngine.Random.Range(-2f, 2f), UnityEngine.Random.Range(-2f, 2f), 0);
 
+                CrateTier tier = RollCrateTier(night);
                 var crateObj = new GameObject($"SupplyCrate_{i}");
                 crateObj.transform.position = pos;
-                crateObj.AddComponent<Systems.SupplyCrate>();
+                var crate = crateObj.AddComponent<Systems.SupplyCrate>();
+                crate.SetTier(tier);
                 spawnedCrates.Add(crateObj);
             }
+        }
+
+        private CrateTier RollCrateTier(int night)
+        {
+            float roll = UnityEngine.Random.value;
+            float legendaryChance = Mathf.Clamp01(0.02f + night * 0.03f);
+            float rareChance = Mathf.Clamp01(0.10f + night * 0.05f);
+
+            if (roll < legendaryChance) return CrateTier.Legendary;
+            if (roll < legendaryChance + rareChance) return CrateTier.Rare;
+            return CrateTier.Common;
+        }
+
+        private void TrySpawnHelicopterDrop()
+        {
+            if (GameManager.Instance?.CurrentState != GameState.NightPhase) return;
+            if (dropsThisPhase >= maxDropsPerPhase) return;
+            if (Time.time < lastHelicopterTime + helicopterCooldown) return;
+            if (UnityEngine.Random.value > 0.005f) return;
+
+            var player = GameObject.Find("Player");
+            if (player == null) return;
+
+            Vector3 playerPos = player.transform.position;
+            float offsetX = UnityEngine.Random.Range(-5f, 5f);
+            float offsetY = UnityEngine.Random.Range(-5f, 5f);
+            Vector3 dropPos = playerPos + new Vector3(offsetX, offsetY, 0);
+
+            int night = GameManager.Instance.CurrentNight;
+            CrateTier tier = RollCrateTier(night);
+
+            var heli = new GameObject("Helicopter");
+            var drop = heli.AddComponent<HelicopterDrop>();
+            drop.Initialize(dropPos, tier);
+
+            dropsThisPhase++;
+            lastHelicopterTime = Time.time;
+
+            if (RadioTransmissions.Instance != null)
+                RadioTransmissions.Instance.ShowMessage("Supply drop incoming! Look for the helicopter!", 3f);
         }
 
         private void SpawnObjectiveInteractables()
