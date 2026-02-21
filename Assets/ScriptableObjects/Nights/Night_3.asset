@@ -16,12 +16,12 @@ MonoBehaviour:
   description: Runners and Exploders join the horde. Multiple mutations active.
   nightTitle: Escalation
   waveCount: 4
-  baseEnemyCount: 12
+  baseEnemyCount: 10
   timeBetweenWaves: 5
-  spawnInterval: 2
-  healthMultiplier: 1.5
-  damageMultiplier: 1.3
-  speedMultiplier: 1.15
+  spawnInterval: 2.3
+  healthMultiplier: 1.3
+  damageMultiplier: 1.15
+  speedMultiplier: 1.1
   availableEnemies: []
   hasBoss: 0
   bossEnemy: {fileID: 0}

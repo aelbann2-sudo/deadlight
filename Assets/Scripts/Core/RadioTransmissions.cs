@@ -11,6 +11,8 @@ namespace Deadlight.Core
         private Text transmissionText;
         private Image transmissionBg;
         private GameObject transmissionPanel;
+        private AudioSource radioAudioSource;
+        private AudioClip radioBeepClip;
 
         private static readonly string[][] nightTransmissions = {
             // Night 1 - Introduction & First Hints of Project Lazarus
@@ -108,6 +110,16 @@ namespace Deadlight.Core
                 return;
             }
             Instance = this;
+
+            radioAudioSource = gameObject.AddComponent<AudioSource>();
+            radioAudioSource.playOnAwake = false;
+            radioAudioSource.volume = 0.6f;
+
+            try
+            {
+                radioBeepClip = Audio.ProceduralAudioGenerator.GeneratePickup();
+            }
+            catch (System.Exception) { }
         }
 
         private void Start()
@@ -170,6 +182,11 @@ namespace Deadlight.Core
         private IEnumerator ShowTransmission(string text, float duration)
         {
             if (transmissionPanel == null || transmissionText == null) yield break;
+
+            if (radioAudioSource != null && radioBeepClip != null)
+            {
+                radioAudioSource.PlayOneShot(radioBeepClip, 0.4f);
+            }
 
             transmissionText.text = text;
             transmissionPanel.SetActive(true);

@@ -57,7 +57,39 @@ namespace Deadlight.Player
                 }
             }
 
+            GenerateProceduralSounds();
             InitializeWeapon();
+        }
+
+        private void GenerateProceduralSounds()
+        {
+            try
+            {
+                if (shootSound == null)
+                    shootSound = Audio.ProceduralAudioGenerator.GenerateGunshot("pistol");
+                if (reloadSound == null)
+                    reloadSound = Audio.ProceduralAudioGenerator.GenerateReload();
+                if (emptyClickSound == null)
+                    emptyClickSound = Audio.ProceduralAudioGenerator.GenerateEmptyClick();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[PlayerShooting] Failed to generate procedural sounds: {e.Message}");
+            }
+        }
+
+        private void UpdateWeaponSound()
+        {
+            if (currentWeapon == null) return;
+            try
+            {
+                string gunType = "pistol";
+                if (currentWeapon.pelletsPerShot > 1) gunType = "shotgun";
+                else if (currentWeapon.isAutomatic) gunType = "smg";
+                else if (currentWeapon.damage >= 40) gunType = "explosion";
+                shootSound = Audio.ProceduralAudioGenerator.GenerateGunshot(gunType);
+            }
+            catch (System.Exception) { }
         }
 
         private void Update()
@@ -69,7 +101,8 @@ namespace Deadlight.Player
         {
             if (currentWeapon != null)
             {
-                currentAmmo = currentWeapon.magazineSize;
+                int magBonus = PlayerUpgrades.Instance != null ? PlayerUpgrades.Instance.MagazineBonus : 0;
+                currentAmmo = currentWeapon.magazineSize + magBonus;
                 reserveAmmo = currentWeapon.magazineSize * 3;
                 OnAmmoChanged?.Invoke(currentAmmo, reserveAmmo);
             }
@@ -144,7 +177,10 @@ namespace Deadlight.Player
                 return;
             }
 
-            if (Time.time < lastFireTime + currentWeapon.fireRate) return;
+            float effectiveFireRate = currentWeapon.fireRate;
+            if (PlayerUpgrades.Instance != null)
+                effectiveFireRate *= PlayerUpgrades.Instance.FireRateMultiplier;
+            if (Time.time < lastFireTime + effectiveFireRate) return;
 
             Fire();
         }
@@ -206,7 +242,10 @@ namespace Deadlight.Player
                 var bulletComponent = bullet.GetComponent<Bullet>();
                 if (bulletComponent != null)
                 {
-                    bulletComponent.Initialize(currentWeapon.damage, currentWeapon.bulletSpeed, currentWeapon.range);
+                    float dmg = currentWeapon.damage;
+                    if (PlayerUpgrades.Instance != null)
+                        dmg *= PlayerUpgrades.Instance.DamageMultiplier;
+                    bulletComponent.Initialize(dmg, currentWeapon.bulletSpeed, currentWeapon.range);
                 }
             }
 
@@ -244,7 +283,8 @@ namespace Deadlight.Player
 
             yield return new WaitForSeconds(currentWeapon.reloadTime);
 
-            int ammoNeeded = currentWeapon.magazineSize - currentAmmo;
+            int effectiveMag = currentWeapon.magazineSize + (PlayerUpgrades.Instance != null ? PlayerUpgrades.Instance.MagazineBonus : 0);
+            int ammoNeeded = effectiveMag - currentAmmo;
             int ammoToLoad = Mathf.Min(ammoNeeded, reserveAmmo);
 
             currentAmmo += ammoToLoad;
@@ -274,6 +314,7 @@ namespace Deadlight.Player
         {
             currentWeapon = weapon;
             weaponSlots[0] = weapon;
+            UpdateWeaponSound();
 
             if (weapon != null)
             {

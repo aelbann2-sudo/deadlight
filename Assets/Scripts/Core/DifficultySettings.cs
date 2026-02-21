@@ -53,21 +53,21 @@ namespace Deadlight.Core
             var settings = CreateInstance<DifficultySettings>();
             settings.difficulty = Difficulty.Easy;
             settings.displayName = "Easy";
-            settings.description = "Reduced enemy health and damage. More resources available.";
+            settings.description = "Relaxed survival. Weaker zombies, more supplies, longer days.";
             
-            settings.playerHealthMultiplier = 1.25f;
-            settings.playerDamageTakenMultiplier = 0.75f;
+            settings.playerHealthMultiplier = 1.5f;
+            settings.playerDamageTakenMultiplier = 0.5f;
             
-            settings.enemyHealthMultiplier = 0.75f;
-            settings.enemyDamageMultiplier = 0.75f;
-            settings.enemySpeedMultiplier = 0.9f;
+            settings.enemyHealthMultiplier = 0.5f;
+            settings.enemyDamageMultiplier = 0.5f;
+            settings.enemySpeedMultiplier = 0.75f;
             
-            settings.waveEnemyCountMultiplier = 0.7f;
-            settings.spawnIntervalMultiplier = 1.3f;
+            settings.waveEnemyCountMultiplier = 0.5f;
+            settings.spawnIntervalMultiplier = 1.8f;
             
-            settings.resourceSpawnMultiplier = 1.5f;
-            settings.ammoDropMultiplier = 1.5f;
-            settings.healthPickupMultiplier = 1.25f;
+            settings.resourceSpawnMultiplier = 2f;
+            settings.ammoDropMultiplier = 2f;
+            settings.healthPickupMultiplier = 1.5f;
             
             settings.scoreMultiplier = 0.75f;
             

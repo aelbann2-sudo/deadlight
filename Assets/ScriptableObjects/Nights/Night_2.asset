@@ -16,12 +16,12 @@ MonoBehaviour:
   description: Zombies attack from multiple directions. First mutation appears.
   nightTitle: Growing Threat
   waveCount: 3
-  baseEnemyCount: 8
+  baseEnemyCount: 7
   timeBetweenWaves: 6
-  spawnInterval: 2.5
-  healthMultiplier: 1.25
-  damageMultiplier: 1.15
-  speedMultiplier: 1.1
+  spawnInterval: 2.8
+  healthMultiplier: 1.15
+  damageMultiplier: 1.08
+  speedMultiplier: 1.05
   availableEnemies: []
   hasBoss: 0
   bossEnemy: {fileID: 0}

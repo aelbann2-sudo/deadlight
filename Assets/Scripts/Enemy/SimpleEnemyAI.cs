@@ -69,6 +69,9 @@ namespace Deadlight.Enemy
                 GameManager.Instance.OnGameStateChanged += OnGameStateChanged;
                 isAggressive = GameManager.Instance.CurrentState == GameState.NightPhase || alwaysAggressive;
             }
+
+            var zombieSounds = GetComponent<Audio.ZombieSounds>();
+            if (zombieSounds != null) zombieSounds.SetAggressive(isAggressive);
         }
 
         private void OnDestroy()
@@ -84,6 +87,8 @@ namespace Deadlight.Enemy
             if (alwaysAggressive) return;
             
             isAggressive = newState == GameState.NightPhase;
+            var zombieSounds = GetComponent<Audio.ZombieSounds>();
+            if (zombieSounds != null) zombieSounds.SetAggressive(isAggressive);
         }
 
         private void FindPlayer()

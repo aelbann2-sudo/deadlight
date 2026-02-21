@@ -15,13 +15,13 @@ MonoBehaviour:
   nightNumber: 4
   description: Heavy waves with Tank zombies. All mutations possible.
   nightTitle: The Horde
-  waveCount: 5
-  baseEnemyCount: 18
+  waveCount: 4
+  baseEnemyCount: 14
   timeBetweenWaves: 4
-  spawnInterval: 1.5
-  healthMultiplier: 1.75
-  damageMultiplier: 1.5
-  speedMultiplier: 1.2
+  spawnInterval: 1.9
+  healthMultiplier: 1.45
+  damageMultiplier: 1.25
+  speedMultiplier: 1.12
   availableEnemies: []
   hasBoss: 0
   bossEnemy: {fileID: 0}

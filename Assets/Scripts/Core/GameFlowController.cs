@@ -16,7 +16,7 @@ namespace Deadlight.Core
         public static GameFlowController Instance { get; private set; }
 
         [Header("Phase Settings")]
-        [SerializeField] private float[] dayDurationsByNight = { 60f, 50f, 45f, 40f, 35f };
+        [SerializeField] private float[] dayDurationsByNight = { 70f, 60f, 55f, 50f, 45f };
         [SerializeField] private float nightDuration = 120f;
         [SerializeField] private int healthPickupCount = 3;
         [SerializeField] private int ammoPickupCount = 4;
@@ -25,6 +25,9 @@ namespace Deadlight.Core
 
         private DayNightCycle dayNightCycle;
         private readonly List<GameObject> spawnedPickups = new List<GameObject>();
+        private readonly List<GameObject> spawnedCrates = new List<GameObject>();
+        private readonly List<GameObject> spawnedObjectiveObjects = new List<GameObject>();
+        private bool nightWarningShown;
 
         public event Action<float> OnDayTimerUpdate;
         public event Action<int> OnNightStarted;
@@ -215,6 +218,15 @@ namespace Deadlight.Core
             if (GameManager.Instance?.CurrentState == GameState.DayPhase)
             {
                 OnDayTimerUpdate?.Invoke(timeRemaining);
+
+                if (!nightWarningShown && timeRemaining <= 15f && timeRemaining > 0f)
+                {
+                    nightWarningShown = true;
+                    if (RadioTransmissions.Instance != null)
+                        RadioTransmissions.Instance.ShowMessage("Night is approaching! Find shelter!", 3f);
+                    if (GameEffects.Instance != null)
+                        GameEffects.Instance.ScreenShake(0.08f, 0.3f);
+                }
             }
         }
 
@@ -223,10 +235,14 @@ namespace Deadlight.Core
             switch (newState)
             {
                 case GameState.DayPhase:
+                    nightWarningShown = false;
                     SpawnPickups();
+                    SpawnSupplyCrates();
+                    SpawnObjectiveInteractables();
                     OnStatusMessage?.Invoke($"Day Phase - Night {GameManager.Instance?.CurrentNight ?? 1}");
                     break;
                 case GameState.NightPhase:
+                    CleanupDayObjects();
                     OnNightStarted?.Invoke(GameManager.Instance?.CurrentNight ?? 1);
                     OnStatusMessage?.Invoke($"Night {GameManager.Instance?.CurrentNight ?? 1} - Survive the waves!");
                     break;
@@ -262,6 +278,100 @@ namespace Deadlight.Core
         {
             // WaveSpawner already calls GameManager.OnNightSurvived() - state will transition to DawnPhase or Victory
             // This listener allows GameFlowController to react; OnDawnPhaseStarted is raised via HandleGameStateChanged
+        }
+
+        private void SpawnSupplyCrates()
+        {
+            var player = GameObject.Find("Player");
+            Vector3 playerPos = player != null ? player.transform.position : Vector3.zero;
+            int crateCount = UnityEngine.Random.Range(5, 9);
+
+            for (int i = 0; i < crateCount; i++)
+            {
+                Vector3 pos = GetRandomPickupSpawnPosition(playerPos);
+                pos += new Vector3(UnityEngine.Random.Range(-2f, 2f), UnityEngine.Random.Range(-2f, 2f), 0);
+
+                var crateObj = new GameObject($"SupplyCrate_{i}");
+                crateObj.transform.position = pos;
+                crateObj.AddComponent<Systems.SupplyCrate>();
+                spawnedCrates.Add(crateObj);
+            }
+        }
+
+        private void SpawnObjectiveInteractables()
+        {
+            if (DayObjectiveSystem.Instance == null) return;
+            var obj = DayObjectiveSystem.Instance.ActiveObjective;
+            if (obj == null) return;
+
+            var player = GameObject.Find("Player");
+            Vector3 playerPos = player != null ? player.transform.position : Vector3.zero;
+
+            switch (obj.type)
+            {
+                case ObjectiveType.SecureZone:
+                    SpawnSecureZones(obj.targetCount, playerPos);
+                    break;
+                case ObjectiveType.ActivateBeacon:
+                    SpawnBeacons(obj.targetCount, playerPos);
+                    break;
+                case ObjectiveType.RecoverSupplyCache:
+                    SpawnLargeCache(playerPos);
+                    break;
+            }
+        }
+
+        private void SpawnSecureZones(int count, Vector3 playerPos)
+        {
+            for (int i = 0; i < Mathf.Min(count, 4); i++)
+            {
+                Vector3 pos = GetRandomPickupSpawnPosition(playerPos);
+                pos += new Vector3(UnityEngine.Random.Range(-3f, 3f), UnityEngine.Random.Range(-3f, 3f), 0);
+
+                var zoneObj = new GameObject($"SecureZone_{i}");
+                zoneObj.transform.position = pos;
+                zoneObj.AddComponent<ObjectiveZone>();
+                spawnedObjectiveObjects.Add(zoneObj);
+            }
+        }
+
+        private void SpawnBeacons(int count, Vector3 playerPos)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                Vector3 pos = GetRandomPickupSpawnPosition(playerPos);
+                pos += new Vector3(UnityEngine.Random.Range(-4f, 4f), UnityEngine.Random.Range(-4f, 4f), 0);
+
+                var beaconObj = new GameObject($"Beacon_{i}");
+                beaconObj.transform.position = pos;
+                beaconObj.AddComponent<ObjectiveBeacon>();
+                spawnedObjectiveObjects.Add(beaconObj);
+            }
+        }
+
+        private void SpawnLargeCache(Vector3 playerPos)
+        {
+            float angle = UnityEngine.Random.Range(0f, 360f) * Mathf.Deg2Rad;
+            float dist = UnityEngine.Random.Range(8f, 14f);
+            Vector3 pos = playerPos + new Vector3(Mathf.Cos(angle) * dist, Mathf.Sin(angle) * dist, 0);
+
+            var cacheObj = new GameObject("SupplyCache");
+            cacheObj.transform.position = pos;
+            cacheObj.AddComponent<ObjectiveCache>();
+            spawnedObjectiveObjects.Add(cacheObj);
+        }
+
+        private void CleanupDayObjects()
+        {
+            foreach (var go in spawnedCrates)
+                if (go != null) Destroy(go);
+            spawnedCrates.Clear();
+
+            foreach (var go in spawnedObjectiveObjects)
+                if (go != null) Destroy(go);
+            spawnedObjectiveObjects.Clear();
+
+            ClearSpawnedPickups();
         }
 
         private void ApplyNightPacing(int night)
@@ -340,13 +450,189 @@ namespace Deadlight.Core
 
             if (consumed)
             {
-                if (DayObjectiveSystem.Instance != null && GameManager.Instance != null &&
-                    GameManager.Instance.CurrentState == GameState.DayPhase)
+                Destroy(gameObject);
+            }
+        }
+    }
+
+    public class ObjectiveZone : MonoBehaviour
+    {
+        private float radius = 2f;
+        private float tickTimer;
+        private float tickInterval = 1f;
+        private bool completed;
+        private SpriteRenderer zoneRing;
+
+        private void Awake()
+        {
+            var col = gameObject.AddComponent<CircleCollider2D>();
+            col.isTrigger = true;
+            col.radius = radius;
+
+            zoneRing = gameObject.AddComponent<SpriteRenderer>();
+            zoneRing.sprite = CreateRingSprite(new Color(0.2f, 0.7f, 1f, 0.35f), 48);
+            zoneRing.sortingOrder = 2;
+            transform.localScale = Vector3.one * (radius * 2f);
+        }
+
+        private void OnTriggerStay2D(Collider2D other)
+        {
+            if (completed) return;
+            if (other.GetComponent<PlayerHealth>() == null) return;
+
+            tickTimer += Time.deltaTime;
+            if (tickTimer >= tickInterval)
+            {
+                tickTimer = 0f;
+                if (DayObjectiveSystem.Instance != null)
                 {
                     DayObjectiveSystem.Instance.AddProgress(1);
+                    if (DayObjectiveSystem.Instance.ActiveObjective != null && DayObjectiveSystem.Instance.ActiveObjective.IsComplete)
+                    {
+                        completed = true;
+                        zoneRing.color = new Color(0.2f, 0.8f, 0.2f, 0.5f);
+                    }
                 }
+            }
+        }
 
-                Destroy(gameObject);
+        private void OnTriggerExit2D(Collider2D other)
+        {
+            if (other.GetComponent<PlayerHealth>() != null)
+                tickTimer = 0f;
+        }
+
+        private static Sprite CreateRingSprite(Color color, int size)
+        {
+            var tex = new Texture2D(size, size);
+            var px = new Color[size * size];
+            Vector2 center = new Vector2(size / 2f, size / 2f);
+            float outerR = size / 2f - 1;
+            float innerR = outerR - 3;
+            for (int y = 0; y < size; y++)
+                for (int x = 0; x < size; x++)
+                {
+                    float d = Vector2.Distance(new Vector2(x, y), center);
+                    px[y * size + x] = (d <= outerR && d >= innerR) ? color : Color.clear;
+                }
+            tex.SetPixels(px);
+            tex.Apply();
+            return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+        }
+    }
+
+    public class ObjectiveBeacon : MonoBehaviour
+    {
+        private bool activated;
+        private SpriteRenderer sr;
+        private float interactRange = 1.5f;
+
+        private void Awake()
+        {
+            sr = gameObject.AddComponent<SpriteRenderer>();
+            sr.sprite = CreatePillarSprite(new Color(0.3f, 0.5f, 1f));
+            sr.sortingOrder = 5;
+
+            var col = gameObject.AddComponent<CircleCollider2D>();
+            col.isTrigger = true;
+            col.radius = interactRange;
+        }
+
+        private void Update()
+        {
+            if (activated) return;
+            var player = GameObject.Find("Player");
+            if (player == null) return;
+
+            float dist = Vector2.Distance(transform.position, player.transform.position);
+            if (dist <= interactRange && Input.GetKeyDown(KeyCode.F))
+            {
+                activated = true;
+                sr.color = new Color(0.3f, 1f, 0.3f);
+                if (DayObjectiveSystem.Instance != null)
+                    DayObjectiveSystem.Instance.AddProgress(1);
+
+                try
+                {
+                    var clip = Audio.ProceduralAudioGenerator.GeneratePickup();
+                    if (clip != null) AudioSource.PlayClipAtPoint(clip, transform.position, 0.5f);
+                }
+                catch { }
+            }
+        }
+
+        private static Sprite CreatePillarSprite(Color color)
+        {
+            int w = 12, h = 24;
+            var tex = new Texture2D(w, h);
+            var px = new Color[w * h];
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                {
+                    bool body = x >= 2 && x < w - 2;
+                    float glow = 1f - ((float)y / h) * 0.3f;
+                    px[y * w + x] = body ? new Color(color.r * glow, color.g * glow, color.b * glow) : Color.clear;
+                }
+            tex.SetPixels(px);
+            tex.Apply();
+            tex.filterMode = FilterMode.Point;
+            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0f), 16);
+        }
+    }
+
+    public class ObjectiveCache : MonoBehaviour
+    {
+        private bool looted;
+        private float interactRange = 2f;
+        private SpriteRenderer sr;
+
+        private void Awake()
+        {
+            sr = gameObject.AddComponent<SpriteRenderer>();
+            sr.color = new Color(0.9f, 0.75f, 0.2f);
+            sr.sortingOrder = 5;
+
+            int s = 28;
+            var tex = new Texture2D(s, s);
+            var px = new Color[s * s];
+            for (int y = 0; y < s; y++)
+                for (int x = 0; x < s; x++)
+                {
+                    bool border = x < 3 || x >= s - 3 || y < 3 || y >= s - 3;
+                    px[y * s + x] = border ? new Color(0.7f, 0.55f, 0.1f) : new Color(0.9f, 0.75f, 0.2f);
+                }
+            tex.SetPixels(px);
+            tex.Apply();
+            tex.filterMode = FilterMode.Point;
+            sr.sprite = Sprite.Create(tex, new Rect(0, 0, s, s), new Vector2(0.5f, 0.5f), s);
+
+            var col = gameObject.AddComponent<CircleCollider2D>();
+            col.isTrigger = true;
+            col.radius = interactRange;
+        }
+
+        private void Update()
+        {
+            if (looted) return;
+            var player = GameObject.Find("Player");
+            if (player == null) return;
+
+            float dist = Vector2.Distance(transform.position, player.transform.position);
+            if (dist <= interactRange && Input.GetKeyDown(KeyCode.F))
+            {
+                looted = true;
+                sr.color = new Color(0.4f, 0.4f, 0.4f, 0.5f);
+                if (DayObjectiveSystem.Instance != null)
+                    DayObjectiveSystem.Instance.MarkCompleted();
+
+                try
+                {
+                    var clip = Audio.ProceduralAudioGenerator.GeneratePickup();
+                    if (clip != null) AudioSource.PlayClipAtPoint(clip, transform.position, 0.7f);
+                }
+                catch { }
+
+                Destroy(gameObject, 1f);
             }
         }
     }

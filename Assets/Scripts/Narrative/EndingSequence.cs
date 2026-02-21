@@ -13,6 +13,9 @@ namespace Deadlight.Narrative
         [Header("Timing")]
         [SerializeField] private float charRevealInterval = 0.03f;
 
+        public event System.Action OnEndingComplete;
+        public bool IsPlaying => isPlaying;
+
         private Canvas endingCanvas;
         private GameObject canvasRoot;
         private Image background;
@@ -146,6 +149,7 @@ namespace Deadlight.Narrative
 
             yield return new WaitForSecondsRealtime(1f);
             ShowEndButtons(true);
+            OnEndingComplete?.Invoke();
         }
 
         private IEnumerator DeathSequence()
@@ -169,6 +173,7 @@ namespace Deadlight.Narrative
 
             yield return new WaitForSecondsRealtime(0.5f);
             ShowEndButtons(false);
+            OnEndingComplete?.Invoke();
         }
 
         private IEnumerator ShowLine(string text, Color textColor, float holdDuration)

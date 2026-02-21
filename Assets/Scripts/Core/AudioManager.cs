@@ -46,6 +46,8 @@ namespace Deadlight.Core
 
         private void Start()
         {
+            GenerateProceduralAudio();
+
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.OnGameStateChanged += HandleGameStateChanged;
@@ -56,6 +58,30 @@ namespace Deadlight.Core
             {
                 dayNightCycle.OnDayStart += PlayDayAudio;
                 dayNightCycle.OnNightStart += PlayNightAudio;
+            }
+        }
+
+        private void GenerateProceduralAudio()
+        {
+            try
+            {
+                if (nightAmbient == null)
+                    nightAmbient = Audio.ProceduralAudioGenerator.GenerateAmbientWind();
+                if (dayAmbient == null)
+                    dayAmbient = Audio.ProceduralAudioGenerator.GenerateAmbientWind();
+                if (nightMusic == null)
+                    nightMusic = Audio.ProceduralAudioGenerator.GenerateHeartbeat();
+
+                RegisterSFX("gunshot_pistol", Audio.ProceduralAudioGenerator.GenerateGunshot("pistol"));
+                RegisterSFX("gunshot_shotgun", Audio.ProceduralAudioGenerator.GenerateGunshot("shotgun"));
+                RegisterSFX("gunshot_smg", Audio.ProceduralAudioGenerator.GenerateGunshot("smg"));
+                RegisterSFX("reload", Audio.ProceduralAudioGenerator.GenerateReload());
+                RegisterSFX("explosion", Audio.ProceduralAudioGenerator.GenerateExplosion());
+                RegisterSFX("pickup", Audio.ProceduralAudioGenerator.GeneratePickup());
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[AudioManager] Failed to generate procedural audio: {e.Message}");
             }
         }
 

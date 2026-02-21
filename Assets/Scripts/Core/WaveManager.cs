@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Deadlight.Data;
 using Deadlight.Level;
 using Deadlight.Visuals;
 using UnityEngine;
@@ -33,10 +34,12 @@ namespace Deadlight.Core
 
         [Header("Pacing")]
         [SerializeField] private bool enableDaySkirmish = true;
-        [SerializeField] private int daySkirmishMin = 2;
-        [SerializeField] private int daySkirmishMax = 4;
+        [SerializeField] private int daySkirmishMin = 1;
+        [SerializeField] private int daySkirmishMax = 3;
         [SerializeField] private float daySkirmishTriggerTime = 20f;
         [SerializeField] private float emergencySpawnDelay = 5f;
+        [SerializeField] private float waveEnemyGrowthPerWave = 0.22f;
+        [SerializeField] private float waveOverlapThresholdRatio = 0.45f;
 
         public int CurrentWave => currentWave;
         public int EnemiesRemaining => enemiesRemaining;
@@ -191,13 +194,13 @@ namespace Deadlight.Core
         {
             var config = ScriptableObject.CreateInstance<NightConfig>();
             config.nightNumber = night;
-            config.waveCount = Mathf.Clamp(2 + night, 2, 6);
-            config.baseEnemyCount = 5 + (night * 3);
-            config.healthMultiplier = 1f + (night * 0.25f);
-            config.damageMultiplier = 1f + (night * 0.15f);
-            config.speedMultiplier = 1f + (night * 0.1f);
-            config.spawnInterval = Mathf.Max(0.8f, 2.5f - (night * 0.2f));
-            config.timeBetweenWaves = Mathf.Max(2f, 6f - night);
+            config.waveCount = Mathf.Clamp(1 + night, 2, 5);
+            config.baseEnemyCount = 3 + (night * 2);
+            config.healthMultiplier = 1f + (night * 0.15f);
+            config.damageMultiplier = 1f + (night * 0.1f);
+            config.speedMultiplier = 1f + (night * 0.05f);
+            config.spawnInterval = Mathf.Max(1f, 2.5f - (night * 0.15f));
+            config.timeBetweenWaves = Mathf.Max(3f, 7f - night);
             return config;
         }
 
@@ -233,7 +236,7 @@ namespace Deadlight.Core
 
                 currentWave = wave;
                 int waveEnemyCount = CalculateEnemyCount(wave);
-                int waveOverlapThreshold = Mathf.RoundToInt(waveEnemyCount * 0.3f);
+                int waveOverlapThreshold = Mathf.RoundToInt(waveEnemyCount * Mathf.Clamp01(waveOverlapThresholdRatio));
                 OnWaveStarted?.Invoke(wave);
 
                 yield return StartCoroutine(SpawnWave(wave));
@@ -275,7 +278,7 @@ namespace Deadlight.Core
             isSpawning = true;
 
             int enemyCount = CalculateEnemyCount(waveNumber);
-            float spawnInterval = Mathf.Max(0.1f, (currentNightConfig?.spawnInterval ?? 2f) * GetSpawnIntervalMultiplier());
+            float spawnInterval = Mathf.Max(0.45f, (currentNightConfig?.spawnInterval ?? 2f) * GetSpawnIntervalMultiplier() * GetAdaptiveSpawnIntervalMultiplier());
 
             for (int i = 0; i < enemyCount; i++)
             {
@@ -294,10 +297,24 @@ namespace Deadlight.Core
         private int CalculateEnemyCount(int waveNumber)
         {
             int baseCount = currentNightConfig?.baseEnemyCount ?? 10;
-            float waveScaling = 1f + (waveNumber - 1) * 0.3f;
-            float difficultyMultiplier = GetDifficultyWaveMultiplier();
+            float waveScaling = 1f + (waveNumber - 1) * Mathf.Max(0.1f, waveEnemyGrowthPerWave);
+            float difficultyMultiplier = GetDifficultyWaveMultiplier() * GetAdaptiveEnemyCountMultiplier();
+            int maxPerWave = GetNightEnemyCap();
 
-            return Mathf.Max(1, Mathf.RoundToInt(baseCount * waveScaling * difficultyMultiplier));
+            return Mathf.Clamp(Mathf.RoundToInt(baseCount * waveScaling * difficultyMultiplier), 1, maxPerWave);
+        }
+
+        private int GetNightEnemyCap()
+        {
+            int night = Mathf.Max(1, GameManager.Instance?.CurrentNight ?? 1);
+            return night switch
+            {
+                1 => 10,
+                2 => 14,
+                3 => 20,
+                4 => 26,
+                _ => 30
+            };
         }
 
         private float GetDifficultyWaveMultiplier()
@@ -328,6 +345,38 @@ namespace Deadlight.Core
                 return Mathf.Max(0.2f, GameManager.Instance.CurrentSettings.spawnIntervalMultiplier);
             }
 
+            return 1f;
+        }
+
+        private float GetAdaptiveEnemyCountMultiplier()
+        {
+            var player = GameObject.Find("Player");
+            var health = player != null ? player.GetComponent<Player.PlayerHealth>() : null;
+            if (health == null || health.MaxHealth <= 0f)
+            {
+                return 1f;
+            }
+
+            float healthPct = health.CurrentHealth / health.MaxHealth;
+            if (healthPct < 0.25f) return 0.75f;
+            if (healthPct < 0.4f) return 0.85f;
+            if (healthPct < 0.6f) return 0.95f;
+            return 1f;
+        }
+
+        private float GetAdaptiveSpawnIntervalMultiplier()
+        {
+            var player = GameObject.Find("Player");
+            var health = player != null ? player.GetComponent<Player.PlayerHealth>() : null;
+            if (health == null || health.MaxHealth <= 0f)
+            {
+                return 1f;
+            }
+
+            float healthPct = health.CurrentHealth / health.MaxHealth;
+            if (healthPct < 0.25f) return 1.35f;
+            if (healthPct < 0.4f) return 1.2f;
+            if (healthPct < 0.6f) return 1.1f;
             return 1f;
         }
 
@@ -416,13 +465,13 @@ namespace Deadlight.Core
                 return SpawnType.Tank;
             }
 
-            if (night >= 4 && roll < 0.10f)
+            if (night >= 4 && roll < 0.06f)
                 return SpawnType.Tank;
-            if (night >= 3 && roll < 0.22f)
+            if (night >= 3 && roll < 0.14f)
                 return SpawnType.Spitter;
-            if (night >= 3 && roll < 0.35f)
+            if (night >= 3 && roll < 0.25f)
                 return SpawnType.Exploder;
-            if (night >= 2 && roll < 0.55f)
+            if (night >= 2 && roll < 0.45f)
                 return SpawnType.Runner;
 
             return SpawnType.Basic;
@@ -566,8 +615,14 @@ namespace Deadlight.Core
             Vector2 spawnDir = (behindPlayer + perpendicular * (lateralOffset / spawnDist)).normalized;
             Vector3 spawnPos = player.transform.position + (Vector3)(spawnDir * spawnDist);
             
-            spawnPos.x = Mathf.Clamp(spawnPos.x, -11f, 11f);
-            spawnPos.y = Mathf.Clamp(spawnPos.y, -11f, 11f);
+            float mapBound = 11f;
+            if (GameManager.Instance != null)
+            {
+                var cfg = MapConfig.GetConfigForType(GameManager.Instance.SelectedMap);
+                mapBound = Mathf.Min(cfg.perimeterHalfW, cfg.perimeterHalfH) - 1f;
+            }
+            spawnPos.x = Mathf.Clamp(spawnPos.x, -mapBound, mapBound);
+            spawnPos.y = Mathf.Clamp(spawnPos.y, -mapBound, mapBound);
             
             return spawnPos;
         }
@@ -662,7 +717,7 @@ namespace Deadlight.Core
                 return;
             }
 
-            int burstCount = Mathf.Clamp(2 + (GameManager.Instance.CurrentNight / 2), 2, 6);
+            int burstCount = Mathf.Clamp(1 + (GameManager.Instance.CurrentNight / 2), 1, 4);
             for (int i = 0; i < burstCount; i++)
             {
                 SpawnEnemy();

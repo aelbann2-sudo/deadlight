@@ -30,6 +30,13 @@ namespace Deadlight.Core
         Hard
     }
 
+    public enum MapType
+    {
+        TownCenter,
+        Industrial,
+        Suburban
+    }
+
     public class GameManager : MonoBehaviour
     {
         public static GameManager Instance { get; private set; }
@@ -42,26 +49,30 @@ namespace Deadlight.Core
         [Header("Current State")]
         [SerializeField] private GameState currentState = GameState.MainMenu;
         [SerializeField] private Difficulty currentDifficulty = Difficulty.Normal;
+        [SerializeField] private MapType selectedMap = MapType.TownCenter;
         [SerializeField] private int currentNight = 1;
         [SerializeField] private int maxNights = 5;
         [SerializeField] private bool isPaused;
 
         [Header("Runtime Fallback")]
         [SerializeField] private bool autoBootstrapGameScene = true;
-        [SerializeField] private bool autoStartWhenGameSceneLoads = true;
+        [SerializeField] private bool autoStartWhenGameSceneLoads = false;
         [SerializeField] private float dawnAutoAdvanceDelay = 2f;
-        [SerializeField] private float[] dayDurationsByNight = { 15f, 12f, 10f, 8f, 8f };
-        [SerializeField] private float targetNightDuration = 45f;
+        [SerializeField] private float[] dayDurationsByNight = { 70f, 60f, 55f, 50f, 45f };
+        [SerializeField] private float targetNightDuration = 120f;
 
         public GameState CurrentState => currentState;
         public Difficulty CurrentDifficulty => currentDifficulty;
+        public MapType SelectedMap => selectedMap;
         public int CurrentNight => currentNight;
         public int MaxNights => maxNights;
         public DifficultySettings CurrentSettings => GetDifficultySettings();
         public bool IsPaused => isPaused;
+        public float RunStartTime { get; private set; }
 
         public event Action<GameState> OnGameStateChanged;
         public event Action<int> OnNightChanged;
+        public event Action<bool> OnPauseChanged;
 
         private GameObject runtimeBulletPrefab;
         private Material runtimeSpriteMaterial;
@@ -171,7 +182,8 @@ namespace Deadlight.Core
                 EnsureCameraTargetsPlayer(player);
             }
 
-            if (autoStartWhenGameSceneLoads && currentState == GameState.MainMenu)
+            var intro = FindObjectOfType<IntroSequence>();
+            if (autoStartWhenGameSceneLoads && currentState == GameState.MainMenu && intro == null)
             {
                 StartNewGame();
             }
@@ -195,12 +207,18 @@ namespace Deadlight.Core
             currentDifficulty = difficulty;
         }
 
+        public void SetMap(MapType map)
+        {
+            selectedMap = map;
+        }
+
         public void StartNewGame()
         {
             EnsureDifficultySettings();
             EnsureCoreManagers();
 
             currentNight = 1;
+            RunStartTime = Time.realtimeSinceStartup;
             ResetRunState();
 
             var player = EnsurePlayerExists();
@@ -355,6 +373,8 @@ namespace Deadlight.Core
             {
                 dayNight.SetPaused(isPaused);
             }
+
+            OnPauseChanged?.Invoke(isPaused);
         }
 
         private void EnsureDifficultySettings()
@@ -415,6 +435,31 @@ namespace Deadlight.Core
             if (FindObjectOfType<CosmeticUnlockSystem>() == null)
             {
                 new GameObject("CosmeticUnlockSystem").AddComponent<CosmeticUnlockSystem>();
+            }
+
+            if (FindObjectOfType<AudioManager>() == null)
+            {
+                new GameObject("AudioManager").AddComponent<AudioManager>();
+            }
+
+            if (FindObjectOfType<EndingSequence>() == null)
+            {
+                new GameObject("EndingSequence").AddComponent<EndingSequence>();
+            }
+
+            if (FindObjectOfType<StoryEventManager>() == null)
+            {
+                new GameObject("StoryEventManager").AddComponent<StoryEventManager>();
+            }
+
+            if (FindObjectOfType<RadioTransmissions>() == null)
+            {
+                new GameObject("RadioTransmissions").AddComponent<RadioTransmissions>();
+            }
+
+            if (FindObjectOfType<LeaderboardManager>() == null)
+            {
+                new GameObject("LeaderboardManager").AddComponent<LeaderboardManager>();
             }
         }
 

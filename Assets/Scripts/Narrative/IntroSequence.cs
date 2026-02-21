@@ -22,6 +22,10 @@ namespace Deadlight.Narrative
         private bool skipRequested;
         private float escapeHeldTime;
 
+        private AudioSource introAudioSource;
+        private AudioClip typeClickClip;
+        private AudioClip staticClip;
+
         private static readonly IntroLine[] introLines =
         {
             new IntroLine("", 2f),
@@ -54,6 +58,30 @@ namespace Deadlight.Narrative
         {
             LoadFont();
             BuildCanvas();
+            InitAudio();
+        }
+
+        private void InitAudio()
+        {
+            introAudioSource = gameObject.AddComponent<AudioSource>();
+            introAudioSource.playOnAwake = false;
+            introAudioSource.volume = 0.3f;
+
+            try
+            {
+                typeClickClip = Audio.ProceduralAudioGenerator.GenerateEmptyClick();
+                staticClip = Audio.ProceduralAudioGenerator.GenerateAmbientWind();
+            }
+            catch (System.Exception) { }
+
+            if (staticClip != null)
+            {
+                var ambientSrc = gameObject.AddComponent<AudioSource>();
+                ambientSrc.clip = staticClip;
+                ambientSrc.loop = true;
+                ambientSrc.volume = 0.15f;
+                ambientSrc.Play();
+            }
         }
 
         private void Start()
@@ -176,6 +204,7 @@ namespace Deadlight.Narrative
                 if (i == 5)
                 {
                     TriggerScreenShake();
+                    PlayExplosionSound();
                 }
 
                 if (string.IsNullOrEmpty(line.text))
@@ -204,10 +233,22 @@ namespace Deadlight.Narrative
             narrativeText.text = "";
             narrativeText.color = new Color(0.3f, 1f, 0.3f, 1f);
 
+            int clickCounter = 0;
             for (int i = 0; i <= fullText.Length; i++)
             {
                 if (skipRequested) break;
                 narrativeText.text = fullText.Substring(0, i);
+
+                if (typeClickClip != null && introAudioSource != null && i < fullText.Length && fullText[Mathf.Min(i, fullText.Length - 1)] != ' ')
+                {
+                    clickCounter++;
+                    if (clickCounter % 3 == 0)
+                    {
+                        introAudioSource.pitch = Random.Range(0.85f, 1.15f);
+                        introAudioSource.PlayOneShot(typeClickClip, 0.15f);
+                    }
+                }
+
                 yield return new WaitForSecondsRealtime(charRevealInterval);
             }
 
@@ -269,6 +310,19 @@ namespace Deadlight.Narrative
             }
         }
 
+        private void PlayExplosionSound()
+        {
+            try
+            {
+                var clip = Audio.ProceduralAudioGenerator.GenerateExplosion();
+                if (clip != null && introAudioSource != null)
+                {
+                    introAudioSource.PlayOneShot(clip, 0.8f);
+                }
+            }
+            catch (System.Exception) { }
+        }
+
         private void FinishIntro()
         {
             isPlaying = false;
@@ -280,17 +334,13 @@ namespace Deadlight.Narrative
 
             if (GameManager.Instance != null)
             {
-                if (GameManager.Instance.CurrentState == GameState.MainMenu)
-                {
-                    GameManager.Instance.StartNewGame();
-                }
-                else
+                if (GameManager.Instance.CurrentState != GameState.MainMenu)
                 {
                     GameManager.Instance.ChangeState(GameState.DayPhase);
                 }
             }
 
-            Debug.Log("[IntroSequence] Intro complete.");
+            Debug.Log("[IntroSequence] Intro complete, showing main menu.");
         }
     }
 }

@@ -12,6 +12,7 @@ namespace Deadlight.Narrative
         private bool lowHealthTriggered;
         private int killCount;
         private float lowHealthCooldown;
+        private int nightsSurvived;
 
         void Awake()
         {
@@ -49,8 +50,21 @@ namespace Deadlight.Narrative
 
             if (state == GameState.DayPhase)
             {
+                nightsSurvived++;
                 if (NightMutation.Instance != null)
                     NightMutation.Instance.ClearMutation();
+
+                if (nightsSurvived > 0 && RadioTransmissions.Instance != null)
+                {
+                    string[] survivalMessages = {
+                        "You made it through another night. Don't let your guard down.",
+                        "Dawn breaks... but the next night will be worse.",
+                        "Another sunrise. Use the daylight wisely, survivor.",
+                        "The infected retreat at dawn. Scavenge while you can."
+                    };
+                    int idx = Mathf.Min(nightsSurvived - 1, survivalMessages.Length - 1);
+                    RadioTransmissions.Instance.ShowMessage(survivalMessages[idx], 4f);
+                }
             }
 
             if (state == GameState.GameOver)

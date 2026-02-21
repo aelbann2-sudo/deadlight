@@ -34,6 +34,12 @@ namespace Deadlight.Player
             startPosition = transform.position;
             rb.linearVelocity = transform.up * speed;
 
+            if (hitSound == null)
+            {
+                try { hitSound = Audio.ProceduralAudioGenerator.GenerateZombieHitReact(); }
+                catch (System.Exception) { }
+            }
+
             Destroy(gameObject, lifetime);
         }
 

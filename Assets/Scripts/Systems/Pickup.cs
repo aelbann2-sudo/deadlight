@@ -45,6 +45,12 @@ namespace Deadlight.Systems
             startPosition = transform.position;
             bobOffset = Random.value * Mathf.PI * 2f;
 
+            if (pickupSound == null)
+            {
+                try { pickupSound = Deadlight.Audio.ProceduralAudioGenerator.GeneratePickup(); }
+                catch (System.Exception) { }
+            }
+
             if (hasLifetime && lifetime > 0)
             {
                 Destroy(gameObject, lifetime);

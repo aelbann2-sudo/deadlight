@@ -52,6 +52,14 @@ namespace Deadlight.Narrative
         private void Start()
         {
             LoadDialoguesFromResources();
+
+            if (allDialogues.Count == 0)
+            {
+                var defaults = DefaultDialogues.CreateDefaultDialogues();
+                allDialogues.AddRange(defaults);
+                Debug.Log($"[NarrativeManager] Loaded {defaults.Count} default dialogues");
+            }
+
             SubscribeToGameEvents();
         }
 
@@ -91,6 +99,8 @@ namespace Deadlight.Narrative
             }
         }
 
+        private bool hasTriggeredGameStart = false;
+
         private void HandleGameStateChanged(Core.GameState newState)
         {
             if (!autoPlayNightDialogues) return;
@@ -100,6 +110,11 @@ namespace Deadlight.Narrative
             switch (newState)
             {
                 case Core.GameState.DayPhase:
+                    if (!hasTriggeredGameStart)
+                    {
+                        hasTriggeredGameStart = true;
+                        TriggerDialogue(DialogueTriggerType.GameStart, 1);
+                    }
                     TriggerDialogue(DialogueTriggerType.NightEnd, currentNight - 1);
                     break;
                 case Core.GameState.NightPhase:
@@ -185,7 +200,9 @@ namespace Deadlight.Narrative
                 yield return new WaitForSeconds(0.3f);
             }
 
-            if (dialogueUI != null)
+            bool hasDialogueUI = dialogueUI != null;
+
+            if (hasDialogueUI)
             {
                 dialogueUI.ShowDialogue(dialogue);
             }
@@ -194,9 +211,16 @@ namespace Deadlight.Narrative
             {
                 OnLineDisplayed?.Invoke(line);
 
-                if (dialogueUI != null)
+                if (hasDialogueUI)
                 {
                     dialogueUI.DisplayLine(line);
+                }
+                else if (Core.RadioTransmissions.Instance != null)
+                {
+                    string displayText = !string.IsNullOrEmpty(dialogue.SpeakerName)
+                        ? $"{dialogue.SpeakerName}: {line.text}"
+                        : line.text;
+                    Core.RadioTransmissions.Instance.ShowMessage(displayText, line.displayDuration);
                 }
 
                 if (line.voiceClip != null)
@@ -206,7 +230,7 @@ namespace Deadlight.Narrative
 
                 if (line.autoAdvance)
                 {
-                    yield return new WaitForSeconds(line.displayDuration);
+                    yield return new WaitForSeconds(line.displayDuration + 0.5f);
                 }
                 else
                 {
@@ -218,7 +242,7 @@ namespace Deadlight.Narrative
                 }
             }
 
-            if (dialogueUI != null)
+            if (hasDialogueUI)
             {
                 dialogueUI.HideDialogue();
             }

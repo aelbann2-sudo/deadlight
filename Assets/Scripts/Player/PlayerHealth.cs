@@ -53,6 +53,7 @@ namespace Deadlight.Player
 
         private void Start()
         {
+            GenerateProceduralSounds();
             ApplyDifficultyModifiers();
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
         }
@@ -63,6 +64,12 @@ namespace Deadlight.Player
             {
                 var settings = GameManager.Instance.CurrentSettings;
                 maxHealth *= settings.playerHealthMultiplier;
+                currentHealth = maxHealth;
+            }
+
+            if (PlayerUpgrades.Instance != null && PlayerUpgrades.Instance.BonusHealth > 0)
+            {
+                maxHealth += PlayerUpgrades.Instance.BonusHealth;
                 currentHealth = maxHealth;
             }
         }
@@ -187,6 +194,18 @@ namespace Deadlight.Player
             }
 
             isInvincible = false;
+        }
+
+        private void GenerateProceduralSounds()
+        {
+            try
+            {
+                if (hurtSound == null)
+                    hurtSound = Deadlight.Audio.ProceduralAudioGenerator.GenerateZombieHitReact();
+                if (deathSound == null)
+                    deathSound = Deadlight.Audio.ProceduralAudioGenerator.GenerateExplosion();
+            }
+            catch (System.Exception) { }
         }
 
         private void PlaySound(AudioClip clip)

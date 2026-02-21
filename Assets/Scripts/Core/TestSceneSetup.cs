@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using Deadlight.Audio;
+using Deadlight.Data;
 using Deadlight.Level;
 using Deadlight.Narrative;
 using Deadlight.Visuals;
@@ -22,6 +23,7 @@ namespace Deadlight.Core
         private Sprite[] npcSprites;
         private Sprite[] objectSprites;
         private Sprite[] tileSprites;
+        private MapConfig activeMapConfig;
         
 #if UNITY_EDITOR
         [MenuItem("Deadlight/Create Test Scene and Play")]
@@ -70,6 +72,11 @@ namespace Deadlight.Core
         [ContextMenu("Setup Test Scene")]
         public void SetupTestScene()
         {
+            MapType selectedMap = GameManager.Instance != null
+                ? GameManager.Instance.SelectedMap
+                : MapType.TownCenter;
+            activeMapConfig = MapConfig.GetConfigForType(selectedMap);
+
             LoadAllSprites();
             CreateCamera();
             CreateGround();
@@ -122,16 +129,21 @@ namespace Deadlight.Core
         private void CreateGround()
         {
             var groundParent = new GameObject("Ground");
-            
+            int hw = activeMapConfig != null ? activeMapConfig.halfWidth : 13;
+            int hh = activeMapConfig != null ? activeMapConfig.halfHeight : 13;
+            float pw = activeMapConfig != null ? activeMapConfig.pathWidth : 2f;
+            bool diag = activeMapConfig != null ? activeMapConfig.hasDiagonalConcrete : true;
+            Color tint = activeMapConfig != null ? activeMapConfig.groundTint : Color.white;
+
             if (useProceduralSprites)
             {
                 var grassSprite = ProceduralSpriteGenerator.CreateGroundTile(0);
                 var pathSprite = ProceduralSpriteGenerator.CreateGroundTile(1);
                 var concreteSprite = ProceduralSpriteGenerator.CreateGroundTile(2);
                 
-                for (int x = -13; x <= 13; x++)
+                for (int x = -hw; x <= hw; x++)
                 {
-                    for (int y = -13; y <= 13; y++)
+                    for (int y = -hh; y <= hh; y++)
                     {
                         var tile = new GameObject($"T_{x}_{y}");
                         tile.transform.SetParent(groundParent.transform);
@@ -140,8 +152,8 @@ namespace Deadlight.Core
                         var sr = tile.AddComponent<SpriteRenderer>();
                         sr.sortingOrder = -200;
 
-                        bool isPath = (Mathf.Abs(x) < 2) || (Mathf.Abs(y) < 2);
-                        bool isConcrete = (Mathf.Abs(x - y) < 3 && Mathf.Abs(x) < 8);
+                        bool isPath = (Mathf.Abs(x) < pw) || (Mathf.Abs(y) < pw);
+                        bool isConcrete = diag && (Mathf.Abs(x - y) < 3 && Mathf.Abs(x) < 8);
                         
                         if (isPath)
                         {
@@ -157,7 +169,7 @@ namespace Deadlight.Core
                         }
                         
                         float shade = Random.Range(0.9f, 1.05f);
-                        sr.color = new Color(shade, shade, shade);
+                        sr.color = new Color(tint.r * shade, tint.g * shade, tint.b * shade);
                     }
                 }
             }
@@ -236,6 +248,7 @@ namespace Deadlight.Core
             playerObj.AddComponent<Player.PlayerController>();
             playerObj.AddComponent<Player.PlayerShooting>();
             playerObj.AddComponent<Player.PlayerHealth>();
+            playerObj.AddComponent<Player.PlayerUpgrades>();
             playerObj.AddComponent<AudioSource>();
             
             var animator = playerObj.AddComponent<PlayerAnimator>();
@@ -373,6 +386,10 @@ namespace Deadlight.Core
                 rtObj.transform.SetParent(managersParent);
                 rtObj.AddComponent<RadioTransmissions>();
 
+                var amObj = new GameObject("AudioManager");
+                amObj.transform.SetParent(managersParent);
+                amObj.AddComponent<AudioManager>();
+
                 var vfxObj = new GameObject("VFXManager");
                 vfxObj.transform.SetParent(managersParent);
                 vfxObj.AddComponent<VFXManager>();
@@ -477,11 +494,13 @@ namespace Deadlight.Core
             loreParent.transform.SetParent(parent);
 
             string[] loreIds = { "lab_note_1", "chen_1", "chen_2", "journal_1", "military_1", "chen_3" };
-            Vector3[] positions = {
-                new Vector3(-5, 9, 0), new Vector3(7, 9, 0),
-                new Vector3(-9, -3, 0), new Vector3(9, -3, 0),
-                new Vector3(-3, -9, 0), new Vector3(3, -9, 0)
-            };
+            Vector3[] positions = activeMapConfig != null && activeMapConfig.lorePositions != null
+                ? activeMapConfig.lorePositions
+                : new[] {
+                    new Vector3(-5, 9, 0), new Vector3(7, 9, 0),
+                    new Vector3(-9, -3, 0), new Vector3(9, -3, 0),
+                    new Vector3(-3, -9, 0), new Vector3(3, -9, 0)
+                };
 
             int count = Mathf.Min(loreIds.Length, positions.Length);
             for (int i = 0; i < count; i++)
@@ -697,7 +716,8 @@ namespace Deadlight.Core
             var perimeter = new GameObject("Perimeter");
             perimeter.transform.SetParent(parent);
             
-            float halfW = 12f, halfH = 12f;
+            float halfW = activeMapConfig != null ? activeMapConfig.perimeterHalfW : 12f;
+            float halfH = activeMapConfig != null ? activeMapConfig.perimeterHalfH : 12f;
             float thickness = 1.5f;
 
             CreateWall(perimeter.transform, new Vector3(0, halfH, 0), new Vector2(halfW * 2, thickness));
@@ -728,11 +748,13 @@ namespace Deadlight.Core
             
             string[] npcVariants = { "TopDown_NPC_0", "TopDown_NPC_1", "TopDown_NPC_2", "TopDown_NPC_3" };
 
-            Vector3[] positions = {
-                new Vector3(8, 6, 0),
-                new Vector3(-8, 6, 0),
-                new Vector3(9, -6, 0),
-            };
+            Vector3[] positions = activeMapConfig != null && activeMapConfig.enemySpawnPositions != null
+                ? activeMapConfig.enemySpawnPositions
+                : new[] {
+                    new Vector3(8, 6, 0),
+                    new Vector3(-8, 6, 0),
+                    new Vector3(9, -6, 0),
+                };
 
             for (int i = 0; i < positions.Length; i++)
             {
@@ -920,19 +942,35 @@ namespace Deadlight.Core
                 new Color(0.8f, 0.8f, 0.8f, 0.7f),
                 new Vector2(0, 0), new Vector2(0, 0), new Vector2(20, 50), new Vector2(300, 20));
 
-            // Radio transmission panel (centered, large, prominent)
+            // Radio transmission panel - upper-center, highly visible
             var radioPanel = CreateUIPanel(canvas.transform, "RadioPanel",
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-                new Vector2(0, 80), new Vector2(800, 100));
+                new Vector2(0, 120), new Vector2(900, 120));
             var radioBg = radioPanel.AddComponent<Image>();
-            radioBg.color = Color.clear;
-            
+            radioBg.color = new Color(0, 0, 0, 0.85f);
+
+            var radioBorder = new GameObject("RadioBorder");
+            radioBorder.transform.SetParent(radioPanel.transform, false);
+            var borderRect = radioBorder.AddComponent<RectTransform>();
+            borderRect.anchorMin = Vector2.zero;
+            borderRect.anchorMax = Vector2.one;
+            borderRect.offsetMin = new Vector2(-2, -2);
+            borderRect.offsetMax = new Vector2(2, 2);
+            var borderImg = radioBorder.AddComponent<Image>();
+            borderImg.color = new Color(0.2f, 0.8f, 0.2f, 0.6f);
+            radioBorder.transform.SetAsFirstSibling();
+
+            var radioLabel = CreateUIText(radioPanel.transform, "RadioLabel",
+                new Vector2(0.5f, 1f), "[RADIO TRANSMISSION]", font, 14, TextAnchor.UpperCenter,
+                new Color(0.5f, 1f, 0.5f, 0.7f),
+                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -5), new Vector2(300, 18));
+
             var radioText = CreateUIText(radioPanel.transform, "RadioText",
-                new Vector2(0.5f, 0.5f), "", font, 28, TextAnchor.MiddleCenter, new Color(0.3f, 1f, 0.3f),
+                new Vector2(0.5f, 0.5f), "", font, 24, TextAnchor.MiddleCenter, new Color(0.3f, 1f, 0.3f),
                 new Vector2(0, 0), new Vector2(1, 1), new Vector2(0, 0), new Vector2(0, 0));
-            radioText.GetComponent<RectTransform>().offsetMin = new Vector2(20, 10);
-            radioText.GetComponent<RectTransform>().offsetMax = new Vector2(-20, -10);
-            radioText.GetComponent<Text>().fontStyle = FontStyle.Bold;
+            radioText.GetComponent<RectTransform>().offsetMin = new Vector2(30, 15);
+            radioText.GetComponent<RectTransform>().offsetMax = new Vector2(-30, -20);
+            radioText.GetComponent<Text>().fontStyle = FontStyle.BoldAndItalic;
             var radioOutline = radioText.AddComponent<Outline>();
             radioOutline.effectColor = Color.black;
             radioOutline.effectDistance = new Vector2(2, -2);
@@ -980,6 +1018,48 @@ namespace Deadlight.Core
             fadeRect.offsetMin = Vector2.zero;
             fadeRect.offsetMax = Vector2.zero;
             fadeOverlay.GetComponent<Image>().raycastTarget = false;
+
+            // Objective HUD (upper-left)
+            var objPanel = CreateUIPanel(canvas.transform, "ObjectivePanel",
+                new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1),
+                new Vector2(10, -70), new Vector2(380, 65));
+            var objPanelBg = objPanel.AddComponent<Image>();
+            objPanelBg.color = new Color(0, 0, 0, 0.55f);
+            objPanel.SetActive(false);
+
+            var objTitleText = CreateUIText(objPanel.transform, "ObjTitle",
+                new Vector2(0.5f, 0.7f), "OBJECTIVE", font, 14, TextAnchor.MiddleCenter,
+                new Color(0.4f, 0.85f, 1f, 0.8f),
+                new Vector2(0, 0.5f), new Vector2(1, 1), new Vector2(5, 0), new Vector2(0, 0));
+            var objTitleRect = objTitleText.GetComponent<RectTransform>();
+            objTitleRect.offsetMin = new Vector2(5, 35);
+            objTitleRect.offsetMax = new Vector2(-5, 0);
+
+            var objDescText = CreateUIText(objPanel.transform, "ObjDesc",
+                new Vector2(0.5f, 0.3f), "", font, 16, TextAnchor.MiddleLeft,
+                Color.white,
+                new Vector2(0, 0), new Vector2(1, 0.55f), Vector2.zero, Vector2.zero);
+            var objDescRect = objDescText.GetComponent<RectTransform>();
+            objDescRect.offsetMin = new Vector2(10, 5);
+            objDescRect.offsetMax = new Vector2(-80, -2);
+            objDescText.GetComponent<Text>().fontStyle = FontStyle.Bold;
+
+            var objProgressText = CreateUIText(objPanel.transform, "ObjProgress",
+                new Vector2(1, 0.3f), "", font, 18, TextAnchor.MiddleRight,
+                new Color(0.4f, 1f, 0.4f),
+                new Vector2(0.75f, 0), new Vector2(1, 0.55f), Vector2.zero, Vector2.zero);
+            var objProgressRect = objProgressText.GetComponent<RectTransform>();
+            objProgressRect.offsetMin = new Vector2(0, 5);
+            objProgressRect.offsetMax = new Vector2(-10, -2);
+
+            canvas.gameObject.AddComponent<Deadlight.UI.ObjectiveMarker>();
+
+            var objHud = canvas.AddComponent<Deadlight.UI.ObjectiveHUD>();
+            objHud.Initialize(
+                objPanel,
+                objDescText.GetComponent<Text>(),
+                objProgressText.GetComponent<Text>()
+            );
 
             // Hook up LiveHUD
             var hudComp = canvas.AddComponent<Deadlight.UI.LiveHUD>();

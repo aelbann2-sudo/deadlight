@@ -35,6 +35,11 @@ namespace Deadlight.Player
         private float lastDodgeTime = -999f;
         private Vector2 dodgeDirection;
 
+        private AudioSource footstepSource;
+        private AudioClip[] footstepClips;
+        private float footstepTimer;
+        private float footstepInterval = 0.35f;
+
         public float MoveSpeed => moveSpeed;
         public float CurrentStamina => currentStamina;
         public float MaxStamina => maxStamina;
@@ -62,7 +67,24 @@ namespace Deadlight.Player
                 mainCamera = Camera.main;
             }
 
+            InitFootstepAudio();
             ApplyDifficultyModifiers();
+        }
+
+        private void InitFootstepAudio()
+        {
+            footstepSource = gameObject.AddComponent<AudioSource>();
+            footstepSource.playOnAwake = false;
+            footstepSource.volume = 0.25f;
+            footstepSource.spatialBlend = 0f;
+
+            try
+            {
+                footstepClips = new AudioClip[4];
+                for (int i = 0; i < 4; i++)
+                    footstepClips[i] = Audio.ProceduralAudioGenerator.GenerateFootstep(i);
+            }
+            catch (System.Exception) { footstepClips = null; }
         }
 
         private void ApplyDifficultyModifiers()
@@ -80,6 +102,30 @@ namespace Deadlight.Player
             HandleInput();
             HandleAiming();
             HandleStamina();
+            HandleFootsteps();
+        }
+
+        private void HandleFootsteps()
+        {
+            if (footstepClips == null || footstepSource == null) return;
+            if (moveInput.magnitude < 0.1f || isDodging)
+            {
+                footstepTimer = 0f;
+                return;
+            }
+
+            float interval = isSprinting ? footstepInterval * 0.6f : footstepInterval;
+            footstepTimer += Time.deltaTime;
+            if (footstepTimer >= interval)
+            {
+                footstepTimer = 0f;
+                var clip = footstepClips[Random.Range(0, footstepClips.Length)];
+                if (clip != null)
+                {
+                    footstepSource.pitch = Random.Range(0.9f, 1.1f);
+                    footstepSource.PlayOneShot(clip, isSprinting ? 0.35f : 0.2f);
+                }
+            }
         }
 
         private void FixedUpdate()
@@ -158,7 +204,10 @@ namespace Deadlight.Player
 
             if (IsSprinting)
             {
-                currentSpeed *= sprintMultiplier;
+                float effectiveSprintMult = sprintMultiplier;
+                if (PlayerUpgrades.Instance != null)
+                    effectiveSprintMult += PlayerUpgrades.Instance.SprintBonus;
+                currentSpeed *= effectiveSprintMult;
             }
 
             rb.linearVelocity = moveInput * currentSpeed;

@@ -1,4 +1,5 @@
 using UnityEngine;
+using Deadlight.Audio;
 using Deadlight.Core;
 using Deadlight.Systems;
 using Deadlight.Visuals;
@@ -61,7 +62,23 @@ namespace Deadlight.Enemy
                 originalColor = spriteRenderer.color;
             }
 
+            GenerateProceduralSounds();
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
+        }
+
+        private void GenerateProceduralSounds()
+        {
+            try
+            {
+                if (hurtSound == null)
+                    hurtSound = ProceduralAudioGenerator.GenerateZombieHitReact();
+                if (deathSound == null)
+                    deathSound = ProceduralAudioGenerator.GenerateZombieDeath();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[EnemyHealth] Failed to generate procedural sounds: {e.Message}");
+            }
         }
 
         public void ApplyHealthMultiplier(float multiplier)
