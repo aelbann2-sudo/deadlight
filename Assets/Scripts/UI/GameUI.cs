@@ -120,7 +120,8 @@ namespace Deadlight.UI
         private void StartGame(Difficulty difficulty)
         {
             GameManager.Instance?.SetDifficulty(difficulty);
-            GameManager.Instance?.LoadGameScene();
+            _mainMenuPanel?.SetActive(false);
+            Time.timeScale = 1f;
             GameManager.Instance?.StartNewGame();
         }
 
