@@ -102,7 +102,7 @@ namespace Deadlight.UI
             var title = CreateText(_mainMenuPanel.transform, "Title",
                 "DEADLIGHT: Survival After Dark", 42, TextAnchor.MiddleCenter, Color.white,
                 new Vector2(0.5f, 0.85f), new Vector2(0.5f, 0.85f), Vector2.zero, new Vector2(900, 80));
-            title.fontStyle = FontStyle.Bold;
+            title.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
             CreateButton(_mainMenuPanel.transform, "EasyButton", "Easy", new Color(0.2f, 0.8f, 0.2f),
                 new Vector2(0.5f, 0.55f), new Vector2(250, 50), () => StartGame(Difficulty.Easy));
@@ -301,7 +301,7 @@ namespace Deadlight.UI
             var title = CreateText(_gameOverPanel.transform, "Title",
                 "YOU DIED", 56, TextAnchor.MiddleCenter, new Color(0.9f, 0.15f, 0.15f),
                 new Vector2(0.5f, 0.75f), new Vector2(0.5f, 0.75f), Vector2.zero, new Vector2(500, 80));
-            title.fontStyle = FontStyle.Bold;
+            title.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
             var statsText = CreateText(_gameOverPanel.transform, "Stats", "", 22, TextAnchor.UpperCenter, Color.white,
                 new Vector2(0.5f, 0.55f), new Vector2(0.5f, 0.55f), Vector2.zero, new Vector2(500, 200));
@@ -325,7 +325,7 @@ namespace Deadlight.UI
             var title = CreateText(_victoryPanel.transform, "Title",
                 "YOU SURVIVED!", 56, TextAnchor.MiddleCenter, new Color(0.9f, 0.75f, 0.2f),
                 new Vector2(0.5f, 0.75f), new Vector2(0.5f, 0.75f), Vector2.zero, new Vector2(500, 80));
-            title.fontStyle = FontStyle.Bold;
+            title.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
             var statsText = CreateText(_victoryPanel.transform, "Stats", "", 22, TextAnchor.UpperCenter, Color.white,
                 new Vector2(0.5f, 0.55f), new Vector2(0.5f, 0.55f), Vector2.zero, new Vector2(500, 200));
