@@ -74,12 +74,26 @@ namespace Deadlight.Core
             camObj.transform.position = new Vector3(0, 0, -10);
         }
 
+        private void TrySetTag(GameObject obj, string tagName)
+        {
+            try
+            {
+                obj.tag = tagName;
+            }
+            catch (UnityException)
+            {
+                Debug.LogWarning($"[TestSceneSetup] Tag '{tagName}' not defined. Add it in Edit > Project Settings > Tags and Layers");
+            }
+        }
+
         private void CreatePlayer()
         {
-            if (GameObject.FindGameObjectWithTag("Player") != null) return;
+            GameObject existingPlayer = null;
+            try { existingPlayer = GameObject.FindGameObjectWithTag("Player"); } catch { }
+            if (existingPlayer != null) return;
             
             var playerObj = new GameObject("Player");
-            playerObj.tag = "Player";
+            TrySetTag(playerObj, "Player");
             playerObj.transform.position = Vector3.zero;
 
             var sr = playerObj.AddComponent<SpriteRenderer>();
@@ -251,7 +265,7 @@ namespace Deadlight.Core
         private void CreateTestEnemy()
         {
             var enemyObj = new GameObject("TestZombie");
-            enemyObj.tag = "Enemy";
+            TrySetTag(enemyObj, "Enemy");
             enemyObj.transform.position = new Vector3(5, 3, 0);
 
             var sr = enemyObj.AddComponent<SpriteRenderer>();
