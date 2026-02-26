@@ -77,7 +77,9 @@ namespace Deadlight.Core
         private GameObject runtimeBulletPrefab;
         private Material runtimeSpriteMaterial;
         private Coroutine dawnAdvanceCoroutine;
+        private Coroutine deferredRestartCoroutine;
         private bool isBootstrappingScene;
+        private bool startNewRunAfterGameSceneLoad;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void EnsureRuntimeGameManager()
@@ -159,7 +161,32 @@ namespace Deadlight.Core
             if (scene.name == "Game")
             {
                 StartCoroutine(BootstrapGameSceneNextFrame());
+
+                if (startNewRunAfterGameSceneLoad)
+                {
+                    if (deferredRestartCoroutine != null)
+                    {
+                        StopCoroutine(deferredRestartCoroutine);
+                    }
+
+                    deferredRestartCoroutine = StartCoroutine(StartRunAfterSceneLoad());
+                }
             }
+        }
+
+        private IEnumerator StartRunAfterSceneLoad()
+        {
+            while (isBootstrappingScene)
+            {
+                yield return null;
+            }
+
+            // Give newly loaded scene objects one frame to initialize.
+            yield return null;
+
+            startNewRunAfterGameSceneLoad = false;
+            deferredRestartCoroutine = null;
+            StartNewGame();
         }
 
         private IEnumerator BootstrapGameSceneNextFrame()
@@ -216,6 +243,13 @@ namespace Deadlight.Core
         {
             EnsureDifficultySettings();
             EnsureCoreManagers();
+
+            startNewRunAfterGameSceneLoad = false;
+            if (deferredRestartCoroutine != null)
+            {
+                StopCoroutine(deferredRestartCoroutine);
+                deferredRestartCoroutine = null;
+            }
 
             currentNight = 1;
             RunStartTime = Time.realtimeSinceStartup;
@@ -330,6 +364,14 @@ namespace Deadlight.Core
         public void ReturnToMainMenu()
         {
             currentNight = 1;
+            startNewRunAfterGameSceneLoad = false;
+
+            if (deferredRestartCoroutine != null)
+            {
+                StopCoroutine(deferredRestartCoroutine);
+                deferredRestartCoroutine = null;
+            }
+
             SetPaused(false);
             currentState = GameState.MainMenu;
             SceneManager.LoadScene("MainMenu");
@@ -338,6 +380,7 @@ namespace Deadlight.Core
         public void RestartGame()
         {
             currentNight = 1;
+            startNewRunAfterGameSceneLoad = true;
             SetPaused(false);
             currentState = GameState.MainMenu;
             SceneManager.LoadScene("Game");
@@ -407,9 +450,24 @@ namespace Deadlight.Core
                 new GameObject("WaveManager").AddComponent<WaveManager>();
             }
 
+            if (FindObjectOfType<GameFlowController>() == null)
+            {
+                new GameObject("GameFlowController").AddComponent<GameFlowController>();
+            }
+
             if (FindObjectOfType<ResourceManager>() == null)
             {
                 new GameObject("ResourceManager").AddComponent<ResourceManager>();
+            }
+
+            if (FindObjectOfType<PickupSpawner>() == null)
+            {
+                new GameObject("PickupSpawner").AddComponent<PickupSpawner>();
+            }
+
+            if (FindObjectOfType<PowerupSystem>() == null)
+            {
+                new GameObject("PowerupSystem").AddComponent<PowerupSystem>();
             }
 
             if (FindObjectOfType<PointsSystem>() == null)
