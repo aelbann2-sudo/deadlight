@@ -34,10 +34,6 @@ namespace Deadlight.Core
         [SerializeField] private int maxDropsPerPhase = 2;
         [SerializeField] private float helicopterFirstDropDelay = 22f;
         [SerializeField] private float helicopterDropJitter = 8f;
-        [Header("Debug")]
-        [SerializeField] private bool enableDebugHelicopterHotkey = true;
-        [SerializeField] private KeyCode debugHelicopterHotkey = KeyCode.H;
-        [SerializeField] private bool debugDropIgnoresNightState = true;
         private int dropsThisPhase;
         private float nextHelicopterDropTime = float.PositiveInfinity;
 
@@ -80,7 +76,6 @@ namespace Deadlight.Core
         private void Update()
         {
             TrySpawnHelicopterDrop();
-            HandleDebugHelicopterHotkey();
         }
 
         private void OnDestroy()
@@ -349,10 +344,23 @@ namespace Deadlight.Core
             Vector3 playerPos = player.transform.position;
             float offsetX = UnityEngine.Random.Range(-5f, 5f);
             float offsetY = UnityEngine.Random.Range(-5f, 5f);
-            Vector3 dropPos = ClampDropPosition(playerPos + new Vector3(offsetX, offsetY, 0));
+            Vector3 dropPos = playerPos + new Vector3(offsetX, offsetY, 0);
+
+            if (GameManager.Instance != null)
+            {
+                var cfg = MapConfig.GetConfigForType(GameManager.Instance.SelectedMap);
+                float halfW = Mathf.Max(2f, cfg.perimeterHalfW - 1f);
+                float halfH = Mathf.Max(2f, cfg.perimeterHalfH - 1f);
+                dropPos.x = Mathf.Clamp(dropPos.x, -halfW, halfW);
+                dropPos.y = Mathf.Clamp(dropPos.y, -halfH, halfH);
+            }
 
             int night = GameManager.Instance.CurrentNight;
-            SpawnHelicopterDrop(dropPos, night, true);
+            CrateTier tier = RollCrateTier(night);
+
+            var heli = new GameObject("Helicopter");
+            var drop = heli.AddComponent<HelicopterDrop>();
+            drop.Initialize(dropPos, tier);
 
             dropsThisPhase++;
             if (dropsThisPhase < maxDropsPerPhase)
@@ -364,78 +372,8 @@ namespace Deadlight.Core
                 nextHelicopterDropTime = float.PositiveInfinity;
             }
 
-        }
-
-        private void HandleDebugHelicopterHotkey()
-        {
-            if (!enableDebugHelicopterHotkey || !Input.GetKeyDown(debugHelicopterHotkey))
-            {
-                return;
-            }
-
-            if (GameManager.Instance == null)
-            {
-                return;
-            }
-
-            if (!debugDropIgnoresNightState && GameManager.Instance.CurrentState != GameState.NightPhase)
-            {
-                OnStatusMessage?.Invoke("Debug drop only available during Night.");
-                return;
-            }
-
-            SpawnDebugHelicopterDrop();
-        }
-
-        private void SpawnDebugHelicopterDrop()
-        {
-            var player = GameObject.Find("Player");
-            if (player == null)
-            {
-                OnStatusMessage?.Invoke("Debug drop failed: no Player found.");
-                return;
-            }
-
-            int night = Mathf.Max(1, GameManager.Instance?.CurrentNight ?? 1);
-            Vector3 playerPos = player.transform.position;
-            Vector3 dropPos = ClampDropPosition(playerPos + new Vector3(
-                UnityEngine.Random.Range(-4f, 4f),
-                UnityEngine.Random.Range(-4f, 4f),
-                0f));
-
-            SpawnHelicopterDrop(dropPos, night, false);
-
             if (RadioTransmissions.Instance != null)
-            {
-                RadioTransmissions.Instance.ShowMessage($"[DEBUG] Forced drop ({debugHelicopterHotkey})", 2.5f);
-            }
-        }
-
-        private Vector3 ClampDropPosition(Vector3 dropPos)
-        {
-            if (GameManager.Instance != null)
-            {
-                var cfg = MapConfig.GetConfigForType(GameManager.Instance.SelectedMap);
-                float halfW = Mathf.Max(2f, cfg.perimeterHalfW - 1f);
-                float halfH = Mathf.Max(2f, cfg.perimeterHalfH - 1f);
-                dropPos.x = Mathf.Clamp(dropPos.x, -halfW, halfW);
-                dropPos.y = Mathf.Clamp(dropPos.y, -halfH, halfH);
-            }
-
-            return dropPos;
-        }
-
-        private void SpawnHelicopterDrop(Vector3 dropPos, int night, bool announce)
-        {
-            CrateTier tier = RollCrateTier(night);
-            var heli = new GameObject("Helicopter");
-            var drop = heli.AddComponent<HelicopterDrop>();
-            drop.Initialize(dropPos, tier);
-
-            if (announce && RadioTransmissions.Instance != null)
-            {
                 RadioTransmissions.Instance.ShowMessage("Supply drop incoming! Look for the helicopter!", 3f);
-            }
         }
 
         private void ScheduleNextHelicopterDrop(float baseTime)
