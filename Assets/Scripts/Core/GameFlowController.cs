@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Deadlight.Player;
 using Deadlight.Systems;
 using Deadlight.Level;
+using Deadlight.Data;
 
 namespace Deadlight.Core
 {
@@ -29,10 +30,12 @@ namespace Deadlight.Core
         private readonly List<GameObject> spawnedObjectiveObjects = new List<GameObject>();
         private bool nightWarningShown;
 
-        private float helicopterCooldown = 45f;
-        private float lastHelicopterTime;
-        private int maxDropsPerPhase = 2;
+        [SerializeField] private float helicopterCooldown = 45f;
+        [SerializeField] private int maxDropsPerPhase = 2;
+        [SerializeField] private float helicopterFirstDropDelay = 22f;
+        [SerializeField] private float helicopterDropJitter = 8f;
         private int dropsThisPhase;
+        private float nextHelicopterDropTime = float.PositiveInfinity;
 
         public event Action<float> OnDayTimerUpdate;
         public event Action<int> OnNightStarted;
@@ -246,6 +249,7 @@ namespace Deadlight.Core
             {
                 case GameState.DayPhase:
                     nightWarningShown = false;
+                    nextHelicopterDropTime = float.PositiveInfinity;
                     SpawnPickups();
                     SpawnSupplyCrates();
                     SpawnObjectiveInteractables();
@@ -254,18 +258,21 @@ namespace Deadlight.Core
                 case GameState.NightPhase:
                     CleanupDayObjects();
                     dropsThisPhase = 0;
-                    lastHelicopterTime = Time.time;
+                    ScheduleNextHelicopterDrop(Time.time + helicopterFirstDropDelay);
                     OnNightStarted?.Invoke(GameManager.Instance?.CurrentNight ?? 1);
                     OnStatusMessage?.Invoke($"Night {GameManager.Instance?.CurrentNight ?? 1} - Survive the waves!");
                     break;
                 case GameState.DawnPhase:
+                    nextHelicopterDropTime = float.PositiveInfinity;
                     OnDawnPhaseStarted?.Invoke();
                     OnStatusMessage?.Invoke("Dawn - Visit the shop and prepare for the next night.");
                     break;
                 case GameState.Victory:
+                    nextHelicopterDropTime = float.PositiveInfinity;
                     OnStatusMessage?.Invoke("Victory! You survived all 5 nights!");
                     break;
                 case GameState.GameOver:
+                    nextHelicopterDropTime = float.PositiveInfinity;
                     OnStatusMessage?.Invoke("Game Over");
                     break;
             }
@@ -328,8 +335,8 @@ namespace Deadlight.Core
         {
             if (GameManager.Instance?.CurrentState != GameState.NightPhase) return;
             if (dropsThisPhase >= maxDropsPerPhase) return;
-            if (Time.time < lastHelicopterTime + helicopterCooldown) return;
-            if (UnityEngine.Random.value > 0.005f) return;
+            if (float.IsPositiveInfinity(nextHelicopterDropTime)) return;
+            if (Time.time < nextHelicopterDropTime) return;
 
             var player = GameObject.Find("Player");
             if (player == null) return;
@@ -339,6 +346,15 @@ namespace Deadlight.Core
             float offsetY = UnityEngine.Random.Range(-5f, 5f);
             Vector3 dropPos = playerPos + new Vector3(offsetX, offsetY, 0);
 
+            if (GameManager.Instance != null)
+            {
+                var cfg = MapConfig.GetConfigForType(GameManager.Instance.SelectedMap);
+                float halfW = Mathf.Max(2f, cfg.perimeterHalfW - 1f);
+                float halfH = Mathf.Max(2f, cfg.perimeterHalfH - 1f);
+                dropPos.x = Mathf.Clamp(dropPos.x, -halfW, halfW);
+                dropPos.y = Mathf.Clamp(dropPos.y, -halfH, halfH);
+            }
+
             int night = GameManager.Instance.CurrentNight;
             CrateTier tier = RollCrateTier(night);
 
@@ -347,10 +363,23 @@ namespace Deadlight.Core
             drop.Initialize(dropPos, tier);
 
             dropsThisPhase++;
-            lastHelicopterTime = Time.time;
+            if (dropsThisPhase < maxDropsPerPhase)
+            {
+                ScheduleNextHelicopterDrop(Time.time + helicopterCooldown);
+            }
+            else
+            {
+                nextHelicopterDropTime = float.PositiveInfinity;
+            }
 
             if (RadioTransmissions.Instance != null)
                 RadioTransmissions.Instance.ShowMessage("Supply drop incoming! Look for the helicopter!", 3f);
+        }
+
+        private void ScheduleNextHelicopterDrop(float baseTime)
+        {
+            float jitter = Mathf.Max(0f, helicopterDropJitter);
+            nextHelicopterDropTime = baseTime + (jitter > 0f ? UnityEngine.Random.Range(0f, jitter) : 0f);
         }
 
         private void SpawnObjectiveInteractables()
