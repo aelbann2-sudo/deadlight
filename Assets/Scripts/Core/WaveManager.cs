@@ -255,7 +255,7 @@ namespace Deadlight.Core
 
                 if (wave < waveCount)
                 {
-                    float interval = Mathf.Clamp((currentNightConfig?.timeBetweenWaves ?? 2f), 1f, 2.5f);
+                    float interval = Mathf.Clamp((currentNightConfig?.timeBetweenWaves ?? 2f), 1.2f, 4f);
                     yield return new WaitForSeconds(interval);
                 }
             }
@@ -278,7 +278,7 @@ namespace Deadlight.Core
             isSpawning = true;
 
             int enemyCount = CalculateEnemyCount(waveNumber);
-            float spawnInterval = Mathf.Max(0.45f, (currentNightConfig?.spawnInterval ?? 2f) * GetSpawnIntervalMultiplier() * GetAdaptiveSpawnIntervalMultiplier());
+            float spawnInterval = Mathf.Max(0.55f, (currentNightConfig?.spawnInterval ?? 2f) * GetSpawnIntervalMultiplier() * GetAdaptiveSpawnIntervalMultiplier());
 
             for (int i = 0; i < enemyCount; i++)
             {
@@ -310,10 +310,10 @@ namespace Deadlight.Core
             return night switch
             {
                 1 => 10,
-                2 => 14,
-                3 => 20,
-                4 => 26,
-                _ => 30
+                2 => 18,
+                3 => 25,
+                4 => 30,
+                _ => 34
             };
         }
 
@@ -393,6 +393,10 @@ namespace Deadlight.Core
 
             int nightNum = GameManager.Instance?.CurrentNight ?? 1;
             var spawnType = SelectSpawnType(nightNum);
+            bool shouldSpawnBoss = nightNum >= 5 &&
+                                   spawnType == SpawnType.Tank &&
+                                   currentWave >= (currentNightConfig?.waveCount ?? 3) &&
+                                   !bossSpawned;
             var enemyType = spawnType switch
             {
                 SpawnType.Runner => Visuals.ProceduralSpriteGenerator.ZombieType.Runner,
@@ -408,9 +412,14 @@ namespace Deadlight.Core
             }
             else
             {
-                enemy = CreateEnemyOfType(enemyType, spawnPosition);
+                enemy = CreateEnemyOfType(enemyType, spawnPosition, shouldSpawnBoss);
             }
             enemy.SetActive(true);
+
+            if (shouldSpawnBoss)
+            {
+                bossSpawned = true;
+            }
 
             if (spawnType == SpawnType.Spitter)
             {
@@ -461,17 +470,18 @@ namespace Deadlight.Core
 
             if (night >= 5 && currentWave >= (currentNightConfig?.waveCount ?? 3) && !bossSpawned)
             {
-                bossSpawned = true;
                 return SpawnType.Tank;
             }
 
-            if (night >= 4 && roll < 0.06f)
+            if (night >= 4 && roll < 0.08f)
                 return SpawnType.Tank;
-            if (night >= 3 && roll < 0.14f)
+            if (night >= 3 && roll < 0.18f)
                 return SpawnType.Spitter;
-            if (night >= 3 && roll < 0.25f)
+            if (night >= 3 && roll < 0.32f)
                 return SpawnType.Exploder;
-            if (night >= 2 && roll < 0.45f)
+            if (night == 2 && roll < 0.28f)
+                return SpawnType.Runner;
+            if (night >= 3 && roll < 0.5f)
                 return SpawnType.Runner;
 
             return SpawnType.Basic;
@@ -490,7 +500,7 @@ namespace Deadlight.Core
             };
         }
 
-        private GameObject CreateEnemyOfType(Visuals.ProceduralSpriteGenerator.ZombieType type, Vector3 position)
+        private GameObject CreateEnemyOfType(Visuals.ProceduralSpriteGenerator.ZombieType type, Vector3 position, bool makeBoss = false)
         {
             var go = new GameObject($"Zombie_{type}");
             go.transform.position = position;
@@ -512,22 +522,22 @@ namespace Deadlight.Core
             switch (type)
             {
                 case Visuals.ProceduralSpriteGenerator.ZombieType.Runner:
-                    health.SetMaxHealth(30f);
+                    health.SetMaxHealth(35f);
                     health.SetPointsOnDeath(15);
-                    ai.ApplySpeedMultiplier(1.8f);
+                    ai.ApplySpeedMultiplier(1.65f);
                     break;
                 case Visuals.ProceduralSpriteGenerator.ZombieType.Tank:
                     health.SetMaxHealth(200f);
                     health.SetPointsOnDeath(50);
-                    ai.ApplySpeedMultiplier(0.6f);
-                    ai.ApplyDamageMultiplier(2.5f);
+                    ai.ApplySpeedMultiplier(0.7f);
+                    ai.ApplyDamageMultiplier(2.2f);
                     go.transform.localScale = Vector3.one * 1.5f;
                     break;
                 case Visuals.ProceduralSpriteGenerator.ZombieType.Exploder:
                     health.SetMaxHealth(40f);
                     health.SetPointsOnDeath(20);
                     health.SetIsExploder(true);
-                    ai.ApplySpeedMultiplier(1.2f);
+                    ai.ApplySpeedMultiplier(1.1f);
                     break;
                 default:
                     health.SetMaxHealth(50f);
@@ -535,8 +545,7 @@ namespace Deadlight.Core
                     break;
             }
 
-            if (type == Visuals.ProceduralSpriteGenerator.ZombieType.Tank &&
-                GameManager.Instance?.CurrentNight >= 5 && !bossSpawned)
+            if (type == Visuals.ProceduralSpriteGenerator.ZombieType.Tank && makeBoss)
             {
                 health.SetMaxHealth(1000f);
                 health.SetPointsOnDeath(200);

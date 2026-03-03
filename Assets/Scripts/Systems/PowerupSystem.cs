@@ -17,10 +17,10 @@ namespace Deadlight.Systems
         public static PowerupSystem Instance { get; private set; }
 
         [Header("Powerup Durations")]
-        [SerializeField] private float doubleDamageDuration = 10f;
-        [SerializeField] private float speedBoostDuration = 8f;
-        [SerializeField] private float infiniteAmmoDuration = 6f;
-        [SerializeField] private float invincibilityDuration = 4f;
+        [SerializeField] private float doubleDamageDuration = 12f;
+        [SerializeField] private float speedBoostDuration = 10f;
+        [SerializeField] private float infiniteAmmoDuration = 8f;
+        [SerializeField] private float invincibilityDuration = 6f;
 
         private PowerupType? activePowerup;
         private float powerupEndTime;
