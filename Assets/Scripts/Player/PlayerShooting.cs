@@ -1,6 +1,7 @@
 using UnityEngine;
 using Deadlight.Core;
 using Deadlight.Data;
+using Deadlight.Systems;
 using System;
 
 namespace Deadlight.Player
@@ -168,8 +169,9 @@ namespace Deadlight.Player
         private void TryFire()
         {
             if (isReloading) return;
+            bool hasInfiniteAmmo = PowerupSystem.Instance != null && PowerupSystem.Instance.HasInfiniteAmmo;
 
-            if (currentAmmo <= 0)
+            if (currentAmmo <= 0 && !hasInfiniteAmmo)
             {
                 PlaySound(emptyClickSound);
                 OnEmptyTriggerPulled?.Invoke();
@@ -192,7 +194,11 @@ namespace Deadlight.Player
         private void Fire()
         {
             lastFireTime = Time.time;
-            currentAmmo--;
+            bool hasInfiniteAmmo = PowerupSystem.Instance != null && PowerupSystem.Instance.HasInfiniteAmmo;
+            if (!hasInfiniteAmmo)
+            {
+                currentAmmo = Mathf.Max(0, currentAmmo - 1);
+            }
 
             SpawnBullet();
 
@@ -201,7 +207,7 @@ namespace Deadlight.Player
             OnAmmoChanged?.Invoke(currentAmmo, reserveAmmo);
             EmitLowAmmoWarningIfNeeded();
 
-            if (currentAmmo <= 0 && reserveAmmo > 0)
+            if (!hasInfiniteAmmo && currentAmmo <= 0 && reserveAmmo > 0)
             {
                 TryReload();
             }
@@ -249,6 +255,8 @@ namespace Deadlight.Player
                     float dmg = currentWeapon.damage;
                     if (PlayerUpgrades.Instance != null)
                         dmg *= PlayerUpgrades.Instance.DamageMultiplier;
+                    if (PowerupSystem.Instance != null)
+                        dmg *= PowerupSystem.Instance.DamageMultiplier;
                     bulletComponent.Initialize(dmg, currentWeapon.bulletSpeed, currentWeapon.range);
                 }
             }
