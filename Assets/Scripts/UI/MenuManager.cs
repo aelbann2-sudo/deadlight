@@ -42,8 +42,6 @@ namespace Deadlight.UI
         [SerializeField] private TextMeshProUGUI victoryStatsText;
         [SerializeField] private Button victoryMenuButton;
 
-        private bool isPaused = false;
-
         private void Start()
         {
             SetupButtons();
@@ -51,6 +49,7 @@ namespace Deadlight.UI
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.OnGameStateChanged += HandleGameStateChanged;
+                GameManager.Instance.OnPauseChanged += HandlePauseChanged;
             }
 
             HideAllPanels();
@@ -66,18 +65,7 @@ namespace Deadlight.UI
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.OnGameStateChanged -= HandleGameStateChanged;
-            }
-        }
-
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                if (GameManager.Instance?.CurrentState == GameState.DayPhase ||
-                    GameManager.Instance?.CurrentState == GameState.NightPhase)
-                {
-                    TogglePause();
-                }
+                GameManager.Instance.OnPauseChanged -= HandlePauseChanged;
             }
         }
 
@@ -157,7 +145,6 @@ namespace Deadlight.UI
                 mainMenuPanel.SetActive(true);
 
             Time.timeScale = 1f;
-            isPaused = false;
         }
 
         private void ShowDifficultySelection()
@@ -211,34 +198,27 @@ namespace Deadlight.UI
 
         public void TogglePause()
         {
-            if (isPaused)
-                ResumeGame();
-            else
-                PauseGame();
+            if (GameManager.Instance == null)
+            {
+                return;
+            }
+
+            GameManager.Instance.TogglePause();
         }
 
         public void PauseGame()
         {
-            isPaused = true;
-            Time.timeScale = 0f;
-
-            if (pauseMenuPanel != null)
-                pauseMenuPanel.SetActive(true);
+            GameManager.Instance?.SetPaused(true);
         }
 
         public void ResumeGame()
         {
-            isPaused = false;
-            Time.timeScale = 1f;
-
-            if (pauseMenuPanel != null)
-                pauseMenuPanel.SetActive(false);
+            GameManager.Instance?.SetPaused(false);
         }
 
         public void RestartGame()
         {
             Time.timeScale = 1f;
-            isPaused = false;
             HideAllPanels();
             GameManager.Instance?.RestartGame();
         }
@@ -246,8 +226,19 @@ namespace Deadlight.UI
         public void GoToMainMenu()
         {
             Time.timeScale = 1f;
-            isPaused = false;
             GameManager.Instance?.ReturnToMainMenu();
+        }
+
+        private void HandlePauseChanged(bool paused)
+        {
+            bool showPauseMenu = paused &&
+                (GameManager.Instance?.CurrentState == GameState.DayPhase ||
+                 GameManager.Instance?.CurrentState == GameState.NightPhase);
+
+            if (pauseMenuPanel != null)
+            {
+                pauseMenuPanel.SetActive(showPauseMenu);
+            }
         }
 
         private void ShowGameOver()

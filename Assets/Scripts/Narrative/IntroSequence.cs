@@ -303,7 +303,7 @@ namespace Deadlight.Narrative
 
         private void TriggerScreenShake()
         {
-            var cam = FindObjectOfType<CameraController>();
+            var cam = FindFirstObjectByType<CameraController>();
             if (cam != null)
             {
                 cam.Shake(0.5f, 0.3f);

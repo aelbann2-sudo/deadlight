@@ -18,9 +18,19 @@ namespace Deadlight.Enemy
         [SerializeField] private Color telegraphColor = new Color(1f, 0.8f, 0.25f, 1f);
         
         [Header("Behavior")]
-        [SerializeField] private bool alwaysAggressive = true;
+        [SerializeField] private bool alwaysAggressive = false;
         [SerializeField] private float wanderRadius = 3f;
         [SerializeField] private float wanderInterval = 1.5f;
+
+        [Header("Phase Aggression")]
+        [SerializeField] private float dayDetectionRangeMultiplier = 0.55f;
+        [SerializeField] private float dayChaseSpeedMultiplier = 0.82f;
+        [SerializeField] private float dayAttackCooldownMultiplier = 1.35f;
+        [SerializeField] private float nightDetectionRangeMultiplier = 1.15f;
+        [SerializeField] private float nightChaseSpeedMultiplier = 1.08f;
+        [SerializeField] private float nightAttackCooldownMultiplier = 0.9f;
+        [SerializeField] private float dayPursuitMemoryDuration = 5f;
+        [SerializeField] private float attackCommitRangeMultiplier = 1.15f;
         
         [Header("Pursuit Memory")]
         [SerializeField] private float pursuitMemoryDuration = 30f;
@@ -35,7 +45,6 @@ namespace Deadlight.Enemy
         private Vector2 wanderTarget;
         private float lastWanderTime;
         private float lastAttackTime;
-        private bool isAggressive;
         private Vector3 startPosition;
         private float speedMultiplier = 1f;
         private float damageMultiplier = 1f;
@@ -43,6 +52,7 @@ namespace Deadlight.Enemy
         private float baseChaseSpeed;
         private bool isAttackWindingUp;
         private Color baseColor = Color.white;
+        private EnemyAggressionPhase aggressionPhase;
 
         private void Awake()
         {
@@ -61,17 +71,18 @@ namespace Deadlight.Enemy
         private void Start()
         {
             FindPlayer();
-            isAggressive = alwaysAggressive;
             SetNewWanderTarget();
-            
+
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.OnGameStateChanged += OnGameStateChanged;
-                isAggressive = GameManager.Instance.CurrentState == GameState.NightPhase || alwaysAggressive;
+                RefreshAggressionPhase(GameManager.Instance.CurrentState);
             }
-
-            var zombieSounds = GetComponent<Audio.ZombieSounds>();
-            if (zombieSounds != null) zombieSounds.SetAggressive(isAggressive);
+            else
+            {
+                aggressionPhase = alwaysAggressive ? EnemyAggressionPhase.NightHunt : EnemyAggressionPhase.DayStalk;
+                UpdateAudioAggression();
+            }
         }
 
         private void OnDestroy()
@@ -84,18 +95,22 @@ namespace Deadlight.Enemy
 
         private void OnGameStateChanged(GameState newState)
         {
-            if (alwaysAggressive) return;
-            
-            isAggressive = newState == GameState.NightPhase;
-            var zombieSounds = GetComponent<Audio.ZombieSounds>();
-            if (zombieSounds != null) zombieSounds.SetAggressive(isAggressive);
+            RefreshAggressionPhase(newState);
         }
 
         private void FindPlayer()
         {
-            if (target != null) return;
-            
-            var player = GameObject.Find("Player");
+            if (target != null && target.gameObject.activeInHierarchy)
+            {
+                return;
+            }
+
+            var player = GameObject.FindGameObjectWithTag("Player");
+            if (player == null)
+            {
+                player = GameObject.Find("Player");
+            }
+
             if (player != null)
             {
                 target = player.transform;
@@ -109,12 +124,26 @@ namespace Deadlight.Enemy
                 rb.linearVelocity = Vector2.zero;
                 return;
             }
-            
+
+            if (aggressionPhase == EnemyAggressionPhase.Dormant)
+            {
+                rb.linearVelocity = Vector2.zero;
+                UpdateVisuals();
+                return;
+            }
+
+            if (aggressionPhase == EnemyAggressionPhase.DayStalk && target == null)
+            {
+                Wander();
+                UpdateVisuals();
+                return;
+            }
+
             FindPlayer();
-            
+
             if (target == null)
             {
-                if (Time.time - lastSeenPlayerTime < pursuitMemoryDuration && lastKnownPlayerPosition != Vector3.zero)
+                if (Time.time - lastSeenPlayerTime < GetEffectivePursuitMemoryDuration() && lastKnownPlayerPosition != Vector3.zero)
                 {
                     ChaseLastKnownPosition();
                 }
@@ -127,7 +156,22 @@ namespace Deadlight.Enemy
             }
 
             float distanceToPlayer = Vector2.Distance(transform.position, target.position);
-            
+            float effectiveDetectionRange = GetEffectiveDetectionRange();
+
+            if (distanceToPlayer > effectiveDetectionRange)
+            {
+                if (Time.time - lastSeenPlayerTime < GetEffectivePursuitMemoryDuration() && lastKnownPlayerPosition != Vector3.zero)
+                {
+                    ChaseLastKnownPosition();
+                }
+                else
+                {
+                    Wander();
+                }
+                UpdateVisuals();
+                return;
+            }
+
             lastSeenPlayerTime = Time.time;
             lastKnownPlayerPosition = target.position;
 
@@ -149,16 +193,18 @@ namespace Deadlight.Enemy
             if (dist < 1f)
             {
                 lastKnownPlayerPosition = Vector3.zero;
+                rb.linearVelocity = Vector2.zero;
                 return;
             }
+
             Vector2 direction = ((Vector2)lastKnownPlayerPosition - (Vector2)transform.position).normalized;
-            rb.linearVelocity = direction * (baseChaseSpeed * speedMultiplier * 0.8f);
+            rb.linearVelocity = direction * (GetEffectiveChaseSpeed() * 0.85f);
         }
 
         private void ChasePlayer()
         {
             Vector2 direction = ((Vector2)target.position - (Vector2)transform.position).normalized;
-            rb.linearVelocity = direction * (baseChaseSpeed * speedMultiplier);
+            rb.linearVelocity = direction * GetEffectiveChaseSpeed();
         }
 
         private void Wander()
@@ -191,7 +237,7 @@ namespace Deadlight.Enemy
         {
             rb.linearVelocity = Vector2.zero;
             
-            if (Time.time - lastAttackTime < attackCooldown) return;
+            if (Time.time - lastAttackTime < GetEffectiveAttackCooldown()) return;
             
             lastAttackTime = Time.time;
             StartCoroutine(AttackRoutine());
@@ -216,6 +262,18 @@ namespace Deadlight.Enemy
 
             if (target != null)
             {
+                float distanceToTarget = Vector2.Distance(transform.position, target.position);
+                if (distanceToTarget > attackRange * attackCommitRangeMultiplier)
+                {
+                    if (spriteRenderer != null)
+                    {
+                        spriteRenderer.color = baseColor;
+                    }
+
+                    isAttackWindingUp = false;
+                    yield break;
+                }
+
                 var playerHealth = target.GetComponent<Player.PlayerHealth>();
                 if (playerHealth != null)
                 {
@@ -247,7 +305,8 @@ namespace Deadlight.Enemy
 
         public void SetAggressive(bool aggressive)
         {
-            isAggressive = aggressive;
+            aggressionPhase = aggressive ? EnemyAggressionPhase.NightHunt : EnemyAggressionPhase.Dormant;
+            UpdateAudioAggression();
         }
 
         public void ApplySpeedMultiplier(float multiplier)
@@ -260,10 +319,69 @@ namespace Deadlight.Enemy
             damageMultiplier = Mathf.Max(0.1f, multiplier);
         }
 
+        private void RefreshAggressionPhase(GameState state)
+        {
+            aggressionPhase = EnemyAggressionResolver.Resolve(state, alwaysAggressive);
+            UpdateAudioAggression();
+        }
+
+        private void UpdateAudioAggression()
+        {
+            var zombieSounds = GetComponent<Audio.ZombieSounds>();
+            if (zombieSounds != null)
+            {
+                zombieSounds.SetAggressive(aggressionPhase == EnemyAggressionPhase.NightHunt);
+            }
+        }
+
+        private float GetEffectiveDetectionRange()
+        {
+            return aggressionPhase switch
+            {
+                EnemyAggressionPhase.NightHunt => detectionRange * nightDetectionRangeMultiplier,
+                EnemyAggressionPhase.DayStalk => detectionRange * dayDetectionRangeMultiplier,
+                _ => 0f
+            };
+        }
+
+        private float GetEffectiveChaseSpeed()
+        {
+            float phaseMultiplier = aggressionPhase switch
+            {
+                EnemyAggressionPhase.NightHunt => nightChaseSpeedMultiplier,
+                EnemyAggressionPhase.DayStalk => dayChaseSpeedMultiplier,
+                _ => 0f
+            };
+
+            return baseChaseSpeed * speedMultiplier * phaseMultiplier;
+        }
+
+        private float GetEffectiveAttackCooldown()
+        {
+            float phaseMultiplier = aggressionPhase switch
+            {
+                EnemyAggressionPhase.NightHunt => nightAttackCooldownMultiplier,
+                EnemyAggressionPhase.DayStalk => dayAttackCooldownMultiplier,
+                _ => float.PositiveInfinity
+            };
+
+            return attackCooldown * phaseMultiplier;
+        }
+
+        private float GetEffectivePursuitMemoryDuration()
+        {
+            return aggressionPhase switch
+            {
+                EnemyAggressionPhase.NightHunt => pursuitMemoryDuration,
+                EnemyAggressionPhase.DayStalk => dayPursuitMemoryDuration,
+                _ => 0f
+            };
+        }
+
         private void OnDrawGizmosSelected()
         {
             Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(transform.position, detectionRange);
+            Gizmos.DrawWireSphere(transform.position, Application.isPlaying ? GetEffectiveDetectionRange() : detectionRange);
             
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(transform.position, attackRange);

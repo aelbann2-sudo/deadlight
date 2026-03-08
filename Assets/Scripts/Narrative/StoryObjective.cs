@@ -240,7 +240,7 @@ namespace Deadlight.Narrative
         private void CreateUI()
         {
             Canvas screenCanvas = null;
-            foreach (var c in FindObjectsOfType<Canvas>())
+            foreach (var c in FindObjectsByType<Canvas>(FindObjectsSortMode.None))
             {
                 if (c.renderMode == RenderMode.ScreenSpaceOverlay)
                 {

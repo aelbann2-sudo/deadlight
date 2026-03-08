@@ -34,6 +34,20 @@ namespace Deadlight.UI
                 purchaseButton.onClick.RemoveAllListeners();
                 purchaseButton.onClick.AddListener(OnPurchaseClicked);
             }
+
+            if (Systems.PointsSystem.Instance != null)
+                Systems.PointsSystem.Instance.OnPointsChanged += OnPointsChanged;
+        }
+
+        private void OnDestroy()
+        {
+            if (Systems.PointsSystem.Instance != null)
+                Systems.PointsSystem.Instance.OnPointsChanged -= OnPointsChanged;
+        }
+
+        private void OnPointsChanged(int _)
+        {
+            UpdateAffordability();
         }
 
         private void UpdateDisplay()
@@ -76,9 +90,5 @@ namespace Deadlight.UI
             UpdateAffordability();
         }
 
-        private void Update()
-        {
-            UpdateAffordability();
-        }
     }
 }

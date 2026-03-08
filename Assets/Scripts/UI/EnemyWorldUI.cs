@@ -53,6 +53,17 @@ namespace Deadlight.UI
                 health.OnDamageTaken -= HandleDamage;
                 health.OnEnemyDeath -= HandleDeath;
             }
+
+            DestroyTexture(barBg);
+            DestroyTexture(barFill);
+            DestroyTexture(telegraphTex);
+        }
+
+        private static void DestroyTexture(Texture2D tex)
+        {
+            if (tex == null) return;
+            if (Application.isPlaying) Destroy(tex);
+            else DestroyImmediate(tex);
         }
 
         public void Show(float seconds)

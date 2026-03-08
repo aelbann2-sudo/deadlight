@@ -104,6 +104,7 @@ namespace Deadlight.Core
                 case GameState.GameOver:
                 case GameState.Victory:
                 case GameState.MainMenu:
+                case GameState.Transition:
                     isPaused = true;
                     break;
             }
@@ -118,7 +119,7 @@ namespace Deadlight.Core
 
             if (globalLight == null)
             {
-                var existingLight = FindObjectOfType<Light>();
+                var existingLight = FindFirstObjectByType<Light>();
                 if (existingLight != null)
                 {
                     globalLight = existingLight;
@@ -399,10 +400,16 @@ namespace Deadlight.Core
         private void CreateEnvironmentalEffects()
         {
             RenderSettings.fog = false;
+            RenderSettings.fogColor = nightFogColor;
+            RenderSettings.fogDensity = 0f;
         }
 
         private void UpdateEnvironmentalEffects(float dayNightBlend)
         {
+            RenderSettings.fog = dayNightBlend > 0.01f;
+            RenderSettings.fogColor = Color.Lerp(daySkyColor, nightFogColor, dayNightBlend);
+            RenderSettings.fogDensity = Mathf.Lerp(0f, nightFogDensity, dayNightBlend);
+
             if (starsParticleSystem != null)
             {
                 var main = starsParticleSystem.main;

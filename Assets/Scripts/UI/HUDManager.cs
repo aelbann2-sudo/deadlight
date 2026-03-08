@@ -102,12 +102,17 @@ namespace Deadlight.UI
         private static readonly Color UiAmmo = new Color(0.98f, 0.85f, 0.4f, 1f);
         private static readonly Color UiWarning = new Color(1f, 0.35f, 0.2f, 1f);
 
+        private bool hideHUD;
+
         private void Start()
         {
             FindPlayerReferences();
             SubscribeToEvents();
             InitializeUI();
-            SetupRuntimeFallbackIfNeeded();
+            RefreshRuntimeFallbackState();
+
+            if (GameManager.Instance != null)
+                OnGameStateChanged(GameManager.Instance.CurrentState);
         }
 
         private void Update()
@@ -117,7 +122,9 @@ namespace Deadlight.UI
                 showControls = !showControls;
             }
 
-            if (!useRuntimeFallbackHUD)
+            RefreshRuntimeFallbackState();
+
+            if (!useRuntimeFallbackHUD || hideHUD)
             {
                 return;
             }
@@ -157,7 +164,7 @@ namespace Deadlight.UI
 
             if (waveManager == null)
             {
-                waveManager = FindObjectOfType<WaveManager>();
+                waveManager = FindFirstObjectByType<WaveManager>();
             }
 
             if (waveManager != null)
@@ -168,7 +175,7 @@ namespace Deadlight.UI
 
             if (dayNightCycle == null)
             {
-                dayNightCycle = FindObjectOfType<DayNightCycle>();
+                dayNightCycle = FindFirstObjectByType<DayNightCycle>();
             }
 
             if (dayNightCycle != null)
@@ -227,12 +234,13 @@ namespace Deadlight.UI
             }
         }
 
-        private void SetupRuntimeFallbackIfNeeded()
+        private void RefreshRuntimeFallbackState()
         {
             useRuntimeFallbackHUD =
                 healthBar == null && healthText == null && staminaBar == null &&
                 ammoText == null && pointsText == null && timeText == null &&
-                waveText == null && nightText == null && enemiesText == null;
+                waveText == null && nightText == null && enemiesText == null &&
+                FindFirstObjectByType<LiveHUD>() == null;
         }
 
         private void BuildRuntimeStyle()
@@ -288,11 +296,11 @@ namespace Deadlight.UI
         private void FindPlayerReferences()
         {
             if (playerHealth == null)
-                playerHealth = FindObjectOfType<PlayerHealth>();
+                playerHealth = FindFirstObjectByType<PlayerHealth>();
             if (playerController == null)
-                playerController = FindObjectOfType<PlayerController>();
+                playerController = FindFirstObjectByType<PlayerController>();
             if (playerShooting == null)
-                playerShooting = FindObjectOfType<PlayerShooting>();
+                playerShooting = FindFirstObjectByType<PlayerShooting>();
         }
 
         private void SubscribeToEvents()
@@ -318,7 +326,7 @@ namespace Deadlight.UI
                 PointsSystem.Instance.OnPointsEarned += ShowPointsPopup;
             }
 
-            dayNightCycle = FindObjectOfType<DayNightCycle>();
+            dayNightCycle = FindFirstObjectByType<DayNightCycle>();
             if (dayNightCycle != null)
             {
                 dayNightCycle.OnTimeUpdate += UpdateTimeUI;
@@ -326,7 +334,7 @@ namespace Deadlight.UI
                 dayNightCycle.OnNightStart += OnNightStart;
             }
 
-            waveManager = FindObjectOfType<WaveManager>();
+            waveManager = FindFirstObjectByType<WaveManager>();
             if (waveManager != null)
             {
                 waveManager.OnWaveStarted += UpdateWaveUI;
@@ -336,6 +344,8 @@ namespace Deadlight.UI
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.OnNightChanged += UpdateNightUI;
+                GameManager.Instance.OnGameStateChanged += OnGameStateChanged;
+                GameManager.Instance.OnPauseChanged += OnPauseChanged;
             }
 
             if (DayObjectiveSystem.Instance != null)
@@ -396,6 +406,8 @@ namespace Deadlight.UI
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.OnNightChanged -= UpdateNightUI;
+                GameManager.Instance.OnGameStateChanged -= OnGameStateChanged;
+                GameManager.Instance.OnPauseChanged -= OnPauseChanged;
             }
 
             if (DayObjectiveSystem.Instance != null)
@@ -415,6 +427,28 @@ namespace Deadlight.UI
             {
                 Core.GameEffects.Instance.OnHitConfirmed -= ShowHitMarker;
             }
+        }
+
+        private void OnGameStateChanged(GameState state)
+        {
+            hideHUD = state == GameState.MainMenu || state == GameState.GameOver ||
+                      state == GameState.Victory || state == GameState.DawnPhase;
+        }
+
+        private void OnPauseChanged(bool paused)
+        {
+            if (useRuntimeFallbackHUD)
+            {
+                hideHUD = !paused && !IsGameplayState(GameManager.Instance?.CurrentState ?? GameState.MainMenu);
+                return;
+            }
+
+            hideHUD = !paused && !IsGameplayState(GameManager.Instance?.CurrentState ?? GameState.MainMenu);
+        }
+
+        private static bool IsGameplayState(GameState state)
+        {
+            return state == GameState.DayPhase || state == GameState.NightPhase;
         }
 
         private void InitializeUI()
@@ -599,7 +633,7 @@ namespace Deadlight.UI
         {
             if (waveManager == null)
             {
-                waveManager = FindObjectOfType<WaveManager>();
+                waveManager = FindFirstObjectByType<WaveManager>();
             }
 
             if (waveManager != null)
@@ -613,7 +647,7 @@ namespace Deadlight.UI
 
         private void OnGUI()
         {
-            if (!useRuntimeFallbackHUD)
+            if (!useRuntimeFallbackHUD || hideHUD)
             {
                 return;
             }

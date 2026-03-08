@@ -53,7 +53,7 @@ namespace Deadlight.Core
                 GameManager.Instance.OnGameStateChanged += HandleGameStateChanged;
             }
 
-            var dayNightCycle = FindObjectOfType<DayNightCycle>();
+            var dayNightCycle = FindFirstObjectByType<DayNightCycle>();
             if (dayNightCycle != null)
             {
                 dayNightCycle.OnDayStart += PlayDayAudio;

@@ -173,8 +173,11 @@ namespace Deadlight.Systems
         {
             if (corruptionOverlay == null) return;
 
-            float alpha = currentCorruption * 0.6f;
+            float darknessFactor = 1f + (currentCorruption * darknessMultiplier);
+            float alpha = Mathf.Clamp01(currentCorruption * 0.6f * darknessFactor);
             Color c = corruptionTint;
+            c.r *= darknessFactor;
+            c.b *= darknessFactor;
             c.a = alpha;
             corruptionOverlay.color = c;
 

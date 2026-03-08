@@ -20,7 +20,7 @@ namespace Deadlight.Enemy
         {
             if (registerWithWaveManager)
             {
-                waveManager = FindObjectOfType<WaveManager>();
+                waveManager = FindFirstObjectByType<WaveManager>();
                 if (waveManager != null)
                 {
                     waveManager.AddSpawnPoint(transform);

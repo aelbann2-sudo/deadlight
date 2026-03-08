@@ -58,17 +58,17 @@ namespace Deadlight.Level
         {
             if (zones.Count == 0)
             {
-                zones = FindObjectsOfType<MapZone>().ToList();
+                zones = FindObjectsByType<MapZone>(FindObjectsSortMode.None).ToList();
             }
 
             if (spawnPoints.Count == 0)
             {
-                spawnPoints = FindObjectsOfType<SpawnPoint>().ToList();
+                spawnPoints = FindObjectsByType<SpawnPoint>(FindObjectsSortMode.None).ToList();
             }
 
             if (obstacles.Count == 0)
             {
-                obstacles = FindObjectsOfType<Obstacle>().ToList();
+                obstacles = FindObjectsByType<Obstacle>(FindObjectsSortMode.None).ToList();
             }
 
             if (safeZone == null)
@@ -135,6 +135,11 @@ namespace Deadlight.Level
 
         public SpawnPoint GetSpawnPointInZone(MapZone zone, int currentNight)
         {
+            if (zone == null || !zone.CanAcceptMoreEnemies())
+            {
+                return null;
+            }
+
             var zonePoints = spawnPoints
                 .Where(sp => sp.GetParentZone() == zone && sp.IsActiveForNight(currentNight) && sp.CanSpawn)
                 .ToList();

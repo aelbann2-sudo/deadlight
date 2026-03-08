@@ -61,6 +61,8 @@ namespace Deadlight.Core
         [SerializeField] private float[] dayDurationsByNight = { 70f, 60f, 55f, 50f, 45f };
         [SerializeField] private float targetNightDuration = 120f;
 
+        private const float DefaultFixedDeltaTime = 0.02f;
+
         public GameState CurrentState => currentState;
         public Difficulty CurrentDifficulty => currentDifficulty;
         public MapType SelectedMap => selectedMap;
@@ -89,7 +91,7 @@ namespace Deadlight.Core
                 return;
             }
 
-            var existing = FindObjectOfType<GameManager>();
+            var existing = FindFirstObjectByType<GameManager>();
             if (existing != null)
             {
                 Instance = existing;
@@ -209,7 +211,7 @@ namespace Deadlight.Core
                 EnsureCameraTargetsPlayer(player);
             }
 
-            var intro = FindObjectOfType<IntroSequence>();
+            var intro = FindFirstObjectByType<IntroSequence>();
             if (autoStartWhenGameSceneLoads && currentState == GameState.MainMenu && intro == null)
             {
                 StartNewGame();
@@ -265,7 +267,7 @@ namespace Deadlight.Core
                 shooting.ResetLoadout(WeaponData.CreatePistol());
             }
 
-            var modifierSystem = FindObjectOfType<RunModifierSystem>();
+            var modifierSystem = FindFirstObjectByType<RunModifierSystem>();
             if (modifierSystem != null)
             {
                 int runSeed = DateTime.Now.Millisecond + (int)Time.realtimeSinceStartup;
@@ -315,7 +317,7 @@ namespace Deadlight.Core
         {
             ChangeState(GameState.NightPhase);
 
-            var waveManager = FindObjectOfType<WaveManager>();
+            var waveManager = FindFirstObjectByType<WaveManager>();
             if (waveManager != null && !waveManager.IsSpawning && waveManager.EnemiesRemaining <= 0)
             {
                 waveManager.StartNightWaves();
@@ -373,7 +375,7 @@ namespace Deadlight.Core
             }
 
             SetPaused(false);
-            currentState = GameState.MainMenu;
+            ChangeState(GameState.MainMenu);
             SceneManager.LoadScene("MainMenu");
         }
 
@@ -382,7 +384,7 @@ namespace Deadlight.Core
             currentNight = 1;
             startNewRunAfterGameSceneLoad = true;
             SetPaused(false);
-            currentState = GameState.MainMenu;
+            ChangeState(GameState.MainMenu);
             SceneManager.LoadScene("Game");
         }
 
@@ -402,22 +404,38 @@ namespace Deadlight.Core
 
         public void TogglePause()
         {
+            if (!CanPauseCurrentState())
+            {
+                return;
+            }
+
             SetPaused(!isPaused);
         }
 
         public void SetPaused(bool paused)
         {
+            if (paused && !CanPauseCurrentState())
+            {
+                return;
+            }
+
             isPaused = paused;
 
             Time.timeScale = isPaused ? 0f : 1f;
+            Time.fixedDeltaTime = DefaultFixedDeltaTime * Mathf.Max(Time.timeScale, 0f);
 
-            var dayNight = FindObjectOfType<DayNightCycle>();
+            var dayNight = FindFirstObjectByType<DayNightCycle>();
             if (dayNight != null)
             {
                 dayNight.SetPaused(isPaused);
             }
 
             OnPauseChanged?.Invoke(isPaused);
+        }
+
+        private bool CanPauseCurrentState()
+        {
+            return currentState == GameState.DayPhase || currentState == GameState.NightPhase;
         }
 
         private void EnsureDifficultySettings()
@@ -440,82 +458,82 @@ namespace Deadlight.Core
 
         private void EnsureCoreManagers()
         {
-            if (FindObjectOfType<DayNightCycle>() == null)
+            if (FindFirstObjectByType<DayNightCycle>() == null)
             {
                 new GameObject("DayNightCycle").AddComponent<DayNightCycle>();
             }
 
-            if (FindObjectOfType<WaveManager>() == null)
+            if (FindFirstObjectByType<WaveManager>() == null)
             {
                 new GameObject("WaveManager").AddComponent<WaveManager>();
             }
 
-            if (FindObjectOfType<GameFlowController>() == null)
+            if (FindFirstObjectByType<GameFlowController>() == null)
             {
                 new GameObject("GameFlowController").AddComponent<GameFlowController>();
             }
 
-            if (FindObjectOfType<ResourceManager>() == null)
+            if (FindFirstObjectByType<ResourceManager>() == null)
             {
                 new GameObject("ResourceManager").AddComponent<ResourceManager>();
             }
 
-            if (FindObjectOfType<PickupSpawner>() == null)
+            if (FindFirstObjectByType<PickupSpawner>() == null)
             {
                 new GameObject("PickupSpawner").AddComponent<PickupSpawner>();
             }
 
-            if (FindObjectOfType<PowerupSystem>() == null)
+            if (FindFirstObjectByType<PowerupSystem>() == null)
             {
                 new GameObject("PowerupSystem").AddComponent<PowerupSystem>();
             }
 
-            if (FindObjectOfType<PointsSystem>() == null)
+            if (FindFirstObjectByType<PointsSystem>() == null)
             {
                 new GameObject("PointsSystem").AddComponent<PointsSystem>();
             }
 
-            if (FindObjectOfType<ProgressionManager>() == null)
+            if (FindFirstObjectByType<ProgressionManager>() == null)
             {
                 new GameObject("ProgressionManager").AddComponent<ProgressionManager>();
             }
 
-            if (FindObjectOfType<DayObjectiveSystem>() == null)
+            if (FindFirstObjectByType<DayObjectiveSystem>() == null)
             {
                 new GameObject("DayObjectiveSystem").AddComponent<DayObjectiveSystem>();
             }
 
-            if (FindObjectOfType<RunModifierSystem>() == null)
+            if (FindFirstObjectByType<RunModifierSystem>() == null)
             {
                 new GameObject("RunModifierSystem").AddComponent<RunModifierSystem>();
             }
 
-            if (FindObjectOfType<CosmeticUnlockSystem>() == null)
+            if (FindFirstObjectByType<CosmeticUnlockSystem>() == null)
             {
                 new GameObject("CosmeticUnlockSystem").AddComponent<CosmeticUnlockSystem>();
             }
 
-            if (FindObjectOfType<AudioManager>() == null)
+            if (FindFirstObjectByType<AudioManager>() == null)
             {
                 new GameObject("AudioManager").AddComponent<AudioManager>();
             }
 
-            if (FindObjectOfType<EndingSequence>() == null)
+            if (FindFirstObjectByType<EndingSequence>() == null)
             {
                 new GameObject("EndingSequence").AddComponent<EndingSequence>();
             }
 
-            if (FindObjectOfType<StoryEventManager>() == null)
+            if (FindFirstObjectByType<StoryEventManager>() == null)
             {
                 new GameObject("StoryEventManager").AddComponent<StoryEventManager>();
             }
 
-            if (FindObjectOfType<RadioTransmissions>() == null)
+            if (FindFirstObjectByType<RadioTransmissions>() == null)
             {
                 new GameObject("RadioTransmissions").AddComponent<RadioTransmissions>();
             }
 
-            if (FindObjectOfType<LeaderboardManager>() == null)
+            if (FindFirstObjectByType<LeaderboardManager>() == null)
             {
                 new GameObject("LeaderboardManager").AddComponent<LeaderboardManager>();
             }
@@ -523,7 +541,7 @@ namespace Deadlight.Core
 
         private GameObject EnsurePlayerExists()
         {
-            var playerControllers = FindObjectsOfType<PlayerController>();
+            var playerControllers = FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
             GameObject primaryPlayer = null;
 
             if (playerControllers.Length > 0)
@@ -710,7 +728,7 @@ namespace Deadlight.Core
                 return;
             }
 
-            var cameraController = FindObjectOfType<CameraController>();
+            var cameraController = FindFirstObjectByType<CameraController>();
             if (cameraController == null)
             {
                 var mainCam = Camera.main;
@@ -742,7 +760,7 @@ namespace Deadlight.Core
 
         private void EnsureWaveManagerConfigured()
         {
-            var waveManager = FindObjectOfType<WaveManager>();
+            var waveManager = FindFirstObjectByType<WaveManager>();
             waveManager?.EnsureRuntimeDefaults();
         }
 
@@ -835,10 +853,10 @@ namespace Deadlight.Core
                 progressionManager.ResetProgress();
             }
 
-            var objectiveSystem = FindObjectOfType<DayObjectiveSystem>();
+            var objectiveSystem = FindFirstObjectByType<DayObjectiveSystem>();
             objectiveSystem?.ResetObjective();
 
-            foreach (var enemy in FindObjectsOfType<EnemyHealth>())
+            foreach (var enemy in FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None))
             {
                 if (enemy != null)
                 {
@@ -846,7 +864,7 @@ namespace Deadlight.Core
                 }
             }
 
-            foreach (var pickup in FindObjectsOfType<Pickup>())
+            foreach (var pickup in FindObjectsByType<Pickup>(FindObjectsSortMode.None))
             {
                 if (pickup != null)
                 {
@@ -854,7 +872,7 @@ namespace Deadlight.Core
                 }
             }
 
-            foreach (var pickupItem in FindObjectsOfType<PickupItem>())
+            foreach (var pickupItem in FindObjectsByType<PickupItem>(FindObjectsSortMode.None))
             {
                 if (pickupItem != null)
                 {
@@ -862,7 +880,7 @@ namespace Deadlight.Core
                 }
             }
 
-            foreach (var bullet in FindObjectsOfType<Bullet>())
+            foreach (var bullet in FindObjectsByType<Bullet>(FindObjectsSortMode.None))
             {
                 if (bullet != null && bullet.gameObject.activeInHierarchy)
                 {
@@ -886,7 +904,7 @@ namespace Deadlight.Core
 
         private bool HasInteractiveDawnUI()
         {
-            return FindObjectOfType<ShopUI>() != null || FindObjectOfType<GameUI>() != null;
+            return FindFirstObjectByType<ShopUI>() != null || FindFirstObjectByType<GameUI>() != null;
         }
 
         private IEnumerator AutoAdvanceFromDawn()
@@ -914,12 +932,15 @@ namespace Deadlight.Core
 
         private static bool IsMainMenuSceneEmpty()
         {
-            return FindObjectOfType<MenuManager>() == null && FindObjectOfType<Canvas>() == null;
+            if (GameUI.Instance != null) return false;
+            if (FindFirstObjectByType<MenuManager>() != null) return false;
+            if (FindFirstObjectByType<Canvas>() != null) return false;
+            return true;
         }
 
         private void ApplyPhaseDurationsForNight(int night)
         {
-            var dayNight = FindObjectOfType<DayNightCycle>();
+            var dayNight = FindFirstObjectByType<DayNightCycle>();
             if (dayNight == null)
             {
                 return;
