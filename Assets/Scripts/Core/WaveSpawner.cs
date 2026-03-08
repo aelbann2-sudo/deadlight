@@ -26,8 +26,6 @@ namespace Deadlight.Core
         [SerializeField] private bool isSpawning = false;
 
         private Transform playerTransform;
-        private System.Action<int> onWaveChanged;
-        private System.Action<int> onEnemyCountChanged;
 
         public int CurrentWave => currentWave;
         public int EnemiesAlive => enemiesAlive;
@@ -172,6 +170,7 @@ namespace Deadlight.Core
 
             var ai = enemyObj.AddComponent<Enemy.SimpleEnemyAI>();
             ai.SetAggressive(true);
+            ai.ApplySpeedMultiplier(1f + Mathf.Max(0f, currentWave - 1) * speedIncreasePerWave);
 
             var hpBar = enemyObj.AddComponent<EnemyHealthBar>();
 

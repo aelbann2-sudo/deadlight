@@ -172,6 +172,19 @@ namespace Deadlight.UI
                 GameManager.Instance.OnGameStateChanged -= OnGameStateChanged;
                 GameManager.Instance.OnNightChanged -= UpdateNight;
             }
+            if (WaveSpawner.Instance != null)
+            {
+                WaveSpawner.Instance.OnWaveChanged -= UpdateWave;
+                WaveSpawner.Instance.OnEnemyCountChanged -= UpdateEnemyCount;
+            }
+            if (GameFlowController.Instance != null)
+            {
+                GameFlowController.Instance.OnDayTimerUpdate -= UpdateDayTimer;
+            }
+            if (Systems.PointsSystem.Instance != null)
+            {
+                Systems.PointsSystem.Instance.OnPointsChanged -= UpdatePoints;
+            }
         }
 
         private void Update()

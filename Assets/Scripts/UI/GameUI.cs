@@ -100,7 +100,7 @@ namespace Deadlight.UI
 
         private void EnsureEventSystem()
         {
-            if (FindObjectOfType<UnityEngine.EventSystems.EventSystem>() == null)
+            if (FindFirstObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
             {
                 var esObj = new GameObject("EventSystem");
                 esObj.AddComponent<UnityEngine.EventSystems.EventSystem>();
@@ -135,7 +135,7 @@ namespace Deadlight.UI
         {
             _mainMenuPanel = CreatePanel(_canvasRoot.transform, "MainMenuPanel");
             var bg = _mainMenuPanel.GetComponent<Image>();
-            bg.color = new Color(0.08f, 0.08f, 0.12f, 0.97f);
+            bg.color = new Color(0.08f, 0.08f, 0.12f, 1f);
 
             var title = CreateText(_mainMenuPanel.transform, "Title",
                 "DEADLIGHT: Survival After Dark", 44, TextAnchor.MiddleCenter, Color.white,
@@ -175,59 +175,162 @@ namespace Deadlight.UI
         private void BuildMapSelect()
         {
             _mapSelectPanel = CreatePanel(_canvasRoot.transform, "MapSelectPanel");
-            _mapSelectPanel.GetComponent<Image>().color = new Color(0.08f, 0.08f, 0.12f, 0.97f);
+            _mapSelectPanel.GetComponent<Image>().color = new Color(0.08f, 0.08f, 0.12f, 1f);
 
-            CreateText(_mapSelectPanel.transform, "Title",
-                "SELECT MAP", 40, TextAnchor.MiddleCenter, Color.white,
-                new Vector2(0.5f, 0.88f), new Vector2(0.5f, 0.88f), Vector2.zero, new Vector2(500, 60));
+            // Title
+            var titleObj = CreateText(_mapSelectPanel.transform, "Title",
+                "SELECT MAP", 42, TextAnchor.MiddleCenter, Color.white,
+                new Vector2(0.5f, 0.92f), new Vector2(0.5f, 0.92f), Vector2.zero, new Vector2(500, 55));
+            titleObj.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
-            BuildMapOption(_mapSelectPanel.transform, "Town Center",
-                "Streets, shops, and plazas.\nBalanced layout with moderate cover.",
-                new Color(0.3f, 0.5f, 0.3f), new Vector2(0.5f, 0.68f), MapType.TownCenter);
+            CreateText(_mapSelectPanel.transform, "Subtitle",
+                "Choose your deployment zone", 18, TextAnchor.MiddleCenter, new Color(0.55f, 0.55f, 0.6f),
+                new Vector2(0.5f, 0.86f), new Vector2(0.5f, 0.86f), Vector2.zero, new Vector2(400, 25));
 
-            BuildMapOption(_mapSelectPanel.transform, "Industrial District",
-                "Warehouses, narrow corridors.\nTight chokepoints, limited escape.",
-                new Color(0.4f, 0.35f, 0.3f), new Vector2(0.5f, 0.48f), MapType.Industrial);
+            // Map cards
+            BuildMapOption(_mapSelectPanel.transform, "TOWN CENTER",
+                "Streets, shops, and plazas. Balanced layout with moderate cover and varied sightlines.",
+                "BALANCED", new Color(0.3f, 0.5f, 0.3f), 0.70f, MapType.TownCenter);
 
-            BuildMapOption(_mapSelectPanel.transform, "Suburban Outskirts",
-                "Houses, yards, wide spaces.\nRewards mobility, less cover.",
-                new Color(0.3f, 0.4f, 0.25f), new Vector2(0.5f, 0.28f), MapType.Suburban);
+            BuildMapOption(_mapSelectPanel.transform, "INDUSTRIAL DISTRICT",
+                "Warehouses and narrow corridors. Tight chokepoints with limited escape routes.",
+                "TACTICAL", new Color(0.55f, 0.4f, 0.25f), 0.50f, MapType.Industrial);
 
-            CreateButton(_mapSelectPanel.transform, "BackButton", "BACK", new Color(0.5f, 0.5f, 0.5f),
-                new Vector2(0.5f, 0.1f), new Vector2(180, 42), () =>
+            BuildMapOption(_mapSelectPanel.transform, "SUBURBAN OUTSKIRTS",
+                "Houses, yards, and wide open spaces. Rewards mobility but offers less cover.",
+                "OPEN", new Color(0.3f, 0.45f, 0.25f), 0.30f, MapType.Suburban);
+
+            // Back button
+            CreateButton(_mapSelectPanel.transform, "BackButton", "BACK", new Color(0.3f, 0.3f, 0.35f),
+                new Vector2(0.5f, 0.1f), new Vector2(200, 45), () =>
                 {
                     _mapSelectPanel?.SetActive(false);
                     _mainMenuPanel?.SetActive(true);
                 });
         }
 
-        private void BuildMapOption(Transform parent, string mapName, string desc, Color color, Vector2 anchor, MapType mapType)
+        private void BuildMapOption(Transform parent, string mapName, string desc,
+            string tag, Color accentColor, float yAnchor, MapType mapType)
         {
+            float cardWidth = 700f;
+            float cardHeight = 120f;
+            float accentBarWidth = 5f;
+
+            // Card container
             var container = new GameObject($"MapOption_{mapName}");
             container.transform.SetParent(parent);
             var containerRect = container.AddComponent<RectTransform>();
-            containerRect.anchorMin = anchor;
-            containerRect.anchorMax = anchor;
+            containerRect.anchorMin = new Vector2(0.5f, yAnchor);
+            containerRect.anchorMax = new Vector2(0.5f, yAnchor);
             containerRect.pivot = new Vector2(0.5f, 0.5f);
             containerRect.anchoredPosition = Vector2.zero;
-            containerRect.sizeDelta = new Vector2(600, 100);
+            containerRect.sizeDelta = new Vector2(cardWidth, cardHeight);
 
+            // Card background
             var containerImg = container.AddComponent<Image>();
-            containerImg.color = new Color(color.r, color.g, color.b, 0.6f);
+            containerImg.color = new Color(0.12f, 0.13f, 0.17f, 0.95f);
 
+            // Button behavior
             var btn = container.AddComponent<Button>();
             btn.targetGraphic = containerImg;
             var colors = btn.colors;
-            colors.highlightedColor = new Color(color.r + 0.15f, color.g + 0.15f, color.b + 0.15f, 0.8f);
-            colors.pressedColor = new Color(color.r * 0.7f, color.g * 0.7f, color.b * 0.7f, 0.9f);
+            colors.normalColor = new Color(0.12f, 0.13f, 0.17f, 0.95f);
+            colors.highlightedColor = new Color(0.18f, 0.19f, 0.24f, 1f);
+            colors.pressedColor = new Color(0.1f, 0.1f, 0.13f, 1f);
+            colors.selectedColor = colors.normalColor;
             btn.colors = colors;
             btn.onClick.AddListener(() => OnMapSelected(mapType));
 
-            CreateText(container.transform, "Name", mapName, 26, TextAnchor.MiddleLeft, Color.white,
-                new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(20, 10), new Vector2(300, 35));
+            // Left accent bar
+            var accentBar = new GameObject("AccentBar");
+            accentBar.transform.SetParent(container.transform);
+            var accentRect = accentBar.AddComponent<RectTransform>();
+            accentRect.anchorMin = new Vector2(0f, 0f);
+            accentRect.anchorMax = new Vector2(0f, 1f);
+            accentRect.pivot = new Vector2(0f, 0.5f);
+            accentRect.anchoredPosition = Vector2.zero;
+            accentRect.sizeDelta = new Vector2(accentBarWidth, 0f);
+            var accentImg = accentBar.AddComponent<Image>();
+            accentImg.color = accentColor;
+            accentImg.raycastTarget = false;
 
-            CreateText(container.transform, "Desc", desc, 16, TextAnchor.MiddleLeft, new Color(0.8f, 0.8f, 0.8f),
-                new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(20, -18), new Vector2(560, 50));
+            // Map name - positioned inside the card
+            var nameObj = CreateLeftAlignedText(container.transform, "Name",
+                mapName, 24, FontStyle.Bold, Color.white,
+                new Vector2(accentBarWidth + 20f, -16f), new Vector2(cardWidth - 160f, 30f));
+
+            // Description - positioned below name, inside the card
+            CreateLeftAlignedText(container.transform, "Desc",
+                desc, 14, FontStyle.Normal, new Color(0.6f, 0.62f, 0.68f),
+                new Vector2(accentBarWidth + 20f, -50f), new Vector2(cardWidth - 160f, 50f));
+
+            // Tag label on the right
+            var tagObj = new GameObject("Tag");
+            tagObj.transform.SetParent(container.transform);
+            var tagRect = tagObj.AddComponent<RectTransform>();
+            tagRect.anchorMin = new Vector2(1f, 0.5f);
+            tagRect.anchorMax = new Vector2(1f, 0.5f);
+            tagRect.pivot = new Vector2(1f, 0.5f);
+            tagRect.anchoredPosition = new Vector2(-20f, 0f);
+            tagRect.sizeDelta = new Vector2(100f, 28f);
+            var tagBg = tagObj.AddComponent<Image>();
+            tagBg.color = new Color(accentColor.r, accentColor.g, accentColor.b, 0.25f);
+            tagBg.raycastTarget = false;
+
+            var tagTextObj = new GameObject("TagText");
+            tagTextObj.transform.SetParent(tagObj.transform);
+            var tagTextRect = tagTextObj.AddComponent<RectTransform>();
+            tagTextRect.anchorMin = Vector2.zero;
+            tagTextRect.anchorMax = Vector2.one;
+            tagTextRect.offsetMin = Vector2.zero;
+            tagTextRect.offsetMax = Vector2.zero;
+            var tagText = tagTextObj.AddComponent<Text>();
+            tagText.text = tag;
+            tagText.font = _font;
+            tagText.fontSize = 13;
+            tagText.fontStyle = FontStyle.Bold;
+            tagText.alignment = TextAnchor.MiddleCenter;
+            tagText.color = accentColor;
+            tagText.raycastTarget = false;
+
+            // Bottom border line
+            var borderLine = new GameObject("Border");
+            borderLine.transform.SetParent(container.transform);
+            var borderRect = borderLine.AddComponent<RectTransform>();
+            borderRect.anchorMin = new Vector2(0f, 0f);
+            borderRect.anchorMax = new Vector2(1f, 0f);
+            borderRect.pivot = new Vector2(0.5f, 0f);
+            borderRect.anchoredPosition = Vector2.zero;
+            borderRect.sizeDelta = new Vector2(0f, 1f);
+            var borderImg = borderLine.AddComponent<Image>();
+            borderImg.color = new Color(0.25f, 0.26f, 0.3f, 0.5f);
+            borderImg.raycastTarget = false;
+        }
+
+        private GameObject CreateLeftAlignedText(Transform parent, string name,
+            string text, int fontSize, FontStyle style, Color color,
+            Vector2 topLeftOffset, Vector2 size)
+        {
+            var obj = new GameObject(name);
+            obj.transform.SetParent(parent);
+            var rect = obj.AddComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0f, 1f);
+            rect.anchorMax = new Vector2(0f, 1f);
+            rect.pivot = new Vector2(0f, 1f);
+            rect.anchoredPosition = topLeftOffset;
+            rect.sizeDelta = size;
+
+            var txt = obj.AddComponent<Text>();
+            txt.text = text;
+            txt.font = _font;
+            txt.fontSize = fontSize;
+            txt.fontStyle = style;
+            txt.alignment = TextAnchor.UpperLeft;
+            txt.color = color;
+            txt.horizontalOverflow = HorizontalWrapMode.Wrap;
+            txt.raycastTarget = false;
+
+            return obj;
         }
 
         private void OnMapSelected(MapType mapType)
@@ -279,14 +382,6 @@ namespace Deadlight.UI
             {
                 _pausePanel?.SetActive(false);
             }
-        }
-
-        private void StartGame(Difficulty difficulty)
-        {
-            GameManager.Instance?.SetDifficulty(difficulty);
-            _mainMenuPanel?.SetActive(false);
-            Time.timeScale = 1f;
-            GameManager.Instance?.StartNewGame();
         }
 
         private void QuitGame()
@@ -773,15 +868,14 @@ namespace Deadlight.UI
                     break;
                 case GameState.GameOver:
                     LeaderboardManager.Instance?.SubmitRun(false);
-                    if (EndingSequence.Instance != null && !EndingSequence.Instance.IsPlaying)
+                    if (EndingSequence.Instance != null && !_waitingForEnding)
                     {
                         _waitingForEnding = true;
                         EndingSequence.Instance.OnEndingComplete += OnEndingSequenceComplete;
                     }
-                    else if (EndingSequence.Instance != null && EndingSequence.Instance.IsPlaying)
+                    else if (_waitingForEnding)
                     {
-                        _waitingForEnding = true;
-                        EndingSequence.Instance.OnEndingComplete += OnEndingSequenceComplete;
+                        break;
                     }
                     else
                     {
@@ -791,10 +885,14 @@ namespace Deadlight.UI
                     break;
                 case GameState.Victory:
                     LeaderboardManager.Instance?.SubmitRun(true);
-                    if (EndingSequence.Instance != null)
+                    if (EndingSequence.Instance != null && !_waitingForEnding)
                     {
                         _waitingForEnding = true;
                         EndingSequence.Instance.OnEndingComplete += OnEndingSequenceComplete;
+                    }
+                    else if (_waitingForEnding)
+                    {
+                        break;
                     }
                     else
                     {
@@ -807,6 +905,11 @@ namespace Deadlight.UI
 
         private void OnEndingSequenceComplete()
         {
+            if (!_waitingForEnding)
+            {
+                return;
+            }
+
             if (EndingSequence.Instance != null)
                 EndingSequence.Instance.OnEndingComplete -= OnEndingSequenceComplete;
 
@@ -817,10 +920,12 @@ namespace Deadlight.UI
             if (GameManager.Instance.CurrentState == GameState.Victory)
             {
                 _victoryPanel?.SetActive(true);
+                Time.timeScale = 0f;
             }
             else if (GameManager.Instance.CurrentState == GameState.GameOver)
             {
                 _gameOverPanel?.SetActive(true);
+                Time.timeScale = 0f;
             }
         }
 

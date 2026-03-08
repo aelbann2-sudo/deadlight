@@ -139,11 +139,11 @@ namespace Deadlight.Enemy
                     sr != null ? sr.color : Color.gray);
             }
 
-            var waveManager = FindObjectOfType<WaveManager>();
+            var waveManager = FindFirstObjectByType<WaveManager>();
             if (waveManager != null)
                 waveManager.RegisterEnemyDeath();
 
-            var pointsSystem = FindObjectOfType<PointsSystem>();
+            var pointsSystem = FindFirstObjectByType<PointsSystem>();
             if (pointsSystem != null)
                 pointsSystem.AddPoints(pointsOnDeath, "Enemy Kill");
             

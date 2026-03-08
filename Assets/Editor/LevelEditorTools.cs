@@ -271,7 +271,7 @@ namespace Deadlight.Editor
 
         private void CreateLevelManager()
         {
-            if (FindObjectOfType<LevelManager>() != null)
+            if (FindFirstObjectByType<LevelManager>() != null)
             {
                 EditorUtility.DisplayDialog("Level Manager Exists", 
                     "A Level Manager already exists in the scene.", "OK");
@@ -287,7 +287,7 @@ namespace Deadlight.Editor
 
         private void CreateNarrativeManager()
         {
-            if (FindObjectOfType<NarrativeManager>() != null)
+            if (FindFirstObjectByType<NarrativeManager>() != null)
             {
                 EditorUtility.DisplayDialog("Narrative Manager Exists", 
                     "A Narrative Manager already exists in the scene.", "OK");

@@ -48,7 +48,7 @@ namespace Deadlight.Core
                 gmObj.AddComponent<GameManager>();
             }
 
-            if (FindObjectOfType<DayNightCycle>() == null)
+            if (FindFirstObjectByType<DayNightCycle>() == null)
             {
                 var dncObj = new GameObject("DayNightCycle");
                 dncObj.AddComponent<DayNightCycle>();
@@ -60,7 +60,7 @@ namespace Deadlight.Core
                 gfcObj.AddComponent<GameFlowController>();
             }
 
-            if (FindObjectOfType<WaveManager>() == null)
+            if (FindFirstObjectByType<WaveManager>() == null)
             {
                 var wmObj = new GameObject("WaveManager");
                 wmObj.AddComponent<WaveManager>();
@@ -108,7 +108,7 @@ namespace Deadlight.Core
                 shooting.SetFirePoint(firePoint);
             }
 
-            var cam = FindObjectOfType<CameraController>();
+            var cam = FindFirstObjectByType<CameraController>();
             if (cam != null)
             {
                 cam.SetTarget(player.transform);
@@ -119,7 +119,7 @@ namespace Deadlight.Core
         {
             if (enemySpawnPoints == null || enemySpawnPoints.Length == 0)
             {
-                var existingSpawners = FindObjectsOfType<EnemySpawner>();
+                var existingSpawners = FindObjectsByType<EnemySpawner>(FindObjectsSortMode.None);
                 if (existingSpawners.Length == 0)
                 {
                     CreateDefaultSpawnPoints();
@@ -164,7 +164,7 @@ namespace Deadlight.Core
 
         private void SetupWaveManager()
         {
-            var waveManager = FindObjectOfType<WaveManager>();
+            var waveManager = FindFirstObjectByType<WaveManager>();
             if (waveManager != null && zombiePrefab != null)
             {
                 waveManager.SetZombiePrefab(zombiePrefab);

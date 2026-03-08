@@ -31,9 +31,17 @@ namespace Deadlight.Enemy
         [SerializeField] private float attackWindup = 0.15f;
         [SerializeField] private Color telegraphColor = new Color(1f, 0.8f, 0.25f, 1f);
 
+        [Header("Phase Aggression")]
+        [SerializeField] private float dayDetectionRangeMultiplier = 0.5f;
+        [SerializeField] private float dayChaseSpeedMultiplier = 0.85f;
+        [SerializeField] private float dayAttackCooldownMultiplier = 1.4f;
+        [SerializeField] private float nightDetectionRangeMultiplier = 1.15f;
+        [SerializeField] private float nightChaseSpeedMultiplier = 1.08f;
+        [SerializeField] private float nightAttackCooldownMultiplier = 0.9f;
+        [SerializeField] private float attackCommitRangeMultiplier = 1.15f;
+
         [Header("State")]
         [SerializeField] private EnemyState currentState = EnemyState.Idle;
-        [SerializeField] private bool isAggressive = false;
 
         [Header("References")]
         [SerializeField] private Transform target;
@@ -50,10 +58,11 @@ namespace Deadlight.Enemy
         private SpriteRenderer spriteRenderer;
         private Color baseColor = Color.white;
         private bool isWindingUpAttack;
+        private EnemyAggressionPhase aggressionPhase;
 
         public EnemyState CurrentState => currentState;
         public float Damage => damage * damageMultiplier;
-        public bool IsAggressive => isAggressive;
+        public bool IsAggressive => aggressionPhase != EnemyAggressionPhase.Dormant;
 
         private void Awake()
         {
@@ -81,14 +90,14 @@ namespace Deadlight.Enemy
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.OnGameStateChanged += HandleGameStateChanged;
-                
-                if (GameManager.Instance.CurrentState == GameState.NightPhase)
-                {
-                    isAggressive = true;
-                }
+                RefreshAggressionPhase(GameManager.Instance.CurrentState);
+            }
+            else
+            {
+                aggressionPhase = EnemyAggressionPhase.DayStalk;
             }
 
-            dayNightCycle = FindObjectOfType<DayNightCycle>();
+            dayNightCycle = FindFirstObjectByType<DayNightCycle>();
             if (dayNightCycle != null)
             {
                 dayNightCycle.OnNightStart += OnNightStart;
@@ -151,32 +160,27 @@ namespace Deadlight.Enemy
 
         private void HandleGameStateChanged(GameState newState)
         {
-            switch (newState)
+            RefreshAggressionPhase(newState);
+
+            if (aggressionPhase == EnemyAggressionPhase.Dormant)
             {
-                case GameState.NightPhase:
-                    isAggressive = true;
-                    break;
-                case GameState.DayPhase:
-                    isAggressive = false;
-                    ChangeState(EnemyState.Idle);
-                    break;
+                ChangeState(EnemyState.Idle);
             }
         }
 
         private void OnNightStart()
         {
-            isAggressive = true;
+            RefreshAggressionPhase(GameState.NightPhase);
         }
 
         private void OnDayStart()
         {
-            isAggressive = false;
-            ChangeState(EnemyState.Idle);
+            RefreshAggressionPhase(GameState.DayPhase);
         }
 
         private void UpdateState(float distanceToTarget)
         {
-            if (!isAggressive)
+            if (aggressionPhase == EnemyAggressionPhase.Dormant)
             {
                 if (currentState != EnemyState.Idle && currentState != EnemyState.Patrol)
                 {
@@ -185,11 +189,13 @@ namespace Deadlight.Enemy
                 return;
             }
 
+            float effectiveDetectionRange = GetEffectiveDetectionRange();
+
             if (distanceToTarget <= attackRange)
             {
                 ChangeState(EnemyState.Attack);
             }
-            else if (distanceToTarget <= detectionRange)
+            else if (distanceToTarget <= effectiveDetectionRange)
             {
                 ChangeState(EnemyState.Chase);
             }
@@ -233,7 +239,7 @@ namespace Deadlight.Enemy
         private void HandleChase()
         {
             agent.isStopped = false;
-            agent.speed = baseChaseSpeed * speedMultiplier;
+            agent.speed = GetEffectiveChaseSpeed();
 
             if (target != null)
             {
@@ -245,7 +251,7 @@ namespace Deadlight.Enemy
         {
             agent.isStopped = true;
 
-            if (Time.time >= lastAttackTime + attackCooldown)
+            if (Time.time >= lastAttackTime + GetEffectiveAttackCooldown())
             {
                 StartCoroutine(PerformAttack());
             }
@@ -278,7 +284,7 @@ namespace Deadlight.Enemy
             yield return new WaitForSeconds(attackWindup);
 
             float distanceToTarget = Vector2.Distance(transform.position, target.position);
-            if (distanceToTarget <= attackRange * 1.2f)
+            if (distanceToTarget <= attackRange * attackCommitRangeMultiplier)
             {
                 var playerHealth = target.GetComponent<Player.PlayerHealth>();
                 if (playerHealth != null)
@@ -335,7 +341,7 @@ namespace Deadlight.Enemy
 
         public void SetAggressive(bool aggressive)
         {
-            isAggressive = aggressive;
+            aggressionPhase = aggressive ? EnemyAggressionPhase.NightHunt : EnemyAggressionPhase.Dormant;
         }
 
         public void SetTarget(Transform newTarget)
@@ -362,10 +368,54 @@ namespace Deadlight.Enemy
             agent.enabled = false;
         }
 
+        private void RefreshAggressionPhase(GameState state)
+        {
+            aggressionPhase = EnemyAggressionResolver.Resolve(state);
+
+            if (agent != null)
+            {
+                agent.stoppingDistance = attackRange * (aggressionPhase == EnemyAggressionPhase.NightHunt ? 0.9f : 0.75f);
+            }
+        }
+
+        private float GetEffectiveDetectionRange()
+        {
+            return aggressionPhase switch
+            {
+                EnemyAggressionPhase.NightHunt => detectionRange * nightDetectionRangeMultiplier,
+                EnemyAggressionPhase.DayStalk => detectionRange * dayDetectionRangeMultiplier,
+                _ => 0f
+            };
+        }
+
+        private float GetEffectiveChaseSpeed()
+        {
+            float phaseMultiplier = aggressionPhase switch
+            {
+                EnemyAggressionPhase.NightHunt => nightChaseSpeedMultiplier,
+                EnemyAggressionPhase.DayStalk => dayChaseSpeedMultiplier,
+                _ => 0f
+            };
+
+            return baseChaseSpeed * speedMultiplier * phaseMultiplier;
+        }
+
+        private float GetEffectiveAttackCooldown()
+        {
+            float phaseMultiplier = aggressionPhase switch
+            {
+                EnemyAggressionPhase.NightHunt => nightAttackCooldownMultiplier,
+                EnemyAggressionPhase.DayStalk => dayAttackCooldownMultiplier,
+                _ => float.PositiveInfinity
+            };
+
+            return attackCooldown * phaseMultiplier;
+        }
+
         private void OnDrawGizmosSelected()
         {
             Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(transform.position, detectionRange);
+            Gizmos.DrawWireSphere(transform.position, Application.isPlaying ? GetEffectiveDetectionRange() : detectionRange);
 
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(transform.position, attackRange);

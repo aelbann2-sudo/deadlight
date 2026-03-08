@@ -37,9 +37,12 @@ namespace Deadlight.Core
         [SerializeField] private int daySkirmishMin = 1;
         [SerializeField] private int daySkirmishMax = 3;
         [SerializeField] private float daySkirmishTriggerTime = 20f;
+        [SerializeField] private float daySkirmishHealthMultiplier = 0.75f;
+        [SerializeField] private float daySkirmishDamageMultiplier = 0.65f;
+        [SerializeField] private float daySkirmishSpeedMultiplier = 0.9f;
         [SerializeField] private float emergencySpawnDelay = 5f;
-        [SerializeField] private float waveEnemyGrowthPerWave = 0.22f;
-        [SerializeField] private float waveOverlapThresholdRatio = 0.45f;
+        [SerializeField] private float waveEnemyGrowthPerWave = 0.16f;
+        [SerializeField] private float waveOverlapThresholdRatio = 0.2f;
 
         public int CurrentWave => currentWave;
         public int EnemiesRemaining => enemiesRemaining;
@@ -68,7 +71,7 @@ namespace Deadlight.Core
                 GameManager.Instance.OnGameStateChanged += HandleGameStateChanged;
             }
 
-            dayNightCycle = FindObjectOfType<DayNightCycle>();
+            dayNightCycle = FindFirstObjectByType<DayNightCycle>();
             if (dayNightCycle != null)
             {
                 dayNightCycle.OnNightStart += StartNightWaves;
@@ -145,7 +148,7 @@ namespace Deadlight.Core
 
             if (spawnPoints.Count == 0)
             {
-                foreach (var spawner in FindObjectsOfType<Enemy.EnemySpawner>())
+                foreach (var spawner in FindObjectsByType<Enemy.EnemySpawner>(FindObjectsSortMode.None))
                 {
                     AddSpawnPoint(spawner.transform);
                 }
@@ -392,10 +395,12 @@ namespace Deadlight.Core
             }
 
             int nightNum = GameManager.Instance?.CurrentNight ?? 1;
-            var spawnType = SelectSpawnType(nightNum);
+            bool isDaySkirmish = GameManager.Instance?.CurrentState == GameState.DayPhase;
+            var spawnType = SelectSpawnType(nightNum, isDaySkirmish);
             bool shouldSpawnBoss = nightNum >= 5 &&
                                    spawnType == SpawnType.Tank &&
                                    currentWave >= (currentNightConfig?.waveCount ?? 3) &&
+                                   !isDaySkirmish &&
                                    !bossSpawned;
             var enemyType = spawnType switch
             {
@@ -438,7 +443,7 @@ namespace Deadlight.Core
                 tracker.Initialize(usedSpawnPoint);
             }
 
-            ApplyNightModifiers(enemy);
+            ApplyPhaseModifiers(enemy, isDaySkirmish);
 
             if (enemy.GetComponent<Visuals.ZombieAnimator>() == null)
                 enemy.AddComponent<Visuals.ZombieAnimator>();
@@ -464,9 +469,16 @@ namespace Deadlight.Core
 
         private enum SpawnType { Basic, Runner, Exploder, Tank, Spitter }
 
-        private SpawnType SelectSpawnType(int night)
+        private SpawnType SelectSpawnType(int night, bool isDaySkirmish)
         {
             float roll = UnityEngine.Random.value;
+
+            if (isDaySkirmish)
+            {
+                if (night >= 4 && roll < 0.12f)
+                    return SpawnType.Runner;
+                return SpawnType.Basic;
+            }
 
             if (night >= 5 && currentWave >= (currentNightConfig?.waveCount ?? 3) && !bossSpawned)
             {
@@ -489,7 +501,7 @@ namespace Deadlight.Core
 
         private Visuals.ProceduralSpriteGenerator.ZombieType SelectEnemyType(int night)
         {
-            var spawn = SelectSpawnType(night);
+            var spawn = SelectSpawnType(night, false);
             return spawn switch
             {
                 SpawnType.Runner => Visuals.ProceduralSpriteGenerator.ZombieType.Runner,
@@ -636,7 +648,7 @@ namespace Deadlight.Core
             return spawnPos;
         }
 
-        private void ApplyNightModifiers(GameObject enemy)
+        private void ApplyPhaseModifiers(GameObject enemy, bool isDaySkirmish)
         {
             if (currentNightConfig == null)
             {
@@ -661,6 +673,13 @@ namespace Deadlight.Core
                 objectiveBuff = DayObjectiveSystem.Instance.ActiveNightBuffMultiplier;
                 healthMultiplier /= objectiveBuff;
                 damageMultiplier /= objectiveBuff;
+            }
+
+            if (isDaySkirmish)
+            {
+                healthMultiplier = Mathf.Lerp(1f, healthMultiplier, daySkirmishHealthMultiplier);
+                damageMultiplier = Mathf.Lerp(1f, damageMultiplier, daySkirmishDamageMultiplier);
+                speedMultiplier = Mathf.Lerp(1f, speedMultiplier, daySkirmishSpeedMultiplier);
             }
 
             var enemyHealth = enemy.GetComponent<Enemy.EnemyHealth>();
@@ -726,7 +745,7 @@ namespace Deadlight.Core
                 return;
             }
 
-            int burstCount = Mathf.Clamp(1 + (GameManager.Instance.CurrentNight / 2), 1, 4);
+            int burstCount = Mathf.Clamp(1 + (GameManager.Instance.CurrentNight / 3), 1, 2);
             for (int i = 0; i < burstCount; i++)
             {
                 SpawnEnemy();

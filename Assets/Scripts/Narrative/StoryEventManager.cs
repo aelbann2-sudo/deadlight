@@ -25,7 +25,7 @@ namespace Deadlight.Narrative
             if (GameManager.Instance != null)
                 GameManager.Instance.OnGameStateChanged += OnStateChanged;
 
-            var waveManager = FindObjectOfType<WaveManager>();
+            var waveManager = FindFirstObjectByType<WaveManager>();
             if (waveManager != null)
                 waveManager.OnEnemyKilled += OnEnemyKilled;
         }

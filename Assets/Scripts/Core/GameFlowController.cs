@@ -55,7 +55,7 @@ namespace Deadlight.Core
 
         private void Start()
         {
-            dayNightCycle = FindObjectOfType<DayNightCycle>();
+            dayNightCycle = FindFirstObjectByType<DayNightCycle>();
             if (dayNightCycle != null)
             {
                 dayNightCycle.OnTimeUpdate += HandleDayNightTimeUpdate;
@@ -462,7 +462,7 @@ namespace Deadlight.Core
         {
             if (dayNightCycle == null)
             {
-                dayNightCycle = FindObjectOfType<DayNightCycle>();
+                dayNightCycle = FindFirstObjectByType<DayNightCycle>();
             }
 
             if (dayNightCycle == null)

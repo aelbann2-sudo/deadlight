@@ -37,7 +37,6 @@ namespace Deadlight.Systems
         [SerializeField] private string highestNightGrade = "D";
 
         [Header("Point Values")]
-        [SerializeField] private int pointsPerKill = 10;
         [SerializeField] private int pointsPerNightSurvived = 100;
         [SerializeField] private int bonusPointsPerNight = 50;
 
@@ -75,7 +74,7 @@ namespace Deadlight.Systems
                 GameManager.Instance.OnNightChanged += HandleNightChanged;
             }
 
-            var waveManager = FindObjectOfType<WaveManager>();
+            var waveManager = FindFirstObjectByType<WaveManager>();
             if (waveManager != null)
             {
                 waveManager.OnEnemyKilled += HandleEnemyKilled;
@@ -226,7 +225,7 @@ namespace Deadlight.Systems
 
         private void ResolvePlayerCombatSubscriptions()
         {
-            var shooting = FindObjectOfType<Player.PlayerShooting>();
+            var shooting = FindFirstObjectByType<Player.PlayerShooting>();
             if (shooting != null)
             {
                 shooting.OnWeaponFired -= OnWeaponFired;
@@ -265,7 +264,7 @@ namespace Deadlight.Systems
             }
 
             float speedScore = 0.8f;
-            var cycle = FindObjectOfType<DayNightCycle>();
+            var cycle = FindFirstObjectByType<DayNightCycle>();
             if (cycle != null)
             {
                 speedScore = Mathf.Clamp01(1f - cycle.NormalizedTime);
