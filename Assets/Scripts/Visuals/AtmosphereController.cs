@@ -45,6 +45,8 @@ namespace Deadlight.Visuals
         private bool isNight = false;
         private float healthPercent = 1f;
 
+        public bool IsNight => isNight;
+
         private Coroutine transitionCoroutine;
         private Coroutine lowHealthPulseCoroutine;
 

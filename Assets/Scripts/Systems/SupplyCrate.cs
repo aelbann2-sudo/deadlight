@@ -245,7 +245,7 @@ namespace Deadlight.Systems
                     reward = $"+{pts} Points";
                     break;
                 case CrateContents.Powerup:
-                    var ps = FindObjectOfType<PowerupSystem>();
+                    var ps = FindFirstObjectByType<PowerupSystem>();
                     if (ps != null) ps.GrantRandomPowerup();
                     reward = "POWERUP!";
                     break;

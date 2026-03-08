@@ -50,7 +50,12 @@ namespace Deadlight.Narrative
 
             CheckPlayerDistance();
 
-            if (playerInRange && Input.GetKeyDown(interactionKey))
+            if (!playerInRange)
+            {
+                return;
+            }
+
+            if (!requireInteraction || Input.GetKeyDown(interactionKey))
             {
                 Collect();
             }
@@ -75,7 +80,7 @@ namespace Deadlight.Narrative
         {
             if (interactionPrompt != null)
             {
-                interactionPrompt.SetActive(inRange);
+                interactionPrompt.SetActive(inRange && requireInteraction);
             }
 
             if (spriteRenderer != null)

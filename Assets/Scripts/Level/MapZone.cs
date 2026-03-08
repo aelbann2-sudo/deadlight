@@ -1,4 +1,5 @@
 using UnityEngine;
+using Deadlight.Enemy;
 
 namespace Deadlight.Level
 {
@@ -37,6 +38,7 @@ namespace Deadlight.Level
         public float DangerLevel => dangerLevel;
         public float LootMultiplier => lootMultiplier;
         public bool IsShopLocation => isShopLocation;
+        public int MaxEnemiesInZone => Mathf.Max(0, maxEnemiesInZone);
         public Bounds ZoneBounds => new Bounds(transform.position, new Vector3(zoneSize.x, zoneSize.y, 1f));
 
         private SpriteRenderer zoneVisual;
@@ -126,6 +128,30 @@ namespace Deadlight.Level
         public Transform[] GetSpawnPoints()
         {
             return spawnPointsInZone;
+        }
+
+        public bool CanAcceptMoreEnemies()
+        {
+            if (maxEnemiesInZone <= 0)
+            {
+                return true;
+            }
+
+            int enemiesInZone = 0;
+            var enemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
+            for (int i = 0; i < enemies.Length; i++)
+            {
+                if (enemies[i] != null && enemies[i].IsAlive && ContainsPoint(enemies[i].transform.position))
+                {
+                    enemiesInZone++;
+                    if (enemiesInZone >= maxEnemiesInZone)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         private void OnDrawGizmos()

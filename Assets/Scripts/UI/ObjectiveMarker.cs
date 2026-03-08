@@ -58,19 +58,19 @@ namespace Deadlight.UI
         {
             ClearMarkers();
 
-            var zones = FindObjectsOfType<ObjectiveZone>();
+            var zones = FindObjectsByType<ObjectiveZone>(FindObjectsSortMode.None);
             foreach (var z in zones)
                 AddMarker(z.transform, new Color(0.3f, 0.7f, 1f));
 
-            var beacons = FindObjectsOfType<ObjectiveBeacon>();
+            var beacons = FindObjectsByType<ObjectiveBeacon>(FindObjectsSortMode.None);
             foreach (var b in beacons)
                 AddMarker(b.transform, new Color(0.3f, 0.5f, 1f));
 
-            var caches = FindObjectsOfType<ObjectiveCache>();
+            var caches = FindObjectsByType<ObjectiveCache>(FindObjectsSortMode.None);
             foreach (var c in caches)
                 AddMarker(c.transform, new Color(0.9f, 0.75f, 0.2f));
 
-            var crates = FindObjectsOfType<Systems.SupplyCrate>();
+            var crates = FindObjectsByType<Systems.SupplyCrate>(FindObjectsSortMode.None);
             foreach (var cr in crates)
                 AddMarker(cr.transform, new Color(0.7f, 0.5f, 0.2f, 0.6f));
         }
@@ -171,6 +171,11 @@ namespace Deadlight.UI
         {
             foreach (var m in markers)
             {
+                if (m.arrow != null && m.arrow.sprite != null)
+                {
+                    if (m.arrow.sprite.texture != null) Destroy(m.arrow.sprite.texture);
+                    Destroy(m.arrow.sprite);
+                }
                 if (m.uiRoot != null) Destroy(m.uiRoot.gameObject);
             }
             markers.Clear();

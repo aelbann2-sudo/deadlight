@@ -51,6 +51,15 @@ namespace Deadlight.Systems
             }
         }
 
+        private void LateUpdate()
+        {
+            for (int i = activeTexts.Count - 1; i >= 0; i--)
+            {
+                if (activeTexts[i] == null)
+                    activeTexts.RemoveAt(i);
+            }
+        }
+
         public void SpawnPointsText(int points, Vector3 position, string bonusTag = null)
         {
             Color color = points switch

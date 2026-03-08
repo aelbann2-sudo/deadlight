@@ -244,7 +244,7 @@ namespace Deadlight.Narrative
 
         private void EnsureEventSystem()
         {
-            if (FindObjectOfType<UnityEngine.EventSystems.EventSystem>() == null)
+            if (FindFirstObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
             {
                 var esObj = new GameObject("EventSystem");
                 esObj.AddComponent<UnityEngine.EventSystems.EventSystem>();

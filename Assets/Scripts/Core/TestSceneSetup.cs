@@ -808,14 +808,47 @@ namespace Deadlight.Core
 
         private void BuildHUD()
         {
-            var canvas = new GameObject("GameCanvas");
-            var canvasComp = canvas.AddComponent<Canvas>();
-            canvasComp.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvasComp.sortingOrder = 100;
-            var scaler = canvas.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920, 1080);
-            canvas.AddComponent<GraphicRaycaster>();
+            Canvas canvasComp = FindFirstObjectByType<Canvas>();
+            GameObject canvas;
+
+            if (canvasComp != null && canvasComp.GetComponent<Deadlight.UI.LiveHUD>() != null)
+            {
+                return;
+            }
+
+            if (canvasComp == null)
+            {
+                canvas = new GameObject("GameCanvas");
+                canvasComp = canvas.AddComponent<Canvas>();
+                canvasComp.renderMode = RenderMode.ScreenSpaceOverlay;
+                canvasComp.sortingOrder = 100;
+                var scaler = canvas.AddComponent<CanvasScaler>();
+                scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                scaler.referenceResolution = new Vector2(1920, 1080);
+                canvas.AddComponent<GraphicRaycaster>();
+            }
+            else
+            {
+                canvas = canvasComp.gameObject;
+                canvasComp.renderMode = RenderMode.ScreenSpaceOverlay;
+                canvasComp.sortingOrder = Mathf.Max(canvasComp.sortingOrder, 100);
+
+                var scaler = canvas.GetComponent<CanvasScaler>();
+                if (scaler == null)
+                {
+                    scaler = canvas.AddComponent<CanvasScaler>();
+                }
+
+                scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                scaler.referenceResolution = new Vector2(1920, 1080);
+
+                if (canvas.GetComponent<GraphicRaycaster>() == null)
+                {
+                    canvas.AddComponent<GraphicRaycaster>();
+                }
+
+                DisableLegacyHud(canvas.transform);
+            }
 
             Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             if (font == null)
@@ -1179,6 +1212,26 @@ namespace Deadlight.Core
                     fadeOverlay.GetComponent<Image>(),
                     camCtrl
                 );
+            }
+        }
+
+        private static void DisableLegacyHud(Transform canvasRoot)
+        {
+            if (canvasRoot == null)
+            {
+                return;
+            }
+
+            var hudManager = canvasRoot.GetComponentInChildren<Deadlight.UI.HUDManager>(true);
+            if (hudManager != null)
+            {
+                hudManager.enabled = false;
+            }
+
+            var legacyHud = canvasRoot.Find("HUD");
+            if (legacyHud != null)
+            {
+                legacyHud.gameObject.SetActive(false);
             }
         }
 
