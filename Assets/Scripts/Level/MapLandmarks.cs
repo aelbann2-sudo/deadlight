@@ -1,4 +1,5 @@
 using UnityEngine;
+using Deadlight.Core;
 using Deadlight.Visuals;
 
 namespace Deadlight.Level
@@ -17,13 +18,51 @@ namespace Deadlight.Level
             Instance = this;
         }
 
-        public void CreateAllLandmarks(Transform parent)
+        public void CreateAllLandmarks(Transform parent, MapType mapType)
         {
-            CreateCrashedHelicopter(parent, new Vector3(0, 10, 0));
-            CreateMilitaryCheckpoint(parent, new Vector3(-9, 0, 0));
-            CreateResearchLabEntrance(parent, new Vector3(0, -10, 0));
-            CreateGasStation(parent, new Vector3(8, -5, 0));
-            CreateStreetlights(parent);
+            switch (mapType)
+            {
+                case MapType.TownCenter:
+                    CreateCrashedHelicopter(parent, new Vector3(0, 20, 0));
+                    CreateMilitaryCheckpoint(parent, new Vector3(-18, 0, 0));
+                    CreateGasStation(parent, new Vector3(16, -12, 0));
+                    CreateTownPlaza(parent, new Vector3(0, 0, 0));
+                    CreateStreetlights(parent, new Vector3[] {
+                        new Vector3(-10, 10, 0), new Vector3(10, 10, 0),
+                        new Vector3(-10, -10, 0), new Vector3(10, -10, 0),
+                        new Vector3(-20, 0, 0), new Vector3(20, 0, 0),
+                        new Vector3(0, 20, 0), new Vector3(0, -20, 0),
+                        new Vector3(-10, 20, 0), new Vector3(10, -20, 0),
+                    });
+                    break;
+
+                case MapType.Industrial:
+                    CreateCrashedHelicopter(parent, new Vector3(0, 22, 0));
+                    CreateResearchLabEntrance(parent, new Vector3(0, -22, 0));
+                    CreateFuelDepot(parent, new Vector3(14, 14, 0));
+                    CreateLoadingDock(parent, new Vector3(-8, -18, 0));
+                    CreateStreetlights(parent, new Vector3[] {
+                        new Vector3(-10, 0, 0), new Vector3(10, 0, 0),
+                        new Vector3(-10, 12, 0), new Vector3(10, 12, 0),
+                        new Vector3(-10, -12, 0), new Vector3(10, -12, 0),
+                        new Vector3(0, 20, 0), new Vector3(0, -20, 0),
+                    });
+                    break;
+
+                case MapType.Suburban:
+                    CreateMilitaryCheckpoint(parent, new Vector3(0, -18, 0));
+                    CreateGasStation(parent, new Vector3(20, 0, 0));
+                    CreatePlayground(parent, new Vector3(-8, 14, 0));
+                    CreateAbandonedBus(parent, new Vector3(14, -16, 0));
+                    CreateStreetlights(parent, new Vector3[] {
+                        new Vector3(Mathf.Sin(-12 * 0.15f) * 6f, -12, 0),
+                        new Vector3(Mathf.Sin(-4 * 0.15f) * 6f, -4, 0),
+                        new Vector3(Mathf.Sin(4 * 0.15f) * 6f, 4, 0),
+                        new Vector3(Mathf.Sin(12 * 0.15f) * 6f, 12, 0),
+                        new Vector3(-14, 0, 0), new Vector3(14, 0, 0),
+                    });
+                    break;
+            }
         }
 
         public void CreateCrashedHelicopter(Transform parent, Vector3 position)
@@ -186,18 +225,146 @@ namespace Deadlight.Level
             psr.sortingOrder = 5;
         }
 
-        public void CreateStreetlights(Transform parent)
-        {
-            Vector3[] lightPositions = {
-                new Vector3(-5, 5, 0), new Vector3(5, 5, 0),
-                new Vector3(-5, -5, 0), new Vector3(5, -5, 0),
-                new Vector3(0, 3, 0), new Vector3(0, -3, 0),
-            };
+        // ===================== NEW LANDMARKS =====================
 
+        private void CreateTownPlaza(Transform parent, Vector3 position)
+        {
+            var plaza = new GameObject("TownPlaza");
+            plaza.transform.SetParent(parent);
+            plaza.transform.position = position;
+
+            // Fountain structure
+            var fountain = new GameObject("Fountain");
+            fountain.transform.SetParent(plaza.transform);
+            fountain.transform.localPosition = Vector3.zero;
+            var sr = fountain.AddComponent<SpriteRenderer>();
+            sr.sprite = CreateFountainSprite();
+            sr.sortingOrder = 6;
+            var col = fountain.AddComponent<CircleCollider2D>();
+            col.radius = 0.8f;
+
+            // Water glow
+            var waterGlow = new GameObject("WaterGlow");
+            waterGlow.transform.SetParent(plaza.transform);
+            waterGlow.transform.localPosition = Vector3.zero;
+            var wsr = waterGlow.AddComponent<SpriteRenderer>();
+            wsr.sprite = CreateGlowSprite(new Color(0.3f, 0.5f, 0.9f, 0.2f));
+            wsr.sortingOrder = -100;
+            waterGlow.transform.localScale = Vector3.one * 4f;
+            waterGlow.AddComponent<GlowPulse>();
+        }
+
+        private void CreateFuelDepot(Transform parent, Vector3 position)
+        {
+            var depot = new GameObject("FuelDepot");
+            depot.transform.SetParent(parent);
+            depot.transform.position = position;
+
+            // Large fuel tank
+            for (int i = 0; i < 2; i++)
+            {
+                var tank = new GameObject($"FuelTank_{i}");
+                tank.transform.SetParent(depot.transform);
+                tank.transform.localPosition = new Vector3(i * 2.5f - 1.25f, 0, 0);
+                var sr = tank.AddComponent<SpriteRenderer>();
+                sr.sprite = CreateFuelTankSprite();
+                sr.sortingOrder = 5;
+                var col = tank.AddComponent<BoxCollider2D>();
+                col.size = new Vector2(1.8f, 1.2f);
+            }
+
+            // Hazard signs
+            var sign = new GameObject("HazardSign");
+            sign.transform.SetParent(depot.transform);
+            sign.transform.localPosition = new Vector3(-2f, 1.5f, 0);
+            var hsr = sign.AddComponent<SpriteRenderer>();
+            hsr.sprite = CreateHazardSignSprite();
+            hsr.sortingOrder = 6;
+        }
+
+        private void CreateLoadingDock(Transform parent, Vector3 position)
+        {
+            var dock = new GameObject("LoadingDock");
+            dock.transform.SetParent(parent);
+            dock.transform.position = position;
+
+            // Raised platform
+            var platform = new GameObject("Platform");
+            platform.transform.SetParent(dock.transform);
+            platform.transform.localPosition = Vector3.zero;
+            var sr = platform.AddComponent<SpriteRenderer>();
+            sr.sprite = CreatePlatformSprite();
+            sr.sortingOrder = 3;
+            var col = platform.AddComponent<BoxCollider2D>();
+            col.size = new Vector2(4f, 1f);
+            col.offset = new Vector2(0, 0.5f);
+
+            // Scattered crates on dock
+            for (int i = 0; i < 4; i++)
+            {
+                var crate = new GameObject($"DockCrate_{i}");
+                crate.transform.SetParent(dock.transform);
+                crate.transform.localPosition = new Vector3(-1.5f + i * 1f, -0.8f, 0);
+                var csr = crate.AddComponent<SpriteRenderer>();
+                csr.sprite = ProceduralSpriteGenerator.CreateCrateSprite();
+                csr.sortingOrder = 5;
+                var ccol = crate.AddComponent<BoxCollider2D>();
+                ccol.size = new Vector2(0.8f, 0.8f);
+            }
+        }
+
+        private void CreatePlayground(Transform parent, Vector3 position)
+        {
+            var playground = new GameObject("Playground");
+            playground.transform.SetParent(parent);
+            playground.transform.position = position;
+
+            // Swing set frame
+            var swings = new GameObject("SwingSet");
+            swings.transform.SetParent(playground.transform);
+            swings.transform.localPosition = Vector3.zero;
+            var sr = swings.AddComponent<SpriteRenderer>();
+            sr.sprite = CreateSwingSetSprite();
+            sr.sortingOrder = 6;
+            var col = swings.AddComponent<BoxCollider2D>();
+            col.size = new Vector2(2f, 0.3f);
+            col.offset = new Vector2(0, -0.5f);
+
+            // Slide
+            var slide = new GameObject("Slide");
+            slide.transform.SetParent(playground.transform);
+            slide.transform.localPosition = new Vector3(2.5f, 0, 0);
+            var ssr = slide.AddComponent<SpriteRenderer>();
+            ssr.sprite = CreateSlideSprite();
+            ssr.sortingOrder = 6;
+            var scol = slide.AddComponent<CircleCollider2D>();
+            scol.radius = 0.4f;
+        }
+
+        private void CreateAbandonedBus(Transform parent, Vector3 position)
+        {
+            var bus = new GameObject("AbandonedBus");
+            bus.transform.SetParent(parent);
+            bus.transform.position = position;
+            bus.transform.rotation = Quaternion.Euler(0, 0, 12f);
+
+            var sr = bus.AddComponent<SpriteRenderer>();
+            sr.sprite = CreateBusSprite();
+            sr.sortingOrder = 5;
+            sr.color = new Color(0.7f, 0.6f, 0.2f);
+
+            var col = bus.AddComponent<BoxCollider2D>();
+            col.size = new Vector2(3.5f, 1f);
+        }
+
+        // ===================== STREETLIGHTS =====================
+
+        private void CreateStreetlights(Transform parent, Vector3[] positions)
+        {
             var lightsParent = new GameObject("Streetlights");
             lightsParent.transform.SetParent(parent);
 
-            foreach (var pos in lightPositions)
+            foreach (var pos in positions)
             {
                 var light = new GameObject("Streetlight");
                 light.transform.SetParent(lightsParent.transform);
@@ -220,13 +387,201 @@ namespace Deadlight.Level
                 glowSr.sprite = CreateGlowSprite(new Color(1f, 0.9f, 0.6f, 0.25f));
                 glowSr.sortingOrder = -100;
                 glowObj.transform.localScale = Vector3.one * 3f;
-                
+
                 if (Random.value < 0.3f)
                 {
                     glowObj.AddComponent<FlickeringLight>();
                 }
             }
         }
+
+        // ===================== SPRITE CREATION =====================
+
+        private Sprite CreateFountainSprite()
+        {
+            int size = 32;
+            var tex = new Texture2D(size, size);
+            var pixels = new Color[size * size];
+            Vector2 center = new Vector2(size / 2f, size / 2f);
+
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dist = Vector2.Distance(new Vector2(x, y), center) / (size / 2f);
+                    if (dist < 0.9f && dist > 0.6f)
+                        pixels[y * size + x] = new Color(0.5f, 0.5f, 0.55f);
+                    else if (dist <= 0.6f)
+                        pixels[y * size + x] = new Color(0.3f, 0.5f, 0.8f, 0.7f);
+                }
+            }
+
+            // Center column
+            for (int y = size / 2 - 4; y < size / 2 + 6; y++)
+                for (int x = size / 2 - 2; x < size / 2 + 2; x++)
+                    if (y >= 0 && y < size && x >= 0 && x < size)
+                        pixels[y * size + x] = new Color(0.6f, 0.6f, 0.65f);
+
+            tex.SetPixels(pixels);
+            tex.Apply();
+            tex.filterMode = FilterMode.Point;
+            return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 16f);
+        }
+
+        private Sprite CreateFuelTankSprite()
+        {
+            int w = 32, h = 24;
+            var tex = new Texture2D(w, h);
+            var pixels = new Color[w * h];
+            Color tankColor = new Color(0.5f, 0.5f, 0.55f);
+
+            for (int y = 4; y < h - 4; y++)
+                for (int x = 2; x < w - 2; x++)
+                    pixels[y * w + x] = tankColor;
+
+            // Highlight stripe
+            for (int x = 4; x < w - 4; x++)
+            {
+                pixels[(h / 2) * w + x] = new Color(0.6f, 0.6f, 0.65f);
+                pixels[(h / 2 + 1) * w + x] = new Color(0.6f, 0.6f, 0.65f);
+            }
+
+            // Hazard stripe
+            for (int x = 4; x < w - 4; x += 4)
+                for (int dy = 0; dy < 3; dy++)
+                    if (h - 6 + dy < h)
+                        pixels[(h - 6 + dy) * w + x] = new Color(0.9f, 0.7f, 0.1f);
+
+            tex.SetPixels(pixels);
+            tex.Apply();
+            tex.filterMode = FilterMode.Point;
+            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 16f);
+        }
+
+        private Sprite CreatePlatformSprite()
+        {
+            int w = 64, h = 24;
+            var tex = new Texture2D(w, h);
+            var pixels = new Color[w * h];
+            Color concrete = new Color(0.45f, 0.45f, 0.48f);
+
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                {
+                    float shade = 0.95f + Random.Range(-0.05f, 0.05f);
+                    pixels[y * w + x] = concrete * shade;
+                }
+
+            tex.SetPixels(pixels);
+            tex.Apply();
+            tex.filterMode = FilterMode.Point;
+            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 16f);
+        }
+
+        private Sprite CreateSwingSetSprite()
+        {
+            int w = 32, h = 32;
+            var tex = new Texture2D(w, h);
+            var pixels = new Color[w * h];
+            Color metal = new Color(0.4f, 0.4f, 0.45f);
+
+            // Two vertical poles
+            for (int y = 0; y < h; y++)
+            {
+                pixels[y * w + 4] = metal;
+                pixels[y * w + 5] = metal;
+                pixels[y * w + w - 5] = metal;
+                pixels[y * w + w - 6] = metal;
+            }
+
+            // Top bar
+            for (int x = 4; x < w - 4; x++)
+            {
+                pixels[(h - 2) * w + x] = metal;
+                pixels[(h - 3) * w + x] = metal;
+            }
+
+            // Chains and seats
+            for (int seat = 0; seat < 2; seat++)
+            {
+                int sx = 10 + seat * 12;
+                for (int y = h / 3; y < h - 3; y += 2)
+                    if (sx < w) pixels[y * w + sx] = new Color(0.3f, 0.3f, 0.35f);
+                for (int x = sx - 2; x < sx + 3 && x < w; x++)
+                    pixels[(h / 3) * w + x] = new Color(0.35f, 0.2f, 0.1f);
+            }
+
+            tex.SetPixels(pixels);
+            tex.Apply();
+            tex.filterMode = FilterMode.Point;
+            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 16f);
+        }
+
+        private Sprite CreateSlideSprite()
+        {
+            int w = 24, h = 32;
+            var tex = new Texture2D(w, h);
+            var pixels = new Color[w * h];
+            Color metal = new Color(0.6f, 0.3f, 0.3f);
+
+            // Slide ramp (diagonal)
+            for (int y = 0; y < h; y++)
+            {
+                int x = (int)(4 + (float)y / h * (w - 12));
+                for (int dx = 0; dx < 6 && x + dx < w; dx++)
+                    pixels[y * w + x + dx] = metal;
+            }
+
+            // Ladder
+            for (int y = 0; y < h; y++)
+            {
+                pixels[y * w + w - 3] = new Color(0.4f, 0.4f, 0.45f);
+                pixels[y * w + w - 4] = new Color(0.4f, 0.4f, 0.45f);
+            }
+
+            tex.SetPixels(pixels);
+            tex.Apply();
+            tex.filterMode = FilterMode.Point;
+            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 16f);
+        }
+
+        private Sprite CreateBusSprite()
+        {
+            int w = 64, h = 24;
+            var tex = new Texture2D(w, h);
+            var pixels = new Color[w * h];
+            Color body = new Color(0.85f, 0.7f, 0.15f);
+            Color dark = new Color(0.3f, 0.3f, 0.25f);
+
+            // Bus body
+            for (int y = 4; y < h - 4; y++)
+                for (int x = 2; x < w - 2; x++)
+                    pixels[y * w + x] = body;
+
+            // Windows
+            for (int wx = 8; wx < w - 8; wx += 8)
+                for (int y = h / 2; y < h - 6; y++)
+                    for (int dx = 0; dx < 5 && wx + dx < w; dx++)
+                        pixels[y * w + wx + dx] = new Color(0.4f, 0.5f, 0.6f, 0.8f);
+
+            // Wheels
+            for (int y = 0; y < 6; y++)
+            {
+                for (int x = 8; x < 16; x++) pixels[y * w + x] = dark;
+                for (int x = w - 16; x < w - 8; x++) pixels[y * w + x] = dark;
+            }
+
+            // Roof line
+            for (int x = 2; x < w - 2; x++)
+                pixels[(h - 5) * w + x] = dark;
+
+            tex.SetPixels(pixels);
+            tex.Apply();
+            tex.filterMode = FilterMode.Point;
+            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 16f);
+        }
+
+        // ===================== EXISTING SPRITE HELPERS =====================
 
         private Sprite CreateHelicopterSprite()
         {
@@ -235,20 +590,12 @@ namespace Deadlight.Level
             var pixels = new Color[w * h];
 
             for (int y = 8; y < 24; y++)
-            {
                 for (int x = 8; x < 56; x++)
-                {
                     pixels[y * w + x] = new Color(0.3f, 0.35f, 0.3f);
-                }
-            }
 
             for (int y = 12; y < 20; y++)
-            {
                 for (int x = 0; x < 16; x++)
-                {
                     pixels[y * w + x] = new Color(0.25f, 0.3f, 0.25f);
-                }
-            }
 
             for (int x = 20; x < 52; x++)
             {
@@ -292,13 +639,8 @@ namespace Deadlight.Level
             Color sandColor = new Color(0.7f, 0.6f, 0.4f);
 
             for (int y = 0; y < h; y++)
-            {
                 for (int x = 0; x < w; x++)
-                {
-                    float shade = 0.9f + Random.Range(-0.1f, 0.1f);
-                    pixels[y * w + x] = sandColor * shade;
-                }
-            }
+                    pixels[y * w + x] = sandColor * (0.9f + Random.Range(-0.1f, 0.1f));
 
             tex.SetPixels(pixels);
             tex.Apply();
@@ -313,15 +655,10 @@ namespace Deadlight.Level
             var pixels = new Color[w * h];
 
             for (int y = 0; y < h; y++)
-            {
                 for (int x = 0; x < w; x++)
-                {
-                    if ((x / 6) % 2 == 0)
-                        pixels[y * w + x] = new Color(0.9f, 0.2f, 0.1f);
-                    else
-                        pixels[y * w + x] = new Color(0.9f, 0.9f, 0.9f);
-                }
-            }
+                    pixels[y * w + x] = (x / 6) % 2 == 0
+                        ? new Color(0.9f, 0.2f, 0.1f)
+                        : new Color(0.9f, 0.9f, 0.9f);
 
             tex.SetPixels(pixels);
             tex.Apply();
@@ -337,12 +674,8 @@ namespace Deadlight.Level
             Color bagColor = new Color(0.15f, 0.15f, 0.15f);
 
             for (int y = 2; y < h - 2; y++)
-            {
                 for (int x = 2; x < w - 2; x++)
-                {
                     pixels[y * w + x] = bagColor;
-                }
-            }
 
             tex.SetPixels(pixels);
             tex.Apply();
@@ -359,23 +692,12 @@ namespace Deadlight.Level
             Color darkColor = new Color(0.2f, 0.2f, 0.25f);
 
             for (int y = 0; y < h; y++)
-            {
                 for (int x = 0; x < w; x++)
-                {
-                    if (y < 8 || x < 4 || x >= w - 4)
-                        pixels[y * w + x] = darkColor;
-                    else
-                        pixels[y * w + x] = wallColor;
-                }
-            }
+                    pixels[y * w + x] = (y < 8 || x < 4 || x >= w - 4) ? darkColor : wallColor;
 
             for (int y = 16; y < 32; y++)
-            {
                 for (int x = 24; x < 40; x++)
-                {
                     pixels[y * w + x] = new Color(0.1f, 0.3f, 0.15f, 0.8f);
-                }
-            }
 
             tex.SetPixels(pixels);
             tex.Apply();
@@ -390,26 +712,12 @@ namespace Deadlight.Level
             var pixels = new Color[size * size];
 
             for (int y = 0; y < size; y++)
-            {
                 for (int x = 0; x < size; x++)
-                {
-                    float dx = x - size / 2f;
-                    float dy = y - size / 2f;
-                    if (Mathf.Abs(dx) + Mathf.Abs(dy) < size / 2f)
-                    {
+                    if (Mathf.Abs(x - size / 2f) + Mathf.Abs(y - size / 2f) < size / 2f)
                         pixels[y * size + x] = new Color(1f, 0.8f, 0f);
-                    }
-                }
-            }
 
-            for (int i = 4; i < 12; i++)
-            {
-                pixels[8 * size + i] = Color.black;
-            }
-            for (int i = 5; i < 11; i++)
-            {
-                pixels[i * size + 8] = Color.black;
-            }
+            for (int i = 4; i < 12; i++) pixels[8 * size + i] = Color.black;
+            for (int i = 5; i < 11; i++) pixels[i * size + 8] = Color.black;
 
             tex.SetPixels(pixels);
             tex.Apply();
@@ -425,12 +733,8 @@ namespace Deadlight.Level
             Color roofColor = new Color(0.6f, 0.1f, 0.1f);
 
             for (int y = 0; y < h; y++)
-            {
                 for (int x = 0; x < w; x++)
-                {
                     pixels[y * w + x] = roofColor;
-                }
-            }
 
             for (int y = 0; y < 4; y++)
             {
@@ -451,12 +755,8 @@ namespace Deadlight.Level
             var pixels = new Color[w * h];
 
             for (int y = 2; y < h - 2; y++)
-            {
                 for (int x = 2; x < w - 2; x++)
-                {
                     pixels[y * w + x] = new Color(0.1f, 0.1f, 0.15f);
-                }
-            }
 
             Color neonColor = new Color(1f, 0.3f, 0.3f);
             for (int i = 4; i < 12; i++)
@@ -476,15 +776,10 @@ namespace Deadlight.Level
             int w = 12, h = 24;
             var tex = new Texture2D(w, h);
             var pixels = new Color[w * h];
-            Color pumpColor = new Color(0.8f, 0.2f, 0.2f);
 
             for (int y = 0; y < h; y++)
-            {
                 for (int x = 2; x < w - 2; x++)
-                {
-                    pixels[y * w + x] = pumpColor;
-                }
-            }
+                    pixels[y * w + x] = new Color(0.8f, 0.2f, 0.2f);
 
             tex.SetPixels(pixels);
             tex.Apply();
@@ -507,12 +802,8 @@ namespace Deadlight.Level
 
             Color lampColor = new Color(0.4f, 0.4f, 0.3f);
             for (int y = h - 6; y < h; y++)
-            {
                 for (int x = 1; x < w - 1; x++)
-                {
                     pixels[y * w + x] = lampColor;
-                }
-            }
 
             tex.SetPixels(pixels);
             tex.Apply();
@@ -528,21 +819,13 @@ namespace Deadlight.Level
             Vector2 center = new Vector2(size / 2f, size / 2f);
 
             for (int y = 0; y < size; y++)
-            {
                 for (int x = 0; x < size; x++)
                 {
                     float dist = Vector2.Distance(new Vector2(x, y), center) / (size / 2f);
-                    if (dist < 1f)
-                    {
-                        float alpha = (1f - dist) * glowColor.a;
-                        pixels[y * size + x] = new Color(glowColor.r, glowColor.g, glowColor.b, alpha);
-                    }
-                    else
-                    {
-                        pixels[y * size + x] = Color.clear;
-                    }
+                    pixels[y * size + x] = dist < 1f
+                        ? new Color(glowColor.r, glowColor.g, glowColor.b, (1f - dist) * glowColor.a)
+                        : Color.clear;
                 }
-            }
 
             tex.SetPixels(pixels);
             tex.Apply();
@@ -579,18 +862,13 @@ namespace Deadlight.Level
             Vector2 center = new Vector2(size / 2f, size / 4f);
 
             for (int y = 0; y < size; y++)
-            {
                 for (int x = 0; x < size; x++)
                 {
                     float dx = Mathf.Abs(x - center.x);
                     float dy = y - center.y;
                     if (dy > 0 && dx < (size / 2f) * (1f - dy / size))
-                    {
-                        float t = dy / size;
-                        pixels[y * size + x] = Color.Lerp(new Color(1f, 0.6f, 0.1f), new Color(1f, 0.2f, 0f, 0f), t);
-                    }
+                        pixels[y * size + x] = Color.Lerp(new Color(1f, 0.6f, 0.1f), new Color(1f, 0.2f, 0f, 0f), dy / size);
                 }
-            }
 
             tex.SetPixels(pixels);
             tex.Apply();
@@ -630,16 +908,12 @@ namespace Deadlight.Level
             Vector2 center = new Vector2(size / 2f, size / 2f);
 
             for (int y = 0; y < size; y++)
-            {
                 for (int x = 0; x < size; x++)
                 {
                     float dist = Vector2.Distance(new Vector2(x, y), center) / (size / 2f);
                     if (dist < 1f)
-                    {
                         pixels[y * size + x] = new Color(0.5f, 0.5f, 0.5f, (1f - dist) * 0.6f);
-                    }
                 }
-            }
 
             tex.SetPixels(pixels);
             tex.Apply();
@@ -674,15 +948,12 @@ namespace Deadlight.Level
             var pixels = new Color[w * h];
 
             for (int y = 0; y < h; y++)
-            {
                 for (int x = 0; x < w; x++)
                 {
                     float dx = Mathf.Abs(x - w / 2f) / (w / 2f);
                     float dy = (float)y / h;
-                    float alpha = (1f - dx) * (1f - dy) * 0.3f;
-                    pixels[y * w + x] = new Color(1f, 1f, 0.8f, alpha);
+                    pixels[y * w + x] = new Color(1f, 1f, 0.8f, (1f - dx) * (1f - dy) * 0.3f);
                 }
-            }
 
             tex.SetPixels(pixels);
             tex.Apply();

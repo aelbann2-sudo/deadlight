@@ -28,6 +28,11 @@ namespace Deadlight.Data
         public float pathWidth = 2f;
         public bool hasDiagonalConcrete = true;
 
+        [Header("Ground Pattern")]
+        public float streetGridSpacing = 8f;
+        public float mainRoadWidth = 2f;
+        public float sideRoadWidth = 1.5f;
+
         [Header("Spawn Settings")]
         public Vector3[] enemySpawnPositions;
         public Vector3[] lorePositions;
@@ -42,27 +47,32 @@ namespace Deadlight.Data
             config.mapName = "Town Center";
             config.mapType = MapType.TownCenter;
             config.description = "Streets, shops, and open plazas. Balanced layout with moderate cover.";
-            config.halfWidth = 13;
-            config.halfHeight = 13;
-            config.perimeterHalfW = 12f;
-            config.perimeterHalfH = 12f;
-            config.houseCount = 6;
-            config.treeCount = 8;
-            config.rockCount = 4;
-            config.crateCount = 4;
-            config.barrelCount = 4;
-            config.carCount = 2;
+            config.halfWidth = 24;
+            config.halfHeight = 24;
+            config.perimeterHalfW = 23f;
+            config.perimeterHalfH = 23f;
+            config.houseCount = 12;
+            config.treeCount = 14;
+            config.rockCount = 6;
+            config.crateCount = 8;
+            config.barrelCount = 6;
+            config.carCount = 6;
             config.pathWidth = 2f;
-            config.hasDiagonalConcrete = true;
+            config.hasDiagonalConcrete = false;
+            config.streetGridSpacing = 10f;
+            config.mainRoadWidth = 2f;
+            config.sideRoadWidth = 1.5f;
             config.groundTint = Color.white;
             config.buildingTint = Color.white;
             config.enemySpawnPositions = new[] {
-                new Vector3(8, 6, 0), new Vector3(-8, 6, 0), new Vector3(9, -6, 0)
+                new Vector3(18, 14, 0), new Vector3(-18, 14, 0),
+                new Vector3(18, -14, 0), new Vector3(-18, -14, 0),
+                new Vector3(0, 20, 0), new Vector3(0, -20, 0)
             };
             config.lorePositions = new[] {
-                new Vector3(-5, 9, 0), new Vector3(7, 9, 0),
-                new Vector3(-9, -3, 0), new Vector3(9, -3, 0),
-                new Vector3(-3, -9, 0), new Vector3(3, -9, 0)
+                new Vector3(-10, 18, 0), new Vector3(10, 18, 0),
+                new Vector3(-18, -6, 0), new Vector3(18, -6, 0),
+                new Vector3(-6, -18, 0), new Vector3(6, -18, 0)
             };
             return config;
         }
@@ -73,28 +83,32 @@ namespace Deadlight.Data
             config.mapName = "Industrial District";
             config.mapType = MapType.Industrial;
             config.description = "Warehouses and narrow corridors. Tight chokepoints, limited escape routes.";
-            config.halfWidth = 11;
-            config.halfHeight = 14;
-            config.perimeterHalfW = 10f;
-            config.perimeterHalfH = 13f;
-            config.houseCount = 8;
-            config.treeCount = 2;
-            config.rockCount = 6;
-            config.crateCount = 10;
-            config.barrelCount = 8;
-            config.carCount = 4;
+            config.halfWidth = 20;
+            config.halfHeight = 26;
+            config.perimeterHalfW = 19f;
+            config.perimeterHalfH = 25f;
+            config.houseCount = 14;
+            config.treeCount = 3;
+            config.rockCount = 10;
+            config.crateCount = 20;
+            config.barrelCount = 16;
+            config.carCount = 6;
             config.pathWidth = 1.5f;
             config.hasDiagonalConcrete = false;
+            config.streetGridSpacing = 10f;
+            config.mainRoadWidth = 2f;
+            config.sideRoadWidth = 1f;
             config.groundTint = new Color(0.85f, 0.82f, 0.78f);
             config.buildingTint = new Color(0.7f, 0.7f, 0.75f);
             config.enemySpawnPositions = new[] {
-                new Vector3(7, 10, 0), new Vector3(-7, 10, 0),
-                new Vector3(7, -10, 0), new Vector3(-7, -10, 0)
+                new Vector3(14, 20, 0), new Vector3(-14, 20, 0),
+                new Vector3(14, -20, 0), new Vector3(-14, -20, 0),
+                new Vector3(0, 22, 0)
             };
             config.lorePositions = new[] {
-                new Vector3(-4, 10, 0), new Vector3(4, 10, 0),
-                new Vector3(-6, -2, 0), new Vector3(6, -2, 0),
-                new Vector3(-2, -10, 0), new Vector3(2, -10, 0)
+                new Vector3(-8, 20, 0), new Vector3(8, 20, 0),
+                new Vector3(-12, -4, 0), new Vector3(12, -4, 0),
+                new Vector3(-4, -20, 0), new Vector3(4, -20, 0)
             };
             return config;
         }
@@ -105,28 +119,32 @@ namespace Deadlight.Data
             config.mapName = "Suburban Outskirts";
             config.mapType = MapType.Suburban;
             config.description = "Houses, yards, and wide open spaces. Rewards mobility, less natural cover.";
-            config.halfWidth = 15;
-            config.halfHeight = 12;
-            config.perimeterHalfW = 14f;
-            config.perimeterHalfH = 11f;
-            config.houseCount = 10;
-            config.treeCount = 14;
-            config.rockCount = 3;
-            config.crateCount = 2;
-            config.barrelCount = 2;
-            config.carCount = 5;
+            config.halfWidth = 27;
+            config.halfHeight = 22;
+            config.perimeterHalfW = 26f;
+            config.perimeterHalfH = 21f;
+            config.houseCount = 16;
+            config.treeCount = 28;
+            config.rockCount = 5;
+            config.crateCount = 4;
+            config.barrelCount = 3;
+            config.carCount = 8;
             config.pathWidth = 2.5f;
             config.hasDiagonalConcrete = false;
+            config.streetGridSpacing = 0f;
+            config.mainRoadWidth = 2.5f;
+            config.sideRoadWidth = 2f;
             config.groundTint = new Color(0.95f, 1f, 0.9f);
             config.buildingTint = new Color(0.9f, 0.85f, 0.8f);
             config.enemySpawnPositions = new[] {
-                new Vector3(12, 8, 0), new Vector3(-12, 8, 0),
-                new Vector3(12, -8, 0), new Vector3(-12, -8, 0)
+                new Vector3(22, 16, 0), new Vector3(-22, 16, 0),
+                new Vector3(22, -16, 0), new Vector3(-22, -16, 0),
+                new Vector3(0, 18, 0), new Vector3(0, -18, 0)
             };
             config.lorePositions = new[] {
-                new Vector3(-8, 8, 0), new Vector3(8, 8, 0),
-                new Vector3(-10, -3, 0), new Vector3(10, -3, 0),
-                new Vector3(-4, -8, 0), new Vector3(4, -8, 0)
+                new Vector3(-16, 16, 0), new Vector3(16, 16, 0),
+                new Vector3(-20, -6, 0), new Vector3(20, -6, 0),
+                new Vector3(-8, -16, 0), new Vector3(8, -16, 0)
             };
             return config;
         }

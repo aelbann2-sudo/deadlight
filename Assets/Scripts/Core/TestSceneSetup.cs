@@ -131,88 +131,129 @@ namespace Deadlight.Core
             var groundParent = new GameObject("Ground");
             int hw = activeMapConfig != null ? activeMapConfig.halfWidth : 13;
             int hh = activeMapConfig != null ? activeMapConfig.halfHeight : 13;
-            float pw = activeMapConfig != null ? activeMapConfig.pathWidth : 2f;
-            bool diag = activeMapConfig != null ? activeMapConfig.hasDiagonalConcrete : true;
             Color tint = activeMapConfig != null ? activeMapConfig.groundTint : Color.white;
 
-            if (useProceduralSprites)
-            {
-                var grassSprite = ProceduralSpriteGenerator.CreateGroundTile(0);
-                var pathSprite = ProceduralSpriteGenerator.CreateGroundTile(1);
-                var concreteSprite = ProceduralSpriteGenerator.CreateGroundTile(2);
-                
-                for (int x = -hw; x <= hw; x++)
-                {
-                    for (int y = -hh; y <= hh; y++)
-                    {
-                        var tile = new GameObject($"T_{x}_{y}");
-                        tile.transform.SetParent(groundParent.transform);
-                        tile.transform.position = new Vector3(x, y, 0);
-                        
-                        var sr = tile.AddComponent<SpriteRenderer>();
-                        sr.sortingOrder = -200;
+            var grassSprite = ProceduralSpriteGenerator.CreateGroundTile(0);
+            var pathSprite = ProceduralSpriteGenerator.CreateGroundTile(1);
+            var concreteSprite = ProceduralSpriteGenerator.CreateGroundTile(2);
+            var asphaltSprite = ProceduralSpriteGenerator.CreateGroundTile(3);
 
-                        bool isPath = (Mathf.Abs(x) < pw) || (Mathf.Abs(y) < pw);
-                        bool isConcrete = diag && (Mathf.Abs(x - y) < 3 && Mathf.Abs(x) < 8);
-                        
-                        if (isPath)
-                        {
-                            sr.sprite = pathSprite;
-                        }
-                        else if (isConcrete)
-                        {
-                            sr.sprite = concreteSprite;
-                        }
-                        else
-                        {
-                            sr.sprite = grassSprite;
-                        }
-                        
-                        float shade = Random.Range(0.9f, 1.05f);
-                        sr.color = new Color(tint.r * shade, tint.g * shade, tint.b * shade);
-                    }
+            for (int x = -hw; x <= hw; x++)
+            {
+                for (int y = -hh; y <= hh; y++)
+                {
+                    var tile = new GameObject($"T_{x}_{y}");
+                    tile.transform.SetParent(groundParent.transform);
+                    tile.transform.position = new Vector3(x, y, 0);
+
+                    var sr = tile.AddComponent<SpriteRenderer>();
+                    sr.sortingOrder = -200;
+
+                    int tileType = GetTileType(x, y);
+                    sr.sprite = tileType switch
+                    {
+                        1 => pathSprite,
+                        2 => concreteSprite,
+                        3 => asphaltSprite,
+                        _ => grassSprite
+                    };
+
+                    float shade = Random.Range(0.9f, 1.05f);
+                    sr.color = new Color(tint.r * shade, tint.g * shade, tint.b * shade);
                 }
             }
-            else
+        }
+
+        private int GetTileType(int x, int y)
+        {
+            MapType type = activeMapConfig != null ? activeMapConfig.mapType : MapType.TownCenter;
+            return type switch
             {
-                string[] grassNames = { "Grass 0", "Grass 1", "Grass 2", "Grass 3" };
-                Sprite[] grassSprites = new Sprite[grassNames.Length];
-                for (int i = 0; i < grassNames.Length; i++)
-                {
-                    grassSprites[i] = GetSprite(tileSprites, grassNames[i]);
-                }
+                MapType.TownCenter => GetTileType_TownCenter(x, y),
+                MapType.Industrial => GetTileType_Industrial(x, y),
+                MapType.Suburban => GetTileType_Suburban(x, y),
+                _ => GetTileType_TownCenter(x, y)
+            };
+        }
 
-                Sprite pathSprite = GetSprite(tileSprites, "Sand 0");
-                
-                for (int x = -13; x <= 13; x++)
-                {
-                    for (int y = -13; y <= 13; y++)
-                    {
-                        var tile = new GameObject($"T_{x}_{y}");
-                        tile.transform.SetParent(groundParent.transform);
-                        tile.transform.position = new Vector3(x, y, 0);
-                        
-                        var sr = tile.AddComponent<SpriteRenderer>();
-                        sr.sortingOrder = -200;
+        private int GetTileType_TownCenter(int x, int y)
+        {
+            float gridSpacing = activeMapConfig != null ? activeMapConfig.streetGridSpacing : 10f;
+            float mainRoadW = activeMapConfig != null ? activeMapConfig.mainRoadWidth : 2f;
+            float sideRoadW = activeMapConfig != null ? activeMapConfig.sideRoadWidth : 1.5f;
 
-                        bool isPath = (Mathf.Abs(x) < 2) || (Mathf.Abs(y) < 2);
-                        
-                        if (isPath && pathSprite != null)
-                        {
-                            sr.sprite = pathSprite;
-                            sr.color = new Color(0.9f, 0.85f, 0.7f);
-                        }
-                        else
-                        {
-                            Sprite gs = grassSprites[Random.Range(0, grassSprites.Length)];
-                            sr.sprite = gs != null ? gs : CreatePixelSprite(new Color(0.3f, 0.4f, 0.25f));
-                            
-                            float shade = Random.Range(0.85f, 1.05f);
-                            sr.color = new Color(0.85f * shade, 0.95f * shade, 0.8f * shade);
-                        }
-                    }
+            // Central plaza
+            float distFromCenter = Mathf.Sqrt(x * x + y * y);
+            if (distFromCenter < 5f) return 2;
+
+            // Main cross roads
+            if (Mathf.Abs(x) < mainRoadW || Mathf.Abs(y) < mainRoadW) return 3;
+
+            // Grid streets
+            float xMod = ((x % gridSpacing) + gridSpacing) % gridSpacing;
+            float yMod = ((y % gridSpacing) + gridSpacing) % gridSpacing;
+            if (xMod < sideRoadW || xMod > gridSpacing - sideRoadW) return 1;
+            if (yMod < sideRoadW || yMod > gridSpacing - sideRoadW) return 1;
+
+            // Sidewalks near grid streets
+            if (xMod < sideRoadW + 1 || xMod > gridSpacing - sideRoadW - 1) return 2;
+            if (yMod < sideRoadW + 1 || yMod > gridSpacing - sideRoadW - 1) return 2;
+
+            return 0;
+        }
+
+        private int GetTileType_Industrial(int x, int y)
+        {
+            int hh = activeMapConfig != null ? activeMapConfig.halfHeight : 26;
+
+            // Loading dock area (bottom third)
+            if (y < -hh * 0.3f) return 2;
+
+            // Main horizontal road
+            if (Mathf.Abs(y) < 2f) return 3;
+
+            // Main vertical road
+            if (Mathf.Abs(x) < 1.5f) return 3;
+
+            // Vertical corridors between warehouse blocks
+            float xMod = ((x % 7f) + 7f) % 7f;
+            if (xMod < 1.0f || xMod > 6.0f) return 2;
+
+            // Horizontal corridors between warehouse rows
+            float yMod = ((y % 10f) + 10f) % 10f;
+            if (yMod < 1.0f || yMod > 9.0f) return 2;
+
+            // Dirt patches in far corners
+            int hw = activeMapConfig != null ? activeMapConfig.halfWidth : 20;
+            if (Mathf.Abs(x) > hw - 3 && Mathf.Abs(y) > hh - 3) return 1;
+
+            // Mostly concrete
+            return 2;
+        }
+
+        private int GetTileType_Suburban(int x, int y)
+        {
+            float roadW = activeMapConfig != null ? activeMapConfig.mainRoadWidth : 2.5f;
+
+            // Main horizontal road
+            if (Mathf.Abs(y) < roadW) return 1;
+
+            // Winding vertical road
+            float windingCenterX = Mathf.Sin(y * 0.15f) * 6f;
+            if (Mathf.Abs(x - windingCenterX) < roadW) return 1;
+
+            // Branch roads off the winding road
+            for (int branchY = -16; branchY <= 16; branchY += 8)
+            {
+                if (Mathf.Abs(y - branchY) < 1.5f)
+                {
+                    float branchX = Mathf.Sin(branchY * 0.15f) * 6f;
+                    if ((x > branchX && x < branchX + 14) || (x < branchX && x > branchX - 14))
+                        return 1;
                 }
             }
+
+            return 0;
         }
 
         // ===================== PLAYER =====================
@@ -482,11 +523,12 @@ namespace Deadlight.Core
             CreateTown(envParent.transform);
             CreatePerimeter(envParent.transform);
             SpawnLorePickups(envParent.transform);
-            
+
+            MapType mapType = activeMapConfig != null ? activeMapConfig.mapType : MapType.TownCenter;
             var landmarksObj = new GameObject("MapLandmarks");
             landmarksObj.transform.SetParent(envParent.transform);
             var landmarks = landmarksObj.AddComponent<Level.MapLandmarks>();
-            landmarks.CreateAllLandmarks(envParent.transform);
+            landmarks.CreateAllLandmarks(envParent.transform, mapType);
         }
 
         private void SpawnLorePickups(Transform parent)
@@ -547,169 +589,314 @@ namespace Deadlight.Core
 
         private void CreateTown(Transform parent)
         {
+            MapType type = activeMapConfig != null ? activeMapConfig.mapType : MapType.TownCenter;
+            switch (type)
+            {
+                case MapType.Industrial: CreateTown_Industrial(parent); break;
+                case MapType.Suburban:   CreateTown_Suburban(parent);   break;
+                default:                 CreateTown_TownCenter(parent); break;
+            }
+        }
+
+        private void SpawnBuilding(Transform parent, Vector3 pos, float scale, int variant)
+        {
+            var house = new GameObject("Building");
+            house.transform.SetParent(parent);
+            house.transform.position = pos;
+            house.transform.localScale = Vector3.one * scale;
+            var sr = house.AddComponent<SpriteRenderer>();
+            sr.sprite = ProceduralSpriteGenerator.CreateBuildingSprite(variant % 3);
+            sr.sortingOrder = Mathf.RoundToInt(-pos.y);
+            if (activeMapConfig != null) sr.color = activeMapConfig.buildingTint;
+            var col = house.AddComponent<BoxCollider2D>();
+            col.size = new Vector2(1.2f, 1.2f);
+        }
+
+        private void SpawnTree(Transform parent, Vector3 pos)
+        {
+            var tree = new GameObject("Tree");
+            tree.transform.SetParent(parent);
+            tree.transform.position = pos;
+            tree.transform.localScale = Vector3.one * Random.Range(1.2f, 2f);
+            var sr = tree.AddComponent<SpriteRenderer>();
+            sr.sprite = ProceduralSpriteGenerator.CreateTreeSprite();
+            sr.sortingOrder = Mathf.RoundToInt(-pos.y) + 1;
+            var col = tree.AddComponent<CircleCollider2D>();
+            col.radius = 0.3f;
+            col.offset = new Vector2(0, -0.3f);
+        }
+
+        private void SpawnRock(Transform parent, Vector3 pos)
+        {
+            var rock = new GameObject("Rock");
+            rock.transform.SetParent(parent);
+            rock.transform.position = pos;
+            rock.transform.localScale = Vector3.one * Random.Range(0.8f, 1.3f);
+            var sr = rock.AddComponent<SpriteRenderer>();
+            sr.sprite = ProceduralSpriteGenerator.CreateRockSprite();
+            sr.sortingOrder = Mathf.RoundToInt(-pos.y);
+            var col = rock.AddComponent<CircleCollider2D>();
+            col.radius = 0.3f;
+        }
+
+        private void SpawnCrate(Transform parent, Vector3 pos)
+        {
+            var crate = new GameObject("Crate");
+            crate.transform.SetParent(parent);
+            crate.transform.position = pos;
+            var sr = crate.AddComponent<SpriteRenderer>();
+            sr.sprite = ProceduralSpriteGenerator.CreateCrateSprite();
+            sr.sortingOrder = Mathf.RoundToInt(-pos.y);
+            var col = crate.AddComponent<BoxCollider2D>();
+            col.size = new Vector2(0.8f, 0.8f);
+        }
+
+        private void SpawnBarrel(Transform parent, Vector3 pos)
+        {
+            var barrel = new GameObject("Barrel");
+            barrel.transform.SetParent(parent);
+            barrel.transform.position = pos;
+            var sr = barrel.AddComponent<SpriteRenderer>();
+            sr.sprite = ProceduralSpriteGenerator.CreateBarrelSprite(Random.value > 0.6f);
+            sr.sortingOrder = Mathf.RoundToInt(-pos.y);
+            var col = barrel.AddComponent<CircleCollider2D>();
+            col.radius = 0.25f;
+        }
+
+        private void SpawnCar(Transform parent, Vector3 pos, float angle = 0f)
+        {
+            var car = new GameObject("Car");
+            car.transform.SetParent(parent);
+            car.transform.position = pos;
+            car.transform.rotation = Quaternion.Euler(0, 0, angle);
+            var sr = car.AddComponent<SpriteRenderer>();
+            sr.sprite = ProceduralSpriteGenerator.CreateCarSprite(Random.Range(0, 4));
+            sr.sortingOrder = Mathf.RoundToInt(-pos.y);
+            var col = car.AddComponent<BoxCollider2D>();
+            col.size = new Vector2(1.5f, 0.7f);
+        }
+
+        // ===================== TOWN CENTER =====================
+
+        private void CreateTown_TownCenter(Transform parent)
+        {
             var town = new GameObject("Town");
             town.transform.SetParent(parent);
 
-            var housePositions = new (Vector3 pos, string sprite, float scale)[] {
-                (new Vector3(-6, 8, 0), "House A0", 1.8f),
-                (new Vector3(6, 8, 0), "House B0", 1.8f),
-                (new Vector3(-8, -4, 0), "House A2", 1.5f),
-                (new Vector3(8, -4, 0), "House B2", 1.5f),
-                (new Vector3(-4, -8, 0), "House A4", 1.5f),
-                (new Vector3(4, -8, 0), "House B4", 1.5f),
+            // Buildings along grid streets forming city blocks
+            Vector3[] buildingPositions = {
+                // North row
+                new Vector3(-14, 16, 0), new Vector3(-5, 16, 0), new Vector3(5, 16, 0), new Vector3(14, 16, 0),
+                // East/West mid
+                new Vector3(-14, 6, 0), new Vector3(14, 6, 0),
+                new Vector3(-14, -6, 0), new Vector3(14, -6, 0),
+                // South row
+                new Vector3(-14, -16, 0), new Vector3(-5, -16, 0), new Vector3(5, -16, 0), new Vector3(14, -16, 0),
             };
+            for (int i = 0; i < buildingPositions.Length; i++)
+                SpawnBuilding(town.transform, buildingPositions[i], 1.8f, i);
 
-            for (int i = 0; i < housePositions.Length; i++)
-            {
-                var h = housePositions[i];
-                var house = new GameObject("House");
-                house.transform.SetParent(town.transform);
-                house.transform.position = h.pos;
-                house.transform.localScale = Vector3.one * h.scale;
-
-                var sr = house.AddComponent<SpriteRenderer>();
-                if (useProceduralSprites)
-                {
-                    sr.sprite = ProceduralSpriteGenerator.CreateBuildingSprite(i % 3);
-                }
-                else
-                {
-                    var houseSprite = GetSprite(objectSprites, h.sprite);
-                    sr.sprite = houseSprite != null ? houseSprite : CreateRectSprite(new Color(0.5f, 0.4f, 0.3f), new Vector2(2, 2));
-                }
-                sr.sortingOrder = Mathf.RoundToInt(-h.pos.y);
-
-                var col = house.AddComponent<BoxCollider2D>();
-                col.size = new Vector2(1.2f, 1.2f);
-            }
-
-            var treePositions = new Vector3[] {
-                new Vector3(-10, 4, 0), new Vector3(10, 4, 0),
-                new Vector3(-10, -2, 0), new Vector3(10, -2, 0),
-                new Vector3(-3, 10, 0), new Vector3(3, 10, 0),
-                new Vector3(-7, -10, 0), new Vector3(7, -10, 0),
+            // Trees in parks within city blocks and along edges
+            Vector3[] treePositions = {
+                new Vector3(-8, 12, 0), new Vector3(8, 12, 0),
+                new Vector3(-8, -12, 0), new Vector3(8, -12, 0),
+                new Vector3(-20, 6, 0), new Vector3(20, 6, 0),
+                new Vector3(-20, -6, 0), new Vector3(20, -6, 0),
+                new Vector3(-4, 8, 0), new Vector3(4, 8, 0),
+                new Vector3(-4, -8, 0), new Vector3(4, -8, 0),
+                new Vector3(-18, 18, 0), new Vector3(18, -18, 0),
             };
-
             foreach (var pos in treePositions)
-            {
-                var tree = new GameObject("Tree");
-                tree.transform.SetParent(town.transform);
-                tree.transform.position = pos;
-                tree.transform.localScale = Vector3.one * Random.Range(1.2f, 2f);
+                SpawnTree(town.transform, pos);
 
-                var sr = tree.AddComponent<SpriteRenderer>();
-                if (useProceduralSprites)
-                {
-                    sr.sprite = ProceduralSpriteGenerator.CreateTreeSprite();
-                }
-                else
-                {
-                    var treeSprite = GetSprite(objectSprites, $"Tree {Random.Range(0, 4)}");
-                    sr.sprite = treeSprite != null ? treeSprite : CreateCircleSprite(new Color(0.2f, 0.45f, 0.2f));
-                }
-                sr.sortingOrder = Mathf.RoundToInt(-pos.y) + 1;
-
-                var col = tree.AddComponent<CircleCollider2D>();
-                col.radius = 0.3f;
-                col.offset = new Vector2(0, -0.3f);
-            }
-
-            var rockPositions = new Vector3[] {
-                new Vector3(-5, 3, 0), new Vector3(5, 3, 0),
-                new Vector3(-3, -5, 0), new Vector3(3, 6, 0),
+            // Rocks scattered in blocks
+            Vector3[] rockPositions = {
+                new Vector3(-8, 4, 0), new Vector3(8, 4, 0),
+                new Vector3(-6, -4, 0), new Vector3(6, -4, 0),
+                new Vector3(-16, 12, 0), new Vector3(16, -12, 0),
             };
-
             foreach (var pos in rockPositions)
-            {
-                var rock = new GameObject("Rock");
-                rock.transform.SetParent(town.transform);
-                rock.transform.position = pos;
-                rock.transform.localScale = Vector3.one * Random.Range(0.8f, 1.3f);
+                SpawnRock(town.transform, pos);
 
-                var sr = rock.AddComponent<SpriteRenderer>();
-                if (useProceduralSprites)
-                {
-                    sr.sprite = ProceduralSpriteGenerator.CreateRockSprite();
-                }
-                else
-                {
-                    var rockSprite = GetSprite(objectSprites, "Rock");
-                    sr.sprite = rockSprite != null ? rockSprite : CreateCircleSprite(Color.gray);
-                }
-                sr.sortingOrder = Mathf.RoundToInt(-pos.y);
-
-                var col = rock.AddComponent<CircleCollider2D>();
-                col.radius = 0.3f;
-            }
-
+            // Crates near buildings as cover
             Vector3[] cratePositions = {
-                new Vector3(-3, 4, 0), new Vector3(3, -4, 0),
-                new Vector3(2, 5, 0), new Vector3(-2, -3, 0),
+                new Vector3(-12, 15, 0), new Vector3(12, 15, 0),
+                new Vector3(-12, -15, 0), new Vector3(12, -15, 0),
+                new Vector3(-6, 5, 0), new Vector3(6, -5, 0),
+                new Vector3(-3, 12, 0), new Vector3(3, -12, 0),
             };
-
             foreach (var pos in cratePositions)
-            {
-                var crate = new GameObject("Crate");
-                crate.transform.SetParent(town.transform);
-                crate.transform.position = pos;
+                SpawnCrate(town.transform, pos);
 
-                var sr = crate.AddComponent<SpriteRenderer>();
-                if (useProceduralSprites)
-                {
-                    sr.sprite = ProceduralSpriteGenerator.CreateCrateSprite();
-                }
-                else
-                {
-                    var boxSprite = GetSprite(objectSprites, "Box");
-                    sr.sprite = boxSprite != null ? boxSprite : CreateRectSprite(new Color(0.6f, 0.45f, 0.25f), Vector2.one);
-                }
-                sr.sortingOrder = Mathf.RoundToInt(-pos.y);
+            // Barrels
+            Vector3[] barrelPositions = {
+                new Vector3(-10, 14, 0), new Vector3(10, -14, 0),
+                new Vector3(-16, -4, 0), new Vector3(16, 4, 0),
+                new Vector3(-6, 18, 0), new Vector3(6, -18, 0),
+            };
+            foreach (var pos in barrelPositions)
+                SpawnBarrel(town.transform, pos);
 
-                var col = crate.AddComponent<BoxCollider2D>();
-                col.size = new Vector2(0.8f, 0.8f);
-            }
+            // Cars parked along roads
+            Vector3[] carPositions = {
+                new Vector3(-10, 2, 0), new Vector3(10, -2, 0),
+                new Vector3(3, 10, 0), new Vector3(-3, -10, 0),
+                new Vector3(-18, 0, 0), new Vector3(18, 0, 0),
+            };
+            foreach (var pos in carPositions)
+                SpawnCar(town.transform, pos, Random.Range(-15f, 15f));
+        }
 
-            if (useProceduralSprites)
-            {
-                var barrelPositions = new Vector3[] {
-                    new Vector3(-4, 6, 0), new Vector3(4, -2, 0),
-                    new Vector3(-7, -7, 0), new Vector3(7, 7, 0),
-                };
+        // ===================== INDUSTRIAL DISTRICT =====================
 
-                foreach (var pos in barrelPositions)
-                {
-                    var barrel = new GameObject("Barrel");
-                    barrel.transform.SetParent(town.transform);
-                    barrel.transform.position = pos;
+        private void CreateTown_Industrial(Transform parent)
+        {
+            var town = new GameObject("Town");
+            town.transform.SetParent(parent);
 
-                    var sr = barrel.AddComponent<SpriteRenderer>();
-                    bool explosive = Random.value > 0.6f;
-                    sr.sprite = ProceduralSpriteGenerator.CreateBarrelSprite(explosive);
-                    sr.sortingOrder = Mathf.RoundToInt(-pos.y);
+            // Large warehouses arranged in rows with corridors
+            Vector3[] warehousePositions = {
+                // Top row
+                new Vector3(-12, 20, 0), new Vector3(-4, 20, 0), new Vector3(4, 20, 0), new Vector3(12, 20, 0),
+                // Upper mid row
+                new Vector3(-12, 10, 0), new Vector3(-4, 10, 0), new Vector3(4, 10, 0), new Vector3(12, 10, 0),
+                // Lower mid row
+                new Vector3(-12, -6, 0), new Vector3(4, -6, 0), new Vector3(12, -6, 0),
+                // Loading dock area
+                new Vector3(-12, -16, 0), new Vector3(0, -20, 0), new Vector3(12, -16, 0),
+            };
+            for (int i = 0; i < warehousePositions.Length; i++)
+                SpawnBuilding(town.transform, warehousePositions[i], 2.0f, i);
 
-                    var col = barrel.AddComponent<CircleCollider2D>();
-                    col.radius = 0.25f;
-                }
+            // Very few trees — industrial zone
+            SpawnTree(town.transform, new Vector3(-16, 22, 0));
+            SpawnTree(town.transform, new Vector3(16, 22, 0));
+            SpawnTree(town.transform, new Vector3(16, -22, 0));
 
-                var carPositions = new Vector3[] {
-                    new Vector3(-8, 2, 0), new Vector3(9, -2, 0),
-                };
+            // Rubble and rocks
+            Vector3[] rockPositions = {
+                new Vector3(-8, 5, 0), new Vector3(8, 5, 0),
+                new Vector3(-6, -12, 0), new Vector3(6, -12, 0),
+                new Vector3(-14, -2, 0), new Vector3(14, -2, 0),
+                new Vector3(0, 15, 0), new Vector3(-8, -20, 0),
+                new Vector3(8, -18, 0), new Vector3(0, -8, 0),
+            };
+            foreach (var pos in rockPositions)
+                SpawnRock(town.transform, pos);
 
-                foreach (var pos in carPositions)
-                {
-                    var car = new GameObject("Car");
-                    car.transform.SetParent(town.transform);
-                    car.transform.position = pos;
-                    car.transform.rotation = Quaternion.Euler(0, 0, Random.Range(-15f, 15f));
+            // Lots of crates clustered near warehouses and loading docks
+            Vector3[] cratePositions = {
+                // Near top warehouses
+                new Vector3(-10, 18, 0), new Vector3(-2, 18, 0), new Vector3(6, 18, 0), new Vector3(14, 18, 0),
+                // Between rows
+                new Vector3(-10, 14, 0), new Vector3(0, 14, 0), new Vector3(10, 14, 0),
+                // Near corridors
+                new Vector3(-8, 4, 0), new Vector3(8, 4, 0),
+                // Loading dock cluster
+                new Vector3(-14, -14, 0), new Vector3(-10, -14, 0), new Vector3(-6, -14, 0),
+                new Vector3(6, -14, 0), new Vector3(10, -14, 0), new Vector3(14, -14, 0),
+                // Scattered
+                new Vector3(-4, -10, 0), new Vector3(4, -18, 0),
+                new Vector3(-8, -22, 0), new Vector3(8, -22, 0),
+            };
+            foreach (var pos in cratePositions)
+                SpawnCrate(town.transform, pos);
 
-                    var sr = car.AddComponent<SpriteRenderer>();
-                    sr.sprite = ProceduralSpriteGenerator.CreateCarSprite(Random.Range(0, 4));
-                    sr.sortingOrder = Mathf.RoundToInt(-pos.y);
+            // Many barrels — some explosive
+            Vector3[] barrelPositions = {
+                new Vector3(-14, 16, 0), new Vector3(-6, 16, 0), new Vector3(6, 16, 0), new Vector3(14, 16, 0),
+                new Vector3(-14, 8, 0), new Vector3(14, 8, 0),
+                new Vector3(-10, -8, 0), new Vector3(10, -8, 0),
+                new Vector3(-8, -18, 0), new Vector3(0, -18, 0), new Vector3(8, -16, 0),
+                new Vector3(-16, 0, 0), new Vector3(16, 0, 0),
+                new Vector3(-2, -4, 0), new Vector3(2, 6, 0), new Vector3(0, -14, 0),
+            };
+            foreach (var pos in barrelPositions)
+                SpawnBarrel(town.transform, pos);
 
-                    var col = car.AddComponent<BoxCollider2D>();
-                    col.size = new Vector2(1.5f, 0.7f);
-                }
-            }
+            // Trucks/vans in loading areas
+            Vector3[] carPositions = {
+                new Vector3(-6, -20, 0), new Vector3(6, -20, 0),
+                new Vector3(-16, 4, 0), new Vector3(16, -4, 0),
+                new Vector3(0, 4, 0), new Vector3(-10, -10, 0),
+            };
+            foreach (var pos in carPositions)
+                SpawnCar(town.transform, pos, Random.Range(-5f, 5f));
+        }
+
+        // ===================== SUBURBAN OUTSKIRTS =====================
+
+        private void CreateTown_Suburban(Transform parent)
+        {
+            var town = new GameObject("Town");
+            town.transform.SetParent(parent);
+
+            // Houses set back from roads with yards
+            Vector3[] housePositions = {
+                // Along main horizontal road
+                new Vector3(-18, 5, 0), new Vector3(-10, 5, 0), new Vector3(10, 5, 0), new Vector3(18, 5, 0),
+                new Vector3(-18, -5, 0), new Vector3(-10, -5, 0), new Vector3(10, -5, 0), new Vector3(18, -5, 0),
+                // Along branch roads
+                new Vector3(-12, 12, 0), new Vector3(8, 12, 0),
+                new Vector3(-8, -12, 0), new Vector3(12, -12, 0),
+                // Scattered
+                new Vector3(-22, 10, 0), new Vector3(22, -10, 0),
+                new Vector3(-16, -16, 0), new Vector3(16, 16, 0),
+            };
+            for (int i = 0; i < housePositions.Length; i++)
+                SpawnBuilding(town.transform, housePositions[i], 1.6f, i);
+
+            // Lots of trees filling yards and creating suburban canopy
+            Vector3[] treePositions = {
+                // Yard trees
+                new Vector3(-20, 7, 0), new Vector3(-12, 7, 0), new Vector3(12, 7, 0), new Vector3(20, 7, 0),
+                new Vector3(-20, -7, 0), new Vector3(-12, -7, 0), new Vector3(12, -7, 0), new Vector3(20, -7, 0),
+                // Branch road trees
+                new Vector3(-14, 14, 0), new Vector3(6, 14, 0), new Vector3(10, 14, 0),
+                new Vector3(-10, -14, 0), new Vector3(10, -14, 0), new Vector3(14, -14, 0),
+                // Forest border on edges
+                new Vector3(-24, 18, 0), new Vector3(-24, 10, 0), new Vector3(-24, 0, 0), new Vector3(-24, -10, 0), new Vector3(-24, -18, 0),
+                new Vector3(24, 18, 0), new Vector3(24, 10, 0), new Vector3(24, 0, 0), new Vector3(24, -10, 0), new Vector3(24, -18, 0),
+                // Additional scattered
+                new Vector3(-6, 16, 0), new Vector3(6, -16, 0),
+                new Vector3(-16, 18, 0),
+            };
+            foreach (var pos in treePositions)
+                SpawnTree(town.transform, pos);
+
+            // Few rocks
+            Vector3[] rockPositions = {
+                new Vector3(-22, 14, 0), new Vector3(22, -14, 0),
+                new Vector3(-14, -8, 0), new Vector3(14, 8, 0),
+                new Vector3(0, 16, 0),
+            };
+            foreach (var pos in rockPositions)
+                SpawnRock(town.transform, pos);
+
+            // Sparse crates near garages
+            Vector3[] cratePositions = {
+                new Vector3(-16, 4, 0), new Vector3(16, -4, 0),
+                new Vector3(-8, 10, 0), new Vector3(12, -10, 0),
+            };
+            foreach (var pos in cratePositions)
+                SpawnCrate(town.transform, pos);
+
+            // Few barrels
+            Vector3[] barrelPositions = {
+                new Vector3(-20, 4, 0), new Vector3(20, -4, 0),
+                new Vector3(-14, -14, 0),
+            };
+            foreach (var pos in barrelPositions)
+                SpawnBarrel(town.transform, pos);
+
+            // Cars in driveways
+            Vector3[] carPositions = {
+                new Vector3(-16, 4, 0), new Vector3(-8, 4, 0), new Vector3(12, 4, 0), new Vector3(20, 4, 0),
+                new Vector3(-16, -4, 0), new Vector3(12, -4, 0),
+                new Vector3(-10, 10, 0), new Vector3(14, -10, 0),
+            };
+            foreach (var pos in carPositions)
+                SpawnCar(town.transform, pos, Random.Range(-10f, 10f));
         }
 
         private void CreatePerimeter(Transform parent)

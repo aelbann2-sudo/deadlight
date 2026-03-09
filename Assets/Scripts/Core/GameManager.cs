@@ -127,16 +127,7 @@ namespace Deadlight.Core
 
         private void Start()
         {
-            string sceneName = SceneManager.GetActiveScene().name;
-
-            if (sceneName == "MainMenu" && IsMainMenuSceneEmpty())
-            {
-                Debug.LogWarning("[GameManager] MainMenu scene is empty on startup. Loading Game scene fallback.");
-                SceneManager.LoadScene("Game");
-                return;
-            }
-
-            if (sceneName == "Game")
+            if (SceneManager.GetActiveScene().name == "Game")
             {
                 StartCoroutine(BootstrapGameSceneNextFrame());
             }
@@ -153,13 +144,6 @@ namespace Deadlight.Core
 
         private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            if (scene.name == "MainMenu" && IsMainMenuSceneEmpty())
-            {
-                Debug.LogWarning("[GameManager] MainMenu scene has no UI. Loading Game scene directly.");
-                SceneManager.LoadScene("Game");
-                return;
-            }
-
             if (scene.name == "Game")
             {
                 StartCoroutine(BootstrapGameSceneNextFrame());
@@ -376,7 +360,7 @@ namespace Deadlight.Core
 
             SetPaused(false);
             ChangeState(GameState.MainMenu);
-            SceneManager.LoadScene("MainMenu");
+            SceneManager.LoadScene("Game");
         }
 
         public void RestartGame()
@@ -928,14 +912,6 @@ namespace Deadlight.Core
             }
 
             dawnAdvanceCoroutine = null;
-        }
-
-        private static bool IsMainMenuSceneEmpty()
-        {
-            if (GameUI.Instance != null) return false;
-            if (FindFirstObjectByType<MenuManager>() != null) return false;
-            if (FindFirstObjectByType<Canvas>() != null) return false;
-            return true;
         }
 
         private void ApplyPhaseDurationsForNight(int night)
