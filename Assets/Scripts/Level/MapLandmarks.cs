@@ -23,47 +23,79 @@ namespace Deadlight.Level
             switch (mapType)
             {
                 case MapType.TownCenter:
-                    CreateCrashedHelicopter(parent, new Vector3(0, 20, 0));
-                    CreateMilitaryCheckpoint(parent, new Vector3(-18, 0, 0));
-                    CreateGasStation(parent, new Vector3(16, -12, 0));
-                    CreateTownPlaza(parent, new Vector3(0, 0, 0));
-                    CreateStreetlights(parent, new Vector3[] {
-                        new Vector3(-10, 10, 0), new Vector3(10, 10, 0),
-                        new Vector3(-10, -10, 0), new Vector3(10, -10, 0),
-                        new Vector3(-20, 0, 0), new Vector3(20, 0, 0),
-                        new Vector3(0, 20, 0), new Vector3(0, -20, 0),
-                        new Vector3(-10, 20, 0), new Vector3(10, -20, 0),
-                    });
+                    CreateTownCenterLandmarks(parent);
                     break;
 
                 case MapType.Industrial:
-                    CreateCrashedHelicopter(parent, new Vector3(0, 22, 0));
-                    CreateResearchLabEntrance(parent, new Vector3(0, -22, 0));
-                    CreateFuelDepot(parent, new Vector3(14, 14, 0));
-                    CreateLoadingDock(parent, new Vector3(-8, -18, 0));
-                    CreateStreetlights(parent, new Vector3[] {
-                        new Vector3(-10, 0, 0), new Vector3(10, 0, 0),
-                        new Vector3(-10, 12, 0), new Vector3(10, 12, 0),
-                        new Vector3(-10, -12, 0), new Vector3(10, -12, 0),
-                        new Vector3(0, 20, 0), new Vector3(0, -20, 0),
-                    });
+                    CreateIndustrialLandmarks(parent);
                     break;
 
                 case MapType.Suburban:
-                    CreateMilitaryCheckpoint(parent, new Vector3(0, -18, 0));
-                    CreateGasStation(parent, new Vector3(20, 0, 0));
-                    CreatePlayground(parent, new Vector3(-8, 14, 0));
-                    CreateAbandonedBus(parent, new Vector3(14, -16, 0));
-                    CreateStreetlights(parent, new Vector3[] {
-                        new Vector3(Mathf.Sin(-12 * 0.15f) * 6f, -12, 0),
-                        new Vector3(Mathf.Sin(-4 * 0.15f) * 6f, -4, 0),
-                        new Vector3(Mathf.Sin(4 * 0.15f) * 6f, 4, 0),
-                        new Vector3(Mathf.Sin(12 * 0.15f) * 6f, 12, 0),
-                        new Vector3(-14, 0, 0), new Vector3(14, 0, 0),
-                    });
+                    CreateSuburbanLandmarks(parent);
                     break;
             }
         }
+
+        // Town Center Landmarks
+        private void CreateTownCenterLandmarks(Transform parent)
+        {
+            CreateCrashedHelicopter(parent, new Vector3(0, 30, 0));
+            CreateMilitaryCheckpoint(parent, new Vector3(-25, 0, 0));
+            CreateGasStation(parent, new Vector3(25, -20, 0));
+            CreateTownPlaza(parent, new Vector3(0, 0, 0));
+            CreateDiner(parent, new Vector3(-20, 25, 0));
+            CreatePoliceKiosk(parent, new Vector3(20, 25, 0));
+            
+            CreateStreetlights(parent, new Vector3[] {
+                new Vector3(-15, 15, 0), new Vector3(15, 15, 0),
+                new Vector3(-15, -15, 0), new Vector3(15, -15, 0),
+                new Vector3(-30, 0, 0), new Vector3(30, 0, 0),
+                new Vector3(0, 30, 0), new Vector3(0, -30, 0),
+                new Vector3(-15, 30, 0), new Vector3(15, -30, 0),
+                new Vector3(-25, 15, 0), new Vector3(25, -15, 0),
+            });
+        }
+
+        // Industrial District Landmarks
+        private void CreateIndustrialLandmarks(Transform parent)
+        {
+            CreateCrashedHelicopter(parent, new Vector3(0, 35, 0));
+            CreateResearchLabEntrance(parent, new Vector3(0, -35, 0));
+            CreateFuelDepot(parent, new Vector3(20, 20, 0));
+            CreateLoadingDock(parent, new Vector3(-15, -30, 0));
+            CreateControlOffice(parent, new Vector3(-25, 25, 0));
+            CreateCraneYard(parent, new Vector3(25, -25, 0));
+            
+            CreateStreetlights(parent, new Vector3[] {
+                new Vector3(-20, 0, 0), new Vector3(20, 0, 0),
+                new Vector3(-20, 15, 0), new Vector3(20, 15, 0),
+                new Vector3(-20, -15, 0), new Vector3(20, -15, 0),
+                new Vector3(0, 30, 0), new Vector3(0, -30, 0),
+                new Vector3(-15, 25, 0), new Vector3(15, -25, 0),
+            });
+        }
+
+        // Suburban Area Landmarks
+        private void CreateSuburbanLandmarks(Transform parent)
+        {
+            CreateMilitaryCheckpoint(parent, new Vector3(0, -25, 0));
+            CreateGasStation(parent, new Vector3(30, 0, 0));
+            CreatePlayground(parent, new Vector3(-15, 20, 0));
+            CreateAbandonedBus(parent, new Vector3(20, -25, 0));
+            CreateSchoolBus(parent, new Vector3(-25, -15, 0));
+            CreateCulDeSacCenter(parent, new Vector3(0, 25, 0));
+            
+            CreateStreetlights(parent, new Vector3[] {
+                new Vector3(Mathf.Sin(-15 * 0.15f) * 6f, -15, 0),
+                new Vector3(Mathf.Sin(-5 * 0.15f) * 6f, -5, 0),
+                new Vector3(Mathf.Sin(5 * 0.15f) * 6f, 5, 0),
+                new Vector3(Mathf.Sin(15 * 0.15f) * 6f, 15, 0),
+                new Vector3(-25, 0, 0), new Vector3(25, 0, 0),
+                new Vector3(-20, 25, 0), new Vector3(20, -25, 0),
+            });
+        }
+
+        // ===================== LANDMARK CREATION METHODS =====================
 
         public void CreateCrashedHelicopter(Transform parent, Vector3 position)
         {
@@ -225,7 +257,60 @@ namespace Deadlight.Level
             psr.sortingOrder = 5;
         }
 
-        // ===================== NEW LANDMARKS =====================
+        // ===================== NEW TOWN CENTER LANDMARKS =====================
+
+        private void CreateDiner(Transform parent, Vector3 position)
+        {
+            var diner = new GameObject("Diner");
+            diner.transform.SetParent(parent);
+            diner.transform.position = position;
+
+            // Diner building
+            var building = new GameObject("Building");
+            building.transform.SetParent(diner.transform);
+            building.transform.localPosition = Vector3.zero;
+            var sr = building.AddComponent<SpriteRenderer>();
+            sr.sprite = CreateDinerSprite();
+            sr.sortingOrder = 5;
+            var col = building.AddComponent<BoxCollider2D>();
+            col.size = new Vector2(3f, 2f);
+
+            // Neon sign
+            var sign = new GameObject("NeonSign");
+            sign.transform.SetParent(diner.transform);
+            sign.transform.localPosition = new Vector3(0, 1.2f, 0);
+            var signSr = sign.AddComponent<SpriteRenderer>();
+            signSr.sprite = CreateDinerSignSprite();
+            signSr.sortingOrder = 6;
+            sign.AddComponent<FlickeringLight>();
+        }
+
+        private void CreatePoliceKiosk(Transform parent, Vector3 position)
+        {
+            var kiosk = new GameObject("PoliceKiosk");
+            kiosk.transform.SetParent(parent);
+            kiosk.transform.position = position;
+
+            // Kiosk building
+            var building = new GameObject("Building");
+            building.transform.SetParent(kiosk.transform);
+            building.transform.localPosition = Vector3.zero;
+            var sr = building.AddComponent<SpriteRenderer>();
+            sr.sprite = CreatePoliceKioskSprite();
+            sr.sortingOrder = 5;
+            var col = building.AddComponent<BoxCollider2D>();
+            col.size = new Vector2(2f, 1.5f);
+
+            // Police car
+            var car = new GameObject("PoliceCar");
+            car.transform.SetParent(kiosk.transform);
+            car.transform.localPosition = new Vector3(-1.5f, -0.8f, 0);
+            var carSr = car.AddComponent<SpriteRenderer>();
+            carSr.sprite = CreatePoliceCarSprite();
+            carSr.sortingOrder = 4;
+            var carCol = car.AddComponent<BoxCollider2D>();
+            carCol.size = new Vector2(1.2f, 0.6f);
+        }
 
         private void CreateTownPlaza(Transform parent, Vector3 position)
         {
@@ -254,32 +339,153 @@ namespace Deadlight.Level
             waterGlow.AddComponent<GlowPulse>();
         }
 
+        // ===================== NEW INDUSTRIAL LANDMARKS =====================
+
+        private void CreateControlOffice(Transform parent, Vector3 position)
+        {
+            var office = new GameObject("ControlOffice");
+            office.transform.SetParent(parent);
+            office.transform.position = position;
+
+            // Office building
+            var building = new GameObject("Building");
+            building.transform.SetParent(office.transform);
+            building.transform.localPosition = Vector3.zero;
+            var sr = building.AddComponent<SpriteRenderer>();
+            sr.sprite = CreateOfficeBuildingSprite();
+            sr.sortingOrder = 5;
+            var col = building.AddComponent<BoxCollider2D>();
+            col.size = new Vector2(3f, 2.5f);
+
+            // Security camera
+            var camera = new GameObject("SecurityCamera");
+            camera.transform.SetParent(office.transform);
+            camera.transform.localPosition = new Vector3(1.2f, 0.8f, 0);
+            var camSr = camera.AddComponent<SpriteRenderer>();
+            camSr.sprite = CreateCameraSprite();
+            camSr.sortingOrder = 6;
+            camera.AddComponent<SearchlightEffect>();
+        }
+
+        private void CreateCraneYard(Transform parent, Vector3 position)
+        {
+            var yard = new GameObject("CraneYard");
+            yard.transform.SetParent(parent);
+            yard.transform.position = position;
+
+            // Crane structure
+            var crane = new GameObject("Crane");
+            crane.transform.SetParent(yard.transform);
+            crane.transform.localPosition = Vector3.zero;
+            var sr = crane.AddComponent<SpriteRenderer>();
+            sr.sprite = CreateCraneSprite();
+            sr.sortingOrder = 7;
+            var col = crane.AddComponent<BoxCollider2D>();
+            col.size = new Vector2(2f, 3f);
+
+            // Containers
+            Vector3[] containerPositions = {
+                new Vector3(-1.5f, -1f, 0), new Vector3(1.5f, -1f, 0),
+                new Vector3(0, -0.5f, 0)
+            };
+
+            foreach (var pos in containerPositions)
+            {
+                var container = new GameObject("Container");
+                container.transform.SetParent(yard.transform);
+                container.transform.localPosition = pos;
+                var contSr = container.AddComponent<SpriteRenderer>();
+                contSr.sprite = CreateContainerSprite();
+                contSr.sortingOrder = 5;
+                var contCol = container.AddComponent<BoxCollider2D>();
+                contCol.size = new Vector2(1.5f, 1f);
+            }
+        }
+
+        // ===================== NEW SUBURBAN LANDMARKS =====================
+
+        private void CreateSchoolBus(Transform parent, Vector3 position)
+        {
+            var bus = new GameObject("SchoolBus");
+            bus.transform.SetParent(parent);
+            bus.transform.position = position;
+            bus.transform.rotation = Quaternion.Euler(0, 0, -5f);
+
+            var sr = bus.AddComponent<SpriteRenderer>();
+            sr.sprite = CreateSchoolBusSprite();
+            sr.sortingOrder = 5;
+            sr.color = new Color(1f, 0.8f, 0.2f);
+
+            var col = bus.AddComponent<BoxCollider2D>();
+            col.size = new Vector2(3f, 1.2f);
+        }
+        private void CreateCulDeSacCenter(Transform parent, Vector3 position)
+        {
+            var center = new GameObject("CulDeSacCenter");
+            center.transform.SetParent(parent);
+            center.transform.position = position;
+
+            // Mailbox
+            var mailbox = new GameObject("Mailbox");
+            mailbox.transform.SetParent(center.transform);
+            mailbox.transform.localPosition = new Vector3(-1f, 0, 0);
+            var mailSr = mailbox.AddComponent<SpriteRenderer>();
+            mailSr.sprite = CreateMailboxSprite();
+            mailSr.sortingOrder = 5;
+            var mailCol = mailbox.AddComponent<BoxCollider2D>();
+            mailCol.size = new Vector2(0.5f, 1f);
+
+            // Picnic table
+            var table = new GameObject("PicnicTable");
+            table.transform.SetParent(center.transform);
+            table.transform.localPosition = new Vector3(1f, 0, 0);
+            var tableSr = table.AddComponent<SpriteRenderer>();
+            tableSr.sprite = CreatePicnicTableSprite();
+            tableSr.sortingOrder = 4;
+            var tableCol = table.AddComponent<BoxCollider2D>();
+            tableCol.size = new Vector2(2f, 0.8f);
+
+            // Swing set
+            var swing = new GameObject("SwingSet");
+            swing.transform.SetParent(center.transform);
+            swing.transform.localPosition = new Vector3(0, 1.5f, 0);
+            var swingSr = swing.AddComponent<SpriteRenderer>();
+            swingSr.sprite = CreateSwingSetSprite();
+            swingSr.sortingOrder = 6;
+        }
+
+        // ===================== SHARED LANDMARKS =====================
+
         private void CreateFuelDepot(Transform parent, Vector3 position)
         {
             var depot = new GameObject("FuelDepot");
             depot.transform.SetParent(parent);
             depot.transform.position = position;
 
-            // Large fuel tank
-            for (int i = 0; i < 2; i++)
-            {
-                var tank = new GameObject($"FuelTank_{i}");
-                tank.transform.SetParent(depot.transform);
-                tank.transform.localPosition = new Vector3(i * 2.5f - 1.25f, 0, 0);
-                var sr = tank.AddComponent<SpriteRenderer>();
-                sr.sprite = CreateFuelTankSprite();
-                sr.sortingOrder = 5;
-                var col = tank.AddComponent<BoxCollider2D>();
-                col.size = new Vector2(1.8f, 1.2f);
-            }
+            var tank = new GameObject("FuelTank");
+            tank.transform.SetParent(depot.transform);
+            tank.transform.localPosition = Vector3.zero;
+            var sr = tank.AddComponent<SpriteRenderer>();
+            sr.sprite = CreateFuelTankSprite();
+            sr.sortingOrder = 5;
+            var col = tank.AddComponent<BoxCollider2D>();
+            col.size = new Vector2(2f, 1.5f);
 
-            // Hazard signs
             var sign = new GameObject("HazardSign");
             sign.transform.SetParent(depot.transform);
-            sign.transform.localPosition = new Vector3(-2f, 1.5f, 0);
-            var hsr = sign.AddComponent<SpriteRenderer>();
-            hsr.sprite = CreateHazardSignSprite();
-            hsr.sortingOrder = 6;
+            sign.transform.localPosition = new Vector3(1.5f, 0.5f, 0);
+            var signSr = sign.AddComponent<SpriteRenderer>();
+            signSr.sprite = CreateHazardSignSprite();
+            signSr.sortingOrder = 6;
+
+            var pump = new GameObject("FuelPump");
+            pump.transform.SetParent(depot.transform);
+            pump.transform.localPosition = new Vector3(-1.5f, -0.5f, 0);
+            var pumpSr = pump.AddComponent<SpriteRenderer>();
+            pumpSr.sprite = CreateFuelPumpSprite();
+            pumpSr.sortingOrder = 5;
+            var pumpCol = pump.AddComponent<BoxCollider2D>();
+            pumpCol.size = new Vector2(0.5f, 1f);
         }
 
         private void CreateLoadingDock(Transform parent, Vector3 position)
@@ -288,28 +494,28 @@ namespace Deadlight.Level
             dock.transform.SetParent(parent);
             dock.transform.position = position;
 
-            // Raised platform
             var platform = new GameObject("Platform");
             platform.transform.SetParent(dock.transform);
             platform.transform.localPosition = Vector3.zero;
             var sr = platform.AddComponent<SpriteRenderer>();
             sr.sprite = CreatePlatformSprite();
-            sr.sortingOrder = 3;
+            sr.sortingOrder = 4;
             var col = platform.AddComponent<BoxCollider2D>();
-            col.size = new Vector2(4f, 1f);
-            col.offset = new Vector2(0, 0.5f);
+            col.size = new Vector2(4f, 1.5f);
 
-            // Scattered crates on dock
-            for (int i = 0; i < 4; i++)
+            Vector3[] cratePositions = {
+                new Vector3(-1.2f, -0.8f, 0), new Vector3(0, -0.8f, 0), new Vector3(1.2f, -0.8f, 0)
+            };
+            foreach (var pos in cratePositions)
             {
-                var crate = new GameObject($"DockCrate_{i}");
+                var crate = new GameObject("DockCrate");
                 crate.transform.SetParent(dock.transform);
-                crate.transform.localPosition = new Vector3(-1.5f + i * 1f, -0.8f, 0);
-                var csr = crate.AddComponent<SpriteRenderer>();
-                csr.sprite = ProceduralSpriteGenerator.CreateCrateSprite();
-                csr.sortingOrder = 5;
-                var ccol = crate.AddComponent<BoxCollider2D>();
-                ccol.size = new Vector2(0.8f, 0.8f);
+                crate.transform.localPosition = pos;
+                var crateSr = crate.AddComponent<SpriteRenderer>();
+                crateSr.sprite = ProceduralSpriteGenerator.CreateCrateSprite();
+                crateSr.sortingOrder = 5;
+                var crateCol = crate.AddComponent<BoxCollider2D>();
+                crateCol.size = new Vector2(0.8f, 0.8f);
             }
         }
 
@@ -319,26 +525,23 @@ namespace Deadlight.Level
             playground.transform.SetParent(parent);
             playground.transform.position = position;
 
-            // Swing set frame
-            var swings = new GameObject("SwingSet");
-            swings.transform.SetParent(playground.transform);
-            swings.transform.localPosition = Vector3.zero;
-            var sr = swings.AddComponent<SpriteRenderer>();
-            sr.sprite = CreateSwingSetSprite();
-            sr.sortingOrder = 6;
-            var col = swings.AddComponent<BoxCollider2D>();
-            col.size = new Vector2(2f, 0.3f);
-            col.offset = new Vector2(0, -0.5f);
+            var swing = new GameObject("SwingSet");
+            swing.transform.SetParent(playground.transform);
+            swing.transform.localPosition = new Vector3(-1.5f, 0, 0);
+            var swingSr = swing.AddComponent<SpriteRenderer>();
+            swingSr.sprite = CreateSwingSetSprite();
+            swingSr.sortingOrder = 5;
+            var swingCol = swing.AddComponent<BoxCollider2D>();
+            swingCol.size = new Vector2(2f, 2f);
 
-            // Slide
             var slide = new GameObject("Slide");
             slide.transform.SetParent(playground.transform);
-            slide.transform.localPosition = new Vector3(2.5f, 0, 0);
-            var ssr = slide.AddComponent<SpriteRenderer>();
-            ssr.sprite = CreateSlideSprite();
-            ssr.sortingOrder = 6;
-            var scol = slide.AddComponent<CircleCollider2D>();
-            scol.radius = 0.4f;
+            slide.transform.localPosition = new Vector3(1.5f, 0, 0);
+            var slideSr = slide.AddComponent<SpriteRenderer>();
+            slideSr.sprite = CreateSlideSprite();
+            slideSr.sortingOrder = 5;
+            var slideCol = slide.AddComponent<BoxCollider2D>();
+            slideCol.size = new Vector2(1.5f, 2f);
         }
 
         private void CreateAbandonedBus(Transform parent, Vector3 position)
@@ -346,15 +549,26 @@ namespace Deadlight.Level
             var bus = new GameObject("AbandonedBus");
             bus.transform.SetParent(parent);
             bus.transform.position = position;
-            bus.transform.rotation = Quaternion.Euler(0, 0, 12f);
+            bus.transform.rotation = Quaternion.Euler(0, 0, 8f);
 
             var sr = bus.AddComponent<SpriteRenderer>();
             sr.sprite = CreateBusSprite();
             sr.sortingOrder = 5;
-            sr.color = new Color(0.7f, 0.6f, 0.2f);
+            sr.color = new Color(0.6f, 0.55f, 0.45f);
 
             var col = bus.AddComponent<BoxCollider2D>();
-            col.size = new Vector2(3.5f, 1f);
+            col.size = new Vector2(4f, 1.5f);
+
+            for (int i = 0; i < 2; i++)
+            {
+                var debris = new GameObject($"Debris_{i}");
+                debris.transform.SetParent(bus.transform);
+                debris.transform.localPosition = new Vector3(Random.Range(-2f, 2f), Random.Range(-1f, 1f), 0);
+                var dsr = debris.AddComponent<SpriteRenderer>();
+                dsr.sprite = CreateDebrisSprite();
+                dsr.sortingOrder = 4;
+                dsr.color = new Color(0.4f, 0.4f, 0.35f);
+            }
         }
 
         // ===================== STREETLIGHTS =====================
@@ -396,6 +610,323 @@ namespace Deadlight.Level
         }
 
         // ===================== SPRITE CREATION =====================
+
+        private Sprite CreateDinerSprite()
+        {
+            int w = 48, h = 32;
+            var tex = new Texture2D(w, h);
+            var pixels = new Color[w * h];
+            Color wallColor = new Color(0.9f, 0.7f, 0.2f);
+            Color roofColor = new Color(0.7f, 0.2f, 0.2f);
+
+            // Building walls
+            for (int y = 4; y < h - 4; y++)
+                for (int x = 4; x < w - 4; x++)
+                    pixels[y * w + x] = wallColor;
+
+            // Roof
+            for (int y = h - 6; y < h; y++)
+                for (int x = 2; x < w - 2; x++)
+                    pixels[y * w + x] = roofColor;
+
+            // Windows
+            for (int wx = 8; wx < w - 8; wx += 8)
+                for (int y = h/2; y < h - 8; y++)
+                    for (int dx = 0; dx < 4 && wx + dx < w; dx++)
+                        pixels[y * w + wx + dx] = new Color(0.7f, 0.9f, 1f, 0.8f);
+
+            tex.SetPixels(pixels);
+            tex.Apply();
+            tex.filterMode = FilterMode.Point;
+            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 16f);
+        }
+
+        private Sprite CreateDinerSignSprite()
+        {
+            int w = 32, h = 16;
+            var tex = new Texture2D(w, h);
+            var pixels = new Color[w * h];
+            Color signColor = new Color(0.9f, 0.2f, 0.2f);
+            Color textColor = new Color(1f, 1f, 0.8f);
+
+            // Sign background
+            for (int y = 2; y < h - 2; y++)
+                for (int x = 2; x < w - 2; x++)
+                    pixels[y * w + x] = signColor;
+
+            // "OPEN" text
+            for (int i = 6; i < 12; i++)
+                pixels[8 * w + i] = textColor;
+
+            tex.SetPixels(pixels);
+            tex.Apply();
+            tex.filterMode = FilterMode.Point;
+            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 16f);
+        }
+
+        private Sprite CreatePoliceKioskSprite()
+        {
+            int w = 32, h = 24;
+            var tex = new Texture2D(w, h);
+            var pixels = new Color[w * h];
+            Color kioskColor = new Color(0.2f, 0.2f, 0.6f);
+            Color detailColor = new Color(0.8f, 0.8f, 0.9f);
+
+            // Kiosk base
+            for (int y = 2; y < h - 2; y++)
+                for (int x = 2; x < w - 2; x++)
+                    pixels[y * w + x] = kioskColor;
+
+            // Blue stripe
+            for (int y = h/2 - 1; y < h/2 + 1; y++)
+                for (int x = 4; x < w - 4; x++)
+                    pixels[y * w + x] = detailColor;
+
+            // Window
+            for (int y = 6; y < h - 6; y++)
+                for (int x = w/2 - 3; x < w/2 + 3; x++)
+                    pixels[y * w + x] = new Color(0.7f, 0.9f, 1f, 0.8f);
+
+            tex.SetPixels(pixels);
+            tex.Apply();
+            tex.filterMode = FilterMode.Point;
+            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 16f);
+        }
+
+        private Sprite CreatePoliceCarSprite()
+        {
+            int w = 24, h = 12;
+            var tex = new Texture2D(w, h);
+            var pixels = new Color[w * h];
+            Color bodyColor = new Color(0.2f, 0.2f, 0.6f);
+            Color stripeColor = new Color(0.9f, 0.9f, 0.2f);
+
+            // Car body
+            for (int y = 2; y < h - 2; y++)
+                for (int x = 2; x < w - 2; x++)
+                    pixels[y * w + x] = bodyColor;
+
+            // Stripe
+            for (int y = h/2 - 1; y < h/2 + 1; y++)
+                for (int x = 4; x < w - 4; x++)
+                    pixels[y * w + x] = stripeColor;
+
+            // Wheels
+            for (int y = 0; y < 3; y++)
+                for (int x = 4; x < 8; x++)
+                    pixels[y * w + x] = new Color(0.1f, 0.1f, 0.1f);
+            for (int y = 0; y < 3; y++)
+                for (int x = w - 8; x < w - 4; x++)
+                    pixels[y * w + x] = new Color(0.1f, 0.1f, 0.1f);
+
+            tex.SetPixels(pixels);
+            tex.Apply();
+            tex.filterMode = FilterMode.Point;
+            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 16f);
+        }
+
+        private Sprite CreateOfficeBuildingSprite()
+        {
+            int w = 48, h = 40;
+            var tex = new Texture2D(w, h);
+            var pixels = new Color[w * h];
+            Color wallColor = new Color(0.6f, 0.6f, 0.7f);
+            Color windowColor = new Color(0.7f, 0.9f, 1f, 0.8f);
+
+            // Building walls
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                    pixels[y * w + x] = wallColor;
+
+            // Windows in grid pattern
+            for (int wy = 4; wy < h - 4; wy += 6)
+                for (int wx = 6; wx < w - 6; wx += 8)
+                    for (int dy = 0; dy < 3 && wy + dy < h; dy++)
+                        for (int dx = 0; dx < 4 && wx + dx < w; dx++)
+                            pixels[(wy + dy) * w + (wx + dx)] = windowColor;
+
+            tex.SetPixels(pixels);
+            tex.Apply();
+            tex.filterMode = FilterMode.Point;
+            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 16f);
+        }
+
+        private Sprite CreateCameraSprite()
+        {
+            int size = 16;
+            var tex = new Texture2D(size, size);
+            var pixels = new Color[size * size];
+            Color cameraColor = new Color(0.3f, 0.3f, 0.3f);
+            Color lensColor = new Color(0.1f, 0.1f, 0.1f);
+
+            // Camera base
+            for (int y = 4; y < 12; y++)
+                for (int x = 4; x < 12; x++)
+                    pixels[y * size + x] = cameraColor;
+
+            // Lens
+            for (int y = 6; y < 10; y++)
+                for (int x = 6; x < 10; x++)
+                    pixels[y * size + x] = lensColor;
+
+            tex.SetPixels(pixels);
+            tex.Apply();
+            tex.filterMode = FilterMode.Point;
+            return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 16f);
+        }
+
+        private Sprite CreateCraneSprite()
+        {
+            int w = 32, h = 48;
+            var tex = new Texture2D(w, h);
+            var pixels = new Color[w * h];
+            Color craneColor = new Color(0.5f, 0.5f, 0.55f);
+            Color armColor = new Color(0.4f, 0.4f, 0.45f);
+
+            // Crane tower
+            for (int y = 0; y < h - 8; y++)
+                for (int x = w/2 - 3; x < w/2 + 3; x++)
+                    pixels[y * w + x] = craneColor;
+
+            // Crane arm
+            for (int y = h - 12; y < h - 8; y++)
+                for (int x = w/2 - 10; x < w/2 + 10; x++)
+                    pixels[y * w + x] = armColor;
+
+            // Counterweight
+            for (int y = h - 16; y < h - 12; y++)
+                for (int x = w/2 + 6; x < w/2 + 12; x++)
+                    pixels[y * w + x] = new Color(0.3f, 0.3f, 0.35f);
+
+            tex.SetPixels(pixels);
+            tex.Apply();
+            tex.filterMode = FilterMode.Point;
+            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 16f);
+        }
+
+        private Sprite CreateContainerSprite()
+        {
+            int w = 24, h = 16;
+            var tex = new Texture2D(w, h);
+            var pixels = new Color[w * h];
+            Color containerColor = new Color(0.2f, 0.4f, 0.8f);
+            Color stripeColor = new Color(0.9f, 0.9f, 0.9f);
+
+            // Container body
+            for (int y = 2; y < h - 2; y++)
+                for (int x = 2; x < w - 2; x++)
+                    pixels[y * w + x] = containerColor;
+
+            // White stripes
+            for (int y = 4; y < 6; y++)
+                for (int x = 4; x < w - 4; x++)
+                    pixels[y * w + x] = stripeColor;
+            for (int y = h - 6; y < h - 4; y++)
+                for (int x = 4; x < w - 4; x++)
+                    pixels[y * w + x] = stripeColor;
+
+            tex.SetPixels(pixels);
+            tex.Apply();
+            tex.filterMode = FilterMode.Point;
+            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 16f);
+        }
+
+        private Sprite CreateSchoolBusSprite()
+        {
+            int w = 48, h = 20;
+            var tex = new Texture2D(w, h);
+            var pixels = new Color[w * h];
+            Color bodyColor = new Color(1f, 0.8f, 0.2f);
+            Color detailColor = new Color(0.2f, 0.2f, 0.8f);
+
+            // Bus body
+            for (int y = 3; y < h - 3; y++)
+                for (int x = 3; x < w - 3; x++)
+                    pixels[y * w + x] = bodyColor;
+
+            // "SCHOOL" text
+            for (int i = 12; i < 24; i++)
+                pixels[(h/2) * w + i] = detailColor;
+
+            // Wheels
+            for (int y = 0; y < 4; y++)
+                for (int x = 8; x < 14; x++)
+                    pixels[y * w + x] = new Color(0.1f, 0.1f, 0.1f);
+            for (int y = 0; y < 4; y++)
+                for (int x = w - 14; x < w - 8; x++)
+                    pixels[y * w + x] = new Color(0.1f, 0.1f, 0.1f);
+
+            tex.SetPixels(pixels);
+            tex.Apply();
+            tex.filterMode = FilterMode.Point;
+            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 16f);
+        }
+
+        private Sprite CreateMailboxSprite()
+        {
+            int w = 12, h = 16;
+            var tex = new Texture2D(w, h);
+            var pixels = new Color[w * h];
+            Color boxColor = new Color(0.8f, 0.2f, 0.2f);
+            Color postColor = new Color(0.4f, 0.4f, 0.4f);
+
+            // Post
+            for (int y = 0; y < h - 4; y++)
+                for (int x = w/2 - 1; x < w/2 + 1; x++)
+                    pixels[y * w + x] = postColor;
+
+            // Mailbox
+            for (int y = h - 8; y < h - 2; y++)
+                for (int x = 2; x < w - 2; x++)
+                    pixels[y * w + x] = boxColor;
+
+            // Flag
+            for (int y = h - 6; y < h - 4; y++)
+                for (int x = w - 4; x < w - 1; x++)
+                    pixels[y * w + x] = new Color(0.9f, 0.9f, 0.9f);
+
+            tex.SetPixels(pixels);
+            tex.Apply();
+            tex.filterMode = FilterMode.Point;
+            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 16f);
+        }
+
+        private Sprite CreatePicnicTableSprite()
+        {
+            int w = 32, h = 12;
+            var tex = new Texture2D(w, h);
+            var pixels = new Color[w * h];
+            Color tableColor = new Color(0.6f, 0.4f, 0.2f);
+            Color benchColor = new Color(0.5f, 0.3f, 0.1f);
+
+            // Tabletop
+            for (int y = 6; y < 8; y++)
+                for (int x = 2; x < w - 2; x++)
+                    pixels[y * w + x] = tableColor;
+
+            // Benches
+            for (int y = 2; y < 4; y++)
+                for (int x = 4; x < w - 4; x++)
+                    pixels[y * w + x] = benchColor;
+            for (int y = h - 4; y < h - 2; y++)
+                for (int x = 4; x < w - 4; x++)
+                    pixels[y * w + x] = benchColor;
+
+            // Legs
+            for (int y = 4; y < 6; y++)
+                for (int x = 6; x < 8; x++)
+                    pixels[y * w + x] = tableColor;
+            for (int y = 4; y < 6; y++)
+                for (int x = w - 8; x < w - 6; x++)
+                    pixels[y * w + x] = tableColor;
+
+            tex.SetPixels(pixels);
+            tex.Apply();
+            tex.filterMode = FilterMode.Point;
+            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 16f);
+        }
+
+        // ===================== EXISTING SPRITE HELPERS =====================
 
         private Sprite CreateFountainSprite()
         {
@@ -544,7 +1075,6 @@ namespace Deadlight.Level
             tex.filterMode = FilterMode.Point;
             return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 16f);
         }
-
         private Sprite CreateBusSprite()
         {
             int w = 64, h = 24;
@@ -808,7 +1338,7 @@ namespace Deadlight.Level
             tex.SetPixels(pixels);
             tex.Apply();
             tex.filterMode = FilterMode.Point;
-            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 16f);
+            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.25f), 16f);
         }
 
         private Sprite CreateGlowSprite(Color glowColor)
@@ -833,6 +1363,8 @@ namespace Deadlight.Level
             return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 16f);
         }
     }
+
+    // ===================== EFFECT CLASSES =====================
 
     public class FireEffect : MonoBehaviour
     {
