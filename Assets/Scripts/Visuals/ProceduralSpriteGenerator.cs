@@ -748,41 +748,587 @@ namespace Deadlight.Visuals
 
         public static Sprite CreatePickupSprite(string pickupType)
         {
-            string key = $"pickup_{pickupType}";
+            return CreatePickupSprite(pickupType, 0);
+        }
+
+        public static Sprite CreatePickupSprite(string pickupType, int variant)
+        {
+            string key = $"pickup_{pickupType}_{variant}";
             if (spriteCache.TryGetValue(key, out Sprite cached)) return cached;
 
-            int size = 16;
-            var texture = new Texture2D(size, size);
-            texture.filterMode = FilterMode.Point;
-            ClearTexture(texture, Color.clear);
+            int w = 32, h = 32;
+            var tex = new Texture2D(w, h);
+            tex.filterMode = FilterMode.Point;
+            ClearTexture(tex, Color.clear);
 
             switch (pickupType.ToLower())
             {
                 case "health":
-                    DrawRect(texture, 2, 2, 12, 12, Color.white);
-                    DrawRect(texture, 6, 4, 4, 8, new Color(0.9f, 0.15f, 0.1f));
-                    DrawRect(texture, 4, 6, 8, 4, new Color(0.9f, 0.15f, 0.1f));
+                    switch (variant % 3)
+                    {
+                        case 0: DrawMedKit(tex); break;
+                        case 1: DrawPharmacyBox(tex); break;
+                        case 2: DrawAmbulanceCase(tex); break;
+                    }
                     break;
-                    
+
                 case "ammo":
-                    DrawRect(texture, 3, 2, 4, 12, new Color(0.7f, 0.55f, 0.2f));
-                    DrawRect(texture, 9, 2, 4, 12, new Color(0.7f, 0.55f, 0.2f));
-                    DrawRect(texture, 4, 10, 2, 2, Palette.MetalLight);
-                    DrawRect(texture, 10, 10, 2, 2, Palette.MetalLight);
+                    switch (variant % 4)
+                    {
+                        case 0: DrawAmmoBox(tex); break;
+                        case 1: DrawAmmoCrate(tex); break;
+                        case 2: DrawDuffelBag(tex); break;
+                        case 3: DrawAmmoLocker(tex); break;
+                    }
                     break;
-                    
+
+                case "scrap":
+                    switch (variant % 3)
+                    {
+                        case 0: DrawScrapPile(tex); break;
+                        case 1: DrawToolbox(tex); break;
+                        case 2: DrawFuelCan(tex); break;
+                    }
+                    break;
+
+                case "wood":
+                    DrawWoodPile(tex);
+                    break;
+
+                case "chemicals":
+                    switch (variant % 2)
+                    {
+                        case 0: DrawChemBottle(tex); break;
+                        case 1: DrawChemCrate(tex); break;
+                    }
+                    break;
+
+                case "electronics":
+                    switch (variant % 2)
+                    {
+                        case 0: DrawElectronicsCrate(tex); break;
+                        case 1: DrawCircuitBoard(tex); break;
+                    }
+                    break;
+
+                case "points":
+                    DrawCashBundle(tex, variant);
+                    break;
+
+                case "powerup":
+                    DrawPowerupCapsule(tex);
+                    break;
+
                 case "lore":
-                    DrawRect(texture, 2, 1, 12, 14, new Color(0.9f, 0.88f, 0.8f));
-                    DrawRect(texture, 4, 3, 8, 1, Palette.ClothDark);
-                    DrawRect(texture, 4, 6, 8, 1, Palette.ClothDark);
-                    DrawRect(texture, 4, 9, 6, 1, Palette.ClothDark);
+                    DrawLoreDocument(tex);
+                    break;
+
+                default:
+                    DrawGenericCrate(tex);
                     break;
             }
 
-            texture.Apply();
-            var sprite = Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 32);
+            tex.Apply();
+            var sprite = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 32);
             spriteCache[key] = sprite;
             return sprite;
+        }
+
+        // ---- HEALTH VARIANTS ----
+
+        private static void DrawMedKit(Texture2D tex)
+        {
+            Color body = new Color(0.9f, 0.92f, 0.9f);
+            Color cross = new Color(0.85f, 0.12f, 0.1f);
+            Color latch = Palette.MetalLight;
+            Color shadow = new Color(0.7f, 0.72f, 0.7f);
+
+            // Case body
+            DrawRect(tex, 4, 6, 24, 18, body);
+            DrawRect(tex, 4, 6, 24, 2, shadow);   // bottom edge
+            DrawRect(tex, 4, 22, 24, 2, shadow);   // top edge
+            DrawRect(tex, 4, 6, 2, 18, shadow);    // left edge
+            DrawRect(tex, 26, 6, 2, 18, shadow);   // right edge
+
+            // Red cross
+            DrawRect(tex, 13, 10, 6, 12, cross);
+            DrawRect(tex, 10, 13, 12, 6, cross);
+
+            // Latches
+            DrawRect(tex, 9, 23, 4, 2, latch);
+            DrawRect(tex, 19, 23, 4, 2, latch);
+
+            // Handle
+            DrawRect(tex, 12, 25, 8, 2, Palette.MetalDark);
+            DrawRect(tex, 11, 26, 2, 2, Palette.MetalDark);
+            DrawRect(tex, 19, 26, 2, 2, Palette.MetalDark);
+        }
+
+        private static void DrawPharmacyBox(Texture2D tex)
+        {
+            Color body = new Color(0.2f, 0.65f, 0.3f);
+            Color label = new Color(0.9f, 0.92f, 0.9f);
+            Color cross = new Color(0.2f, 0.65f, 0.3f);
+
+            // Box body
+            DrawRect(tex, 5, 5, 22, 20, body);
+            DrawRect(tex, 5, 5, 22, 2, new Color(0.15f, 0.5f, 0.22f));
+
+            // White label area
+            DrawRect(tex, 8, 9, 16, 12, label);
+
+            // Green cross on label
+            DrawRect(tex, 14, 11, 4, 8, cross);
+            DrawRect(tex, 11, 14, 10, 4, cross);
+
+            // Lid line
+            DrawRect(tex, 5, 23, 22, 1, new Color(0.15f, 0.5f, 0.22f));
+        }
+
+        private static void DrawAmbulanceCase(Texture2D tex)
+        {
+            Color body = new Color(0.95f, 0.55f, 0.1f);
+            Color stripe = new Color(0.9f, 0.92f, 0.9f);
+
+            // Case body (rounded corners via fill)
+            DrawRect(tex, 3, 5, 26, 20, body);
+            DrawRect(tex, 3, 5, 26, 2, new Color(0.8f, 0.45f, 0.08f));
+
+            // Reflective stripes
+            DrawRect(tex, 3, 12, 26, 2, stripe);
+            DrawRect(tex, 3, 17, 26, 2, stripe);
+
+            // Star of life symbol (simplified)
+            DrawRect(tex, 14, 8, 4, 14, stripe);
+            DrawRect(tex, 10, 13, 12, 4, stripe);
+            DrawCircle(tex, 16, 15, 2, body);
+
+            // Handle
+            DrawRect(tex, 12, 25, 8, 2, Palette.MetalDark);
+        }
+
+        // ---- AMMO VARIANTS ----
+
+        private static void DrawAmmoBox(Texture2D tex)
+        {
+            Color body = new Color(0.35f, 0.4f, 0.2f); // OD green
+            Color lid = new Color(0.3f, 0.35f, 0.18f);
+            Color latch = Palette.MetalLight;
+            Color label = new Color(0.85f, 0.75f, 0.3f);
+
+            // Box body
+            DrawRect(tex, 4, 4, 24, 16, body);
+            DrawRect(tex, 4, 18, 24, 4, lid);
+
+            // Metal edge
+            DrawRect(tex, 4, 4, 24, 1, Palette.MetalDark);
+            DrawRect(tex, 4, 21, 24, 1, Palette.MetalDark);
+
+            // Latches
+            DrawRect(tex, 8, 20, 3, 3, latch);
+            DrawRect(tex, 21, 20, 3, 3, latch);
+
+            // "AMMO" label stripe
+            DrawRect(tex, 6, 9, 20, 6, label);
+            DrawRect(tex, 8, 10, 2, 4, body); // A
+            DrawRect(tex, 12, 10, 2, 4, body); // M
+            DrawRect(tex, 16, 10, 2, 4, body); // M
+            DrawRect(tex, 20, 10, 2, 4, body); // O
+
+            // Handle
+            DrawRect(tex, 12, 23, 8, 2, Palette.MetalDark);
+        }
+
+        private static void DrawAmmoCrate(Texture2D tex)
+        {
+            Color wood = Palette.WoodLight;
+            Color dark = Palette.WoodDark;
+            Color metal = Palette.MetalLight;
+
+            // Wooden crate body
+            DrawRect(tex, 3, 4, 26, 20, wood);
+
+            // Wood grain lines
+            for (int y = 7; y < 22; y += 4)
+                DrawRect(tex, 4, y, 24, 1, dark);
+
+            // Metal corner brackets
+            DrawRect(tex, 3, 4, 4, 4, metal);
+            DrawRect(tex, 25, 4, 4, 4, metal);
+            DrawRect(tex, 3, 20, 4, 4, metal);
+            DrawRect(tex, 25, 20, 4, 4, metal);
+
+            // Stenciled bullet symbol
+            DrawRect(tex, 14, 8, 4, 10, new Color(0.2f, 0.2f, 0.15f));
+            DrawRect(tex, 13, 16, 6, 2, new Color(0.6f, 0.5f, 0.2f));
+        }
+
+        private static void DrawDuffelBag(Texture2D tex)
+        {
+            Color body = new Color(0.25f, 0.28f, 0.22f); // dark tactical
+            Color zip = Palette.MetalLight;
+            Color strap = new Color(0.2f, 0.22f, 0.18f);
+
+            // Bag body (rounded shape)
+            DrawRect(tex, 4, 6, 24, 14, body);
+            DrawRect(tex, 6, 5, 20, 1, body);
+            DrawRect(tex, 6, 20, 20, 1, body);
+
+            // Zipper line
+            DrawRect(tex, 6, 13, 20, 1, zip);
+
+            // Strap
+            DrawRect(tex, 8, 20, 3, 6, strap);
+            DrawRect(tex, 21, 20, 3, 6, strap);
+            DrawRect(tex, 8, 25, 16, 2, strap);
+
+            // Bullets peeking out
+            DrawRect(tex, 10, 14, 2, 5, new Color(0.7f, 0.6f, 0.2f));
+            DrawRect(tex, 14, 14, 2, 5, new Color(0.7f, 0.6f, 0.2f));
+            DrawRect(tex, 18, 14, 2, 5, new Color(0.7f, 0.6f, 0.2f));
+            DrawRect(tex, 11, 18, 2, 2, Palette.MetalLight);
+            DrawRect(tex, 15, 18, 2, 2, Palette.MetalLight);
+            DrawRect(tex, 19, 18, 2, 2, Palette.MetalLight);
+        }
+
+        private static void DrawAmmoLocker(Texture2D tex)
+        {
+            Color body = Palette.MetalDark;
+            Color door = Palette.MetalLight;
+
+            // Locker body
+            DrawRect(tex, 6, 3, 20, 26, body);
+
+            // Door
+            DrawRect(tex, 8, 5, 16, 22, door);
+
+            // Handle
+            DrawRect(tex, 22, 14, 2, 6, new Color(0.5f, 0.5f, 0.5f));
+
+            // Vent slots
+            for (int y = 7; y < 14; y += 2)
+                DrawRect(tex, 10, y, 12, 1, body);
+
+            // "AMMO" stencil
+            DrawRect(tex, 10, 17, 12, 6, new Color(0.35f, 0.4f, 0.2f));
+            DrawRect(tex, 12, 18, 2, 4, door);
+            DrawRect(tex, 16, 18, 2, 4, door);
+        }
+
+        // ---- RESOURCE VARIANTS ----
+
+        private static void DrawScrapPile(Texture2D tex)
+        {
+            Color metal1 = Palette.MetalLight;
+            Color metal2 = Palette.MetalDark;
+            Color rust = Palette.Rust;
+
+            // Pile base
+            DrawRect(tex, 4, 4, 24, 6, metal2);
+            DrawRect(tex, 6, 10, 20, 6, metal1);
+            DrawRect(tex, 8, 16, 16, 4, rust);
+
+            // Individual scrap pieces
+            DrawRect(tex, 5, 5, 8, 3, rust);
+            DrawRect(tex, 15, 6, 10, 2, metal1);
+            DrawRect(tex, 8, 11, 6, 4, metal2);
+            DrawRect(tex, 18, 12, 6, 3, rust);
+            DrawRect(tex, 10, 17, 4, 2, metal1);
+            DrawRect(tex, 16, 16, 6, 3, metal2);
+
+            // Gear shape hint
+            DrawCircle(tex, 22, 8, 3, Palette.MetalLight);
+            DrawCircle(tex, 22, 8, 1, metal2);
+        }
+
+        private static void DrawToolbox(Texture2D tex)
+        {
+            Color body = new Color(0.8f, 0.2f, 0.15f);
+            Color tray = Palette.MetalLight;
+
+            // Box body
+            DrawRect(tex, 4, 4, 24, 14, body);
+            DrawRect(tex, 4, 4, 24, 2, new Color(0.65f, 0.15f, 0.1f));
+
+            // Tray/lid
+            DrawRect(tex, 3, 17, 26, 4, tray);
+            DrawRect(tex, 3, 20, 26, 1, Palette.MetalDark);
+
+            // Handle
+            DrawRect(tex, 12, 21, 8, 3, Palette.MetalDark);
+            DrawRect(tex, 11, 23, 2, 2, Palette.MetalDark);
+            DrawRect(tex, 19, 23, 2, 2, Palette.MetalDark);
+
+            // Latch
+            DrawRect(tex, 14, 17, 4, 2, new Color(0.9f, 0.8f, 0.2f));
+
+            // Wrench hint in tray
+            DrawRect(tex, 6, 18, 8, 1, Palette.MetalDark);
+            DrawRect(tex, 5, 18, 2, 2, Palette.MetalDark);
+        }
+
+        private static void DrawFuelCan(Texture2D tex)
+        {
+            Color body = new Color(0.8f, 0.15f, 0.1f);
+            Color cap = Palette.MetalDark;
+
+            // Can body
+            DrawRect(tex, 8, 3, 16, 22, body);
+            DrawRect(tex, 8, 3, 16, 2, new Color(0.65f, 0.1f, 0.08f));
+
+            // Handle
+            DrawRect(tex, 10, 24, 12, 2, Palette.MetalLight);
+            DrawRect(tex, 9, 25, 2, 3, Palette.MetalLight);
+            DrawRect(tex, 21, 25, 2, 3, Palette.MetalLight);
+
+            // Spout
+            DrawRect(tex, 20, 25, 4, 2, cap);
+            DrawRect(tex, 22, 27, 2, 2, cap);
+
+            // Label
+            DrawRect(tex, 10, 10, 12, 8, new Color(0.9f, 0.85f, 0.3f));
+
+            // FUEL text hint
+            DrawRect(tex, 12, 12, 2, 4, body);
+            DrawRect(tex, 16, 12, 2, 4, body);
+        }
+
+        private static void DrawWoodPile(Texture2D tex)
+        {
+            Color light = Palette.WoodLight;
+            Color dark = Palette.WoodDark;
+            Color grain = new Color(0.5f, 0.35f, 0.22f);
+
+            // Bottom logs
+            DrawRect(tex, 3, 4, 26, 5, dark);
+            DrawRect(tex, 4, 5, 10, 3, light);
+            DrawRect(tex, 18, 5, 10, 3, light);
+
+            // Middle logs
+            DrawRect(tex, 5, 9, 22, 5, dark);
+            DrawRect(tex, 6, 10, 8, 3, light);
+            DrawRect(tex, 16, 10, 10, 3, light);
+
+            // Top logs
+            DrawRect(tex, 7, 14, 18, 5, dark);
+            DrawRect(tex, 8, 15, 7, 3, light);
+            DrawRect(tex, 17, 15, 7, 3, light);
+
+            // Grain details
+            for (int y = 5; y < 18; y += 5)
+            {
+                DrawPixel(tex, 7, y + 1, grain);
+                DrawPixel(tex, 15, y + 1, grain);
+                DrawPixel(tex, 23, y + 1, grain);
+            }
+
+            // End grain circles
+            DrawCircle(tex, 5, 6, 2, grain);
+            DrawCircle(tex, 27, 6, 2, grain);
+        }
+
+        private static void DrawChemBottle(Texture2D tex)
+        {
+            Color glass = new Color(0.4f, 0.7f, 0.4f, 0.85f);
+            Color liquid = new Color(0.2f, 0.9f, 0.3f);
+            Color cap = Palette.MetalDark;
+
+            // Bottle body
+            DrawRect(tex, 10, 4, 12, 16, glass);
+            DrawRect(tex, 12, 20, 8, 4, glass); // neck
+
+            // Cap
+            DrawRect(tex, 11, 24, 10, 3, cap);
+
+            // Liquid inside
+            DrawRect(tex, 11, 5, 10, 12, liquid);
+
+            // Hazard label
+            DrawRect(tex, 12, 8, 8, 6, new Color(0.9f, 0.9f, 0.8f));
+            // Skull hint
+            DrawCircle(tex, 16, 11, 2, new Color(0.1f, 0.1f, 0.1f));
+
+            // Shine
+            DrawRect(tex, 12, 14, 2, 4, new Color(1f, 1f, 1f, 0.3f));
+        }
+
+        private static void DrawChemCrate(Texture2D tex)
+        {
+            Color body = new Color(0.85f, 0.8f, 0.2f); // hazard yellow
+            Color stripe = new Color(0.15f, 0.15f, 0.15f);
+
+            // Crate body
+            DrawRect(tex, 4, 4, 24, 20, body);
+
+            // Hazard stripes (diagonal pattern via checkerboard)
+            for (int y = 4; y < 8; y++)
+                for (int x = 4; x < 28; x += 4)
+                    DrawRect(tex, x, y, 2, 1, stripe);
+            for (int y = 20; y < 24; y++)
+                for (int x = 4; x < 28; x += 4)
+                    DrawRect(tex, x, y, 2, 1, stripe);
+
+            // Hazard symbol (trefoil simplified)
+            DrawCircle(tex, 16, 14, 5, stripe);
+            DrawCircle(tex, 16, 14, 3, body);
+            DrawCircle(tex, 16, 14, 1, stripe);
+        }
+
+        private static void DrawElectronicsCrate(Texture2D tex)
+        {
+            Color body = new Color(0.15f, 0.15f, 0.2f);
+            Color foam = new Color(0.25f, 0.25f, 0.3f);
+            Color chip = new Color(0.1f, 0.5f, 0.15f);
+            Color pin = Palette.MetalLight;
+
+            // Case body
+            DrawRect(tex, 4, 4, 24, 20, body);
+            DrawRect(tex, 6, 6, 20, 16, foam);
+
+            // Circuit board
+            DrawRect(tex, 8, 8, 16, 12, chip);
+
+            // IC chips
+            DrawRect(tex, 10, 10, 6, 4, new Color(0.05f, 0.05f, 0.05f));
+            DrawRect(tex, 18, 14, 4, 4, new Color(0.05f, 0.05f, 0.05f));
+
+            // Pins/traces
+            for (int x = 10; x < 16; x += 2)
+            {
+                DrawPixel(tex, x, 9, pin);
+                DrawPixel(tex, x, 14, pin);
+            }
+            DrawRect(tex, 11, 14, 8, 1, new Color(0.6f, 0.6f, 0.2f)); // trace
+        }
+
+        private static void DrawCircuitBoard(Texture2D tex)
+        {
+            Color board = new Color(0.1f, 0.5f, 0.15f);
+            Color trace = new Color(0.6f, 0.6f, 0.2f);
+            Color chip = new Color(0.05f, 0.05f, 0.08f);
+            Color pin = Palette.MetalLight;
+
+            // PCB
+            DrawRect(tex, 3, 5, 26, 20, board);
+
+            // Traces
+            DrawRect(tex, 5, 12, 22, 1, trace);
+            DrawRect(tex, 5, 17, 22, 1, trace);
+            DrawRect(tex, 10, 7, 1, 16, trace);
+            DrawRect(tex, 20, 7, 1, 16, trace);
+
+            // Main IC
+            DrawRect(tex, 12, 10, 8, 6, chip);
+            for (int x = 13; x < 19; x += 2)
+            {
+                DrawPixel(tex, x, 9, pin);
+                DrawPixel(tex, x, 16, pin);
+            }
+
+            // Capacitors
+            DrawRect(tex, 6, 8, 2, 4, new Color(0.3f, 0.3f, 0.8f));
+            DrawRect(tex, 24, 14, 2, 4, new Color(0.8f, 0.3f, 0.1f));
+
+            // Solder points
+            DrawPixel(tex, 5, 7, pin);
+            DrawPixel(tex, 26, 7, pin);
+            DrawPixel(tex, 5, 22, pin);
+            DrawPixel(tex, 26, 22, pin);
+        }
+
+        // ---- POINTS / POWERUP / LORE ----
+
+        private static void DrawCashBundle(Texture2D tex, int variant)
+        {
+            Color bill = variant % 2 == 0
+                ? new Color(0.3f, 0.6f, 0.3f)   // green bills
+                : new Color(0.7f, 0.6f, 0.2f);   // gold coins
+
+            if (variant % 2 == 0)
+            {
+                // Cash stack
+                for (int i = 0; i < 4; i++)
+                {
+                    int yOff = 4 + i * 4;
+                    Color shade = bill * (0.85f + i * 0.05f);
+                    shade.a = 1f;
+                    DrawRect(tex, 5 + i, yOff, 22, 5, shade);
+                }
+                // Dollar sign
+                DrawRect(tex, 15, 8, 2, 12, new Color(0.15f, 0.35f, 0.15f));
+                DrawRect(tex, 12, 10, 8, 2, new Color(0.15f, 0.35f, 0.15f));
+                DrawRect(tex, 12, 16, 8, 2, new Color(0.15f, 0.35f, 0.15f));
+                // Band
+                DrawRect(tex, 8, 12, 16, 3, new Color(0.85f, 0.75f, 0.3f));
+            }
+            else
+            {
+                // Coin stack
+                for (int i = 0; i < 5; i++)
+                {
+                    int yOff = 4 + i * 3;
+                    DrawCircle(tex, 16, yOff + 4, 7, bill);
+                    DrawCircle(tex, 16, yOff + 4, 5, new Color(0.85f, 0.75f, 0.3f));
+                    DrawCircle(tex, 16, yOff + 4, 2, bill);
+                }
+            }
+        }
+
+        private static void DrawPowerupCapsule(Texture2D tex)
+        {
+            Color shell = new Color(0.5f, 0.2f, 0.7f);
+            Color glow = new Color(0.8f, 0.5f, 1f);
+            Color core = new Color(1f, 0.9f, 1f);
+
+            // Capsule body
+            DrawCircle(tex, 16, 14, 10, shell);
+            DrawCircle(tex, 16, 14, 7, glow);
+            DrawCircle(tex, 16, 14, 3, core);
+
+            // Lightning bolt
+            DrawRect(tex, 14, 8, 5, 3, Color.white);
+            DrawRect(tex, 12, 11, 5, 3, Color.white);
+            DrawRect(tex, 15, 14, 5, 3, Color.white);
+            DrawRect(tex, 13, 17, 5, 3, Color.white);
+        }
+
+        private static void DrawLoreDocument(Texture2D tex)
+        {
+            Color paper = new Color(0.92f, 0.88f, 0.78f);
+            Color text = new Color(0.3f, 0.28f, 0.25f);
+            Color edge = new Color(0.7f, 0.65f, 0.55f);
+
+            // Paper
+            DrawRect(tex, 6, 3, 20, 26, paper);
+            DrawRect(tex, 6, 3, 20, 1, edge);
+            DrawRect(tex, 6, 28, 20, 1, edge);
+
+            // Folded corner
+            DrawRect(tex, 22, 25, 4, 4, edge);
+
+            // Text lines
+            for (int y = 7; y < 25; y += 3)
+            {
+                int lineW = y == 7 ? 14 : (y > 20 ? 8 : 16);
+                DrawRect(tex, 9, y, lineW, 1, text);
+            }
+
+            // Red stamp/seal
+            DrawCircle(tex, 20, 10, 3, new Color(0.8f, 0.15f, 0.1f));
+        }
+
+        private static void DrawGenericCrate(Texture2D tex)
+        {
+            Color wood = Palette.WoodLight;
+            Color dark = Palette.WoodDark;
+
+            DrawRect(tex, 4, 4, 24, 22, wood);
+            DrawRect(tex, 4, 4, 24, 2, dark);
+            DrawRect(tex, 4, 24, 24, 2, dark);
+            DrawRect(tex, 4, 4, 2, 22, dark);
+            DrawRect(tex, 26, 4, 2, 22, dark);
+            DrawRect(tex, 4, 14, 24, 2, dark);
+            DrawRect(tex, 14, 4, 2, 22, dark);
         }
 
         public static Sprite CreateBulletSprite()

@@ -6,6 +6,7 @@ using Deadlight.Data;
 using Deadlight.Level;
 using Deadlight.Narrative;
 using Deadlight.Visuals;
+using System.Collections.Generic;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -184,7 +185,7 @@ namespace Deadlight.Core
 
             // Central plaza
             float distFromCenter = Mathf.Sqrt(x * x + y * y);
-            if (distFromCenter < 5f) return 2;
+            if (distFromCenter < 7f) return 2;
 
             // Main cross roads
             if (Mathf.Abs(x) < mainRoadW || Mathf.Abs(y) < mainRoadW) return 3;
@@ -243,7 +244,7 @@ namespace Deadlight.Core
             if (Mathf.Abs(x - windingCenterX) < roadW) return 1;
 
             // Branch roads off the winding road
-            for (int branchY = -16; branchY <= 16; branchY += 8)
+            for (int branchY = -24; branchY <= 24; branchY += 8)
             {
                 if (Mathf.Abs(y - branchY) < 1.5f)
                 {
@@ -371,9 +372,6 @@ namespace Deadlight.Core
 
             shooting.SetWeapon(weaponData);
         }
-
-        // ===================== MANAGERS =====================
-
         private void CreateManagers()
         {
             Transform managersParent = null;
@@ -388,7 +386,6 @@ namespace Deadlight.Core
                 managersParent = managersObj.transform;
 
                 var gmObj = new GameObject("GameManager");
-                gmObj.transform.SetParent(managersParent);
                 gmObj.AddComponent<GameManager>();
 
                 var dncObj = new GameObject("DayNightCycle");
@@ -429,7 +426,6 @@ namespace Deadlight.Core
                 rtObj.AddComponent<RadioTransmissions>();
 
                 var amObj = new GameObject("AudioManager");
-                amObj.transform.SetParent(managersParent);
                 amObj.AddComponent<AudioManager>();
 
                 var vfxObj = new GameObject("VFXManager");
@@ -508,8 +504,6 @@ namespace Deadlight.Core
             if (Deadlight.UI.GameUI.Instance == null)
             {
                 var guiObj = new GameObject("GameUI");
-                if (managersParent != null)
-                    guiObj.transform.SetParent(managersParent);
                 guiObj.AddComponent<Deadlight.UI.GameUI>();
                 Debug.Log("[TestSceneSetup] Created GameUI");
             }
@@ -520,7 +514,7 @@ namespace Deadlight.Core
         private void CreateEnvironment()
         {
             var envParent = new GameObject("Environment");
-            CreateTown(envParent.transform);
+            CreateMapEnvironment(envParent.transform);
             CreatePerimeter(envParent.transform);
             SpawnLorePickups(envParent.transform);
 
@@ -531,85 +525,365 @@ namespace Deadlight.Core
             landmarks.CreateAllLandmarks(envParent.transform, mapType);
         }
 
-        private void SpawnLorePickups(Transform parent)
-        {
-            var loreParent = new GameObject("LorePickups");
-            loreParent.transform.SetParent(parent);
-
-            string[] loreIds = { "lab_note_1", "chen_1", "chen_2", "journal_1", "military_1", "chen_3" };
-            Vector3[] positions = activeMapConfig != null && activeMapConfig.lorePositions != null
-                ? activeMapConfig.lorePositions
-                : new[] {
-                    new Vector3(-5, 9, 0), new Vector3(7, 9, 0),
-                    new Vector3(-9, -3, 0), new Vector3(9, -3, 0),
-                    new Vector3(-3, -9, 0), new Vector3(3, -9, 0)
-                };
-
-            int count = Mathf.Min(loreIds.Length, positions.Length);
-            for (int i = 0; i < count; i++)
-            {
-                var loreObj = new GameObject($"Lore_{loreIds[i]}");
-                loreObj.transform.SetParent(loreParent.transform);
-                loreObj.transform.position = positions[i];
-
-                var sr = loreObj.AddComponent<SpriteRenderer>();
-                var tex = new Texture2D(8, 8);
-                var pixels = new Color[64];
-                for (int p = 0; p < 64; p++)
-                    pixels[p] = new Color(1f, 0.9f, 0.5f, 0.9f);
-                tex.SetPixels(pixels);
-                tex.Apply();
-                tex.filterMode = FilterMode.Point;
-                sr.sprite = Sprite.Create(tex, new Rect(0, 0, 8, 8), new Vector2(0.5f, 0.5f), 16f);
-                sr.sortingOrder = 5;
-
-                var pickup = loreObj.AddComponent<LorePickup>();
-                pickup.SetLoreId(loreIds[i]);
-
-                var glow = new GameObject("Glow");
-                glow.transform.SetParent(loreObj.transform);
-                glow.transform.localPosition = Vector3.zero;
-                var glowSr = glow.AddComponent<SpriteRenderer>();
-                var glowTex = new Texture2D(16, 16);
-                var glowPx = new Color[256];
-                Vector2 c = new Vector2(8, 8);
-                for (int y = 0; y < 16; y++)
-                    for (int x = 0; x < 16; x++)
-                    {
-                        float d = Vector2.Distance(new Vector2(x, y), c) / 8f;
-                        glowPx[y * 16 + x] = d < 1f ? new Color(1f, 0.8f, 0.3f, 0.4f * (1f - d)) : Color.clear;
-                    }
-                glowTex.SetPixels(glowPx);
-                glowTex.Apply();
-                glowTex.filterMode = FilterMode.Bilinear;
-                glowSr.sprite = Sprite.Create(glowTex, new Rect(0, 0, 16, 16), new Vector2(0.5f, 0.5f), 8f);
-                glowSr.sortingOrder = 4;
-            }
-        }
-
-        private void CreateTown(Transform parent)
+        private void CreateMapEnvironment(Transform parent)
         {
             MapType type = activeMapConfig != null ? activeMapConfig.mapType : MapType.TownCenter;
             switch (type)
             {
-                case MapType.Industrial: CreateTown_Industrial(parent); break;
-                case MapType.Suburban:   CreateTown_Suburban(parent);   break;
-                default:                 CreateTown_TownCenter(parent); break;
+                case MapType.Industrial:
+                    CreateIndustrialDistrict(parent);
+                    break;
+                case MapType.Suburban:
+                    CreateSuburbanArea(parent);
+                    break;
+                default:
+                    CreateTownCenter(parent);
+                    break;
             }
         }
 
-        private void SpawnBuilding(Transform parent, Vector3 pos, float scale, int variant)
+        // ===================== TOWN CENTER =====================
+
+        private void CreateTownCenter(Transform parent)
         {
-            var house = new GameObject("Building");
-            house.transform.SetParent(parent);
-            house.transform.position = pos;
-            house.transform.localScale = Vector3.one * scale;
-            var sr = house.AddComponent<SpriteRenderer>();
-            sr.sprite = ProceduralSpriteGenerator.CreateBuildingSprite(variant % 3);
-            sr.sortingOrder = Mathf.RoundToInt(-pos.y);
-            if (activeMapConfig != null) sr.color = activeMapConfig.buildingTint;
-            var col = house.AddComponent<BoxCollider2D>();
-            col.size = new Vector2(1.2f, 1.2f);
+            var town = new GameObject("Town");
+            town.transform.SetParent(parent);
+
+            // Create central plaza
+            CreateCentralPlaza(town.transform);
+
+            // Create city blocks
+            CreateCityBlocks(town.transform);
+
+            // Add decorative elements
+            AddDecorativeElements(town.transform, MapType.TownCenter);
+        }
+
+        private void CreateCentralPlaza(Transform parent)
+        {
+            // Plaza fountain
+            var fountain = new GameObject("Fountain");
+            fountain.transform.SetParent(parent);
+            fountain.transform.position = Vector3.zero;
+            var sr = fountain.AddComponent<SpriteRenderer>();
+            sr.sprite = ProceduralSpriteGenerator.CreateBuildingSprite(2);
+            sr.sortingOrder = 5;
+            sr.color = new Color(0.7f, 0.7f, 0.8f);
+            var col = fountain.AddComponent<BoxCollider2D>();
+            col.size = new Vector2(3f, 3f);
+
+            // Surrounding benches
+            Vector3[] benchPositions = {
+                new Vector3(-2, 0, 0), new Vector3(2, 0, 0),
+                new Vector3(0, -2, 0), new Vector3(0, 2, 0)
+            };
+            foreach (var pos in benchPositions)
+            {
+                var bench = new GameObject("Bench");
+                bench.transform.SetParent(parent);
+                bench.transform.position = pos;
+                var benchSr = bench.AddComponent<SpriteRenderer>();
+                benchSr.sprite = ProceduralSpriteGenerator.CreateRockSprite();
+                benchSr.sortingOrder = 4;
+                var benchCol = bench.AddComponent<BoxCollider2D>();
+                benchCol.size = new Vector2(1.5f, 0.5f);
+            }
+        }
+
+        private void CreateCityBlocks(Transform parent)
+        {
+            // City block positions
+            Vector3[] blockCenters = {
+                new Vector3(-15, 15, 0), new Vector3(15, 15, 0),
+                new Vector3(-15, -15, 0), new Vector3(15, -15, 0),
+                new Vector3(0, 15, 0), new Vector3(0, -15, 0),
+                new Vector3(-15, 0, 0), new Vector3(15, 0, 0)
+            };
+
+            foreach (var center in blockCenters)
+            {
+                CreateBlock(parent, center);
+            }
+        }
+
+        private void CreateBlock(Transform parent, Vector3 center)
+        {
+            // Buildings around the block
+            Vector3[] buildingOffsets = {
+                new Vector3(-3, 3, 0), new Vector3(3, 3, 0),
+                new Vector3(-3, -3, 0), new Vector3(3, -3, 0)
+            };
+
+            foreach (var offset in buildingOffsets)
+            {
+                var building = new GameObject("Building");
+                building.transform.SetParent(parent);
+                building.transform.position = center + offset;
+                var sr = building.AddComponent<SpriteRenderer>();
+                sr.sprite = ProceduralSpriteGenerator.CreateBuildingSprite(Random.Range(0, 3));
+                sr.sortingOrder = Mathf.RoundToInt(-(center.y + offset.y));
+                sr.color = activeMapConfig.buildingTint;
+                var col = building.AddComponent<BoxCollider2D>();
+                col.size = new Vector2(2f, 2f);
+            }
+
+            // Trees in the block
+            Vector3[] treeOffsets = {
+                new Vector3(-1, 1, 0), new Vector3(1, -1, 0)
+            };
+
+            foreach (var offset in treeOffsets)
+            {
+                SpawnTree(parent, center + offset);
+            }
+
+            // Cover elements
+            Vector3[] coverOffsets = {
+                new Vector3(-2, 0, 0), new Vector3(2, 0, 0),
+                new Vector3(0, -2, 0), new Vector3(0, 2, 0)
+            };
+
+            foreach (var offset in coverOffsets)
+            {
+                SpawnCrate(parent, center + offset);
+            }
+        }
+
+        // ===================== INDUSTRIAL DISTRICT =====================
+
+        private void CreateIndustrialDistrict(Transform parent)
+        {
+            var district = new GameObject("IndustrialDistrict");
+            district.transform.SetParent(parent);
+
+            // Create warehouse complex
+            CreateWarehouseComplex(district.transform);
+
+            // Create loading docks
+            CreateLoadingDocks(district.transform);
+
+            // Add industrial elements
+            AddDecorativeElements(district.transform, MapType.Industrial);
+        }
+
+        private void CreateWarehouseComplex(Transform parent)
+        {
+            Vector3[] warehousePositions = {
+                new Vector3(-20, 25, 0), new Vector3(0, 25, 0), new Vector3(20, 25, 0),
+                new Vector3(-20, 10, 0), new Vector3(0, 10, 0), new Vector3(20, 10, 0),
+                new Vector3(-20, -5, 0), new Vector3(0, -5, 0), new Vector3(20, -5, 0)
+            };
+
+            foreach (var pos in warehousePositions)
+            {
+                CreateWarehouse(parent, pos);
+            }
+        }
+
+        private void CreateWarehouse(Transform parent, Vector3 position)
+        {
+            var warehouse = new GameObject("Warehouse");
+            warehouse.transform.SetParent(parent);
+            warehouse.transform.position = position;
+            var sr = warehouse.AddComponent<SpriteRenderer>();
+            sr.sprite = ProceduralSpriteGenerator.CreateBuildingSprite(1);
+            sr.sortingOrder = Mathf.RoundToInt(-position.y);
+            sr.color = new Color(0.6f, 0.6f, 0.65f);
+            var col = warehouse.AddComponent<BoxCollider2D>();
+            col.size = new Vector2(8f, 6f);
+
+            // Add containers
+            Vector3[] containerPositions = {
+                new Vector3(-3, -2, 0), new Vector3(3, -2, 0),
+                new Vector3(-3, 2, 0), new Vector3(3, 2, 0)
+            };
+
+            foreach (var offset in containerPositions)
+            {
+                var container = new GameObject("Container");
+                container.transform.SetParent(warehouse.transform);
+                container.transform.localPosition = offset;
+                var containerSr = container.AddComponent<SpriteRenderer>();
+                containerSr.sprite = ProceduralSpriteGenerator.CreateCrateSprite();
+                containerSr.sortingOrder = Mathf.RoundToInt(-(position.y + offset.y));
+                var containerCol = container.AddComponent<BoxCollider2D>();
+                containerCol.size = new Vector2(1.5f, 1f);
+            }
+        }
+
+        private void CreateLoadingDocks(Transform parent)
+        {
+            var dock = new GameObject("LoadingDock");
+            dock.transform.SetParent(parent);
+            dock.transform.position = new Vector3(0, -25, 0);
+
+            // Dock platform
+            var platform = new GameObject("Platform");
+            platform.transform.SetParent(dock.transform);
+            platform.transform.localPosition = Vector3.zero;
+            var sr = platform.AddComponent<SpriteRenderer>();
+            sr.sprite = ProceduralSpriteGenerator.CreateGroundTile(2);
+            sr.sortingOrder = -1;
+            var col = platform.AddComponent<BoxCollider2D>();
+            col.size = new Vector2(20f, 8f);
+
+            // Dock equipment
+            Vector3[] equipmentPositions = {
+                new Vector3(-8, 0, 0), new Vector3(0, 0, 0), new Vector3(8, 0, 0)
+            };
+
+            foreach (var offset in equipmentPositions)
+            {
+                SpawnBarrel(dock.transform, offset);
+            }
+        }
+
+        // ===================== SUBURBAN AREA =====================
+
+        private void CreateSuburbanArea(Transform parent)
+        {
+            var suburb = new GameObject("SuburbanArea");
+            suburb.transform.SetParent(parent);
+
+            // Create residential neighborhoods
+            CreateResidentialNeighborhoods(suburb.transform);
+
+            // Create parks and open spaces
+            CreateParks(suburb.transform);
+
+            // Add suburban elements
+            AddDecorativeElements(suburb.transform, MapType.Suburban);
+        }
+
+        private void CreateResidentialNeighborhoods(Transform parent)
+        {
+            Vector3[] neighborhoodCenters = {
+                new Vector3(-25, 20, 0), new Vector3(0, 20, 0), new Vector3(25, 20, 0),
+                new Vector3(-25, -20, 0), new Vector3(0, -20, 0), new Vector3(25, -20, 0)
+            };
+
+            foreach (var center in neighborhoodCenters)
+            {
+                CreateResidentialBlock(parent, center);
+            }
+        }
+
+        private void CreateResidentialBlock(Transform parent, Vector3 center)
+        {
+            // Houses in the block
+            Vector3[] houseOffsets = {
+                new Vector3(-4, 3, 0), new Vector3(0, 3, 0), new Vector3(4, 3, 0),
+                new Vector3(-4, -3, 0), new Vector3(0, -3, 0), new Vector3(4, -3, 0)
+            };
+
+            foreach (var offset in houseOffsets)
+            {
+                var house = new GameObject("House");
+                house.transform.SetParent(parent);
+                house.transform.position = center + offset;
+                var sr = house.AddComponent<SpriteRenderer>();
+                sr.sprite = ProceduralSpriteGenerator.CreateBuildingSprite(Random.Range(0, 3));
+                sr.sortingOrder = Mathf.RoundToInt(-(center.y + offset.y));
+                sr.color = activeMapConfig.buildingTint;
+                var col = house.AddComponent<BoxCollider2D>();
+                col.size = new Vector2(2.5f, 2.5f);
+            }
+
+            // Yard elements
+            Vector3[] yardElements = {
+                new Vector3(-2, 0, 0), new Vector3(2, 0, 0),
+                new Vector3(0, -2, 0), new Vector3(0, 2, 0)
+            };
+
+            foreach (var offset in yardElements)
+            {
+                if (Random.value > 0.5f)
+                    SpawnTree(parent, center + offset);
+                else
+                    SpawnBush(parent, center + offset);
+            }
+        }
+
+        private void CreateParks(Transform parent)
+        {
+            Vector3[] parkCenters = {
+                new Vector3(-15, 0, 0), new Vector3(15, 0, 0)
+            };
+
+            foreach (var center in parkCenters)
+            {
+                CreatePark(parent, center);
+            }
+        }
+
+        private void CreatePark(Transform parent, Vector3 center)
+        {
+            var park = new GameObject("Park");
+            park.transform.SetParent(parent);
+            park.transform.position = center;
+
+            // Park area
+            var area = new GameObject("ParkArea");
+            area.transform.SetParent(park.transform);
+            area.transform.localPosition = Vector3.zero;
+            var sr = area.AddComponent<SpriteRenderer>();
+            sr.sprite = ProceduralSpriteGenerator.CreateGroundTile(0);
+            sr.sortingOrder = -2;
+            sr.color = new Color(0.7f, 0.9f, 0.7f);
+            var col = area.AddComponent<BoxCollider2D>();
+            col.size = new Vector2(10f, 8f);
+
+            // Park elements
+            Vector3[] elements = {
+                new Vector3(-3, 2, 0), new Vector3(3, 2, 0),
+                new Vector3(-3, -2, 0), new Vector3(3, -2, 0),
+                new Vector3(0, 0, 0)
+            };
+
+            foreach (var offset in elements)
+            {
+                if (Random.value > 0.3f)
+                    SpawnTree(park.transform, center + offset);
+                else
+                    SpawnBush(park.transform, center + offset);
+            }
+        }
+
+        private void AddDecorativeElements(Transform parent, MapType mapType)
+        {
+            int elementCount = mapType switch
+            {
+                MapType.TownCenter => 20,
+                MapType.Industrial => 15,
+                MapType.Suburban => 30,
+                _ => 10
+            };
+
+            for (int i = 0; i < elementCount; i++)
+            {
+                Vector3 position = GetRandomPositionInMap();
+                float rand = Random.value;
+
+                if (rand < 0.4f)
+                    SpawnTree(parent, position);
+                else if (rand < 0.7f)
+                    SpawnBush(parent, position);
+                else if (rand < 0.9f)
+                    SpawnRock(parent, position);
+                else
+                    SpawnCrate(parent, position);
+            }
+        }
+
+        private Vector3 GetRandomPositionInMap()
+        {
+            int hw = activeMapConfig.halfWidth;
+            int hh = activeMapConfig.halfHeight;
+            return new Vector3(
+                Random.Range(-hw + 2, hw - 2),
+                Random.Range(-hh + 2, hh - 2),
+                0
+            );
         }
 
         private void SpawnTree(Transform parent, Vector3 pos)
@@ -624,6 +898,20 @@ namespace Deadlight.Core
             var col = tree.AddComponent<CircleCollider2D>();
             col.radius = 0.3f;
             col.offset = new Vector2(0, -0.3f);
+        }
+
+        private void SpawnBush(Transform parent, Vector3 pos)
+        {
+            var bush = new GameObject("Bush");
+            bush.transform.SetParent(parent);
+            bush.transform.position = pos;
+            bush.transform.localScale = Vector3.one * Random.Range(0.8f, 1.5f);
+            var sr = bush.AddComponent<SpriteRenderer>();
+            sr.sprite = ProceduralSpriteGenerator.CreateTreeSprite();
+            sr.sortingOrder = Mathf.RoundToInt(-pos.y) + 1;
+            sr.color = new Color(0.3f, 0.6f, 0.3f);
+            var col = bush.AddComponent<CircleCollider2D>();
+            col.radius = 0.4f;
         }
 
         private void SpawnRock(Transform parent, Vector3 pos)
@@ -676,227 +964,68 @@ namespace Deadlight.Core
             col.size = new Vector2(1.5f, 0.7f);
         }
 
-        // ===================== TOWN CENTER =====================
-
-        private void CreateTown_TownCenter(Transform parent)
+        private void SpawnBuilding(Transform parent, Vector3 pos, float scale, int variant)
         {
-            var town = new GameObject("Town");
-            town.transform.SetParent(parent);
-
-            // Buildings along grid streets forming city blocks
-            Vector3[] buildingPositions = {
-                // North row
-                new Vector3(-14, 16, 0), new Vector3(-5, 16, 0), new Vector3(5, 16, 0), new Vector3(14, 16, 0),
-                // East/West mid
-                new Vector3(-14, 6, 0), new Vector3(14, 6, 0),
-                new Vector3(-14, -6, 0), new Vector3(14, -6, 0),
-                // South row
-                new Vector3(-14, -16, 0), new Vector3(-5, -16, 0), new Vector3(5, -16, 0), new Vector3(14, -16, 0),
-            };
-            for (int i = 0; i < buildingPositions.Length; i++)
-                SpawnBuilding(town.transform, buildingPositions[i], 1.8f, i);
-
-            // Trees in parks within city blocks and along edges
-            Vector3[] treePositions = {
-                new Vector3(-8, 12, 0), new Vector3(8, 12, 0),
-                new Vector3(-8, -12, 0), new Vector3(8, -12, 0),
-                new Vector3(-20, 6, 0), new Vector3(20, 6, 0),
-                new Vector3(-20, -6, 0), new Vector3(20, -6, 0),
-                new Vector3(-4, 8, 0), new Vector3(4, 8, 0),
-                new Vector3(-4, -8, 0), new Vector3(4, -8, 0),
-                new Vector3(-18, 18, 0), new Vector3(18, -18, 0),
-            };
-            foreach (var pos in treePositions)
-                SpawnTree(town.transform, pos);
-
-            // Rocks scattered in blocks
-            Vector3[] rockPositions = {
-                new Vector3(-8, 4, 0), new Vector3(8, 4, 0),
-                new Vector3(-6, -4, 0), new Vector3(6, -4, 0),
-                new Vector3(-16, 12, 0), new Vector3(16, -12, 0),
-            };
-            foreach (var pos in rockPositions)
-                SpawnRock(town.transform, pos);
-
-            // Crates near buildings as cover
-            Vector3[] cratePositions = {
-                new Vector3(-12, 15, 0), new Vector3(12, 15, 0),
-                new Vector3(-12, -15, 0), new Vector3(12, -15, 0),
-                new Vector3(-6, 5, 0), new Vector3(6, -5, 0),
-                new Vector3(-3, 12, 0), new Vector3(3, -12, 0),
-            };
-            foreach (var pos in cratePositions)
-                SpawnCrate(town.transform, pos);
-
-            // Barrels
-            Vector3[] barrelPositions = {
-                new Vector3(-10, 14, 0), new Vector3(10, -14, 0),
-                new Vector3(-16, -4, 0), new Vector3(16, 4, 0),
-                new Vector3(-6, 18, 0), new Vector3(6, -18, 0),
-            };
-            foreach (var pos in barrelPositions)
-                SpawnBarrel(town.transform, pos);
-
-            // Cars parked along roads
-            Vector3[] carPositions = {
-                new Vector3(-10, 2, 0), new Vector3(10, -2, 0),
-                new Vector3(3, 10, 0), new Vector3(-3, -10, 0),
-                new Vector3(-18, 0, 0), new Vector3(18, 0, 0),
-            };
-            foreach (var pos in carPositions)
-                SpawnCar(town.transform, pos, Random.Range(-15f, 15f));
+            var house = new GameObject("Building");
+            house.transform.SetParent(parent);
+            house.transform.position = pos;
+            house.transform.localScale = Vector3.one * scale;
+            var sr = house.AddComponent<SpriteRenderer>();
+            sr.sprite = ProceduralSpriteGenerator.CreateBuildingSprite(variant % 3);
+            sr.sortingOrder = Mathf.RoundToInt(-pos.y);
+            if (activeMapConfig != null) sr.color = activeMapConfig.buildingTint;
+            var col = house.AddComponent<BoxCollider2D>();
+            col.size = new Vector2(1.2f, 1.2f);
         }
 
-        // ===================== INDUSTRIAL DISTRICT =====================
-
-        private void CreateTown_Industrial(Transform parent)
+        private void SpawnLorePickups(Transform parent)
         {
-            var town = new GameObject("Town");
-            town.transform.SetParent(parent);
+            var loreParent = new GameObject("LorePickups");
+            loreParent.transform.SetParent(parent);
 
-            // Large warehouses arranged in rows with corridors
-            Vector3[] warehousePositions = {
-                // Top row
-                new Vector3(-12, 20, 0), new Vector3(-4, 20, 0), new Vector3(4, 20, 0), new Vector3(12, 20, 0),
-                // Upper mid row
-                new Vector3(-12, 10, 0), new Vector3(-4, 10, 0), new Vector3(4, 10, 0), new Vector3(12, 10, 0),
-                // Lower mid row
-                new Vector3(-12, -6, 0), new Vector3(4, -6, 0), new Vector3(12, -6, 0),
-                // Loading dock area
-                new Vector3(-12, -16, 0), new Vector3(0, -20, 0), new Vector3(12, -16, 0),
-            };
-            for (int i = 0; i < warehousePositions.Length; i++)
-                SpawnBuilding(town.transform, warehousePositions[i], 2.0f, i);
+            string[] loreIds = { "lab_note_1", "chen_1", "chen_2", "journal_1", "military_1", "chen_3", "facility_1", "survivor_log" };
+            Vector3[] positions = activeMapConfig != null && activeMapConfig.lorePositions != null
+                ? activeMapConfig.lorePositions
+                : new[] {
+                    new Vector3(-5, 9, 0), new Vector3(7, 9, 0),
+                    new Vector3(-9, -3, 0), new Vector3(9, -3, 0),
+                    new Vector3(-3, -9, 0), new Vector3(3, -9, 0),
+                    new Vector3(-7, 0, 0), new Vector3(7, 0, 0)
+                };
 
-            // Very few trees — industrial zone
-            SpawnTree(town.transform, new Vector3(-16, 22, 0));
-            SpawnTree(town.transform, new Vector3(16, 22, 0));
-            SpawnTree(town.transform, new Vector3(16, -22, 0));
+            int count = Mathf.Min(loreIds.Length, positions.Length);
+            for (int i = 0; i < count; i++)
+            {
+                var loreObj = new GameObject($"Lore_{loreIds[i]}");
+                loreObj.transform.SetParent(loreParent.transform);
+                loreObj.transform.position = positions[i];
 
-            // Rubble and rocks
-            Vector3[] rockPositions = {
-                new Vector3(-8, 5, 0), new Vector3(8, 5, 0),
-                new Vector3(-6, -12, 0), new Vector3(6, -12, 0),
-                new Vector3(-14, -2, 0), new Vector3(14, -2, 0),
-                new Vector3(0, 15, 0), new Vector3(-8, -20, 0),
-                new Vector3(8, -18, 0), new Vector3(0, -8, 0),
-            };
-            foreach (var pos in rockPositions)
-                SpawnRock(town.transform, pos);
+                var sr = loreObj.AddComponent<SpriteRenderer>();
+                sr.sprite = ProceduralSpriteGenerator.CreatePickupSprite("lore", i);
+                sr.sortingOrder = 5;
 
-            // Lots of crates clustered near warehouses and loading docks
-            Vector3[] cratePositions = {
-                // Near top warehouses
-                new Vector3(-10, 18, 0), new Vector3(-2, 18, 0), new Vector3(6, 18, 0), new Vector3(14, 18, 0),
-                // Between rows
-                new Vector3(-10, 14, 0), new Vector3(0, 14, 0), new Vector3(10, 14, 0),
-                // Near corridors
-                new Vector3(-8, 4, 0), new Vector3(8, 4, 0),
-                // Loading dock cluster
-                new Vector3(-14, -14, 0), new Vector3(-10, -14, 0), new Vector3(-6, -14, 0),
-                new Vector3(6, -14, 0), new Vector3(10, -14, 0), new Vector3(14, -14, 0),
-                // Scattered
-                new Vector3(-4, -10, 0), new Vector3(4, -18, 0),
-                new Vector3(-8, -22, 0), new Vector3(8, -22, 0),
-            };
-            foreach (var pos in cratePositions)
-                SpawnCrate(town.transform, pos);
+                var pickup = loreObj.AddComponent<LorePickup>();
+                pickup.SetLoreId(loreIds[i]);
 
-            // Many barrels — some explosive
-            Vector3[] barrelPositions = {
-                new Vector3(-14, 16, 0), new Vector3(-6, 16, 0), new Vector3(6, 16, 0), new Vector3(14, 16, 0),
-                new Vector3(-14, 8, 0), new Vector3(14, 8, 0),
-                new Vector3(-10, -8, 0), new Vector3(10, -8, 0),
-                new Vector3(-8, -18, 0), new Vector3(0, -18, 0), new Vector3(8, -16, 0),
-                new Vector3(-16, 0, 0), new Vector3(16, 0, 0),
-                new Vector3(-2, -4, 0), new Vector3(2, 6, 0), new Vector3(0, -14, 0),
-            };
-            foreach (var pos in barrelPositions)
-                SpawnBarrel(town.transform, pos);
-
-            // Trucks/vans in loading areas
-            Vector3[] carPositions = {
-                new Vector3(-6, -20, 0), new Vector3(6, -20, 0),
-                new Vector3(-16, 4, 0), new Vector3(16, -4, 0),
-                new Vector3(0, 4, 0), new Vector3(-10, -10, 0),
-            };
-            foreach (var pos in carPositions)
-                SpawnCar(town.transform, pos, Random.Range(-5f, 5f));
-        }
-
-        // ===================== SUBURBAN OUTSKIRTS =====================
-
-        private void CreateTown_Suburban(Transform parent)
-        {
-            var town = new GameObject("Town");
-            town.transform.SetParent(parent);
-
-            // Houses set back from roads with yards
-            Vector3[] housePositions = {
-                // Along main horizontal road
-                new Vector3(-18, 5, 0), new Vector3(-10, 5, 0), new Vector3(10, 5, 0), new Vector3(18, 5, 0),
-                new Vector3(-18, -5, 0), new Vector3(-10, -5, 0), new Vector3(10, -5, 0), new Vector3(18, -5, 0),
-                // Along branch roads
-                new Vector3(-12, 12, 0), new Vector3(8, 12, 0),
-                new Vector3(-8, -12, 0), new Vector3(12, -12, 0),
-                // Scattered
-                new Vector3(-22, 10, 0), new Vector3(22, -10, 0),
-                new Vector3(-16, -16, 0), new Vector3(16, 16, 0),
-            };
-            for (int i = 0; i < housePositions.Length; i++)
-                SpawnBuilding(town.transform, housePositions[i], 1.6f, i);
-
-            // Lots of trees filling yards and creating suburban canopy
-            Vector3[] treePositions = {
-                // Yard trees
-                new Vector3(-20, 7, 0), new Vector3(-12, 7, 0), new Vector3(12, 7, 0), new Vector3(20, 7, 0),
-                new Vector3(-20, -7, 0), new Vector3(-12, -7, 0), new Vector3(12, -7, 0), new Vector3(20, -7, 0),
-                // Branch road trees
-                new Vector3(-14, 14, 0), new Vector3(6, 14, 0), new Vector3(10, 14, 0),
-                new Vector3(-10, -14, 0), new Vector3(10, -14, 0), new Vector3(14, -14, 0),
-                // Forest border on edges
-                new Vector3(-24, 18, 0), new Vector3(-24, 10, 0), new Vector3(-24, 0, 0), new Vector3(-24, -10, 0), new Vector3(-24, -18, 0),
-                new Vector3(24, 18, 0), new Vector3(24, 10, 0), new Vector3(24, 0, 0), new Vector3(24, -10, 0), new Vector3(24, -18, 0),
-                // Additional scattered
-                new Vector3(-6, 16, 0), new Vector3(6, -16, 0),
-                new Vector3(-16, 18, 0),
-            };
-            foreach (var pos in treePositions)
-                SpawnTree(town.transform, pos);
-
-            // Few rocks
-            Vector3[] rockPositions = {
-                new Vector3(-22, 14, 0), new Vector3(22, -14, 0),
-                new Vector3(-14, -8, 0), new Vector3(14, 8, 0),
-                new Vector3(0, 16, 0),
-            };
-            foreach (var pos in rockPositions)
-                SpawnRock(town.transform, pos);
-
-            // Sparse crates near garages
-            Vector3[] cratePositions = {
-                new Vector3(-16, 4, 0), new Vector3(16, -4, 0),
-                new Vector3(-8, 10, 0), new Vector3(12, -10, 0),
-            };
-            foreach (var pos in cratePositions)
-                SpawnCrate(town.transform, pos);
-
-            // Few barrels
-            Vector3[] barrelPositions = {
-                new Vector3(-20, 4, 0), new Vector3(20, -4, 0),
-                new Vector3(-14, -14, 0),
-            };
-            foreach (var pos in barrelPositions)
-                SpawnBarrel(town.transform, pos);
-
-            // Cars in driveways
-            Vector3[] carPositions = {
-                new Vector3(-16, 4, 0), new Vector3(-8, 4, 0), new Vector3(12, 4, 0), new Vector3(20, 4, 0),
-                new Vector3(-16, -4, 0), new Vector3(12, -4, 0),
-                new Vector3(-10, 10, 0), new Vector3(14, -10, 0),
-            };
-            foreach (var pos in carPositions)
-                SpawnCar(town.transform, pos, Random.Range(-10f, 10f));
+                var glow = new GameObject("Glow");
+                glow.transform.SetParent(loreObj.transform);
+                glow.transform.localPosition = Vector3.zero;
+                var glowSr = glow.AddComponent<SpriteRenderer>();
+                var glowTex = new Texture2D(16, 16);
+                var glowPx = new Color[256];
+                Vector2 c = new Vector2(8, 8);
+                for (int y = 0; y < 16; y++)
+                    for (int x = 0; x < 16; x++)
+                    {
+                        float d = Vector2.Distance(new Vector2(x, y), c) / 8f;
+                        glowPx[y * 16 + x] = d < 1f ? new Color(1f, 0.8f, 0.3f, 0.4f * (1f - d)) : Color.clear;
+                    }
+                glowTex.SetPixels(glowPx);
+                glowTex.Apply();
+                glowTex.filterMode = FilterMode.Bilinear;
+                glowSr.sprite = Sprite.Create(glowTex, new Rect(0, 0, 16, 16), new Vector2(0.5f, 0.5f), 8f);
+                glowSr.sortingOrder = 4;
+            }
         }
 
         private void CreatePerimeter(Transform parent)
@@ -1034,7 +1163,6 @@ namespace Deadlight.Core
                     canvas.AddComponent<GraphicRaycaster>();
                 }
 
-                DisableLegacyHud(canvas.transform);
             }
 
             Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -1295,7 +1423,7 @@ namespace Deadlight.Core
 
             // Game Over panel
             var goPanel = new GameObject("GameOverPanel");
-            goPanel.transform.SetParent(canvas.transform);
+            goPanel.transform.SetParent(canvas.transform, false);
             var goPanelRect = goPanel.AddComponent<RectTransform>();
             goPanelRect.anchorMin = Vector2.zero;
             goPanelRect.anchorMax = Vector2.one;
@@ -1318,7 +1446,7 @@ namespace Deadlight.Core
             dmgRect.offsetMax = Vector2.zero;
             dmgOverlay.GetComponent<Image>().raycastTarget = false;
 
-            // Fade overlay (starts transparent, will be used for transitions)
+            // Fade overlay
             var fadeOverlay = CreateUIImage(canvas.transform, "FadeOverlay",
                 Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero,
                 Color.clear);
@@ -1327,10 +1455,10 @@ namespace Deadlight.Core
             fadeRect.offsetMax = Vector2.zero;
             fadeOverlay.GetComponent<Image>().raycastTarget = false;
 
-            // Objective HUD (upper-left)
+            // Objective HUD
             var objPanel = CreateUIPanel(canvas.transform, "ObjectivePanel",
                 new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1),
-                new Vector2(10, -70), new Vector2(380, 65));
+                new Vector2(10, -105), new Vector2(380, 65));
             var objPanelBg = objPanel.AddComponent<Image>();
             objPanelBg.color = new Color(0, 0, 0, 0.55f);
             objPanel.SetActive(false);
@@ -1399,26 +1527,6 @@ namespace Deadlight.Core
                     fadeOverlay.GetComponent<Image>(),
                     camCtrl
                 );
-            }
-        }
-
-        private static void DisableLegacyHud(Transform canvasRoot)
-        {
-            if (canvasRoot == null)
-            {
-                return;
-            }
-
-            var hudManager = canvasRoot.GetComponentInChildren<Deadlight.UI.HUDManager>(true);
-            if (hudManager != null)
-            {
-                hudManager.enabled = false;
-            }
-
-            var legacyHud = canvasRoot.Find("HUD");
-            if (legacyHud != null)
-            {
-                legacyHud.gameObject.SetActive(false);
             }
         }
 

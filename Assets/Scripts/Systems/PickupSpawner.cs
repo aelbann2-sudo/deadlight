@@ -1,6 +1,7 @@
 using UnityEngine;
 using Deadlight.Player;
 using Deadlight.Core;
+using Deadlight.Visuals;
 
 namespace Deadlight.Systems
 {
@@ -68,7 +69,8 @@ namespace Deadlight.Systems
             pickupObj.transform.position = position + Vector3.up * 0.2f;
 
             var sr = pickupObj.AddComponent<SpriteRenderer>();
-            sr.sprite = CreatePickupSprite(type);
+            int variant = Random.Range(0, 10);
+            sr.sprite = ProceduralSpriteGenerator.CreatePickupSprite(type.ToString(), variant);
             sr.sortingOrder = 15;
 
             var pickup = pickupObj.AddComponent<PickupItem>();
@@ -83,110 +85,6 @@ namespace Deadlight.Systems
             col.isTrigger = true;
 
             Destroy(pickupObj, 10f);
-        }
-
-        private Sprite CreatePickupSprite(PickupType type)
-        {
-            int size = 16;
-            var tex = new Texture2D(size, size);
-            var pixels = new Color[size * size];
-            Color mainColor = GetPickupColor(type);
-            Color darkColor = mainColor * 0.6f;
-            darkColor.a = 1f;
-
-            for (int y = 0; y < size; y++)
-            {
-                for (int x = 0; x < size; x++)
-                {
-                    float dx = x - size / 2f + 0.5f;
-                    float dy = y - size / 2f + 0.5f;
-                    float dist = Mathf.Sqrt(dx * dx + dy * dy);
-
-                    if (dist < size / 2f - 1)
-                    {
-                        float t = dist / (size / 2f);
-                        pixels[y * size + x] = Color.Lerp(mainColor, darkColor, t * 0.5f);
-                    }
-                    else if (dist < size / 2f)
-                    {
-                        pixels[y * size + x] = darkColor;
-                    }
-                    else
-                    {
-                        pixels[y * size + x] = Color.clear;
-                    }
-                }
-            }
-
-            switch (type)
-            {
-                case PickupType.Ammo:
-                    DrawAmmoIcon(pixels, size);
-                    break;
-                case PickupType.Health:
-                    DrawCrossIcon(pixels, size);
-                    break;
-                case PickupType.Points:
-                    DrawCoinIcon(pixels, size);
-                    break;
-                case PickupType.Powerup:
-                    DrawStarIcon(pixels, size);
-                    break;
-            }
-
-            tex.SetPixels(pixels);
-            tex.Apply();
-            tex.filterMode = FilterMode.Point;
-            return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 16f);
-        }
-
-        private void DrawAmmoIcon(Color[] pixels, int size)
-        {
-            Color iconColor = new Color(0.2f, 0.15f, 0.1f);
-            for (int y = 5; y < 11; y++)
-            {
-                for (int x = 6; x < 10; x++)
-                {
-                    pixels[y * size + x] = iconColor;
-                }
-            }
-        }
-
-        private void DrawCrossIcon(Color[] pixels, int size)
-        {
-            Color white = Color.white;
-            for (int i = 4; i < 12; i++)
-            {
-                pixels[7 * size + i] = white;
-                pixels[8 * size + i] = white;
-                pixels[i * size + 7] = white;
-                pixels[i * size + 8] = white;
-            }
-        }
-
-        private void DrawCoinIcon(Color[] pixels, int size)
-        {
-            Color dark = new Color(0.4f, 0.35f, 0.1f);
-            for (int y = 5; y < 11; y++)
-            {
-                pixels[y * size + 7] = dark;
-                pixels[y * size + 8] = dark;
-            }
-        }
-
-        private void DrawStarIcon(Color[] pixels, int size)
-        {
-            Color white = Color.white;
-            int cx = 8, cy = 8;
-            pixels[cy * size + cx] = white;
-            pixels[(cy + 2) * size + cx] = white;
-            pixels[(cy - 2) * size + cx] = white;
-            pixels[cy * size + (cx + 2)] = white;
-            pixels[cy * size + (cx - 2)] = white;
-            pixels[(cy + 1) * size + (cx + 1)] = white;
-            pixels[(cy + 1) * size + (cx - 1)] = white;
-            pixels[(cy - 1) * size + (cx + 1)] = white;
-            pixels[(cy - 1) * size + (cx - 1)] = white;
         }
 
         private Color GetPickupColor(PickupType type)
@@ -212,7 +110,6 @@ namespace Deadlight.Systems
                 _ => 0f
             };
         }
-
         private GameObject CreateGlowEffect(Transform parent, Color color)
         {
             var glow = new GameObject("Glow");

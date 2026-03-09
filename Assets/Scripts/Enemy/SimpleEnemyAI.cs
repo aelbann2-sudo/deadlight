@@ -6,8 +6,8 @@ namespace Deadlight.Enemy
     public class SimpleEnemyAI : MonoBehaviour
     {
         [Header("Movement")]
-        [SerializeField] private float moveSpeed = 2.8f;
-        [SerializeField] private float chaseSpeed = 4.9f;
+        [SerializeField] private float moveSpeed = 1.4f;
+        [SerializeField] private float chaseSpeed = 2.45f;
         [SerializeField] private float detectionRange = 25f;
         [SerializeField] private float attackRange = 1f;
         

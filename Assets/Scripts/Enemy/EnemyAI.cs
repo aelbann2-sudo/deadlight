@@ -23,9 +23,9 @@ namespace Deadlight.Enemy
         [SerializeField] private float damage = 10f;
 
         [Header("Movement")]
-        [SerializeField] private float moveSpeed = 3f;
-        [SerializeField] private float patrolSpeed = 1.5f;
-        [SerializeField] private float chaseSpeed = 4f;
+        [SerializeField] private float moveSpeed = 1.5f;
+        [SerializeField] private float patrolSpeed = 0.75f;
+        [SerializeField] private float chaseSpeed = 2f;
 
         [Header("Telegraph")]
         [SerializeField] private float attackWindup = 0.15f;
