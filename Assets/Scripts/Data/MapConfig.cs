@@ -104,40 +104,40 @@ namespace Deadlight.Data
             var config = CreateInstance<MapConfig>();
             config.mapName = "Industrial District";
             config.mapType = MapType.Industrial;
-            config.description = "Warehouses and narrow corridors. Tight chokepoints, limited escape routes.";
-            config.halfWidth = 30; // Increased from 20
-            config.halfHeight = 39; // Increased from 26
-            config.perimeterHalfW = 29f;
-            config.perimeterHalfH = 38f;
-            config.houseCount = 20; // Increased from 14
-            config.treeCount = 6; // Reduced from 3
-            config.rockCount = 15; // Increased from 10
-            config.crateCount = 30; // Increased from 20
-            config.barrelCount = 24; // Increased from 16
-            config.carCount = 12; // Increased from 6
+            config.description = "Warehouses, salvage lots, fuel storage, and loading docks. Dense cover with cleaner district reads.";
+            config.halfWidth = 36;
+            config.halfHeight = 36;
+            config.perimeterHalfW = 35f;
+            config.perimeterHalfH = 35f;
+            config.houseCount = 0;
+            config.treeCount = 5;
+            config.rockCount = 8;
+            config.crateCount = 10;
+            config.barrelCount = 12;
+            config.carCount = 7;
             config.pathWidth = 1.5f;
             config.hasDiagonalConcrete = false;
-            config.streetGridSpacing = 10f;
-            config.mainRoadWidth = 2f;
-            config.sideRoadWidth = 1f;
-            config.groundTint = new Color(0.85f, 0.82f, 0.78f);
-            config.buildingTint = new Color(0.7f, 0.7f, 0.75f);
-            config.buildingDensity = 1.5f;
-            config.coverDensity = 1.8f;
-            config.openAreaSize = 0.7f;
-            config.roadComplexity = 1.5f;
+            config.streetGridSpacing = 0f;
+            config.mainRoadWidth = 2.4f;
+            config.sideRoadWidth = 1.6f;
+            config.groundTint = new Color(0.68f, 0.7f, 0.62f);
+            config.buildingTint = new Color(0.68f, 0.68f, 0.72f);
+            config.buildingDensity = 0.95f;
+            config.coverDensity = 1.05f;
+            config.openAreaSize = 1.35f;
+            config.roadComplexity = 1.1f;
             config.layoutType = MapLayoutType.Corridor;
             config.enemySpawnPositions = new[] {
-                new Vector3(22, 32, 0), new Vector3(-22, 32, 0),
-                new Vector3(22, -32, 0), new Vector3(-22, -32, 0),
-                new Vector3(0, 36, 0),
-                new Vector3(15, 0, 0), new Vector3(-15, 0, 0)
+                new Vector3(24, 30, 0), new Vector3(-24, 30, 0),
+                new Vector3(24, -30, 0), new Vector3(-24, -30, 0),
+                new Vector3(0, 32, 0),
+                new Vector3(16, 0, 0), new Vector3(-16, 0, 0)
             };
             config.lorePositions = new[] {
-                new Vector3(-12, 32, 0), new Vector3(12, 32, 0),
+                new Vector3(-24, 20, 0), new Vector3(24, 20, 0),
                 new Vector3(-18, -6, 0), new Vector3(18, -6, 0),
-                new Vector3(-6, -32, 0), new Vector3(6, -32, 0),
-                new Vector3(-20, 18, 0), new Vector3(20, -18, 0)
+                new Vector3(-6, -30, 0), new Vector3(6, -30, 0),
+                new Vector3(-10, 10, 0), new Vector3(10, -10, 0)
             };
             return config;
         }
@@ -148,39 +148,39 @@ namespace Deadlight.Data
             config.mapName = "Suburban Outskirts";
             config.mapType = MapType.Suburban;
             config.description = "Houses, yards, and wide open spaces. Rewards mobility, less natural cover.";
-            config.halfWidth = 40; // Increased from 27
-            config.halfHeight = 33; // Increased from 22
-            config.perimeterHalfW = 39f;
-            config.perimeterHalfH = 32f;
-            config.houseCount = 32; // Increased from 16
-            config.treeCount = 42; // Increased from 28
-            config.rockCount = 8; // Increased from 5
-            config.crateCount = 8; // Increased from 4
-            config.barrelCount = 6; // Increased from 3
-            config.carCount = 16; // Increased from 8
+            config.halfWidth = 36;
+            config.halfHeight = 36;
+            config.perimeterHalfW = 35f;
+            config.perimeterHalfH = 35f;
+            config.houseCount = 14;
+            config.treeCount = 26;
+            config.rockCount = 6;
+            config.crateCount = 3;
+            config.barrelCount = 4;
+            config.carCount = 8;
             config.pathWidth = 2.5f;
             config.hasDiagonalConcrete = false;
             config.streetGridSpacing = 0f;
             config.mainRoadWidth = 2.5f;
-            config.sideRoadWidth = 2f;
+            config.sideRoadWidth = 1.6f;
             config.groundTint = new Color(0.95f, 1f, 0.9f);
             config.buildingTint = new Color(0.9f, 0.85f, 0.8f);
-            config.buildingDensity = 1.0f;
-            config.coverDensity = 0.7f;
-            config.openAreaSize = 2.0f;
-            config.roadComplexity = 0.8f;
+            config.buildingDensity = 0.6f;
+            config.coverDensity = 0.8f;
+            config.openAreaSize = 2.5f;
+            config.roadComplexity = 0.75f;
             config.layoutType = MapLayoutType.Organic;
             config.enemySpawnPositions = new[] {
-                new Vector3(33, 26, 0), new Vector3(-33, 26, 0),
-                new Vector3(33, -26, 0), new Vector3(-33, -26, 0),
-                new Vector3(0, 28, 0), new Vector3(0, -28, 0),
-                new Vector3(25, 0, 0), new Vector3(-25, 0, 0)
+                new Vector3(30, 30, 0), new Vector3(-30, 30, 0),
+                new Vector3(30, -30, 0), new Vector3(-30, -30, 0),
+                new Vector3(0, 32, 0), new Vector3(0, -32, 0),
+                new Vector3(26, 0, 0), new Vector3(-26, 0, 0)
             };
             config.lorePositions = new[] {
-                new Vector3(-24, 24, 0), new Vector3(24, 24, 0),
-                new Vector3(-30, -8, 0), new Vector3(30, -8, 0),
-                new Vector3(-12, -24, 0), new Vector3(12, -24, 0),
-                new Vector3(-20, 12, 0), new Vector3(20, -12, 0)
+                new Vector3(-24, 26, 0), new Vector3(12, 26, 0),
+                new Vector3(-30, -12, 0), new Vector3(30, -20, 0),
+                new Vector3(-10, -28, 0), new Vector3(20, -28, 0),
+                new Vector3(-12, 14, 0), new Vector3(22, 24, 0)
             };
             return config;
         }

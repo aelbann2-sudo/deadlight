@@ -23,9 +23,6 @@ namespace Deadlight.Systems
 
         [Header("Visual")]
         [SerializeField] private SpriteRenderer spriteRenderer;
-        [SerializeField] private float bobSpeed = 2f;
-        [SerializeField] private float bobAmount = 0.1f;
-        [SerializeField] private bool enableBobbing = true;
 
         [Header("Audio")]
         [SerializeField] private AudioClip pickupSound;
@@ -34,17 +31,25 @@ namespace Deadlight.Systems
         [SerializeField] private float lifetime = 0f;
         [SerializeField] private bool hasLifetime = false;
 
-        private Vector3 startPosition;
-        private float bobOffset;
+        private Collider2D pickupCollider;
+        private bool consumed;
+        private Collider2D playerCollider;
 
         public PickupType Type => pickupType;
         public int Amount => amount;
 
+        private void Awake()
+        {
+            if (spriteRenderer == null)
+            {
+                spriteRenderer = GetComponent<SpriteRenderer>();
+            }
+
+            pickupCollider = GetComponent<Collider2D>();
+        }
+
         private void Start()
         {
-            startPosition = transform.position;
-            bobOffset = Random.value * Mathf.PI * 2f;
-
             if (pickupSound == null)
             {
                 try { pickupSound = Deadlight.Audio.ProceduralAudioGenerator.GeneratePickup(); }
@@ -55,20 +60,68 @@ namespace Deadlight.Systems
             {
                 Destroy(gameObject, lifetime);
             }
+
+            TryConsumeNearbyPlayer();
         }
 
         private void Update()
         {
-            if (enableBobbing)
+            if (consumed)
             {
-                float newY = startPosition.y + Mathf.Sin((Time.time + bobOffset) * bobSpeed) * bobAmount;
-                transform.position = new Vector3(startPosition.x, newY, startPosition.z);
+                return;
             }
+
+            TryConsumeNearbyPlayer();
         }
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            if (!other.CompareTag("Player")) return;
+            TryConsume(other);
+        }
+
+        private void OnTriggerStay2D(Collider2D other)
+        {
+            TryConsume(other);
+        }
+
+        private void TryConsumeNearbyPlayer()
+        {
+            if (pickupCollider == null)
+            {
+                pickupCollider = GetComponent<Collider2D>();
+            }
+
+            if (playerCollider == null)
+            {
+                var player = GameObject.FindGameObjectWithTag("Player");
+                if (player != null)
+                {
+                    playerCollider = player.GetComponent<Collider2D>();
+                }
+            }
+
+            if (playerCollider != null)
+            {
+                TryConsume(playerCollider);
+            }
+        }
+
+        private void TryConsume(Collider2D other)
+        {
+            if (consumed || !other.CompareTag("Player"))
+            {
+                return;
+            }
+
+            if (pickupCollider == null)
+            {
+                pickupCollider = GetComponent<Collider2D>();
+            }
+
+            if (!PickupContactUtility.IsTightPickupContact(pickupCollider, spriteRenderer, other))
+            {
+                return;
+            }
 
             ApplyPickup(other.gameObject);
         }
@@ -120,6 +173,7 @@ namespace Deadlight.Systems
 
             if (consumed)
             {
+                this.consumed = true;
                 if (Core.DayObjectiveSystem.Instance != null && Core.GameManager.Instance != null &&
                     Core.GameManager.Instance.CurrentState == Core.GameState.DayPhase)
                 {

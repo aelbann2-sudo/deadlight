@@ -545,11 +545,11 @@ namespace Deadlight.Core
 
         [SerializeField] private PickupKind kind = PickupKind.Health;
         [SerializeField] private int amount = 25;
-        [SerializeField] private float bobSpeed = 2f;
-        [SerializeField] private float bobAmount = 0.1f;
 
-        private Vector3 startPosition;
-        private float bobOffset;
+        private Collider2D playerCollider;
+        private CircleCollider2D pickupCollider;
+        private SpriteRenderer pickupRenderer;
+        private bool consumed;
 
         public void Initialize(PickupKind pickupKind, int pickupAmount)
         {
@@ -557,40 +557,103 @@ namespace Deadlight.Core
             amount = pickupAmount;
         }
 
+        private void Awake()
+        {
+            pickupCollider = GetComponent<CircleCollider2D>();
+            pickupRenderer = GetComponent<SpriteRenderer>();
+        }
+
         private void Start()
         {
-            startPosition = transform.position;
-            bobOffset = UnityEngine.Random.value * Mathf.PI * 2f;
+            TryConsumeNearbyPlayer();
         }
 
         private void Update()
         {
-            float newY = startPosition.y + Mathf.Sin((Time.time + bobOffset) * bobSpeed) * bobAmount;
-            transform.position = new Vector3(startPosition.x, newY, startPosition.z);
+            if (consumed)
+            {
+                return;
+            }
+
+            TryConsumeNearbyPlayer();
         }
 
         private void OnTriggerEnter2D(Collider2D other)
         {
+            TryConsume(other);
+        }
+
+        private void OnTriggerStay2D(Collider2D other)
+        {
+            TryConsume(other);
+        }
+
+        private void TryConsumeNearbyPlayer()
+        {
+            if (pickupCollider == null)
+            {
+                pickupCollider = GetComponent<CircleCollider2D>();
+            }
+
+            if (pickupRenderer == null)
+            {
+                pickupRenderer = GetComponent<SpriteRenderer>();
+            }
+
+            if (playerCollider == null)
+            {
+                var player = GameObject.FindGameObjectWithTag("Player");
+                if (player != null)
+                {
+                    playerCollider = player.GetComponent<Collider2D>();
+                }
+            }
+
+            if (playerCollider != null)
+            {
+                TryConsume(playerCollider);
+            }
+        }
+
+        private void TryConsume(Collider2D other)
+        {
+            if (consumed)
+            {
+                return;
+            }
+
+            if (pickupCollider == null)
+            {
+                pickupCollider = GetComponent<CircleCollider2D>();
+            }
+
+            if (pickupRenderer == null)
+            {
+                pickupRenderer = GetComponent<SpriteRenderer>();
+            }
+
             var health = other.GetComponent<PlayerHealth>();
             var shooting = other.GetComponent<PlayerShooting>();
 
             if (health == null && shooting == null) return;
+            if (!PickupContactUtility.IsTightPickupContact(pickupCollider, pickupRenderer, other)) return;
 
-            bool consumed = false;
+            bool didConsume = false;
 
             if (kind == PickupKind.Health && health != null && health.IsAlive)
             {
                 health.Heal(amount);
-                consumed = true;
+                didConsume = true;
             }
             else if (kind == PickupKind.Ammo && shooting != null)
             {
                 shooting.AddAmmo(amount);
-                consumed = true;
+                didConsume = true;
             }
 
-            if (consumed)
+            if (didConsume)
             {
+                this.consumed = true;
                 Destroy(gameObject);
             }
         }

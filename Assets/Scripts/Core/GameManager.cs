@@ -70,6 +70,8 @@ namespace Deadlight.Core
         public int MaxNights => maxNights;
         public DifficultySettings CurrentSettings => GetDifficultySettings();
         public bool IsPaused => isPaused;
+        public bool IsGameplayState => IsGameplayStateValue(currentState);
+        public bool ShouldSetupGameplayScene => startNewRunAfterGameSceneLoad || currentState != GameState.MainMenu || autoStartWhenGameSceneLoads;
         public float RunStartTime { get; private set; }
 
         public event Action<GameState> OnGameStateChanged;
@@ -135,8 +137,7 @@ namespace Deadlight.Core
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Escape) &&
-                (currentState == GameState.DayPhase || currentState == GameState.NightPhase))
+            if (Input.GetKeyDown(KeyCode.Escape) && IsGameplayState)
             {
                 TogglePause();
             }
@@ -185,7 +186,7 @@ namespace Deadlight.Core
             isBootstrappingScene = true;
             yield return null;
 
-            if (autoBootstrapGameScene)
+            if (autoBootstrapGameScene && ShouldSetupGameplayScene)
             {
                 EnsureCoreManagers();
                 EnsureWaveManagerConfigured();
@@ -287,7 +288,7 @@ namespace Deadlight.Core
 
             currentState = newState;
 
-            if (newState != GameState.DayPhase && newState != GameState.NightPhase)
+            if (!IsGameplayStateValue(newState))
             {
                 SetPaused(false);
             }
@@ -377,6 +378,22 @@ namespace Deadlight.Core
             SceneManager.LoadScene("Game");
         }
 
+        public void StartSelectedMapRun()
+        {
+            currentNight = 1;
+            startNewRunAfterGameSceneLoad = true;
+
+            if (deferredRestartCoroutine != null)
+            {
+                StopCoroutine(deferredRestartCoroutine);
+                deferredRestartCoroutine = null;
+            }
+
+            SetPaused(false);
+            ChangeState(GameState.MainMenu);
+            SceneManager.LoadScene("Game");
+        }
+
         public void QuitGame()
         {
 #if UNITY_EDITOR
@@ -419,7 +436,12 @@ namespace Deadlight.Core
 
         private bool CanPauseCurrentState()
         {
-            return currentState == GameState.DayPhase || currentState == GameState.NightPhase;
+            return IsGameplayState;
+        }
+
+        public static bool IsGameplayStateValue(GameState state)
+        {
+            return state == GameState.DayPhase || state == GameState.NightPhase;
         }
 
         private void EnsureDifficultySettings()

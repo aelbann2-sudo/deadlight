@@ -400,6 +400,96 @@ namespace Deadlight.Visuals
             return sprite;
         }
 
+        public static Sprite CreateHouseSprite(int variant)
+        {
+            string key = $"house_{variant}";
+            if (spriteCache.TryGetValue(key, out Sprite cached)) return cached;
+
+            int width = 72;
+            int height = 52;
+            var texture = new Texture2D(width, height);
+            texture.filterMode = FilterMode.Point;
+            ClearTexture(texture, Color.clear);
+
+            Color wallColor = variant switch
+            {
+                0 => new Color(0.82f, 0.76f, 0.68f),
+                1 => new Color(0.72f, 0.8f, 0.86f),
+                2 => new Color(0.78f, 0.73f, 0.62f),
+                _ => new Color(0.82f, 0.76f, 0.68f)
+            };
+
+            Color trimColor = Color.Lerp(wallColor, Color.white, 0.18f);
+            Color roofColor = variant switch
+            {
+                0 => Palette.RoofRed,
+                1 => new Color(0.4f, 0.43f, 0.47f),
+                2 => new Color(0.48f, 0.28f, 0.2f),
+                _ => Palette.RoofRed
+            };
+
+            DrawRect(texture, 8, 0, 56, 26, wallColor);
+            DrawRect(texture, 11, 3, 50, 20, trimColor);
+            DrawRect(texture, 4, 26, 64, 8, roofColor);
+            DrawRect(texture, 10, 34, 52, 6, Color.Lerp(roofColor, Color.black, 0.08f));
+            DrawRect(texture, 52, 34, 6, 10, Color.Lerp(roofColor, Color.black, 0.15f));
+
+            DrawRect(texture, 18, 9, 12, 11, Palette.WindowBlue);
+            DrawRect(texture, 42, 9, 12, 11, Palette.WindowBlue);
+            DrawRect(texture, 32, 0, 8, 16, Palette.WoodDark);
+            DrawRect(texture, 33, 1, 6, 14, Palette.WoodLight);
+            DrawRect(texture, 36, 1, 1, 14, Palette.WoodDark);
+            DrawRect(texture, 28, 16, 16, 3, Color.Lerp(trimColor, Color.white, 0.08f));
+
+            texture.Apply();
+            var sprite = Sprite.Create(texture, new Rect(0, 0, width, height), new Vector2(0.5f, 0f), 32);
+            spriteCache[key] = sprite;
+            return sprite;
+        }
+
+        public static Sprite CreateGarageSprite(int variant)
+        {
+            string key = $"garage_{variant}";
+            if (spriteCache.TryGetValue(key, out Sprite cached)) return cached;
+
+            int width = 48;
+            int height = 32;
+            var texture = new Texture2D(width, height);
+            texture.filterMode = FilterMode.Point;
+            ClearTexture(texture, Color.clear);
+
+            Color wallColor = variant switch
+            {
+                0 => new Color(0.75f, 0.72f, 0.66f),
+                1 => new Color(0.7f, 0.76f, 0.82f),
+                2 => new Color(0.72f, 0.68f, 0.6f),
+                _ => new Color(0.75f, 0.72f, 0.66f)
+            };
+
+            Color roofColor = variant switch
+            {
+                0 => Palette.RoofRed,
+                1 => new Color(0.42f, 0.45f, 0.48f),
+                2 => new Color(0.5f, 0.3f, 0.2f),
+                _ => Palette.RoofRed
+            };
+
+            DrawRect(texture, 4, 0, 40, 16, wallColor);
+            DrawRect(texture, 0, 16, 48, 6, roofColor);
+            DrawRect(texture, 12, 0, 24, 13, new Color(0.82f, 0.82f, 0.84f));
+            DrawRect(texture, 14, 2, 20, 9, new Color(0.7f, 0.72f, 0.74f));
+
+            for (int x = 16; x < 34; x += 4)
+            {
+                DrawRect(texture, x, 2, 1, 9, new Color(0.6f, 0.62f, 0.66f));
+            }
+
+            texture.Apply();
+            var sprite = Sprite.Create(texture, new Rect(0, 0, width, height), new Vector2(0.5f, 0f), 32);
+            spriteCache[key] = sprite;
+            return sprite;
+        }
+
         public static Sprite CreateTreeSprite()
         {
             string key = "tree";
@@ -450,6 +540,61 @@ namespace Deadlight.Visuals
 
             texture.Apply();
             var sprite = Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.25f), 32);
+            spriteCache[key] = sprite;
+            return sprite;
+        }
+
+        public static Sprite CreateFountainSprite()
+        {
+            const string key = "fountain";
+            if (spriteCache.TryGetValue(key, out Sprite cached)) return cached;
+
+            int size = 48;
+            var texture = new Texture2D(size, size);
+            texture.filterMode = FilterMode.Point;
+            ClearTexture(texture, Color.clear);
+
+            Color stoneDark = new Color(0.42f, 0.44f, 0.48f);
+            Color stoneLight = new Color(0.58f, 0.6f, 0.65f);
+            Color waterDark = new Color(0.22f, 0.45f, 0.62f);
+            Color waterLight = new Color(0.42f, 0.68f, 0.82f);
+
+            DrawCircle(texture, 24, 12, 11, stoneDark);
+            DrawCircle(texture, 24, 12, 9, stoneLight);
+            DrawCircle(texture, 24, 12, 7, waterDark);
+            DrawCircle(texture, 24, 12, 5, waterLight);
+
+            DrawRect(texture, 20, 12, 8, 16, stoneDark);
+            DrawRect(texture, 21, 12, 6, 14, stoneLight);
+            DrawCircle(texture, 24, 30, 4, waterLight);
+            DrawCircle(texture, 24, 30, 2, Color.white);
+
+            texture.Apply();
+            var sprite = Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.2f), 32);
+            spriteCache[key] = sprite;
+            return sprite;
+        }
+
+        public static Sprite CreateStreetPostSprite()
+        {
+            const string key = "street_post";
+            if (spriteCache.TryGetValue(key, out Sprite cached)) return cached;
+
+            int w = 12;
+            int h = 28;
+            var texture = new Texture2D(w, h);
+            texture.filterMode = FilterMode.Point;
+            ClearTexture(texture, Color.clear);
+
+            Color poleDark = new Color(0.35f, 0.36f, 0.4f);
+            Color poleLight = new Color(0.55f, 0.56f, 0.6f);
+
+            DrawRect(texture, 5, 2, 2, 20, poleDark);
+            DrawRect(texture, 4, 22, 4, 4, poleLight);
+            DrawRect(texture, 3, 26, 6, 2, poleDark);
+
+            texture.Apply();
+            var sprite = Sprite.Create(texture, new Rect(0, 0, w, h), new Vector2(0.5f, 0.1f), 32);
             spriteCache[key] = sprite;
             return sprite;
         }
