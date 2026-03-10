@@ -41,7 +41,6 @@ namespace Deadlight.UI
         private List<Text> _upgradeLabels = new List<Text>();
         private List<Button> _upgradeBuyButtons = new List<Button>();
 
-        private Difficulty _pendingDifficulty = Difficulty.Normal;
         private bool _waitingForEnding;
 
         private void Awake()
@@ -164,7 +163,6 @@ namespace Deadlight.UI
 
         private void OnDifficultySelected(Difficulty difficulty)
         {
-            _pendingDifficulty = difficulty;
             GameManager.Instance?.SetDifficulty(difficulty);
             _mainMenuPanel?.SetActive(false);
             _mapSelectPanel?.SetActive(true);
@@ -336,9 +334,8 @@ namespace Deadlight.UI
         private void OnMapSelected(MapType mapType)
         {
             GameManager.Instance?.SetMap(mapType);
-            _mapSelectPanel?.SetActive(false);
             Time.timeScale = 1f;
-            GameManager.Instance?.StartNewGame();
+            GameManager.Instance?.StartSelectedMapRun();
         }
 
         // ===================== PAUSE MENU =====================
@@ -372,9 +369,7 @@ namespace Deadlight.UI
 
         private void OnPauseChanged(bool paused)
         {
-            if (paused && GameManager.Instance != null &&
-                (GameManager.Instance.CurrentState == GameState.DayPhase ||
-                 GameManager.Instance.CurrentState == GameState.NightPhase))
+            if (paused && GameManager.Instance != null && GameManager.Instance.IsGameplayState)
             {
                 _pausePanel?.SetActive(true);
             }
@@ -867,38 +862,10 @@ namespace Deadlight.UI
                     UpdateShopDisplay();
                     break;
                 case GameState.GameOver:
-                    LeaderboardManager.Instance?.SubmitRun(false);
-                    if (EndingSequence.Instance != null && !_waitingForEnding)
-                    {
-                        _waitingForEnding = true;
-                        EndingSequence.Instance.OnEndingComplete += OnEndingSequenceComplete;
-                    }
-                    else if (_waitingForEnding)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        _gameOverPanel?.SetActive(true);
-                        Time.timeScale = 0f;
-                    }
+                    HandleEndingState(false);
                     break;
                 case GameState.Victory:
-                    LeaderboardManager.Instance?.SubmitRun(true);
-                    if (EndingSequence.Instance != null && !_waitingForEnding)
-                    {
-                        _waitingForEnding = true;
-                        EndingSequence.Instance.OnEndingComplete += OnEndingSequenceComplete;
-                    }
-                    else if (_waitingForEnding)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        _victoryPanel?.SetActive(true);
-                        Time.timeScale = 0f;
-                    }
+                    HandleEndingState(true);
                     break;
             }
         }
@@ -919,14 +886,60 @@ namespace Deadlight.UI
 
             if (GameManager.Instance.CurrentState == GameState.Victory)
             {
-                _victoryPanel?.SetActive(true);
-                Time.timeScale = 0f;
+                ShowVictoryPanel();
             }
             else if (GameManager.Instance.CurrentState == GameState.GameOver)
             {
-                _gameOverPanel?.SetActive(true);
-                Time.timeScale = 0f;
+                ShowGameOverPanel();
             }
+        }
+
+        private void HandleEndingState(bool victory)
+        {
+            LeaderboardManager.Instance?.SubmitRun(victory);
+
+            if (TryQueueEndingSequence())
+            {
+                return;
+            }
+
+            if (victory)
+            {
+                ShowVictoryPanel();
+            }
+            else
+            {
+                ShowGameOverPanel();
+            }
+        }
+
+        private bool TryQueueEndingSequence()
+        {
+            if (_waitingForEnding)
+            {
+                return true;
+            }
+
+            if (EndingSequence.Instance == null)
+            {
+                return false;
+            }
+
+            _waitingForEnding = true;
+            EndingSequence.Instance.OnEndingComplete += OnEndingSequenceComplete;
+            return true;
+        }
+
+        private void ShowGameOverPanel()
+        {
+            _gameOverPanel?.SetActive(true);
+            Time.timeScale = 0f;
+        }
+
+        private void ShowVictoryPanel()
+        {
+            _victoryPanel?.SetActive(true);
+            Time.timeScale = 0f;
         }
 
         private void HideAllPanels()

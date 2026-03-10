@@ -6,7 +6,7 @@ using Deadlight.Data;
 
 namespace Deadlight.UI
 {
-    public class LiveHUD : MonoBehaviour
+    public class GameplayHUD : MonoBehaviour
     {
         private Text healthText;
         private Image healthFill;
@@ -16,8 +16,6 @@ namespace Deadlight.UI
         private Text nightText;
         private Text enemyCountText;
         private Text statusText;
-        private GameObject gameOverPanel;
-        private Text gameOverText;
         private Text reloadHint;
         private Text dayTimerText;
         private Text pointsText;
@@ -35,29 +33,31 @@ namespace Deadlight.UI
         private Player.PlayerHealth playerHealth;
         private Player.PlayerShooting playerShooting;
         private Player.PlayerController playerController;
+        private RectTransform healthFillRect;
+        private float targetHealthRatio = 1f;
+        private float displayedHealthRatio = 1f;
+        private const float HealthBarLerpSpeed = 6f;
 
         public void Initialize(
             Text health, Image hFill, Text ammo, Image sFill,
-            Text wave, Text night, Text enemyCount, Text status,
-            GameObject goPanel, Text goText, Text reload,
+            Text wave, Text night, Text enemyCount, Text status, Text reload,
             Text dayTimer = null, Text points = null)
         {
             healthText = health;
             healthFill = hFill;
+            healthFillRect = healthFill != null ? healthFill.rectTransform : null;
             ammoText = ammo;
             staminaFill = sFill;
             waveText = wave;
             nightText = night;
             enemyCountText = enemyCount;
             statusText = status;
-            gameOverPanel = goPanel;
-            gameOverText = goText;
             reloadHint = reload;
             dayTimerText = dayTimer;
             pointsText = points;
 
-            if (gameOverPanel != null)
-                gameOverPanel.SetActive(false);
+            ConfigureHealthBar();
+            ApplyHealthBar(displayedHealthRatio);
 
             StartCoroutine(FindPlayerDelayed());
         }
@@ -101,7 +101,7 @@ namespace Deadlight.UI
             {
                 playerHealth.OnHealthChanged += UpdateHealth;
                 playerHealth.OnDamageTaken += OnDamage;
-                playerHealth.OnPlayerDeath += OnPlayerDied;
+                UpdateHealth(playerHealth.CurrentHealth, playerHealth.MaxHealth);
             }
 
             if (playerShooting != null)
@@ -154,7 +154,6 @@ namespace Deadlight.UI
             {
                 playerHealth.OnHealthChanged -= UpdateHealth;
                 playerHealth.OnDamageTaken -= OnDamage;
-                playerHealth.OnPlayerDeath -= OnPlayerDied;
             }
             if (playerShooting != null)
             {
@@ -189,13 +188,9 @@ namespace Deadlight.UI
 
         private void Update()
         {
+            AnimateHealthBar();
             UpdateStamina();
             UpdateAmmoFromState();
-            
-            if (Input.GetKeyDown(KeyCode.Return) && gameOverPanel != null && gameOverPanel.activeSelf)
-            {
-                RestartGame();
-            }
         }
 
         private void UpdateHealth(float current, float max)
@@ -205,10 +200,50 @@ namespace Deadlight.UI
 
             if (healthFill != null)
             {
-                float pct = current / max;
-                healthFill.fillAmount = pct;
+                float pct = current / Mathf.Max(1f, max);
+                targetHealthRatio = Mathf.Clamp01(pct);
                 healthFill.color = Color.Lerp(new Color(0.8f, 0.1f, 0.1f), new Color(0.2f, 0.8f, 0.2f), pct);
             }
+        }
+
+        private void ConfigureHealthBar()
+        {
+            if (healthFillRect == null)
+            {
+                return;
+            }
+
+            healthFillRect.pivot = new Vector2(0f, 0.5f);
+            healthFillRect.localScale = Vector3.one;
+        }
+
+        private void AnimateHealthBar()
+        {
+            if (healthFillRect == null)
+            {
+                return;
+            }
+
+            displayedHealthRatio = Mathf.MoveTowards(
+                displayedHealthRatio,
+                targetHealthRatio,
+                HealthBarLerpSpeed * Time.deltaTime);
+
+            ApplyHealthBar(displayedHealthRatio);
+        }
+
+        private void ApplyHealthBar(float ratio)
+        {
+            if (healthFillRect == null)
+            {
+                return;
+            }
+
+            var scale = healthFillRect.localScale;
+            scale.x = Mathf.Clamp01(ratio);
+            scale.y = 1f;
+            scale.z = 1f;
+            healthFillRect.localScale = scale;
         }
 
         private void OnDamage(float amount)
@@ -346,25 +381,6 @@ namespace Deadlight.UI
                 case GameState.NightPhase:
                     ShowStatus("NIGHT FALLS - Survive!", 3f);
                     break;
-                case GameState.Victory:
-                    ShowGameOver("YOU SURVIVED!", new Color(0.2f, 0.8f, 0.3f));
-                    break;
-            }
-        }
-
-        private void OnPlayerDied()
-        {
-            ShowGameOver("YOU DIED", new Color(0.8f, 0.1f, 0.1f));
-        }
-
-        private void ShowGameOver(string text, Color color)
-        {
-            if (gameOverPanel == null) return;
-            gameOverPanel.SetActive(true);
-            if (gameOverText != null)
-            {
-                gameOverText.text = text + "\n\nPress ENTER to restart";
-                gameOverText.color = color;
             }
         }
 
@@ -401,14 +417,6 @@ namespace Deadlight.UI
             }
 
             statusText.gameObject.SetActive(false);
-        }
-
-        private void RestartGame()
-        {
-            if (gameOverPanel != null)
-                gameOverPanel.SetActive(false);
-            UnityEngine.SceneManagement.SceneManager.LoadScene(
-                UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
         }
     }
 }

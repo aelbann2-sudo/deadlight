@@ -19,10 +19,14 @@ namespace Deadlight.Core
         [Header("Phase Settings")]
         [SerializeField] private float[] dayDurationsByNight = { 70f, 60f, 55f, 50f, 45f };
         [SerializeField] private float nightDuration = 120f;
-        [SerializeField] private int healthPickupCount = 3;
-        [SerializeField] private int ammoPickupCount = 4;
-        [SerializeField] private float pickupSpawnRadius = 8f;
-        [SerializeField] private float pickupSpawnMinDistanceFromPlayer = 3f;
+        [SerializeField] private int healthPickupCount = 6;
+        [SerializeField] private int ammoPickupCount = 8;
+        [SerializeField] private int scrapPickupCount = 5;
+        [SerializeField] private int woodPickupCount = 3;
+        [SerializeField] private int chemicalsPickupCount = 2;
+        [SerializeField] private int electronicsPickupCount = 2;
+        [SerializeField] private float pickupSpawnMinDistanceFromPlayer = 10f;
+        [SerializeField] private float pickupMinSpacing = 8f;
 
         private DayNightCycle dayNightCycle;
         private readonly List<GameObject> spawnedPickups = new List<GameObject>();
@@ -142,79 +146,132 @@ namespace Deadlight.Core
         /// </summary>
         public void SpawnPickups()
         {
+            if (PickupSpawner.Instance == null) return;
+
             var player = GameObject.Find("Player");
             Vector3 playerPos = player != null ? player.transform.position : Vector3.zero;
 
-            for (int i = 0; i < healthPickupCount; i++)
-            {
-                SpawnPickupAtRandomPosition(PickupItem.PickupKind.Health, 25, Color.red, playerPos);
-            }
+            var usedPositions = new List<Vector3>();
 
-            for (int i = 0; i < ammoPickupCount; i++)
+            SpawnTypeScattered(PickupType.Health, healthPickupCount, playerPos, usedPositions);
+            SpawnTypeScattered(PickupType.Ammo, ammoPickupCount, playerPos, usedPositions);
+            SpawnTypeScattered(PickupType.Scrap, scrapPickupCount, playerPos, usedPositions);
+            SpawnTypeScattered(PickupType.Wood, woodPickupCount, playerPos, usedPositions);
+            SpawnTypeScattered(PickupType.Chemicals, chemicalsPickupCount, playerPos, usedPositions);
+            SpawnTypeScattered(PickupType.Electronics, electronicsPickupCount, playerPos, usedPositions);
+        }
+
+        private void SpawnTypeScattered(PickupType type, int count, Vector3 playerPos, List<Vector3> usedPositions)
+        {
+            for (int i = 0; i < count; i++)
             {
-                SpawnPickupAtRandomPosition(PickupItem.PickupKind.Ammo, 30, new Color(1f, 0.9f, 0.2f), playerPos);
+                Vector3 pos = GetScatteredPosition(playerPos, usedPositions);
+                PickupSpawner.Instance.SpawnPickup(pos, type);
+                usedPositions.Add(pos);
+
+                // Track for cleanup — find the most recently created pickup of this type
+                var all = GameObject.FindObjectsByType<Deadlight.Systems.PickupItem>(FindObjectsSortMode.None);
+                if (all.Length > 0)
+                {
+                    var go = all[all.Length - 1].gameObject;
+                    if (!spawnedPickups.Contains(go))
+                        spawnedPickups.Add(go);
+                }
             }
         }
 
-        private void SpawnPickupAtRandomPosition(PickupItem.PickupKind kind, int amount, Color color, Vector3 playerPos)
+        private Vector3 GetScatteredPosition(Vector3 playerPos, List<Vector3> usedPositions)
         {
-            Vector3 spawnPos = GetRandomPickupSpawnPosition(playerPos);
+            // Get actual map perimeter bounds (not LevelManager default 50x50)
+            float halfW = 30f;
+            float halfH = 30f;
+            Vector3 mapCenter = Vector3.zero;
 
-            var go = new GameObject($"Pickup_{kind}_{Time.frameCount}");
-            go.transform.position = spawnPos;
+            if (LevelManager.Instance != null)
+            {
+                halfW = LevelManager.Instance.LevelBounds.x / 2f;
+                halfH = LevelManager.Instance.LevelBounds.y / 2f;
+                mapCenter = LevelManager.Instance.transform.position;
+            }
 
-            var sr = go.AddComponent<SpriteRenderer>();
-            sr.sprite = CreateCircleSprite(color);
-            sr.sortingOrder = 5;
+            // Inset from walls so pickups aren't flush against perimeter
+            float margin = 2.5f;
+            float usableHalfW = halfW - margin;
+            float usableHalfH = halfH - margin;
 
-            var col = go.AddComponent<CircleCollider2D>();
-            col.isTrigger = true;
-            col.radius = 0.4f;
+            // Collect obstacle colliders once for overlap checks
+            var obstacles = LevelManager.Instance != null
+                ? LevelManager.Instance.Obstacles
+                : null;
 
-            var pickupItem = go.AddComponent<PickupItem>();
-            pickupItem.Initialize(kind, amount);
+            for (int attempt = 0; attempt < 100; attempt++)
+            {
+                // Bias distribution toward outer regions of the map.
+                // Pick a random angle and a distance biased outward (sqrt for uniform area,
+                // then bias further out so pickups feel scattered, not clustered at center).
+                float angle = UnityEngine.Random.Range(0f, Mathf.PI * 2f);
+                float t = Mathf.Sqrt(UnityEngine.Random.value); // uniform area distribution
+                t = Mathf.Lerp(t, 1f, 0.4f); // push 40% further toward edges
 
-            spawnedPickups.Add(go);
+                float x = mapCenter.x + Mathf.Cos(angle) * t * usableHalfW;
+                float y = mapCenter.y + Mathf.Sin(angle) * t * usableHalfH;
+                Vector3 candidate = new Vector3(x, y, 0);
+
+                // Reject if too close to player spawn
+                if (Vector3.Distance(candidate, playerPos) < pickupSpawnMinDistanceFromPlayer)
+                    continue;
+
+                // Reject if too close to map center (keep the center area clear)
+                if (Vector3.Distance(candidate, mapCenter) < Mathf.Min(usableHalfW, usableHalfH) * 0.15f)
+                    continue;
+
+                // Reject if too close to any existing pickup
+                bool tooClose = false;
+                for (int j = 0; j < usedPositions.Count; j++)
+                {
+                    if (Vector3.Distance(candidate, usedPositions[j]) < pickupMinSpacing)
+                    {
+                        tooClose = true;
+                        break;
+                    }
+                }
+                if (tooClose) continue;
+
+                // Reject if overlapping a building or obstacle collider
+                if (obstacles != null)
+                {
+                    bool blocked = false;
+                    foreach (var obs in obstacles)
+                    {
+                        if (obs == null) continue;
+                        var col = obs.GetComponent<Collider2D>();
+                        if (col != null && col.OverlapPoint(candidate))
+                        {
+                            blocked = true;
+                            break;
+                        }
+                    }
+                    if (blocked) continue;
+                }
+
+                // Also check against buildings (they have BoxCollider2D)
+                var hit = Physics2D.OverlapCircle(candidate, 0.6f);
+                if (hit != null && !hit.isTrigger)
+                    continue;
+
+                return candidate;
+            }
+
+            // Fallback after 100 attempts: pick a position in a corner quadrant
+            int quadrant = UnityEngine.Random.Range(0, 4);
+            float fx = (quadrant % 2 == 0 ? 1f : -1f) * UnityEngine.Random.Range(usableHalfW * 0.5f, usableHalfW);
+            float fy = (quadrant < 2 ? 1f : -1f) * UnityEngine.Random.Range(usableHalfH * 0.5f, usableHalfH);
+            return mapCenter + new Vector3(fx, fy, 0);
         }
 
         private Vector3 GetRandomPickupSpawnPosition(Vector3 playerPos)
         {
-            if (LevelManager.Instance != null)
-            {
-                for (int i = 0; i < 10; i++)
-                {
-                    var pos = LevelManager.Instance.GetRandomPositionInLevel();
-                    if (Vector3.Distance(pos, playerPos) >= pickupSpawnMinDistanceFromPlayer)
-                        return pos;
-                }
-            }
-
-            float angle = UnityEngine.Random.Range(0f, 360f) * Mathf.Deg2Rad;
-            float dist = UnityEngine.Random.Range(pickupSpawnMinDistanceFromPlayer, pickupSpawnRadius);
-            return playerPos + new Vector3(Mathf.Cos(angle) * dist, Mathf.Sin(angle) * dist, 0);
-        }
-
-        private static Sprite CreateCircleSprite(Color color)
-        {
-            int size = 32;
-            var tex = new Texture2D(size, size);
-            var pixels = new Color[size * size];
-            Vector2 center = new Vector2(size / 2f, size / 2f);
-            float radius = size / 2f - 2f;
-
-            for (int y = 0; y < size; y++)
-            {
-                for (int x = 0; x < size; x++)
-                {
-                    float dist = Vector2.Distance(new Vector2(x, y), center);
-                    pixels[y * size + x] = dist <= radius ? color : Color.clear;
-                }
-            }
-
-            tex.SetPixels(pixels);
-            tex.Apply();
-            tex.filterMode = FilterMode.Bilinear;
-            return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+            return GetScatteredPosition(playerPos, new List<Vector3>());
         }
 
         private void ClearSpawnedPickups()
@@ -488,11 +545,11 @@ namespace Deadlight.Core
 
         [SerializeField] private PickupKind kind = PickupKind.Health;
         [SerializeField] private int amount = 25;
-        [SerializeField] private float bobSpeed = 2f;
-        [SerializeField] private float bobAmount = 0.1f;
 
-        private Vector3 startPosition;
-        private float bobOffset;
+        private Collider2D playerCollider;
+        private CircleCollider2D pickupCollider;
+        private SpriteRenderer pickupRenderer;
+        private bool consumed;
 
         public void Initialize(PickupKind pickupKind, int pickupAmount)
         {
@@ -500,40 +557,103 @@ namespace Deadlight.Core
             amount = pickupAmount;
         }
 
+        private void Awake()
+        {
+            pickupCollider = GetComponent<CircleCollider2D>();
+            pickupRenderer = GetComponent<SpriteRenderer>();
+        }
+
         private void Start()
         {
-            startPosition = transform.position;
-            bobOffset = UnityEngine.Random.value * Mathf.PI * 2f;
+            TryConsumeNearbyPlayer();
         }
 
         private void Update()
         {
-            float newY = startPosition.y + Mathf.Sin((Time.time + bobOffset) * bobSpeed) * bobAmount;
-            transform.position = new Vector3(startPosition.x, newY, startPosition.z);
+            if (consumed)
+            {
+                return;
+            }
+
+            TryConsumeNearbyPlayer();
         }
 
         private void OnTriggerEnter2D(Collider2D other)
         {
+            TryConsume(other);
+        }
+
+        private void OnTriggerStay2D(Collider2D other)
+        {
+            TryConsume(other);
+        }
+
+        private void TryConsumeNearbyPlayer()
+        {
+            if (pickupCollider == null)
+            {
+                pickupCollider = GetComponent<CircleCollider2D>();
+            }
+
+            if (pickupRenderer == null)
+            {
+                pickupRenderer = GetComponent<SpriteRenderer>();
+            }
+
+            if (playerCollider == null)
+            {
+                var player = GameObject.FindGameObjectWithTag("Player");
+                if (player != null)
+                {
+                    playerCollider = player.GetComponent<Collider2D>();
+                }
+            }
+
+            if (playerCollider != null)
+            {
+                TryConsume(playerCollider);
+            }
+        }
+
+        private void TryConsume(Collider2D other)
+        {
+            if (consumed)
+            {
+                return;
+            }
+
+            if (pickupCollider == null)
+            {
+                pickupCollider = GetComponent<CircleCollider2D>();
+            }
+
+            if (pickupRenderer == null)
+            {
+                pickupRenderer = GetComponent<SpriteRenderer>();
+            }
+
             var health = other.GetComponent<PlayerHealth>();
             var shooting = other.GetComponent<PlayerShooting>();
 
             if (health == null && shooting == null) return;
+            if (!PickupContactUtility.IsTightPickupContact(pickupCollider, pickupRenderer, other)) return;
 
-            bool consumed = false;
+            bool didConsume = false;
 
             if (kind == PickupKind.Health && health != null && health.IsAlive)
             {
                 health.Heal(amount);
-                consumed = true;
+                didConsume = true;
             }
             else if (kind == PickupKind.Ammo && shooting != null)
             {
                 shooting.AddAmmo(amount);
-                consumed = true;
+                didConsume = true;
             }
 
-            if (consumed)
+            if (didConsume)
             {
+                this.consumed = true;
                 Destroy(gameObject);
             }
         }

@@ -70,6 +70,8 @@ namespace Deadlight.Core
         public int MaxNights => maxNights;
         public DifficultySettings CurrentSettings => GetDifficultySettings();
         public bool IsPaused => isPaused;
+        public bool IsGameplayState => IsGameplayStateValue(currentState);
+        public bool ShouldSetupGameplayScene => startNewRunAfterGameSceneLoad || currentState != GameState.MainMenu || autoStartWhenGameSceneLoads;
         public float RunStartTime { get; private set; }
 
         public event Action<GameState> OnGameStateChanged;
@@ -127,16 +129,7 @@ namespace Deadlight.Core
 
         private void Start()
         {
-            string sceneName = SceneManager.GetActiveScene().name;
-
-            if (sceneName == "MainMenu" && IsMainMenuSceneEmpty())
-            {
-                Debug.LogWarning("[GameManager] MainMenu scene is empty on startup. Loading Game scene fallback.");
-                SceneManager.LoadScene("Game");
-                return;
-            }
-
-            if (sceneName == "Game")
+            if (SceneManager.GetActiveScene().name == "Game")
             {
                 StartCoroutine(BootstrapGameSceneNextFrame());
             }
@@ -144,8 +137,7 @@ namespace Deadlight.Core
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Escape) &&
-                (currentState == GameState.DayPhase || currentState == GameState.NightPhase))
+            if (Input.GetKeyDown(KeyCode.Escape) && IsGameplayState)
             {
                 TogglePause();
             }
@@ -153,13 +145,6 @@ namespace Deadlight.Core
 
         private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            if (scene.name == "MainMenu" && IsMainMenuSceneEmpty())
-            {
-                Debug.LogWarning("[GameManager] MainMenu scene has no UI. Loading Game scene directly.");
-                SceneManager.LoadScene("Game");
-                return;
-            }
-
             if (scene.name == "Game")
             {
                 StartCoroutine(BootstrapGameSceneNextFrame());
@@ -201,7 +186,7 @@ namespace Deadlight.Core
             isBootstrappingScene = true;
             yield return null;
 
-            if (autoBootstrapGameScene)
+            if (autoBootstrapGameScene && ShouldSetupGameplayScene)
             {
                 EnsureCoreManagers();
                 EnsureWaveManagerConfigured();
@@ -303,7 +288,7 @@ namespace Deadlight.Core
 
             currentState = newState;
 
-            if (newState != GameState.DayPhase && newState != GameState.NightPhase)
+            if (!IsGameplayStateValue(newState))
             {
                 SetPaused(false);
             }
@@ -376,7 +361,7 @@ namespace Deadlight.Core
 
             SetPaused(false);
             ChangeState(GameState.MainMenu);
-            SceneManager.LoadScene("MainMenu");
+            SceneManager.LoadScene("Game");
         }
 
         public void RestartGame()
@@ -390,6 +375,22 @@ namespace Deadlight.Core
 
         public void LoadGameScene()
         {
+            SceneManager.LoadScene("Game");
+        }
+
+        public void StartSelectedMapRun()
+        {
+            currentNight = 1;
+            startNewRunAfterGameSceneLoad = true;
+
+            if (deferredRestartCoroutine != null)
+            {
+                StopCoroutine(deferredRestartCoroutine);
+                deferredRestartCoroutine = null;
+            }
+
+            SetPaused(false);
+            ChangeState(GameState.MainMenu);
             SceneManager.LoadScene("Game");
         }
 
@@ -435,7 +436,12 @@ namespace Deadlight.Core
 
         private bool CanPauseCurrentState()
         {
-            return currentState == GameState.DayPhase || currentState == GameState.NightPhase;
+            return IsGameplayState;
+        }
+
+        public static bool IsGameplayStateValue(GameState state)
+        {
+            return state == GameState.DayPhase || state == GameState.NightPhase;
         }
 
         private void EnsureDifficultySettings()
@@ -928,14 +934,6 @@ namespace Deadlight.Core
             }
 
             dawnAdvanceCoroutine = null;
-        }
-
-        private static bool IsMainMenuSceneEmpty()
-        {
-            if (GameUI.Instance != null) return false;
-            if (FindFirstObjectByType<MenuManager>() != null) return false;
-            if (FindFirstObjectByType<Canvas>() != null) return false;
-            return true;
         }
 
         private void ApplyPhaseDurationsForNight(int night)
