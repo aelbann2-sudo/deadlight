@@ -531,10 +531,6 @@ namespace Deadlight.Editor
             canvasObj.AddComponent<UnityEngine.UI.CanvasScaler>();
             canvasObj.AddComponent<UnityEngine.UI.GraphicRaycaster>();
 
-            var hudObj = new GameObject("HUD");
-            hudObj.transform.SetParent(canvasObj.transform);
-            hudObj.AddComponent<UI.HUDManager>();
-
             var eventSystem = new GameObject("EventSystem");
             eventSystem.AddComponent<UnityEngine.EventSystems.EventSystem>();
             eventSystem.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();

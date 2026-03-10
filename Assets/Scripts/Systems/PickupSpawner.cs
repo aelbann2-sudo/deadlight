@@ -66,23 +66,23 @@ namespace Deadlight.Systems
         public void SpawnPickup(Vector3 position, PickupType type)
         {
             var pickupObj = new GameObject($"Pickup_{type}");
-            pickupObj.transform.position = position + Vector3.up * 0.2f;
+            pickupObj.transform.position = position;
 
             var sr = pickupObj.AddComponent<SpriteRenderer>();
             int variant = Random.Range(0, 10);
             sr.sprite = ProceduralSpriteGenerator.CreatePickupSprite(type.ToString(), variant);
             sr.sortingOrder = 15;
 
+            var col = pickupObj.AddComponent<CircleCollider2D>();
+            col.radius = 0.24f;
+            col.isTrigger = true;
+
             var pickup = pickupObj.AddComponent<PickupItem>();
             pickup.Initialize(type, GetPickupValue(type));
 
-            var glow = CreateGlowEffect(pickupObj.transform, GetPickupColor(type));
+            CreateGlowEffect(pickupObj.transform, GetPickupColor(type));
             
             pickupObj.AddComponent<PickupAnimation>();
-
-            var col = pickupObj.AddComponent<CircleCollider2D>();
-            col.radius = 0.4f;
-            col.isTrigger = true;
 
             Destroy(pickupObj, 10f);
         }
@@ -155,6 +155,10 @@ namespace Deadlight.Systems
     {
         private PickupType type;
         private float value;
+        private Collider2D playerCollider;
+        private CircleCollider2D pickupCollider;
+        private SpriteRenderer spriteRenderer;
+        private bool consumed;
 
         public void Initialize(PickupType pickupType, float pickupValue)
         {
@@ -162,25 +166,106 @@ namespace Deadlight.Systems
             value = pickupValue;
         }
 
+        private void Start()
+        {
+            EnsureReferences();
+            TryCollectNearbyPlayer();
+        }
+
+        private void Update()
+        {
+            if (consumed)
+            {
+                return;
+            }
+
+            TryCollectNearbyPlayer();
+        }
+
         private void OnTriggerEnter2D(Collider2D other)
         {
-            if (other.gameObject.name != "Player") return;
+            TryCollect(other);
+        }
+
+        private void OnTriggerStay2D(Collider2D other)
+        {
+            TryCollect(other);
+        }
+
+        private void EnsureReferences()
+        {
+            if (pickupCollider == null)
+            {
+                pickupCollider = GetComponent<CircleCollider2D>();
+            }
+
+            if (spriteRenderer == null)
+            {
+                spriteRenderer = GetComponent<SpriteRenderer>();
+            }
+        }
+
+        private void TryCollectNearbyPlayer()
+        {
+            EnsureReferences();
+            if (pickupCollider == null)
+            {
+                return;
+            }
+
+            if (playerCollider == null)
+            {
+                var player = GameObject.FindGameObjectWithTag("Player");
+                if (player != null)
+                {
+                    playerCollider = player.GetComponent<Collider2D>();
+                }
+            }
+
+            if (playerCollider != null)
+            {
+                TryCollect(playerCollider);
+            }
+        }
+
+        private void TryCollect(Collider2D other)
+        {
+            if (consumed)
+            {
+                return;
+            }
+
+            EnsureReferences();
+
+            var playerHealth = other.GetComponent<PlayerHealth>();
+            var shooting = other.GetComponent<PlayerShooting>();
+            if (playerHealth == null && shooting == null)
+            {
+                return;
+            }
+
+            if (!PickupContactUtility.IsTightPickupContact(pickupCollider, spriteRenderer, other))
+            {
+                return;
+            }
+
+            bool didCollect = false;
 
             switch (type)
             {
                 case PickupType.Ammo:
-                    var shooting = other.GetComponent<PlayerShooting>();
                     if (shooting != null)
                     {
                         shooting.AddAmmo((int)value);
+                        didCollect = true;
                     }
                     break;
 
                 case PickupType.Health:
-                    var health = other.GetComponent<PlayerHealth>();
-                    if (health != null)
+                    if (playerHealth != null)
                     {
-                        health.Heal(value);
+                        playerHealth.Heal(value);
+                        didCollect = true;
                     }
                     break;
 
@@ -188,6 +273,7 @@ namespace Deadlight.Systems
                     if (PointsSystem.Instance != null)
                     {
                         PointsSystem.Instance.AddPoints((int)value, "Pickup");
+                        didCollect = true;
                     }
                     break;
 
@@ -195,9 +281,17 @@ namespace Deadlight.Systems
                     if (PowerupSystem.Instance != null)
                     {
                         PowerupSystem.Instance.GrantRandomPowerup();
+                        didCollect = true;
                     }
                     break;
             }
+
+            if (!didCollect)
+            {
+                return;
+            }
+
+            consumed = true;
 
             var clip = Audio.ProceduralAudioGenerator.GeneratePickup();
             if (clip != null)
@@ -211,15 +305,11 @@ namespace Deadlight.Systems
 
     public class PickupAnimation : MonoBehaviour
     {
-        private float bobSpeed = 3f;
-        private float bobHeight = 0.15f;
         private float pulseSpeed = 2f;
-        private Vector3 startPos;
         private Transform glowTransform;
 
         private void Start()
         {
-            startPos = transform.position;
             if (transform.childCount > 0)
             {
                 glowTransform = transform.GetChild(0);
@@ -228,9 +318,6 @@ namespace Deadlight.Systems
 
         private void Update()
         {
-            float bob = Mathf.Sin(Time.time * bobSpeed) * bobHeight;
-            transform.position = startPos + Vector3.up * bob;
-
             if (glowTransform != null)
             {
                 float pulse = 1.8f + Mathf.Sin(Time.time * pulseSpeed) * 0.4f;
