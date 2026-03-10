@@ -38,6 +38,13 @@ namespace Deadlight.Systems
         public void SetTier(CrateTier t)
         {
             tier = t;
+            if (initialized)
+            {
+                sr.color = GetTierColor();
+                if (glowSr != null) glowSr.color = GetGlowColor();
+                if (promptText != null) promptText.color = GetTierColor();
+                if (progressFill != null) progressFill.color = GetTierColor();
+            }
         }
 
         private void Awake()
@@ -376,20 +383,56 @@ namespace Deadlight.Systems
             progressBarRoot.SetActive(false);
         }
 
-        private static Sprite CreateCrateSprite()
+        // Enhanced crate visuals based on tier and content
+        private Sprite CreateCrateSprite()
         {
             int s = 24;
             var tex = new Texture2D(s, s);
             var px = new Color[s * s];
-            for (int y = 0; y < s; y++)
-                for (int x = 0; x < s; x++)
-                {
-                    bool border = x < 2 || x >= s - 2 || y < 2 || y >= s - 2;
-                    bool cross = Mathf.Abs(x - s / 2) < 2 || Mathf.Abs(y - s / 2) < 2;
-                    px[y * s + x] = border ? new Color(0.35f, 0.25f, 0.1f) :
-                                    cross ? new Color(0.45f, 0.35f, 0.15f) :
-                                    new Color(0.55f, 0.42f, 0.2f);
-                }
+            
+            // Different crate designs based on tier
+            switch (tier)
+            {
+                case CrateTier.Legendary:
+                    // High-tech crate with metallic look
+                    for (int y = 0; y < s; y++)
+                        for (int x = 0; x < s; x++)
+                        {
+                            bool border = x < 2 || x >= s - 2 || y < 2 || y >= s - 2;
+                            bool highlight = x == 3 || x == s - 4 || y == 3 || y == s - 4;
+                            px[y * s + x] = border ? new Color(0.8f, 0.7f, 0.2f) :
+                                            highlight ? new Color(1f, 0.9f, 0.4f) :
+                                            new Color(0.7f, 0.6f, 0.1f);
+                        }
+                    break;
+                    
+                case CrateTier.Rare:
+                    // Reinforced military crate
+                    for (int y = 0; y < s; y++)
+                        for (int x = 0; x < s; x++)
+                        {
+                            bool border = x < 2 || x >= s - 2 || y < 2 || y >= s - 2;
+                            bool rivet = (x == 4 || x == s-5) && (y == 4 || y == s-5);
+                            px[y * s + x] = border ? new Color(0.2f, 0.3f, 0.6f) :
+                                            rivet ? new Color(0.8f, 0.8f, 0.9f) :
+                                            new Color(0.3f, 0.4f, 0.7f);
+                        }
+                    break;
+                    
+                default:
+                    // Standard wooden crate
+                    for (int y = 0; y < s; y++)
+                        for (int x = 0; x < s; x++)
+                        {
+                            bool border = x < 2 || x >= s - 2 || y < 2 || y >= s - 2;
+                            bool plank = (y % 4 == 0) && (x > 2 && x < s - 2);
+                            px[y * s + x] = border ? new Color(0.35f, 0.25f, 0.1f) :
+                                            plank ? new Color(0.5f, 0.4f, 0.2f) :
+                                            new Color(0.55f, 0.42f, 0.2f);
+                        }
+                    break;
+            }
+            
             tex.SetPixels(px);
             tex.Apply();
             tex.filterMode = FilterMode.Point;
@@ -414,7 +457,6 @@ namespace Deadlight.Systems
             tex.filterMode = FilterMode.Bilinear;
             return Sprite.Create(tex, new Rect(0, 0, s, s), new Vector2(0.5f, 0.5f), s);
         }
-
         private static Sprite CreateBulletIcon()
         {
             int s = 16;

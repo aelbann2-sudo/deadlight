@@ -1,4 +1,5 @@
 using UnityEngine;
+using Deadlight.Systems;
 
 namespace Deadlight.Narrative
 {
@@ -11,7 +12,7 @@ namespace Deadlight.Narrative
         [Header("Interaction")]
         [SerializeField] private bool requireInteraction = true;
         [SerializeField] private KeyCode interactionKey = KeyCode.E;
-        [SerializeField] private float interactionRange = 1.5f;
+        [SerializeField] private float interactionRange = 0.32f;
         
         [Header("Visual")]
         [SerializeField] private SpriteRenderer spriteRenderer;
@@ -66,9 +67,11 @@ namespace Deadlight.Narrative
             var player = GameObject.Find("Player");
             if (player == null) return;
 
-            float distance = Vector3.Distance(transform.position, player.transform.position);
             bool wasInRange = playerInRange;
-            playerInRange = distance <= interactionRange;
+            var playerCollider = player.GetComponent<Collider2D>();
+            playerInRange = playerCollider != null
+                ? PickupContactUtility.IsWithinPickupRange(transform, spriteRenderer, playerCollider, interactionRange)
+                : Vector3.Distance(transform.position, player.transform.position) <= interactionRange;
 
             if (playerInRange != wasInRange)
             {

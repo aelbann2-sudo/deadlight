@@ -39,6 +39,8 @@ namespace Deadlight.Core
             }
 
             Instance = this;
+            if (transform.parent != null)
+                transform.SetParent(null);
             DontDestroyOnLoad(gameObject);
 
             SetupAudioSources();

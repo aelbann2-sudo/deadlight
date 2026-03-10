@@ -18,7 +18,7 @@ namespace Deadlight.Enemy
         private EnemyHealth health;
         private SpriteRenderer spriteRenderer;
         private float lastSpitTime;
-        private float moveSpeed = 2.5f;
+        private float moveSpeed = 1.25f;
         private float speedMultiplier = 1f;
 
         void Awake()

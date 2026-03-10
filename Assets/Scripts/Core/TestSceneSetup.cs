@@ -1,9 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 using Deadlight.Audio;
 using Deadlight.Data;
 using Deadlight.Level;
+using Deadlight.Level.MapBuilders;
 using Deadlight.Narrative;
 using Deadlight.Visuals;
 #if UNITY_EDITOR
@@ -21,8 +21,6 @@ namespace Deadlight.Core
         
         private Sprite[] playerSprites;
         private Sprite[] npcSprites;
-        private Sprite[] objectSprites;
-        private Sprite[] tileSprites;
         private MapConfig activeMapConfig;
         
 #if UNITY_EDITOR
@@ -78,21 +76,35 @@ namespace Deadlight.Core
             activeMapConfig = MapConfig.GetConfigForType(selectedMap);
 
             LoadAllSprites();
+            CreateManagers();
             CreateCamera();
+
+            if (!ShouldBuildGameplayScene())
+            {
+                return;
+            }
+
             CreateGround();
             CreatePlayer();
-            CreateManagers();
             CreateEnvironment();
             CreateEnemies();
             BuildHUD();
+        }
+
+        private bool ShouldBuildGameplayScene()
+        {
+            if (!Application.isPlaying)
+            {
+                return true;
+            }
+
+            return GameManager.Instance == null || GameManager.Instance.ShouldSetupGameplayScene;
         }
 
         private void LoadAllSprites()
         {
             playerSprites = Resources.LoadAll<Sprite>("Player");
             npcSprites = Resources.LoadAll<Sprite>("NPC");
-            objectSprites = Resources.LoadAll<Sprite>("Objects");
-            tileSprites = Resources.LoadAll<Sprite>("Tiles");
         }
 
         private Sprite GetSprite(Sprite[] sprites, string name)
@@ -131,88 +143,64 @@ namespace Deadlight.Core
             var groundParent = new GameObject("Ground");
             int hw = activeMapConfig != null ? activeMapConfig.halfWidth : 13;
             int hh = activeMapConfig != null ? activeMapConfig.halfHeight : 13;
-            float pw = activeMapConfig != null ? activeMapConfig.pathWidth : 2f;
-            bool diag = activeMapConfig != null ? activeMapConfig.hasDiagonalConcrete : true;
             Color tint = activeMapConfig != null ? activeMapConfig.groundTint : Color.white;
 
-            if (useProceduralSprites)
-            {
-                var grassSprite = ProceduralSpriteGenerator.CreateGroundTile(0);
-                var pathSprite = ProceduralSpriteGenerator.CreateGroundTile(1);
-                var concreteSprite = ProceduralSpriteGenerator.CreateGroundTile(2);
-                
-                for (int x = -hw; x <= hw; x++)
-                {
-                    for (int y = -hh; y <= hh; y++)
-                    {
-                        var tile = new GameObject($"T_{x}_{y}");
-                        tile.transform.SetParent(groundParent.transform);
-                        tile.transform.position = new Vector3(x, y, 0);
-                        
-                        var sr = tile.AddComponent<SpriteRenderer>();
-                        sr.sortingOrder = -200;
+            var grassSprite = ProceduralSpriteGenerator.CreateGroundTile(0);
+            var pathSprite = ProceduralSpriteGenerator.CreateGroundTile(1);
+            var concreteSprite = ProceduralSpriteGenerator.CreateGroundTile(2);
+            var asphaltSprite = ProceduralSpriteGenerator.CreateGroundTile(3);
 
-                        bool isPath = (Mathf.Abs(x) < pw) || (Mathf.Abs(y) < pw);
-                        bool isConcrete = diag && (Mathf.Abs(x - y) < 3 && Mathf.Abs(x) < 8);
-                        
-                        if (isPath)
-                        {
-                            sr.sprite = pathSprite;
-                        }
-                        else if (isConcrete)
-                        {
-                            sr.sprite = concreteSprite;
-                        }
-                        else
-                        {
-                            sr.sprite = grassSprite;
-                        }
-                        
-                        float shade = Random.Range(0.9f, 1.05f);
-                        sr.color = new Color(tint.r * shade, tint.g * shade, tint.b * shade);
-                    }
+            for (int x = -hw; x <= hw; x++)
+            {
+                for (int y = -hh; y <= hh; y++)
+                {
+                    var tile = new GameObject($"T_{x}_{y}");
+                    tile.transform.SetParent(groundParent.transform);
+                    tile.transform.position = new Vector3(x, y, 0);
+
+                    var sr = tile.AddComponent<SpriteRenderer>();
+                    sr.sortingOrder = -200;
+
+                    int tileType = GetTileType(x, y);
+                    sr.sprite = tileType switch
+                    {
+                        1 => pathSprite,
+                        2 => concreteSprite,
+                        3 => asphaltSprite,
+                        _ => grassSprite
+                    };
+
+                    float shade = Random.Range(0.9f, 1.05f);
+                    sr.color = new Color(tint.r * shade, tint.g * shade, tint.b * shade);
                 }
             }
-            else
+        }
+
+        private int GetTileType(int x, int y)
+        {
+            MapType type = activeMapConfig != null ? activeMapConfig.mapType : MapType.TownCenter;
+            return type switch
             {
-                string[] grassNames = { "Grass 0", "Grass 1", "Grass 2", "Grass 3" };
-                Sprite[] grassSprites = new Sprite[grassNames.Length];
-                for (int i = 0; i < grassNames.Length; i++)
-                {
-                    grassSprites[i] = GetSprite(tileSprites, grassNames[i]);
-                }
+                MapType.TownCenter => GetTileType_TownCenter(x, y),
+                MapType.Industrial => GetTileType_Industrial(x, y),
+                MapType.Suburban => GetTileType_Suburban(x, y),
+                _ => GetTileType_TownCenter(x, y)
+            };
+        }
 
-                Sprite pathSprite = GetSprite(tileSprites, "Sand 0");
-                
-                for (int x = -13; x <= 13; x++)
-                {
-                    for (int y = -13; y <= 13; y++)
-                    {
-                        var tile = new GameObject($"T_{x}_{y}");
-                        tile.transform.SetParent(groundParent.transform);
-                        tile.transform.position = new Vector3(x, y, 0);
-                        
-                        var sr = tile.AddComponent<SpriteRenderer>();
-                        sr.sortingOrder = -200;
+        private int GetTileType_TownCenter(int x, int y)
+        {
+            return TownCenterLayout.GetTileType(activeMapConfig, x, y);
+        }
 
-                        bool isPath = (Mathf.Abs(x) < 2) || (Mathf.Abs(y) < 2);
-                        
-                        if (isPath && pathSprite != null)
-                        {
-                            sr.sprite = pathSprite;
-                            sr.color = new Color(0.9f, 0.85f, 0.7f);
-                        }
-                        else
-                        {
-                            Sprite gs = grassSprites[Random.Range(0, grassSprites.Length)];
-                            sr.sprite = gs != null ? gs : CreatePixelSprite(new Color(0.3f, 0.4f, 0.25f));
-                            
-                            float shade = Random.Range(0.85f, 1.05f);
-                            sr.color = new Color(0.85f * shade, 0.95f * shade, 0.8f * shade);
-                        }
-                    }
-                }
-            }
+        private int GetTileType_Industrial(int x, int y)
+        {
+            return IndustrialLayout.GetTileType(activeMapConfig, x, y);
+        }
+
+        private int GetTileType_Suburban(int x, int y)
+        {
+            return SuburbanLayout.GetTileType(activeMapConfig, x, y);
         }
 
         // ===================== PLAYER =====================
@@ -330,9 +318,6 @@ namespace Deadlight.Core
 
             shooting.SetWeapon(weaponData);
         }
-
-        // ===================== MANAGERS =====================
-
         private void CreateManagers()
         {
             Transform managersParent = null;
@@ -347,7 +332,6 @@ namespace Deadlight.Core
                 managersParent = managersObj.transform;
 
                 var gmObj = new GameObject("GameManager");
-                gmObj.transform.SetParent(managersParent);
                 gmObj.AddComponent<GameManager>();
 
                 var dncObj = new GameObject("DayNightCycle");
@@ -388,7 +372,6 @@ namespace Deadlight.Core
                 rtObj.AddComponent<RadioTransmissions>();
 
                 var amObj = new GameObject("AudioManager");
-                amObj.transform.SetParent(managersParent);
                 amObj.AddComponent<AudioManager>();
 
                 var vfxObj = new GameObject("VFXManager");
@@ -467,8 +450,6 @@ namespace Deadlight.Core
             if (Deadlight.UI.GameUI.Instance == null)
             {
                 var guiObj = new GameObject("GameUI");
-                if (managersParent != null)
-                    guiObj.transform.SetParent(managersParent);
                 guiObj.AddComponent<Deadlight.UI.GameUI>();
                 Debug.Log("[TestSceneSetup] Created GameUI");
             }
@@ -479,14 +460,39 @@ namespace Deadlight.Core
         private void CreateEnvironment()
         {
             var envParent = new GameObject("Environment");
-            CreateTown(envParent.transform);
+            MapBuilderBase builder = CreateMapEnvironment(envParent.transform);
             CreatePerimeter(envParent.transform);
             SpawnLorePickups(envParent.transform);
-            
-            var landmarksObj = new GameObject("MapLandmarks");
-            landmarksObj.transform.SetParent(envParent.transform);
-            var landmarks = landmarksObj.AddComponent<Level.MapLandmarks>();
-            landmarks.CreateAllLandmarks(envParent.transform);
+            CreateLandmarks(envParent.transform, builder);
+        }
+
+        private MapBuilderBase CreateMapEnvironment(Transform parent)
+        {
+            MapBuilderBase builder = CreateMapBuilder();
+            if (builder == null)
+            {
+                Debug.LogWarning("[TestSceneSetup] No map builder found for current map type.");
+                return null;
+            }
+
+            builder.Build(parent, activeMapConfig, GetTileType);
+            return builder;
+        }
+
+        private void CreateLandmarks(Transform parent, MapBuilderBase builder)
+        {
+            builder?.BuildLandmarks(parent);
+        }
+
+        private MapBuilderBase CreateMapBuilder()
+        {
+            MapType type = activeMapConfig != null ? activeMapConfig.mapType : MapType.TownCenter;
+            return type switch
+            {
+                MapType.Industrial => new IndustrialBuilder(),
+                MapType.Suburban => new SuburbanBuilder(),
+                _ => new TownCenterBuilder()
+            };
         }
 
         private void SpawnLorePickups(Transform parent)
@@ -494,13 +500,14 @@ namespace Deadlight.Core
             var loreParent = new GameObject("LorePickups");
             loreParent.transform.SetParent(parent);
 
-            string[] loreIds = { "lab_note_1", "chen_1", "chen_2", "journal_1", "military_1", "chen_3" };
+            string[] loreIds = { "lab_note_1", "chen_1", "chen_2", "journal_1", "military_1", "chen_3", "facility_1", "survivor_log" };
             Vector3[] positions = activeMapConfig != null && activeMapConfig.lorePositions != null
                 ? activeMapConfig.lorePositions
                 : new[] {
                     new Vector3(-5, 9, 0), new Vector3(7, 9, 0),
                     new Vector3(-9, -3, 0), new Vector3(9, -3, 0),
-                    new Vector3(-3, -9, 0), new Vector3(3, -9, 0)
+                    new Vector3(-3, -9, 0), new Vector3(3, -9, 0),
+                    new Vector3(-7, 0, 0), new Vector3(7, 0, 0)
                 };
 
             int count = Mathf.Min(loreIds.Length, positions.Length);
@@ -511,14 +518,7 @@ namespace Deadlight.Core
                 loreObj.transform.position = positions[i];
 
                 var sr = loreObj.AddComponent<SpriteRenderer>();
-                var tex = new Texture2D(8, 8);
-                var pixels = new Color[64];
-                for (int p = 0; p < 64; p++)
-                    pixels[p] = new Color(1f, 0.9f, 0.5f, 0.9f);
-                tex.SetPixels(pixels);
-                tex.Apply();
-                tex.filterMode = FilterMode.Point;
-                sr.sprite = Sprite.Create(tex, new Rect(0, 0, 8, 8), new Vector2(0.5f, 0.5f), 16f);
+                sr.sprite = ProceduralSpriteGenerator.CreatePickupSprite("lore", i);
                 sr.sortingOrder = 5;
 
                 var pickup = loreObj.AddComponent<LorePickup>();
@@ -545,197 +545,28 @@ namespace Deadlight.Core
             }
         }
 
-        private void CreateTown(Transform parent)
-        {
-            var town = new GameObject("Town");
-            town.transform.SetParent(parent);
-
-            var housePositions = new (Vector3 pos, string sprite, float scale)[] {
-                (new Vector3(-6, 8, 0), "House A0", 1.8f),
-                (new Vector3(6, 8, 0), "House B0", 1.8f),
-                (new Vector3(-8, -4, 0), "House A2", 1.5f),
-                (new Vector3(8, -4, 0), "House B2", 1.5f),
-                (new Vector3(-4, -8, 0), "House A4", 1.5f),
-                (new Vector3(4, -8, 0), "House B4", 1.5f),
-            };
-
-            for (int i = 0; i < housePositions.Length; i++)
-            {
-                var h = housePositions[i];
-                var house = new GameObject("House");
-                house.transform.SetParent(town.transform);
-                house.transform.position = h.pos;
-                house.transform.localScale = Vector3.one * h.scale;
-
-                var sr = house.AddComponent<SpriteRenderer>();
-                if (useProceduralSprites)
-                {
-                    sr.sprite = ProceduralSpriteGenerator.CreateBuildingSprite(i % 3);
-                }
-                else
-                {
-                    var houseSprite = GetSprite(objectSprites, h.sprite);
-                    sr.sprite = houseSprite != null ? houseSprite : CreateRectSprite(new Color(0.5f, 0.4f, 0.3f), new Vector2(2, 2));
-                }
-                sr.sortingOrder = Mathf.RoundToInt(-h.pos.y);
-
-                var col = house.AddComponent<BoxCollider2D>();
-                col.size = new Vector2(1.2f, 1.2f);
-            }
-
-            var treePositions = new Vector3[] {
-                new Vector3(-10, 4, 0), new Vector3(10, 4, 0),
-                new Vector3(-10, -2, 0), new Vector3(10, -2, 0),
-                new Vector3(-3, 10, 0), new Vector3(3, 10, 0),
-                new Vector3(-7, -10, 0), new Vector3(7, -10, 0),
-            };
-
-            foreach (var pos in treePositions)
-            {
-                var tree = new GameObject("Tree");
-                tree.transform.SetParent(town.transform);
-                tree.transform.position = pos;
-                tree.transform.localScale = Vector3.one * Random.Range(1.2f, 2f);
-
-                var sr = tree.AddComponent<SpriteRenderer>();
-                if (useProceduralSprites)
-                {
-                    sr.sprite = ProceduralSpriteGenerator.CreateTreeSprite();
-                }
-                else
-                {
-                    var treeSprite = GetSprite(objectSprites, $"Tree {Random.Range(0, 4)}");
-                    sr.sprite = treeSprite != null ? treeSprite : CreateCircleSprite(new Color(0.2f, 0.45f, 0.2f));
-                }
-                sr.sortingOrder = Mathf.RoundToInt(-pos.y) + 1;
-
-                var col = tree.AddComponent<CircleCollider2D>();
-                col.radius = 0.3f;
-                col.offset = new Vector2(0, -0.3f);
-            }
-
-            var rockPositions = new Vector3[] {
-                new Vector3(-5, 3, 0), new Vector3(5, 3, 0),
-                new Vector3(-3, -5, 0), new Vector3(3, 6, 0),
-            };
-
-            foreach (var pos in rockPositions)
-            {
-                var rock = new GameObject("Rock");
-                rock.transform.SetParent(town.transform);
-                rock.transform.position = pos;
-                rock.transform.localScale = Vector3.one * Random.Range(0.8f, 1.3f);
-
-                var sr = rock.AddComponent<SpriteRenderer>();
-                if (useProceduralSprites)
-                {
-                    sr.sprite = ProceduralSpriteGenerator.CreateRockSprite();
-                }
-                else
-                {
-                    var rockSprite = GetSprite(objectSprites, "Rock");
-                    sr.sprite = rockSprite != null ? rockSprite : CreateCircleSprite(Color.gray);
-                }
-                sr.sortingOrder = Mathf.RoundToInt(-pos.y);
-
-                var col = rock.AddComponent<CircleCollider2D>();
-                col.radius = 0.3f;
-            }
-
-            Vector3[] cratePositions = {
-                new Vector3(-3, 4, 0), new Vector3(3, -4, 0),
-                new Vector3(2, 5, 0), new Vector3(-2, -3, 0),
-            };
-
-            foreach (var pos in cratePositions)
-            {
-                var crate = new GameObject("Crate");
-                crate.transform.SetParent(town.transform);
-                crate.transform.position = pos;
-
-                var sr = crate.AddComponent<SpriteRenderer>();
-                if (useProceduralSprites)
-                {
-                    sr.sprite = ProceduralSpriteGenerator.CreateCrateSprite();
-                }
-                else
-                {
-                    var boxSprite = GetSprite(objectSprites, "Box");
-                    sr.sprite = boxSprite != null ? boxSprite : CreateRectSprite(new Color(0.6f, 0.45f, 0.25f), Vector2.one);
-                }
-                sr.sortingOrder = Mathf.RoundToInt(-pos.y);
-
-                var col = crate.AddComponent<BoxCollider2D>();
-                col.size = new Vector2(0.8f, 0.8f);
-            }
-
-            if (useProceduralSprites)
-            {
-                var barrelPositions = new Vector3[] {
-                    new Vector3(-4, 6, 0), new Vector3(4, -2, 0),
-                    new Vector3(-7, -7, 0), new Vector3(7, 7, 0),
-                };
-
-                foreach (var pos in barrelPositions)
-                {
-                    var barrel = new GameObject("Barrel");
-                    barrel.transform.SetParent(town.transform);
-                    barrel.transform.position = pos;
-
-                    var sr = barrel.AddComponent<SpriteRenderer>();
-                    bool explosive = Random.value > 0.6f;
-                    sr.sprite = ProceduralSpriteGenerator.CreateBarrelSprite(explosive);
-                    sr.sortingOrder = Mathf.RoundToInt(-pos.y);
-
-                    var col = barrel.AddComponent<CircleCollider2D>();
-                    col.radius = 0.25f;
-                }
-
-                var carPositions = new Vector3[] {
-                    new Vector3(-8, 2, 0), new Vector3(9, -2, 0),
-                };
-
-                foreach (var pos in carPositions)
-                {
-                    var car = new GameObject("Car");
-                    car.transform.SetParent(town.transform);
-                    car.transform.position = pos;
-                    car.transform.rotation = Quaternion.Euler(0, 0, Random.Range(-15f, 15f));
-
-                    var sr = car.AddComponent<SpriteRenderer>();
-                    sr.sprite = ProceduralSpriteGenerator.CreateCarSprite(Random.Range(0, 4));
-                    sr.sortingOrder = Mathf.RoundToInt(-pos.y);
-
-                    var col = car.AddComponent<BoxCollider2D>();
-                    col.size = new Vector2(1.5f, 0.7f);
-                }
-            }
-        }
-
         private void CreatePerimeter(Transform parent)
         {
             var perimeter = new GameObject("Perimeter");
             perimeter.transform.SetParent(parent);
             
-            float halfW = activeMapConfig != null ? activeMapConfig.perimeterHalfW : 12f;
-            float halfH = activeMapConfig != null ? activeMapConfig.perimeterHalfH : 12f;
-            float thickness = 1.5f;
+            int halfTilesW = activeMapConfig != null ? activeMapConfig.halfWidth : 12;
+            int halfTilesH = activeMapConfig != null ? activeMapConfig.halfHeight : 12;
+            float boundaryHalfW = halfTilesW + 0.5f;
+            float boundaryHalfH = halfTilesH + 0.5f;
+            float thickness = 1f;
 
-            CreateWall(perimeter.transform, new Vector3(0, halfH, 0), new Vector2(halfW * 2, thickness));
-            CreateWall(perimeter.transform, new Vector3(0, -halfH, 0), new Vector2(halfW * 2, thickness));
-            CreateWall(perimeter.transform, new Vector3(-halfW, 0, 0), new Vector2(thickness, halfH * 2));
-            CreateWall(perimeter.transform, new Vector3(halfW, 0, 0), new Vector2(thickness, halfH * 2));
+            CreateWall(perimeter.transform, new Vector3(0, boundaryHalfH + thickness * 0.5f, 0), new Vector2(boundaryHalfW * 2f, thickness));
+            CreateWall(perimeter.transform, new Vector3(0, -boundaryHalfH - thickness * 0.5f, 0), new Vector2(boundaryHalfW * 2f, thickness));
+            CreateWall(perimeter.transform, new Vector3(-boundaryHalfW - thickness * 0.5f, 0, 0), new Vector2(thickness, boundaryHalfH * 2f));
+            CreateWall(perimeter.transform, new Vector3(boundaryHalfW + thickness * 0.5f, 0, 0), new Vector2(thickness, boundaryHalfH * 2f));
         }
 
         private void CreateWall(Transform parent, Vector3 position, Vector2 size)
         {
-            var wall = new GameObject("Wall");
+            var wall = new GameObject("BoundaryCollider");
             wall.transform.SetParent(parent);
             wall.transform.position = position;
-
-            var sr = wall.AddComponent<SpriteRenderer>();
-            sr.sprite = CreateRectSprite(new Color(0.35f, 0.3f, 0.25f), size);
-            sr.sortingOrder = -1;
 
             var col = wall.AddComponent<BoxCollider2D>();
             col.size = size;
@@ -811,7 +642,7 @@ namespace Deadlight.Core
             Canvas canvasComp = FindFirstObjectByType<Canvas>();
             GameObject canvas;
 
-            if (canvasComp != null && canvasComp.GetComponent<Deadlight.UI.LiveHUD>() != null)
+            if (canvasComp != null && canvasComp.GetComponent<Deadlight.UI.GameplayHUD>() != null)
             {
                 return;
             }
@@ -847,7 +678,6 @@ namespace Deadlight.Core
                     canvas.AddComponent<GraphicRaycaster>();
                 }
 
-                DisableLegacyHud(canvas.transform);
             }
 
             Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -879,10 +709,9 @@ namespace Deadlight.Core
             var hfRect = healthFill.GetComponent<RectTransform>();
             hfRect.offsetMin = new Vector2(2, 2);
             hfRect.offsetMax = new Vector2(-2, -2);
+            hfRect.pivot = new Vector2(0f, 0.5f);
             var hfImage = healthFill.GetComponent<Image>();
-            hfImage.type = Image.Type.Filled;
-            hfImage.fillMethod = Image.FillMethod.Horizontal;
-            hfImage.fillAmount = 1f;
+            hfImage.type = Image.Type.Simple;
 
             var healthLabel = CreateUIText(healthPanel.transform, "HealthText",
                 new Vector2(0, 0.5f), "100 / 100", font, 14, TextAnchor.MiddleCenter, Color.white,
@@ -1040,12 +869,6 @@ namespace Deadlight.Core
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -40), new Vector2(200, 30));
             reloadHint.SetActive(false);
 
-            // Controls hint
-            var controlsHint = CreateUIText(canvas.transform, "Controls",
-                new Vector2(1, 0), "WASD-Move  Mouse-Aim  Click-Shoot  Space-Dodge  Shift-Sprint  R-Reload  1/2-Switch Weapon  E-Interact",
-                font, 12, TextAnchor.LowerRight, new Color(1, 1, 1, 0.5f),
-                new Vector2(1, 0), new Vector2(1, 0), new Vector2(-20, 15), new Vector2(800, 25));
-
             // Day timer
             var dayTimerText = CreateUIText(canvas.transform, "DayTimer",
                 new Vector2(0.5f, 1), "", font, 20, TextAnchor.UpperCenter, new Color(1f, 0.9f, 0.6f),
@@ -1056,12 +879,6 @@ namespace Deadlight.Core
                 new Vector2(0.5f, 0), "0", font, 28, TextAnchor.LowerCenter, new Color(1f, 0.85f, 0.3f),
                 new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 50), new Vector2(200, 35));
             pointsText.GetComponent<Text>().fontStyle = FontStyle.Bold;
-
-            // Throwables display (bottom left)
-            var throwablesText = CreateUIText(canvas.transform, "ThrowablesDisplay",
-                new Vector2(0, 0), "Q:Grenade(2)  E:Molotov(1)", font, 14, TextAnchor.LowerLeft,
-                new Color(0.8f, 0.8f, 0.8f, 0.7f),
-                new Vector2(0, 0), new Vector2(0, 0), new Vector2(20, 50), new Vector2(300, 20));
 
             // Radio transmission panel - upper-center, highly visible
             var radioPanel = CreateUIPanel(canvas.transform, "RadioPanel",
@@ -1106,22 +923,6 @@ namespace Deadlight.Core
                 );
             }
 
-            // Game Over panel
-            var goPanel = new GameObject("GameOverPanel");
-            goPanel.transform.SetParent(canvas.transform);
-            var goPanelRect = goPanel.AddComponent<RectTransform>();
-            goPanelRect.anchorMin = Vector2.zero;
-            goPanelRect.anchorMax = Vector2.one;
-            goPanelRect.offsetMin = Vector2.zero;
-            goPanelRect.offsetMax = Vector2.zero;
-            var goPanelImg = goPanel.AddComponent<Image>();
-            goPanelImg.color = new Color(0, 0, 0, 0.75f);
-
-            var goText = CreateUIText(goPanel.transform, "GameOverText",
-                new Vector2(0.5f, 0.5f), "GAME OVER", font, 48, TextAnchor.MiddleCenter, Color.red,
-                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(500, 200));
-            goText.GetComponent<Text>().fontStyle = FontStyle.Bold;
-
             // Damage overlay
             var dmgOverlay = CreateUIImage(canvas.transform, "DamageOverlay",
                 Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero,
@@ -1131,7 +932,7 @@ namespace Deadlight.Core
             dmgRect.offsetMax = Vector2.zero;
             dmgOverlay.GetComponent<Image>().raycastTarget = false;
 
-            // Fade overlay (starts transparent, will be used for transitions)
+            // Fade overlay
             var fadeOverlay = CreateUIImage(canvas.transform, "FadeOverlay",
                 Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero,
                 Color.clear);
@@ -1140,10 +941,10 @@ namespace Deadlight.Core
             fadeRect.offsetMax = Vector2.zero;
             fadeOverlay.GetComponent<Image>().raycastTarget = false;
 
-            // Objective HUD (upper-left)
+            // Objective HUD
             var objPanel = CreateUIPanel(canvas.transform, "ObjectivePanel",
                 new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1),
-                new Vector2(10, -70), new Vector2(380, 65));
+                new Vector2(10, -105), new Vector2(380, 65));
             var objPanelBg = objPanel.AddComponent<Image>();
             objPanelBg.color = new Color(0, 0, 0, 0.55f);
             objPanel.SetActive(false);
@@ -1182,8 +983,8 @@ namespace Deadlight.Core
                 objProgressText.GetComponent<Text>()
             );
 
-            // Hook up LiveHUD
-            var hudComp = canvas.AddComponent<Deadlight.UI.LiveHUD>();
+            // Hook up gameplay HUD
+            var hudComp = canvas.AddComponent<Deadlight.UI.GameplayHUD>();
             hudComp.Initialize(
                 healthLabel.GetComponent<Text>(),
                 hfImage,
@@ -1193,8 +994,6 @@ namespace Deadlight.Core
                 nightText.GetComponent<Text>(),
                 enemyCount.GetComponent<Text>(),
                 statusText.GetComponent<Text>(),
-                goPanel,
-                goText.GetComponent<Text>(),
                 reloadHint.GetComponent<Text>(),
                 dayTimerText.GetComponent<Text>(),
                 pointsText.GetComponent<Text>()
@@ -1212,26 +1011,6 @@ namespace Deadlight.Core
                     fadeOverlay.GetComponent<Image>(),
                     camCtrl
                 );
-            }
-        }
-
-        private static void DisableLegacyHud(Transform canvasRoot)
-        {
-            if (canvasRoot == null)
-            {
-                return;
-            }
-
-            var hudManager = canvasRoot.GetComponentInChildren<Deadlight.UI.HUDManager>(true);
-            if (hudManager != null)
-            {
-                hudManager.enabled = false;
-            }
-
-            var legacyHud = canvasRoot.Find("HUD");
-            if (legacyHud != null)
-            {
-                legacyHud.gameObject.SetActive(false);
             }
         }
 
@@ -1299,22 +1078,6 @@ namespace Deadlight.Core
 
         // ===================== SPRITE HELPERS =====================
 
-        private Sprite CreateRectSprite(Color color, Vector2 size)
-        {
-            int width = Mathf.Max(1, Mathf.RoundToInt(size.x * 16));
-            int height = Mathf.Max(1, Mathf.RoundToInt(size.y * 16));
-            
-            var texture = new Texture2D(width, height);
-            var pixels = new Color[width * height];
-            for (int i = 0; i < pixels.Length; i++) pixels[i] = color;
-            
-            texture.SetPixels(pixels);
-            texture.Apply();
-            texture.filterMode = FilterMode.Point;
-            
-            return Sprite.Create(texture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 16f);
-        }
-
         private Sprite CreateCircleSprite(Color color)
         {
             int size = 32;
@@ -1357,14 +1120,6 @@ namespace Deadlight.Core
             return Sprite.Create(texture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 12f);
         }
 
-        private Sprite CreatePixelSprite(Color color)
-        {
-            var tex = new Texture2D(1, 1);
-            tex.SetPixel(0, 0, color);
-            tex.Apply();
-            tex.filterMode = FilterMode.Point;
-            return Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1);
-        }
     }
 
     public class PlayerAnimator : MonoBehaviour
