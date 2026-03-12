@@ -83,6 +83,12 @@ namespace Deadlight.Core
                 var pmObj = new GameObject("ProgressionManager");
                 pmObj.AddComponent<ProgressionManager>();
             }
+
+            if (CraftingSystem.Instance == null)
+            {
+                var csObj = new GameObject("CraftingSystem");
+                csObj.AddComponent<CraftingSystem>();
+            }
         }
 
         private void SpawnPlayer()

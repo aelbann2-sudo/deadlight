@@ -1,3 +1,4 @@
+using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 using Deadlight.Core;
@@ -30,6 +31,12 @@ namespace Deadlight.Systems
         private CrateTier tier = CrateTier.Common;
         private CrateContents contents;
         private bool initialized;
+        private bool isContestedDrop;
+        private bool contestedResolved;
+        private float contestedLifetime;
+        private float contestedExpirySeconds = 20f;
+        private System.Action<SupplyCrate> onContestedSecured;
+        private System.Action<SupplyCrate> onContestedExpired;
 
         private static readonly Color CommonColor = new Color(0.6f, 0.45f, 0.2f);
         private static readonly Color RareColor = new Color(0.3f, 0.5f, 1f);
@@ -44,6 +51,29 @@ namespace Deadlight.Systems
                 if (glowSr != null) glowSr.color = GetGlowColor();
                 if (promptText != null) promptText.color = GetTierColor();
                 if (progressFill != null) progressFill.color = GetTierColor();
+            }
+        }
+
+        public void ConfigureContested(float secureHoldTime, float expirySeconds,
+            System.Action<SupplyCrate> onSecured = null, System.Action<SupplyCrate> onExpired = null)
+        {
+            isContestedDrop = true;
+            contestedResolved = false;
+            contestedLifetime = 0f;
+            interactionTime = Mathf.Max(0.8f, secureHoldTime);
+            contestedExpirySeconds = Mathf.Max(interactionTime + 1f, expirySeconds);
+            onContestedSecured = onSecured;
+            onContestedExpired = onExpired;
+
+            if (promptText != null)
+            {
+                promptText.text = "[F] Secure Drop";
+                promptText.color = new Color(1f, 0.85f, 0.35f);
+            }
+
+            if (contentsIconSr != null)
+            {
+                contentsIconSr.gameObject.SetActive(false);
             }
         }
 
@@ -182,6 +212,16 @@ namespace Deadlight.Systems
             AnimateGlow();
             AnimateContentsIcon();
 
+            if (isContestedDrop && !contestedResolved)
+            {
+                contestedLifetime += Time.deltaTime;
+                if (contestedLifetime >= contestedExpirySeconds)
+                {
+                    ExpireContestedDrop();
+                    return;
+                }
+            }
+
             if (player == null)
             {
                 var p = GameObject.Find("Player");
@@ -193,7 +233,14 @@ namespace Deadlight.Systems
             bool inRange = dist <= interactRange;
 
             if (promptText != null)
+            {
+                if (isContestedDrop && !contestedResolved)
+                {
+                    int remaining = Mathf.Max(0, Mathf.CeilToInt(contestedExpirySeconds - contestedLifetime));
+                    promptText.text = $"Hold F Secure ({remaining}s)";
+                }
                 promptText.gameObject.SetActive(inRange && !isLooting);
+            }
 
             if (inRange && Input.GetKey(KeyCode.F) && !isLooted)
             {
@@ -224,6 +271,7 @@ namespace Deadlight.Systems
         private void CompleteLoot()
         {
             isLooted = true;
+            contestedResolved = true;
             if (progressBarRoot != null) progressBarRoot.SetActive(false);
             if (promptText != null) promptText.gameObject.SetActive(false);
             if (glowSr != null) glowSr.gameObject.SetActive(false);
@@ -232,49 +280,57 @@ namespace Deadlight.Systems
             int night = GameManager.Instance?.CurrentNight ?? 1;
             float nightMult = 1f + (night - 1) * 0.25f;
             float tierMult = tier switch { CrateTier.Legendary => 2f, CrateTier.Rare => 1.5f, _ => 1f };
-            string reward;
+            string reward = "Loot!";
 
-            switch (contents)
+            if (isContestedDrop)
             {
-                case CrateContents.Ammo:
-                    int ammo = Mathf.RoundToInt(Random.Range(20, 50) * nightMult * tierMult);
-                    player?.GetComponent<PlayerShooting>()?.AddAmmo(ammo);
-                    reward = $"+{ammo} Ammo";
-                    break;
-                case CrateContents.Health:
-                    float heal = Random.Range(15f, 35f) * nightMult * tierMult;
-                    player?.GetComponent<PlayerHealth>()?.Heal(heal);
-                    reward = $"+{Mathf.RoundToInt(heal)} HP";
-                    break;
-                case CrateContents.Points:
-                    int pts = Mathf.RoundToInt(Random.Range(30, 80) * nightMult * tierMult);
-                    PointsSystem.Instance?.AddPoints(pts, "Supply Crate");
-                    reward = $"+{pts} Points";
-                    break;
-                case CrateContents.Powerup:
-                    var ps = FindFirstObjectByType<PowerupSystem>();
-                    if (ps != null) ps.GrantRandomPowerup();
-                    reward = "POWERUP!";
-                    break;
-                case CrateContents.Armor:
-                    ArmorTier armorTier = tier == CrateTier.Legendary
-                        ? (ArmorTier)Random.Range(2, 4)
-                        : ArmorTier.Level1;
-                    bool isHelmet = Random.value < 0.4f;
-                    if (isHelmet)
-                    {
-                        PlayerArmor.Instance?.EquipHelmet(armorTier);
-                        reward = $"Lv{(int)armorTier} Helmet!";
-                    }
-                    else
-                    {
-                        PlayerArmor.Instance?.EquipVest(armorTier);
-                        reward = $"Lv{(int)armorTier} Vest!";
-                    }
-                    break;
-                default:
-                    reward = "Loot!";
-                    break;
+                reward = GrantContestedRewards();
+                onContestedSecured?.Invoke(this);
+            }
+            else
+            {
+                switch (contents)
+                {
+                    case CrateContents.Ammo:
+                        int ammo = Mathf.RoundToInt(Random.Range(20, 50) * nightMult * tierMult);
+                        player?.GetComponent<PlayerShooting>()?.AddAmmo(ammo);
+                        reward = $"+{ammo} Ammo";
+                        break;
+                    case CrateContents.Health:
+                        float heal = Random.Range(15f, 35f) * nightMult * tierMult;
+                        player?.GetComponent<PlayerHealth>()?.Heal(heal);
+                        reward = $"+{Mathf.RoundToInt(heal)} HP";
+                        break;
+                    case CrateContents.Points:
+                        int pts = Mathf.RoundToInt(Random.Range(30, 80) * nightMult * tierMult);
+                        PointsSystem.Instance?.AddPoints(pts, "Supply Crate");
+                        reward = $"+{pts} Points";
+                        break;
+                    case CrateContents.Powerup:
+                        var ps = FindFirstObjectByType<PowerupSystem>();
+                        if (ps != null) ps.GrantRandomPowerup();
+                        reward = "POWERUP!";
+                        break;
+                    case CrateContents.Armor:
+                        ArmorTier armorTier = tier == CrateTier.Legendary
+                            ? (ArmorTier)Random.Range(2, 4)
+                            : ArmorTier.Level1;
+                        bool isHelmet = Random.value < 0.4f;
+                        if (isHelmet)
+                        {
+                            PlayerArmor.Instance?.EquipHelmet(armorTier);
+                            reward = $"Lv{(int)armorTier} Helmet!";
+                        }
+                        else
+                        {
+                            PlayerArmor.Instance?.EquipVest(armorTier);
+                            reward = $"Lv{(int)armorTier} Vest!";
+                        }
+                        break;
+                    default:
+                        reward = "Loot!";
+                        break;
+                }
             }
 
             if (FloatingTextManager.Instance != null)
@@ -291,6 +347,90 @@ namespace Deadlight.Systems
             catch { }
 
             sr.color = new Color(0.3f, 0.3f, 0.3f, 0.5f);
+            Destroy(gameObject, 1f);
+        }
+
+        private string GrantContestedRewards()
+        {
+            int scrap;
+            int wood;
+            int chemicals;
+            int electronics;
+            int blueprintTokens;
+            int points;
+
+            switch (tier)
+            {
+                case CrateTier.Legendary:
+                    scrap = 5;
+                    wood = 4;
+                    chemicals = 3;
+                    electronics = 2;
+                    blueprintTokens = 2;
+                    points = 220;
+                    break;
+                case CrateTier.Rare:
+                    scrap = 4;
+                    wood = 3;
+                    chemicals = 2;
+                    electronics = 1;
+                    blueprintTokens = 1;
+                    points = 140;
+                    break;
+                default:
+                    scrap = 3;
+                    wood = 2;
+                    chemicals = 1;
+                    electronics = 0;
+                    blueprintTokens = 0;
+                    points = 90;
+                    break;
+            }
+
+            if (ResourceManager.Instance != null)
+            {
+                ResourceManager.Instance.AddResource(ResourceType.Scrap, scrap);
+                ResourceManager.Instance.AddResource(ResourceType.Wood, wood);
+                ResourceManager.Instance.AddResource(ResourceType.Chemicals, chemicals);
+                if (electronics > 0) ResourceManager.Instance.AddResource(ResourceType.Electronics, electronics);
+                if (blueprintTokens > 0) ResourceManager.Instance.AddResource(ResourceType.BlueprintToken, blueprintTokens);
+            }
+
+            PointsSystem.Instance?.AddPoints(points, "Contested Drop");
+
+            var sb = new StringBuilder("DROP SECURED: ");
+            sb.Append($"+{scrap} Scrap, +{wood} Wood");
+            if (chemicals > 0) sb.Append($", +{chemicals} Chem");
+            if (electronics > 0) sb.Append($", +{electronics} Elec");
+            if (blueprintTokens > 0) sb.Append($", +{blueprintTokens} Blueprint");
+            return sb.ToString();
+        }
+
+        private void ExpireContestedDrop()
+        {
+            if (contestedResolved || isLooted)
+            {
+                return;
+            }
+
+            contestedResolved = true;
+            isLooted = true;
+            isLooting = false;
+            interactProgress = 0f;
+
+            if (progressBarRoot != null) progressBarRoot.SetActive(false);
+            if (promptText != null) promptText.gameObject.SetActive(false);
+            if (glowSr != null) glowSr.gameObject.SetActive(false);
+            if (contentsIconSr != null) contentsIconSr.gameObject.SetActive(false);
+
+            sr.color = new Color(0.3f, 0.1f, 0.1f, 0.45f);
+
+            if (FloatingTextManager.Instance != null)
+            {
+                FloatingTextManager.Instance.SpawnText("DROP EXPIRED", transform.position + Vector3.up * 0.5f, new Color(1f, 0.35f, 0.35f));
+            }
+
+            onContestedExpired?.Invoke(this);
             Destroy(gameObject, 1f);
         }
 

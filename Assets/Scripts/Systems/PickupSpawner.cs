@@ -19,6 +19,10 @@ namespace Deadlight.Systems
         [SerializeField] private int ammoAmount = 15;
         [SerializeField] private float healthAmount = 25f;
         [SerializeField] private int pointsAmount = 50;
+        [SerializeField] private int scrapAmount = 2;
+        [SerializeField] private int woodAmount = 2;
+        [SerializeField] private int chemicalsAmount = 1;
+        [SerializeField] private int electronicsAmount = 1;
 
         private void Awake()
         {
@@ -105,6 +109,10 @@ namespace Deadlight.Systems
             {
                 PickupType.Ammo => ammoAmount,
                 PickupType.Health => healthAmount,
+                PickupType.Scrap => scrapAmount,
+                PickupType.Wood => woodAmount,
+                PickupType.Chemicals => chemicalsAmount,
+                PickupType.Electronics => electronicsAmount,
                 PickupType.Points => pointsAmount,
                 PickupType.Powerup => 1f,
                 _ => 0f
@@ -284,6 +292,20 @@ namespace Deadlight.Systems
                         didCollect = true;
                     }
                     break;
+
+                case PickupType.Scrap:
+                case PickupType.Wood:
+                case PickupType.Chemicals:
+                case PickupType.Electronics:
+                    if (ResourceManager.Instance != null)
+                    {
+                        ResourceType resourceType = ConvertToResourceType(type);
+                        int amount = Mathf.Max(1, Mathf.RoundToInt(value));
+                        ResourceManager.Instance.AddResource(resourceType, amount);
+                        CraftingSystem.Instance?.NotifyResourceCollected(resourceType, amount, transform.position);
+                        didCollect = true;
+                    }
+                    break;
             }
 
             if (!didCollect)
@@ -300,6 +322,18 @@ namespace Deadlight.Systems
             }
 
             Destroy(gameObject);
+        }
+
+        private ResourceType ConvertToResourceType(PickupType pickupType)
+        {
+            return pickupType switch
+            {
+                PickupType.Scrap => ResourceType.Scrap,
+                PickupType.Wood => ResourceType.Wood,
+                PickupType.Chemicals => ResourceType.Chemicals,
+                PickupType.Electronics => ResourceType.Electronics,
+                _ => ResourceType.Scrap
+            };
         }
     }
 
