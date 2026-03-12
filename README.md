@@ -50,6 +50,85 @@ Survive 5 nights against increasingly difficult zombie waves:
 
 ---
 
+## Daytime Prep Update (Deliverable 2)
+
+This update makes daytime preparation directly impact nighttime survival.
+
+### What was added
+
+- **Day-only crafting system** with 4 recipes and per-day caps:
+  - `Ammo Cache`: grants reserve ammo at night start
+  - `Field Med`: grants heal at night start
+  - `Shock Beacon`: reduces enemy speed at night
+  - `Weakpoint Intel`: reduces enemy health and damage at night
+- **New resource: `BlueprintToken`**
+  - Earned from contested supply drops
+  - Required by advanced recipes
+- **Crafting UI**
+  - Press `C` to open/close
+  - Press `1-4` to craft recipes
+  - Shows costs, affordability, caps, and "tonight effect" preview
+- **Pickup meaning feedback**
+  - Resource pickups now show purpose hints (what recipes they support)
+- **Contested day supply drop flow**
+  - One contested drop per day
+  - Flow: `Broadcast -> Descent -> Secure -> Resolved/Expired`
+  - Uses helicopter drop visuals and secure/expiry logic
+- **Contested crate behavior**
+  - Secure hold timer and expiry timer
+  - Tier-scaled reward bundles
+  - Higher tiers grant `BlueprintToken`
+- **Dusk payoff + soft fail-state**
+  - Day prep is finalized at day -> night transition
+  - Dusk summary shows what changed for tonight
+  - If player did no crafting and secured no contested drop:
+    - `+8% enemy damage` for first `60s` of night
+- **Night balancing integration**
+  - Crafting modifiers are applied in enemy spawn balancing paths
+  - Existing regular crates and night emergency drops are preserved
+
+### New/Updated Controls
+
+| Key | Action |
+|-----|--------|
+| C | Open/Close crafting panel (Day phase only) |
+| 1 / 2 / 3 / 4 | Craft recipe slot while panel is open |
+| F | Secure contested drop crate (hold) |
+
+### Why this was done
+
+- Daytime now has meaningful decisions instead of passive looting.
+- Resource collection is easier to understand because pickups explain their purpose.
+- Risk/reward is stronger through contested mid-day drops.
+- Night difficulty is now more clearly linked to daytime preparation quality.
+
+### Validation Status
+
+- Batch compile on macOS (Unity `6000.3.9f1`): **Passed**
+- Runtime PlayMode smoke tests: **6/6 Passed**
+- Coverage includes:
+  - Crafting rules (day-only, costs, caps)
+  - Contested drop lifecycle (secure + expire)
+  - Blueprint token reward/consumption
+  - Pickup purpose hints
+  - Dusk conversion and no-prep penalty behavior
+  - Regression checks for regular crates and night emergency drops
+
+### Key Files
+
+- `Assets/Scripts/Systems/CraftingSystem.cs`
+- `Assets/Scripts/Core/GameFlowController.cs`
+- `Assets/Scripts/Systems/SupplyCrate.cs`
+- `Assets/Scripts/Systems/ResourceManager.cs`
+- `Assets/Scripts/Systems/Pickup.cs`
+- `Assets/Scripts/Systems/PickupSpawner.cs`
+- `Assets/Scripts/Systems/HelicopterDrop.cs`
+- `Assets/Scripts/Core/WaveManager.cs`
+- `Assets/Scripts/Core/WaveSpawner.cs`
+- `Assets/Tests/PlayMode/DaytimePrepRuntimeTests.cs`
+
+---
+
 ### Weapons System
 8 weapons available, unlocked progressively through nights:
 
