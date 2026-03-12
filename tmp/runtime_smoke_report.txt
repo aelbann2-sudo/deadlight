@@ -1,0 +1,1 @@
+Smoke runtime completed. Errors=0, Warnings=0, StateCoverage(Day/Night/Dawn)=True.
