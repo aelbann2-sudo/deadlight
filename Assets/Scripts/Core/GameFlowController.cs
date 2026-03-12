@@ -8,6 +8,16 @@ using Deadlight.Data;
 
 namespace Deadlight.Core
 {
+    public enum DayContestedDropState
+    {
+        Inactive,
+        Broadcast,
+        Descent,
+        Secure,
+        Resolved,
+        Expired
+    }
+
     /// <summary>
     /// Manages the full game flow: Main Menu -> Day Phase -> Night Phase -> Dawn Phase -> repeat for 5 nights -> Victory or Game Over.
     /// Works with GameManager, WaveSpawner, and DayNightCycle.
@@ -41,11 +51,25 @@ namespace Deadlight.Core
         private int dropsThisPhase;
         private float nextHelicopterDropTime = float.PositiveInfinity;
 
+        [Header("Day Contested Drop")]
+        [SerializeField] private bool enableDayContestedDrop = true;
+        [SerializeField] private float contestedDropDayProgress = 0.45f;
+        [SerializeField] private float contestedBroadcastDuration = 8f;
+        [SerializeField] private float contestedSecureHoldTime = 4f;
+        [SerializeField] private float contestedExpiryTime = 20f;
+        [SerializeField] private float contestedDropRadius = 7f;
+        private DayContestedDropState dayContestedDropState = DayContestedDropState.Inactive;
+        private bool dayContestedDropSpawned;
+        private float dayContestedDropTriggerTime = float.PositiveInfinity;
+        private float dayContestedDropStateUntil = float.PositiveInfinity;
+        private Systems.SupplyCrate activeContestedDropCrate;
+
         public event Action<float> OnDayTimerUpdate;
         public event Action<int> OnNightStarted;
         public event Action OnDawnPhaseStarted;
         public event Action OnDawnPhaseEnded;
         public event Action<string> OnStatusMessage;
+        public event Action<DayContestedDropState, float> OnContestedDropStateChanged;
 
         private void Awake()
         {
@@ -79,6 +103,7 @@ namespace Deadlight.Core
 
         private void Update()
         {
+            TryRunDayContestedDrop();
             TrySpawnHelicopterDrop();
         }
 
@@ -307,12 +332,21 @@ namespace Deadlight.Core
                 case GameState.DayPhase:
                     nightWarningShown = false;
                     nextHelicopterDropTime = float.PositiveInfinity;
+                    ResetDayContestedDropState();
                     SpawnPickups();
                     SpawnSupplyCrates();
                     SpawnObjectiveInteractables();
+                    ScheduleDayContestedDrop();
                     OnStatusMessage?.Invoke($"Day Phase - Night {GameManager.Instance?.CurrentNight ?? 1}");
                     break;
                 case GameState.NightPhase:
+                    if (CraftingSystem.Instance != null)
+                    {
+                        CraftingSystem.Instance.FinalizeDayPrep();
+                    }
+
+                    dayContestedDropState = DayContestedDropState.Inactive;
+                    dayContestedDropStateUntil = float.PositiveInfinity;
                     CleanupDayObjects();
                     dropsThisPhase = 0;
                     ScheduleNextHelicopterDrop(Time.time + helicopterFirstDropDelay);
@@ -321,15 +355,18 @@ namespace Deadlight.Core
                     break;
                 case GameState.DawnPhase:
                     nextHelicopterDropTime = float.PositiveInfinity;
+                    dayContestedDropState = DayContestedDropState.Inactive;
                     OnDawnPhaseStarted?.Invoke();
                     OnStatusMessage?.Invoke("Dawn - Visit the shop and prepare for the next night.");
                     break;
                 case GameState.Victory:
                     nextHelicopterDropTime = float.PositiveInfinity;
+                    dayContestedDropState = DayContestedDropState.Inactive;
                     OnStatusMessage?.Invoke("Victory! You survived all 5 nights!");
                     break;
                 case GameState.GameOver:
                     nextHelicopterDropTime = float.PositiveInfinity;
+                    dayContestedDropState = DayContestedDropState.Inactive;
                     OnStatusMessage?.Invoke("Game Over");
                     break;
             }
@@ -338,6 +375,11 @@ namespace Deadlight.Core
         private void HandleNightChanged(int night)
         {
             ApplyNightPacing(night);
+
+            if (GameManager.Instance?.CurrentState == GameState.DayPhase && !dayContestedDropSpawned)
+            {
+                ScheduleDayContestedDrop();
+            }
 
             if (DayObjectiveSystem.Instance != null)
             {
@@ -354,6 +396,165 @@ namespace Deadlight.Core
         {
             // WaveSpawner already calls GameManager.OnNightSurvived() - state will transition to DawnPhase or Victory
             // This listener allows GameFlowController to react; OnDawnPhaseStarted is raised via HandleGameStateChanged
+        }
+
+        private void ResetDayContestedDropState()
+        {
+            dayContestedDropState = DayContestedDropState.Inactive;
+            dayContestedDropSpawned = false;
+            dayContestedDropTriggerTime = float.PositiveInfinity;
+            dayContestedDropStateUntil = float.PositiveInfinity;
+            activeContestedDropCrate = null;
+            OnContestedDropStateChanged?.Invoke(dayContestedDropState, 0f);
+        }
+
+        private void ScheduleDayContestedDrop()
+        {
+            if (!enableDayContestedDrop || GameManager.Instance?.CurrentState != GameState.DayPhase)
+            {
+                return;
+            }
+
+            float dayDuration = dayNightCycle != null ? dayNightCycle.DayDuration : 60f;
+            float progress = Mathf.Clamp(contestedDropDayProgress, 0.2f, 0.85f);
+            dayContestedDropTriggerTime = Time.time + (dayDuration * progress);
+        }
+
+        private void TryRunDayContestedDrop()
+        {
+            if (!enableDayContestedDrop || GameManager.Instance?.CurrentState != GameState.DayPhase)
+            {
+                return;
+            }
+
+            if (!dayContestedDropSpawned)
+            {
+                if (!float.IsPositiveInfinity(dayContestedDropTriggerTime) && Time.time >= dayContestedDropTriggerTime)
+                {
+                    StartDayContestedBroadcast();
+                }
+                return;
+            }
+
+            if (dayContestedDropState == DayContestedDropState.Broadcast && Time.time >= dayContestedDropStateUntil)
+            {
+                StartDayContestedDescent();
+            }
+        }
+
+        private void StartDayContestedBroadcast()
+        {
+            if (dayContestedDropSpawned)
+            {
+                return;
+            }
+
+            dayContestedDropSpawned = true;
+            dayContestedDropState = DayContestedDropState.Broadcast;
+            dayContestedDropStateUntil = Time.time + Mathf.Max(2f, contestedBroadcastDuration);
+            OnContestedDropStateChanged?.Invoke(dayContestedDropState, Mathf.Max(0f, dayContestedDropStateUntil - Time.time));
+
+            OnStatusMessage?.Invoke("Radio ping: incoming contested supply drop.");
+            RadioTransmissions.Instance?.ShowMessage("RADIO: Contested day drop inbound. Get ready to secure it.", 3f);
+        }
+
+        private void StartDayContestedDescent()
+        {
+            if (GameManager.Instance?.CurrentState != GameState.DayPhase)
+            {
+                return;
+            }
+
+            dayContestedDropState = DayContestedDropState.Descent;
+            dayContestedDropStateUntil = float.PositiveInfinity;
+            OnContestedDropStateChanged?.Invoke(dayContestedDropState, 0f);
+
+            var player = GameObject.Find("Player");
+            Vector3 basePos = player != null ? player.transform.position : Vector3.zero;
+            Vector2 offset = UnityEngine.Random.insideUnitCircle * Mathf.Max(3f, contestedDropRadius);
+            Vector3 dropPos = basePos + new Vector3(offset.x, offset.y, 0f);
+
+            if (GameManager.Instance != null)
+            {
+                var cfg = MapConfig.GetConfigForType(GameManager.Instance.SelectedMap);
+                float halfW = Mathf.Max(2f, cfg.perimeterHalfW - 1f);
+                float halfH = Mathf.Max(2f, cfg.perimeterHalfH - 1f);
+                dropPos.x = Mathf.Clamp(dropPos.x, -halfW, halfW);
+                dropPos.y = Mathf.Clamp(dropPos.y, -halfH, halfH);
+            }
+
+            int night = GameManager.Instance?.CurrentNight ?? 1;
+            CrateTier tier = RollCrateTier(night + 1);
+
+            var heli = new GameObject("DayContestedHelicopter");
+            var drop = heli.AddComponent<HelicopterDrop>();
+            drop.Initialize(dropPos, tier, HandleContestedDropCrateLanded);
+
+            OnStatusMessage?.Invoke("Contested drop descending. Move to secure.");
+            RadioTransmissions.Instance?.ShowMessage("RADIO: Contested drop in descent. Secure it before it expires.", 3f);
+        }
+
+        private void HandleContestedDropCrateLanded(SupplyCrate crate)
+        {
+            if (crate == null || GameManager.Instance?.CurrentState != GameState.DayPhase)
+            {
+                return;
+            }
+
+            activeContestedDropCrate = crate;
+            if (!spawnedCrates.Contains(crate.gameObject))
+            {
+                spawnedCrates.Add(crate.gameObject);
+            }
+
+            crate.ConfigureContested(
+                contestedSecureHoldTime,
+                contestedExpiryTime,
+                HandleContestedDropSecured,
+                HandleContestedDropExpired);
+
+            dayContestedDropState = DayContestedDropState.Secure;
+            dayContestedDropStateUntil = Time.time + Mathf.Max(contestedExpiryTime, contestedSecureHoldTime);
+            OnContestedDropStateChanged?.Invoke(dayContestedDropState, Mathf.Max(0f, dayContestedDropStateUntil - Time.time));
+
+            OnStatusMessage?.Invoke("Contested drop landed. Hold F to secure.");
+            RadioTransmissions.Instance?.ShowMessage("RADIO: Drop landed. Hold position and secure it now!", 3f);
+
+            var marker = FindFirstObjectByType<Deadlight.UI.ObjectiveMarker>();
+            marker?.RefreshTargets();
+        }
+
+        private void HandleContestedDropSecured(SupplyCrate crate)
+        {
+            if (dayContestedDropState == DayContestedDropState.Resolved)
+            {
+                return;
+            }
+
+            dayContestedDropState = DayContestedDropState.Resolved;
+            dayContestedDropStateUntil = float.PositiveInfinity;
+            activeContestedDropCrate = null;
+            OnContestedDropStateChanged?.Invoke(dayContestedDropState, 0f);
+
+            CraftingSystem.Instance?.NotifyContestedDropSecured();
+            OnStatusMessage?.Invoke("Contested drop secured. Night prep improved.");
+            RadioTransmissions.Instance?.ShowMessage("RADIO: Drop secured. Excellent work.", 2.5f);
+        }
+
+        private void HandleContestedDropExpired(SupplyCrate crate)
+        {
+            if (dayContestedDropState == DayContestedDropState.Resolved || dayContestedDropState == DayContestedDropState.Expired)
+            {
+                return;
+            }
+
+            dayContestedDropState = DayContestedDropState.Expired;
+            dayContestedDropStateUntil = float.PositiveInfinity;
+            activeContestedDropCrate = null;
+            OnContestedDropStateChanged?.Invoke(dayContestedDropState, 0f);
+
+            OnStatusMessage?.Invoke("Contested drop expired.");
+            RadioTransmissions.Instance?.ShowMessage("RADIO: Contested drop lost.", 2f);
         }
 
         private void SpawnSupplyCrates()
@@ -507,6 +708,7 @@ namespace Deadlight.Core
             foreach (var go in spawnedCrates)
                 if (go != null) Destroy(go);
             spawnedCrates.Clear();
+            activeContestedDropCrate = null;
 
             foreach (var go in spawnedObjectiveObjects)
                 if (go != null) Destroy(go);

@@ -11,6 +11,7 @@ namespace Deadlight.Systems
         Wood,
         Chemicals,
         Electronics,
+        BlueprintToken,
         Ammo,
         Health
     }
@@ -37,6 +38,7 @@ namespace Deadlight.Systems
         [SerializeField] private int startingWood = 0;
         [SerializeField] private int startingChemicals = 0;
         [SerializeField] private int startingElectronics = 0;
+        [SerializeField] private int startingBlueprintTokens = 0;
 
         [Header("Current Inventory")]
         [SerializeField] private Dictionary<ResourceType, int> inventory = new Dictionary<ResourceType, int>();
@@ -62,6 +64,7 @@ namespace Deadlight.Systems
             inventory[ResourceType.Wood] = startingWood;
             inventory[ResourceType.Chemicals] = startingChemicals;
             inventory[ResourceType.Electronics] = startingElectronics;
+            inventory[ResourceType.BlueprintToken] = startingBlueprintTokens;
             inventory[ResourceType.Ammo] = 0;
             inventory[ResourceType.Health] = 0;
         }

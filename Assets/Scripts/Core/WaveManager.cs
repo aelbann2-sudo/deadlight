@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Deadlight.Data;
 using Deadlight.Level;
+using Deadlight.Systems;
 using Deadlight.Visuals;
 using UnityEngine;
 
@@ -673,6 +674,13 @@ namespace Deadlight.Core
                 objectiveBuff = DayObjectiveSystem.Instance.ActiveNightBuffMultiplier;
                 healthMultiplier /= objectiveBuff;
                 damageMultiplier /= objectiveBuff;
+            }
+
+            if (CraftingSystem.Instance != null)
+            {
+                healthMultiplier *= CraftingSystem.Instance.GetNightEnemyHealthMultiplier();
+                speedMultiplier *= CraftingSystem.Instance.GetNightEnemySpeedMultiplier();
+                damageMultiplier *= CraftingSystem.Instance.GetNightEnemyDamageMultiplier();
             }
 
             if (isDaySkirmish)

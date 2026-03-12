@@ -514,6 +514,11 @@ namespace Deadlight.Core
                 new GameObject("RunModifierSystem").AddComponent<RunModifierSystem>();
             }
 
+            if (FindFirstObjectByType<CraftingSystem>() == null)
+            {
+                new GameObject("CraftingSystem").AddComponent<CraftingSystem>();
+            }
+
             if (FindFirstObjectByType<CosmeticUnlockSystem>() == null)
             {
                 new GameObject("CosmeticUnlockSystem").AddComponent<CosmeticUnlockSystem>();

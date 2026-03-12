@@ -14,11 +14,13 @@ namespace Deadlight.Systems
         private SpriteRenderer sr;
         private AudioSource audioSource;
         private AudioClip rotorClip;
+        private System.Action<SupplyCrate> onCrateLanded;
 
-        public void Initialize(Vector3 dropTarget, CrateTier tier)
+        public void Initialize(Vector3 dropTarget, CrateTier tier, System.Action<SupplyCrate> crateLandedCallback = null)
         {
             targetPosition = dropTarget;
             crateTier = tier;
+            onCrateLanded = crateLandedCallback;
 
             Camera cam = Camera.main;
             float halfW = cam != null ? cam.orthographicSize * cam.aspect + 5f : 20f;
@@ -88,7 +90,7 @@ namespace Deadlight.Systems
             var crateObj = new GameObject("HeliCrate");
             crateObj.transform.position = new Vector3(targetPosition.x, transform.position.y, 0);
             var fallingCrate = crateObj.AddComponent<FallingCrate>();
-            fallingCrate.Initialize(targetPosition, crateTier);
+            fallingCrate.Initialize(targetPosition, crateTier, onCrateLanded);
         }
 
         private static Sprite CreateHelicopterSprite()
@@ -153,11 +155,13 @@ namespace Deadlight.Systems
         private float fallSpeed = 5f;
         private SpriteRenderer crateSr;
         private SpriteRenderer parachuteSr;
+        private System.Action<SupplyCrate> onCrateLanded;
 
-        public void Initialize(Vector3 target, CrateTier t)
+        public void Initialize(Vector3 target, CrateTier t, System.Action<SupplyCrate> crateLandedCallback = null)
         {
             landTarget = target;
             tier = t;
+            onCrateLanded = crateLandedCallback;
 
             crateSr = gameObject.AddComponent<SpriteRenderer>();
             crateSr.sprite = CreateFallingCrateSprite();
@@ -198,6 +202,7 @@ namespace Deadlight.Systems
 
             var sc = gameObject.AddComponent<SupplyCrate>();
             sc.SetTier(tier);
+            onCrateLanded?.Invoke(sc);
 
             if (Core.GameEffects.Instance != null)
                 Core.GameEffects.Instance.ScreenShake(0.1f, 0.15f);

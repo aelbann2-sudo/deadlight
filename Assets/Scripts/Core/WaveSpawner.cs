@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Deadlight.Systems;
 
 namespace Deadlight.Core
 {
@@ -170,7 +171,17 @@ namespace Deadlight.Core
 
             var ai = enemyObj.AddComponent<Enemy.SimpleEnemyAI>();
             ai.SetAggressive(true);
-            ai.ApplySpeedMultiplier(1f + Mathf.Max(0f, currentWave - 1) * speedIncreasePerWave);
+            float baseSpeedMultiplier = 1f + Mathf.Max(0f, currentWave - 1) * speedIncreasePerWave;
+            float craftingSpeedMultiplier = CraftingSystem.Instance != null
+                ? CraftingSystem.Instance.GetNightEnemySpeedMultiplier()
+                : 1f;
+            ai.ApplySpeedMultiplier(baseSpeedMultiplier * craftingSpeedMultiplier);
+
+            if (CraftingSystem.Instance != null)
+            {
+                health.ApplyHealthMultiplier(CraftingSystem.Instance.GetNightEnemyHealthMultiplier());
+                ai.ApplyDamageMultiplier(CraftingSystem.Instance.GetNightEnemyDamageMultiplier());
+            }
 
             var hpBar = enemyObj.AddComponent<EnemyHealthBar>();
 

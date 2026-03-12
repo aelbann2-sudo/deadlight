@@ -158,6 +158,7 @@ namespace Deadlight.Systems
                     {
                         ResourceType resourceType = ConvertToResourceType(pickupType);
                         ResourceManager.Instance.AddResource(resourceType, amount);
+                        CraftingSystem.Instance?.NotifyResourceCollected(resourceType, amount, transform.position);
                         consumed = true;
                     }
                     break;
