@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using Deadlight.Core;
+using Deadlight.Narrative;
 using System.Collections.Generic;
 
 namespace Deadlight.UI
@@ -69,6 +70,10 @@ namespace Deadlight.UI
             var caches = FindObjectsByType<ObjectiveCache>(FindObjectsSortMode.None);
             foreach (var c in caches)
                 AddMarker(c.transform, new Color(0.9f, 0.75f, 0.2f));
+
+            var storyTargets = FindObjectsByType<StoryObjectiveTarget>(FindObjectsSortMode.None);
+            foreach (var target in storyTargets)
+                AddMarker(target.transform, new Color(1f, 0.78f, 0.25f));
 
             var crates = FindObjectsByType<Systems.SupplyCrate>(FindObjectsSortMode.None);
             foreach (var cr in crates)
