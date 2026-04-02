@@ -68,8 +68,8 @@ namespace Deadlight.Core
         [SerializeField] private bool autoBootstrapGameScene = true;
         [SerializeField] private bool autoStartWhenGameSceneLoads = false;
         [SerializeField] private float dawnAutoAdvanceDelay = 2f;
-        [SerializeField] private float[] dayDurationsByNight = { 70f, 60f, 52f, 45f };
-        [SerializeField] private float targetNightDuration = 120f;
+        [SerializeField] private float[] dayDurationsByNight = { 90f, 75f, 60f, 50f };
+        [SerializeField] private float[] nightDurationsByNight = { 60f, 90f, 120f, 180f };
 
         private const float DefaultFixedDeltaTime = 0.02f;
 
@@ -94,6 +94,7 @@ namespace Deadlight.Core
         private Coroutine deferredRestartCoroutine;
         private bool isBootstrappingScene;
         private bool startNewRunAfterGameSceneLoad;
+        private int queuedStartNight = 1;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void EnsureRuntimeGameManager()
@@ -260,7 +261,8 @@ namespace Deadlight.Core
             }
 
             currentDifficulty = Difficulty.Normal;
-            currentNight = 1;
+            currentNight = Mathf.Clamp(queuedStartNight, 1, maxNights);
+            queuedStartNight = 1;
             selectedMap = GetCampaignMapForNight(currentNight);
             RunStartTime = Time.realtimeSinceStartup;
             ResetRunState();
@@ -382,6 +384,7 @@ namespace Deadlight.Core
         public void ReturnToMainMenu()
         {
             currentNight = 1;
+            queuedStartNight = 1;
             startNewRunAfterGameSceneLoad = false;
 
             if (deferredRestartCoroutine != null)
@@ -398,6 +401,7 @@ namespace Deadlight.Core
         public void RestartGame()
         {
             currentNight = 1;
+            queuedStartNight = 1;
             startNewRunAfterGameSceneLoad = true;
             SetPaused(false);
             ChangeState(GameState.MainMenu);
@@ -411,7 +415,28 @@ namespace Deadlight.Core
 
         public void StartSelectedMapRun()
         {
+            queuedStartNight = 1;
             currentNight = 1;
+            selectedMap = GetCampaignMapForNight(currentNight);
+            startNewRunAfterGameSceneLoad = true;
+
+            if (deferredRestartCoroutine != null)
+            {
+                StopCoroutine(deferredRestartCoroutine);
+                deferredRestartCoroutine = null;
+            }
+
+            SetPaused(false);
+            ChangeState(GameState.MainMenu);
+            SceneManager.LoadScene("Game");
+        }
+
+        public void StartCampaignFromLevel(int level)
+        {
+            EnsureCampaignMapOrder();
+
+            queuedStartNight = Mathf.Clamp(level, 1, maxNights);
+            currentNight = queuedStartNight;
             selectedMap = GetCampaignMapForNight(currentNight);
             startNewRunAfterGameSceneLoad = true;
 
@@ -616,11 +641,6 @@ namespace Deadlight.Core
                 narrativeManager.gameObject.AddComponent<EnvironmentalLore>();
             }
 
-            if (FindFirstObjectByType<CosmeticUnlockSystem>() == null)
-            {
-                new GameObject("CosmeticUnlockSystem").AddComponent<CosmeticUnlockSystem>();
-            }
-
             if (FindFirstObjectByType<AudioManager>() == null)
             {
                 new GameObject("AudioManager").AddComponent<AudioManager>();
@@ -654,6 +674,16 @@ namespace Deadlight.Core
             if (FindFirstObjectByType<RadioTransmissions>() == null)
             {
                 new GameObject("RadioTransmissions").AddComponent<RadioTransmissions>();
+            }
+
+            if (FindFirstObjectByType<NightMutation>() == null)
+            {
+                new GameObject("NightMutation").AddComponent<NightMutation>();
+            }
+
+            if (FindFirstObjectByType<KillStreakSystem>() == null)
+            {
+                new GameObject("KillStreakSystem").AddComponent<KillStreakSystem>();
             }
 
             if (FindFirstObjectByType<LeaderboardManager>() == null)
@@ -841,6 +871,21 @@ namespace Deadlight.Core
             if (player.GetComponent<AudioSource>() == null)
             {
                 player.AddComponent<AudioSource>();
+            }
+
+            if (player.GetComponent<PlayerArmor>() == null)
+            {
+                player.AddComponent<PlayerArmor>();
+            }
+
+            if (player.GetComponent<PlayerUpgrades>() == null)
+            {
+                player.AddComponent<PlayerUpgrades>();
+            }
+
+            if (player.GetComponent<Narrative.PlayerVoice>() == null)
+            {
+                player.AddComponent<Narrative.PlayerVoice>();
             }
         }
 
@@ -1061,10 +1106,13 @@ namespace Deadlight.Core
                 return;
             }
 
-            int idx = Mathf.Clamp(night - 1, 0, Mathf.Max(0, dayDurationsByNight.Length - 1));
-            float dayDuration = dayDurationsByNight.Length > 0 ? dayDurationsByNight[idx] : 60f;
+            int dayIdx = Mathf.Clamp(night - 1, 0, Mathf.Max(0, dayDurationsByNight.Length - 1));
+            float dayDuration = dayDurationsByNight.Length > 0 ? dayDurationsByNight[dayIdx] : 60f;
             dayNight.SetDayDuration(dayDuration);
-            dayNight.SetNightDuration(targetNightDuration);
+
+            int nightIdx = Mathf.Clamp(night - 1, 0, Mathf.Max(0, nightDurationsByNight.Length - 1));
+            float nightDuration = nightDurationsByNight.Length > 0 ? nightDurationsByNight[nightIdx] : 120f;
+            dayNight.SetNightDuration(nightDuration);
         }
     }
 }

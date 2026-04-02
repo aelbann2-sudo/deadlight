@@ -25,16 +25,16 @@ namespace Deadlight.Narrative
             var dialogue = ScriptableObject.CreateInstance<DialogueData>();
             SetDialogueValues(dialogue, 
                 "night_1_start",
-                "Emergency Broadcast",
+                "EVAC Command",
                 DialogueTriggerType.NightStart,
                 1,
                 new string[]
                 {
-                    "*static* This is an Emergency Broadcast System message...",
-                    "The evacuation convoy has departed. All remaining survivors must shelter in place.",
-                    "A rescue helicopter will attempt extraction at final dawn.",
-                    "Clear the landing zone of infected. Repeat: clear the LZ.",
-                    "Good luck, survivor. *static*"
+                    "*static* Medic, night is falling. The infected become aggressive after dark.",
+                    "Find cover. Use the buildings. Funnel them into kill zones.",
+                    "We recovered Flight 7's black box from your crash site data.",
+                    "That bird was shot down. Not by the infected — by something launched from inside the zone.",
+                    "Survive tonight and we'll figure out what. EVAC Command out. *static*"
                 });
             return dialogue;
         }
@@ -44,15 +44,16 @@ namespace Deadlight.Narrative
             var dialogue = ScriptableObject.CreateInstance<DialogueData>();
             SetDialogueValues(dialogue,
                 "night_2_start",
-                "Radio Command",
+                "EVAC Command",
                 DialogueTriggerType.NightStart,
                 2,
                 new string[]
                 {
-                    "*static* Survivor detected in sector 7...",
-                    "Hold your position. Infected activity is increasing in your area.",
-                    "We're tracking larger groups moving toward your location.",
-                    "Stay alert. They're getting bolder. *static*"
+                    "*static* The shelter records you found... Command didn't evacuate those families.",
+                    "They drew the quarantine line right through the suburb. On purpose.",
+                    "And the infected are changing. Our sensors show faster ones. Runners.",
+                    "Whatever Project Lazarus created, it's still evolving out there.",
+                    "Two more levels, medic. Keep moving. *static*"
                 });
             return dialogue;
         }
@@ -62,16 +63,17 @@ namespace Deadlight.Narrative
             var dialogue = ScriptableObject.CreateInstance<DialogueData>();
             SetDialogueValues(dialogue,
                 "night_3_start",
-                "Radio Command",
+                "EVAC Command",
                 DialogueTriggerType.NightStart,
                 3,
                 new string[]
                 {
-                    "*static* Warning: Mutation signatures detected...",
-                    "The infected are... adapting. We've never seen this before.",
-                    "Some are moving faster. Others are more resilient.",
-                    "Whatever you're doing, they're responding to it.",
-                    "Be ready for anything tonight. *static*"
+                    "*static* We decoded the Lazarus files you transmitted.",
+                    "Subject 23 was a soldier. Volunteer for cellular regeneration trials.",
+                    "Perfect healing. Perfect weapon. Then it escaped containment three weeks ago.",
+                    "Patient zero. Every infected in this zone traces back to that one host.",
+                    "New types detected tonight — exploders, spitters. They're adapting to you.",
+                    "One more level after this. Stay alive. *static*"
                 });
             return dialogue;
         }
@@ -81,17 +83,18 @@ namespace Deadlight.Narrative
             var dialogue = ScriptableObject.CreateInstance<DialogueData>();
             SetDialogueValues(dialogue,
                 "night_4_start",
-                "Radio Command",
+                "EVAC Command",
                 DialogueTriggerType.NightStart,
                 4,
                 new string[]
                 {
-                    "*static* Final level, survivor...",
-                    "You've made it further than anyone else in your sector.",
-                    "We're detecting a massive infected signature heading your way.",
-                    "Subject 23 is active. Something big. Something we haven't seen before.",
-                    "Hold the line. The helicopter will be there at dawn.",
-                    "This is it. Make it count. *static*"
+                    "*static* This is it, medic. Final night.",
+                    "The extraction beacon is armed. Helicopter is en route.",
+                    "But we're reading a massive biological signature converging on your position.",
+                    "It's Subject 23. The original. The source of everything.",
+                    "It's been hunting survivors. Growing stronger with every one it takes.",
+                    "You end it tonight, or no one leaves this zone. Ever.",
+                    "Helicopter touches down at dawn. Hold the line. *static*"
                 });
             return dialogue;
         }
@@ -106,11 +109,11 @@ namespace Deadlight.Narrative
                 4,
                 new string[]
                 {
-                    "*helicopter sounds* Survivor, we have visual!",
+                    "*rotors* EVAC Bravo to ground — we see your beacon!",
                     "Landing zone is clear. Coming in hot!",
-                    "Grab on! We're getting you out of here!",
-                    "You made it... you actually made it.",
-                    "Welcome back to the land of the living."
+                    "Grab on, medic! We're pulling you out!",
+                    "...you actually made it. God damn.",
+                    "Welcome back to the world."
                 });
             return dialogue;
         }
@@ -120,15 +123,15 @@ namespace Deadlight.Narrative
             var dialogue = ScriptableObject.CreateInstance<DialogueData>();
             SetDialogueValues(dialogue,
                 "game_over",
-                "Radio Command",
+                "EVAC Command",
                 DialogueTriggerType.GameOver,
                 1,
                 new string[]
                 {
-                    "*static* We've lost the signal...",
-                    "Survivor... do you copy? Survivor!",
+                    "*static* Medic? Medic, do you copy?",
+                    "Vitals are flatlined... signal lost.",
                     "*silence*",
-                    "...Mark this location. Another one lost."
+                    "...Log it. Another one the zone took."
                 });
             return dialogue;
         }
@@ -138,15 +141,15 @@ namespace Deadlight.Narrative
             var dialogue = ScriptableObject.CreateInstance<DialogueData>();
             SetDialogueValues(dialogue,
                 "game_start",
-                "Survivor",
+                "Medic",
                 DialogueTriggerType.GameStart,
                 1,
                 new string[]
                 {
-                    "The convoy... they left without me.",
-                    "Four levels. I just need to survive four levels.",
-                    "Find supplies during the day. Hold out at night.",
-                    "I can do this. I have to."
+                    "Flight 7 is gone. I'm the only one who walked away.",
+                    "Four levels to the research facility. Four days of daylight to scavenge.",
+                    "Four nights of... whatever these things become after dark.",
+                    "I'm a medic, not a soldier. But right now that doesn't matter."
                 });
             return dialogue;
         }

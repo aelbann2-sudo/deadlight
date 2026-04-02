@@ -13,7 +13,9 @@ namespace Deadlight.Systems
         Electronics,
         BlueprintToken,
         Ammo,
-        Health
+        Health,
+        Salvage,
+        TechParts
     }
 
     [Serializable]
@@ -67,6 +69,8 @@ namespace Deadlight.Systems
             inventory[ResourceType.BlueprintToken] = startingBlueprintTokens;
             inventory[ResourceType.Ammo] = 0;
             inventory[ResourceType.Health] = 0;
+            inventory[ResourceType.Salvage] = 0;
+            inventory[ResourceType.TechParts] = 0;
         }
 
         public int GetResource(ResourceType type)

@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using System.Collections;
 using Deadlight.Core;
 using Deadlight.Data;
+using Deadlight.Narrative;
 
 namespace Deadlight.UI
 {
@@ -29,6 +30,10 @@ namespace Deadlight.UI
         private Text vestLabel;
         private Text helmetLabel;
         private GameObject armorPanel;
+
+        private Text journalHintText;
+        private float journalPulseTimer;
+        private bool journalPulsing;
 
         private Player.PlayerHealth playerHealth;
         private Player.PlayerShooting playerShooting;
@@ -146,6 +151,45 @@ namespace Deadlight.UI
             {
                 Systems.PointsSystem.Instance.OnPointsChanged += UpdatePoints;
             }
+
+            if (EnvironmentalLore.Instance != null)
+            {
+                EnvironmentalLore.Instance.OnLoreDiscovered += OnNewLoreDiscovered;
+            }
+        }
+
+        public void SetJournalHintText(Text hint)
+        {
+            journalHintText = hint;
+            if (journalHintText != null)
+            {
+                journalHintText.text = "JOURNAL [J]";
+                journalHintText.color = new Color(0.6f, 0.6f, 0.6f, 0.5f);
+            }
+        }
+
+        private void OnNewLoreDiscovered(LoreEntry entry)
+        {
+            journalPulsing = true;
+            journalPulseTimer = 0f;
+        }
+
+        private void UpdateJournalPulse()
+        {
+            if (journalHintText == null) return;
+
+            if (journalPulsing)
+            {
+                journalPulseTimer += Time.deltaTime;
+                float alpha = 0.5f + Mathf.Sin(journalPulseTimer * 5f) * 0.5f;
+                journalHintText.color = new Color(1f, 0.85f, 0.3f, alpha);
+
+                if (journalPulseTimer > 4f)
+                {
+                    journalPulsing = false;
+                    journalHintText.color = new Color(0.6f, 0.6f, 0.6f, 0.5f);
+                }
+            }
         }
 
         private void OnDestroy()
@@ -184,6 +228,10 @@ namespace Deadlight.UI
             {
                 Systems.PointsSystem.Instance.OnPointsChanged -= UpdatePoints;
             }
+            if (EnvironmentalLore.Instance != null)
+            {
+                EnvironmentalLore.Instance.OnLoreDiscovered -= OnNewLoreDiscovered;
+            }
         }
 
         private void Update()
@@ -191,6 +239,7 @@ namespace Deadlight.UI
             AnimateHealthBar();
             UpdateStamina();
             UpdateAmmoFromState();
+            UpdateJournalPulse();
         }
 
         private void UpdateHealth(float current, float max)

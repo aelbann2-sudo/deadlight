@@ -15,79 +15,69 @@ namespace Deadlight.Core
         private AudioClip radioBeepClip;
 
         private static readonly string[][] nightTransmissions = {
-            // Level 1 - Introduction & First Hints of Project Lazarus
+            // Level 1 — Town Center: "First Light"
             new[] {
-                "[Radio crackle] ...this is EVAC Command. We've detected a survivor in the quarantine zone.",
-                "Survivor, do you copy? Extraction team is en route. ETA: four levels.",
-                "The convoy left without you. We're sorry. But we will get you out.",
-                "During daylight, the infected are sluggish. Scavenge supplies. Stay quiet.",
-                "At night... they become aggressive. Find shelter. Defend your position.",
-                "One more thing... we've intercepted unusual transmissions from the old research facility.",
-                "Something about 'Project Lazarus'. Stay away from that area if you can.",
-                "Survive until dawn, soldier. EVAC Command out."
+                "[Radio crackle] EVAC Command to ground. Welcome to your first day in the zone, medic.",
+                "Flight 7's wreckage is nearby. Something brought that bird down from inside the perimeter.",
+                "During daylight the infected are slow. Scavenge what you can — ammo, medical supplies, anything.",
+                "When the sun sets, they change. Faster. Angrier. Find a defensible position.",
+                "We're picking up faint signals from a research facility to the north. 'Project Lazarus.'",
+                "Reach it in four days and transmit the data. That's your ticket home.",
+                "First things first: survive tonight. EVAC Command out."
             },
-            // Level 2 - Hints of Dr. Chen, Evolution of Infected
+            // Level 2 — Suburban: "No One Left Behind"
             new[] {
-                "[Radio] EVAC Command checking in. Outstanding work surviving Level 1.",
-                "Bad news: our scouts report the infected are... changing.",
-                "They're faster. More coordinated. This isn't normal pathogen behavior.",
-                "We found partial records from the research facility. Something about a Dr. Chen.",
-                "She was lead researcher on... [static] ...cellular regeneration project.",
-                "Whatever she created, it's spreading. The infected are adapting.",
-                "A shotgun was found in a supply drop. Check the shop at dawn.",
-                "Watch for runners. They don't shamble, survivor. They hunt.",
-                "Three levels to extraction. Stay sharp. EVAC Command out."
+                "[Radio] Good work making it through Level 1, medic.",
+                "You're entering the suburbs now. This neighborhood was on the evacuation route.",
+                "Keyword: was. The military sealed the quarantine line before the buses cleared out.",
+                "We intercepted partial files from a Dr. Chen — lead researcher on Project Lazarus.",
+                "She was working on cellular regeneration. Making soldiers that couldn't die.",
+                "Whatever she built, it's still spreading. The infected are evolving.",
+                "Watch for runners. They don't shamble — they hunt. Two levels left. Stay sharp."
             },
-            // Level 3 - Revelation: Project Lazarus & Subject 23
+            // Level 3 — Industrial: "The Source"
             new[] {
-                "[Radio crackle] ...urgent transmission, survivor.",
-                "We've decoded more files from the facility. Project Lazarus was a military contract.",
-                "They were trying to create... soldiers that couldn't die. Regeneration at the cellular level.",
-                "Subject 23 was their breakthrough. Perfect regeneration. Perfect soldier.",
-                "Then Subject 23 escaped containment three weeks ago. Patient zero.",
-                "The mutation is accelerating. We're seeing new infected types.",
-                "Exploders. Their bodies are... unstable. Keep your distance when they fall.",
-                "The assault rifle should help with the larger hordes. It's in the shop.",
-                "Two levels, survivor. The helicopter is on schedule.",
-                "Whatever you do, don't let them surround you. EVAC Command out."
+                "[Radio crackle] Urgent transmission, medic.",
+                "We decoded the Lazarus files. It was a military black project — immortal soldiers.",
+                "Subject 23 was the breakthrough. Perfect regeneration. Perfect weapon.",
+                "Then it escaped containment three weeks ago. Patient zero for everything you see out there.",
+                "The mutation is accelerating. Exploders — bodies so unstable they detonate on death.",
+                "Spitters — ranged acid projectors. Keep your distance from both.",
+                "The research facility is close. One more level after tonight.",
+                "Don't let them surround you. EVAC Command out."
             },
-            // Level 4 - Final Stand: Subject 23 Boss Fight
+            // Level 4 — Research: "Operation Deadlight"
             new[] {
-                "[Radio] Survivor. This is it. Final level.",
-                "We've intercepted military comms. Operation Deadlight was initiated.",
-                "They're trying to cover this up. Destroy all evidence of Project Lazarus.",
-                "Massive biological signature detected approaching your position.",
-                "It's Subject 23. The original. The source of all of this.",
-                "Dr. Chen's notes say it absorbed every sample, every test subject.",
-                "It's been hunting survivors. Growing stronger with each one.",
-                "Every infected you've killed... it felt. It's angry. And it's coming for you.",
-                "This creature ended the world. Tonight, you end it.",
-                "Helicopter is inbound. Hold until dawn. Do not let it reach the extraction point.",
-                "Everything we've done comes down to this moment.",
-                "For everyone we've lost. For everyone who's still fighting.",
-                "Make it count, survivor. EVAC Command... [voice breaks] ...we believe in you."
+                "[Radio] Medic. This is the final level.",
+                "We've intercepted military comms. They've initiated 'Operation Deadlight.'",
+                "The order is to destroy the facility and bury every trace of Project Lazarus.",
+                "We need that data transmitted before they succeed. The world deserves the truth.",
+                "Massive biological signature moving toward your position.",
+                "It's Subject 23. The original host. The source of all of this.",
+                "Dr. Chen's last entry says it absorbed every test subject. It gets stronger with each kill.",
+                "This thing ended the world, medic. Tonight, you end it.",
+                "Helicopter is inbound. Hold until dawn.",
+                "For everyone we've lost. Make it count. EVAC Command... we believe in you."
             }
         };
 
         private static readonly string[] dayTips = {
-            "TIP: Explore the area during daylight. The infected are slower but still dangerous.",
-            "TIP: Use buildings and obstacles as cover. Funnel enemies into kill zones.",
-            "TIP: SHIFT to sprint. Essential for escaping Runner infected.",
-            "TIP: Reload with R before night falls. An empty gun is a death sentence.",
-            "TIP: The shop opens at dawn. Spend points on weapons and supplies.",
-            "TIP: Watch your health. Medkits are rare but essential.",
-            "TIP: Exploders can damage other infected. Use them strategically.",
-            "TIP: Tank infected are slow but devastating. Kite them, don't tank them.",
-            "TIP: Some infected glow red at night. They're more aggressive.",
-            "TIP: The infected are drawn to noise. Sometimes silence is survival."
+            "TIP: Use buildings as cover. Funnel enemies into narrow kill zones.",
+            "TIP: Reload [R] before night falls. An empty gun is a death sentence.",
+            "TIP: SHIFT to sprint. Save stamina for when you really need it.",
+            "TIP: Exploders damage nearby infected when they pop. Use it.",
+            "TIP: The shop opens at dawn. Spend points on weapons and upgrades."
         };
 
         private static readonly string[] loreMessages = {
-            "[Intercepted] Dr. Chen's Log: 'Subject 23 shows unprecedented regeneration. Wounds heal in seconds.'",
-            "[Intercepted] Military Order: 'Project Lazarus is CODE BLACK. All evidence to be destroyed.'",
-            "[Intercepted] Survivor Recording: 'They're not mindless. I saw them... communicating.'",
-            "[Intercepted] Dr. Chen's Final Entry: 'I'm sorry. I thought I was saving lives.'",
-            "[Intercepted] Unknown: 'Subject 23 escaped. It took the others with it. God help us all.'"
+            "[Intercepted] Dr. Chen — Day 12: 'Subject 23 shows unprecedented regeneration. Wounds close in seconds.'",
+            "[Intercepted] Military Order: 'Project Lazarus is CODE BLACK. All evidence must be destroyed.'",
+            "[Intercepted] Field Recording: 'They're not mindless. I watched them coordinate an ambush.'",
+            "[Intercepted] Dr. Chen — Final Entry: 'I thought I was saving soldiers. God forgive me.'",
+            "[Intercepted] Unknown Signal: 'Subject 23 escaped. It took the others with it. God help us.'",
+            "[Intercepted] Quarantine Log: 'Civilian buses turned back at the checkpoint. Orders from above.'",
+            "[Intercepted] Pilot Audio: 'Something launched from inside the zone. Flight 7 never had a chance.'",
+            "[Intercepted] Lab Tech: 'The regeneration works. But Subject 23 isn't healing — it's growing.'"
         };
 
         private void Awake()
@@ -170,6 +160,16 @@ namespace Deadlight.Core
         private IEnumerator ShowTransmission(string text, float duration)
         {
             if (transmissionPanel == null || transmissionText == null) yield break;
+
+            try
+            {
+                var staticClip = Audio.ProceduralAudioGenerator.GenerateRadioStatic();
+                if (staticClip != null && radioAudioSource != null)
+                {
+                    radioAudioSource.PlayOneShot(staticClip, 0.35f);
+                }
+            }
+            catch (System.Exception) { }
 
             if (radioAudioSource != null && radioBeepClip != null)
             {
@@ -266,10 +266,9 @@ namespace Deadlight.Core
         public void ShowNightWarning(int night)
         {
             string[] warnings = {
-                "THE SUN IS SETTING. PREPARE YOURSELF.",
-                "DARKNESS APPROACHES. THE INFECTED STIR.",
-                "NIGHT FALLS. THEY'RE COMING.",
-                "THE HORDE AWAKENS. STAND YOUR GROUND.",
+                "SUNSET. THE INFECTED ARE WAKING.",
+                "DARKNESS APPROACHES. RUNNERS DETECTED.",
+                "NIGHT FALLS. NEW MUTATIONS INBOUND.",
                 "FINAL NIGHT. SUBJECT 23 IS NEAR."
             };
 
@@ -280,6 +279,16 @@ namespace Deadlight.Core
         private IEnumerator ShowWarningTransmission(string text)
         {
             if (transmissionPanel == null || transmissionText == null) yield break;
+
+            try
+            {
+                var sirenClip = Audio.ProceduralAudioGenerator.GenerateAlarmSiren();
+                if (sirenClip != null && radioAudioSource != null)
+                {
+                    radioAudioSource.PlayOneShot(sirenClip, 0.5f);
+                }
+            }
+            catch (System.Exception) { }
 
             transmissionText.text = text;
             transmissionPanel.SetActive(true);
@@ -326,7 +335,7 @@ namespace Deadlight.Core
         {
             if (firstKillPlayed) return;
             firstKillPlayed = true;
-            ShowMessage("RADIO: Good shot. Don't get cocky. There are thousands more.", 3f);
+            ShowMessage("RADIO: First kill confirmed. Don't celebrate — there are thousands more.", 3f);
         }
 
         public void TriggerLowHealth()
@@ -364,9 +373,11 @@ namespace Deadlight.Core
 
         private IEnumerator PlayVictoryTransmission()
         {
-            yield return ShowTransmission("RADIO: \"You did it... Subject 23 is down.\"", 4f);
+            yield return ShowTransmission("RADIO: \"Biological signature terminated. Subject 23 is down.\"", 4f);
             yield return new WaitForSeconds(1f);
-            yield return ShowTransmission("RADIO: \"Helicopter inbound. Welcome home, soldier.\"", 4f);
+            yield return ShowTransmission("RADIO: \"Lazarus data transmitted. The world will know the truth.\"", 4f);
+            yield return new WaitForSeconds(1f);
+            yield return ShowTransmission("RADIO: \"Helicopter is two minutes out. Welcome home, medic.\"", 4f);
         }
 
         public void ShowSubject23Warning()
@@ -377,6 +388,21 @@ namespace Deadlight.Core
         private IEnumerator ShowBossWarning()
         {
             if (transmissionPanel == null || transmissionText == null) yield break;
+
+            try
+            {
+                var heartbeatClip = Audio.ProceduralAudioGenerator.GenerateHeartbeat();
+                if (heartbeatClip != null && radioAudioSource != null)
+                {
+                    radioAudioSource.PlayOneShot(heartbeatClip, 0.7f);
+                }
+            }
+            catch (System.Exception) { }
+
+            if (GameEffects.Instance != null)
+            {
+                GameEffects.Instance.ScreenShake(0.15f, 0.5f);
+            }
 
             string[] bossLines = {
                 "[PROXIMITY ALERT]",
@@ -395,6 +421,16 @@ namespace Deadlight.Core
                     transmissionBg.color = new Color(0.5f, 0, 0, 0.9f);
                 }
                 transmissionText.color = new Color(1f, 0.1f, 0.1f, 1f);
+
+                try
+                {
+                    var heartbeatClip = Audio.ProceduralAudioGenerator.GenerateHeartbeat();
+                    if (heartbeatClip != null && radioAudioSource != null)
+                    {
+                        radioAudioSource.PlayOneShot(heartbeatClip, 0.5f);
+                    }
+                }
+                catch (System.Exception) { }
 
                 yield return new WaitForSeconds(1.5f);
             }

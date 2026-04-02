@@ -499,5 +499,235 @@ namespace Deadlight.Audio
             _cache[key] = clip;
             return clip;
         }
+
+        public static AudioClip GenerateRadioStatic()
+        {
+            string key = "radio_static";
+            if (_cache.TryGetValue(key, out AudioClip cached)) return cached;
+
+            float duration = 0.4f;
+            int numSamples = (int)(SampleRate * duration);
+            float[] samples = new float[numSamples];
+
+            float prevFiltered = 0f;
+            float filterAlpha = 0.92f;
+
+            for (int i = 0; i < numSamples; i++)
+            {
+                float t = (float)i / SampleRate;
+                float env = Envelope(t, 0.01f, 0.08f, 0.6f, 0.2f, duration);
+
+                float raw = WhiteNoise();
+                prevFiltered = filterAlpha * prevFiltered + (1f - filterAlpha) * raw;
+
+                float crackle = SineWave(t, 120f) * 0.15f;
+                float hiss = prevFiltered * 0.7f + crackle;
+
+                samples[i] = Mathf.Clamp(hiss * env, -1f, 1f);
+            }
+
+            AudioClip clip = CreateClip(key, samples, SampleRate);
+            _cache[key] = clip;
+            return clip;
+        }
+
+        public static AudioClip GenerateAlarmSiren()
+        {
+            string key = "alarm_siren";
+            if (_cache.TryGetValue(key, out AudioClip cached)) return cached;
+
+            float duration = 2.0f;
+            int numSamples = (int)(SampleRate * duration);
+            float[] samples = new float[numSamples];
+
+            for (int i = 0; i < numSamples; i++)
+            {
+                float t = (float)i / SampleRate;
+                float normalized = t / duration;
+
+                float env = Envelope(t, 0.1f, 0.2f, 0.7f, 0.5f, duration);
+                float sweep = Lerp(400f, 900f, (SineWave(t, 1.5f) + 1f) * 0.5f);
+
+                float tone = SineWave(t, sweep) * 0.5f + SineWave(t, sweep * 2f) * 0.15f;
+
+                samples[i] = Mathf.Clamp(tone * env, -1f, 1f);
+            }
+
+            AudioClip clip = CreateClip(key, samples, SampleRate);
+            _cache[key] = clip;
+            return clip;
+        }
+
+        public static AudioClip GenerateHelicopterApproach()
+        {
+            string key = "helicopter_approach";
+            if (_cache.TryGetValue(key, out AudioClip cached)) return cached;
+
+            float duration = 4.0f;
+            int numSamples = (int)(SampleRate * duration);
+            float[] samples = new float[numSamples];
+
+            float prevFiltered = 0f;
+            float filterAlpha = 0.98f;
+
+            for (int i = 0; i < numSamples; i++)
+            {
+                float t = (float)i / SampleRate;
+                float normalized = t / duration;
+
+                float volumeRamp = normalized * normalized;
+
+                float bladeFreq = 22f;
+                float bladePulse = (SineWave(t, bladeFreq) + 1f) * 0.5f;
+                bladePulse = bladePulse * 0.6f + 0.4f;
+
+                float engineTone = SineWave(t, 85f) * 0.3f + SineWave(t, 170f) * 0.15f;
+
+                float raw = WhiteNoise();
+                prevFiltered = filterAlpha * prevFiltered + (1f - filterAlpha) * raw;
+                float windNoise = prevFiltered * 0.4f;
+
+                float mixed = (engineTone + windNoise) * bladePulse * volumeRamp;
+
+                samples[i] = Mathf.Clamp(mixed, -1f, 1f);
+            }
+
+            AudioClip clip = CreateClip(key, samples, SampleRate);
+            _cache[key] = clip;
+            return clip;
+        }
+
+        public static AudioClip GenerateDayMusic()
+        {
+            string key = "music_day";
+            if (_cache.TryGetValue(key, out AudioClip cached)) return cached;
+
+            float duration = 16f;
+            int numSamples = (int)(SampleRate * duration);
+            float[] samples = new float[numSamples];
+
+            float[] notes = { 261.6f, 293.7f, 329.6f, 349.2f, 392.0f, 440.0f };
+            float noteLen = 2f;
+
+            for (int i = 0; i < numSamples; i++)
+            {
+                float t = (float)i / SampleRate;
+                int noteIdx = (int)(t / noteLen) % notes.Length;
+                float freq = notes[noteIdx];
+
+                float pad = SineWave(t, freq) * 0.12f +
+                            SineWave(t, freq * 1.5f) * 0.06f +
+                            SineWave(t, freq * 0.5f) * 0.08f;
+
+                float lfo = (SineWave(t, 0.3f) + 1f) * 0.5f;
+                float env = 0.15f + lfo * 0.1f;
+
+                samples[i] = Mathf.Clamp(pad * env * 3f, -1f, 1f);
+            }
+
+            AudioClip clip = CreateClip(key, samples, SampleRate);
+            _cache[key] = clip;
+            return clip;
+        }
+
+        public static AudioClip GenerateNightMusic()
+        {
+            string key = "music_night";
+            if (_cache.TryGetValue(key, out AudioClip cached)) return cached;
+
+            float duration = 16f;
+            int numSamples = (int)(SampleRate * duration);
+            float[] samples = new float[numSamples];
+
+            float prevFiltered = 0f;
+
+            for (int i = 0; i < numSamples; i++)
+            {
+                float t = (float)i / SampleRate;
+
+                float drone = SineWave(t, 55f) * 0.18f +
+                              SineWave(t, 82.4f) * 0.08f;
+
+                float pulse = (SineWave(t, 1.2f) + 1f) * 0.5f;
+
+                float raw = WhiteNoise();
+                prevFiltered = 0.995f * prevFiltered + 0.005f * raw;
+                float rumble = prevFiltered * 0.12f;
+
+                float heartbeat = 0f;
+                float beatPhase = t % 1.2f;
+                if (beatPhase < 0.08f)
+                    heartbeat = SineWave(beatPhase, 45f) * Envelope(beatPhase, 0.01f, 0.02f, 0.5f, 0.04f, 0.08f) * 0.2f;
+                else if (beatPhase > 0.15f && beatPhase < 0.22f)
+                    heartbeat = SineWave(beatPhase - 0.15f, 50f) * Envelope(beatPhase - 0.15f, 0.01f, 0.02f, 0.4f, 0.03f, 0.07f) * 0.15f;
+
+                samples[i] = Mathf.Clamp((drone * pulse + rumble + heartbeat), -1f, 1f);
+            }
+
+            AudioClip clip = CreateClip(key, samples, SampleRate);
+            _cache[key] = clip;
+            return clip;
+        }
+
+        public static AudioClip GenerateBossMusic()
+        {
+            string key = "music_boss";
+            if (_cache.TryGetValue(key, out AudioClip cached)) return cached;
+
+            float duration = 12f;
+            int numSamples = (int)(SampleRate * duration);
+            float[] samples = new float[numSamples];
+
+            for (int i = 0; i < numSamples; i++)
+            {
+                float t = (float)i / SampleRate;
+
+                float bass = SineWave(t, 41.2f) * 0.25f + SineWave(t, 82.4f) * 0.12f;
+
+                float beatPos = t % 0.5f;
+                float kick = beatPos < 0.05f ? SineWave(beatPos, Lerp(120f, 40f, beatPos / 0.05f)) * (1f - beatPos / 0.05f) * 0.3f : 0f;
+
+                float tension = SineWave(t, 110f) * 0.06f +
+                                SineWave(t, 116.5f) * 0.06f;
+
+                float riser = SineWave(t, Lerp(200f, 800f, (t % 6f) / 6f)) * 0.04f;
+
+                samples[i] = Mathf.Clamp(bass + kick + tension + riser, -1f, 1f);
+            }
+
+            AudioClip clip = CreateClip(key, samples, SampleRate);
+            _cache[key] = clip;
+            return clip;
+        }
+
+        public static AudioClip GenerateDawnMusic()
+        {
+            string key = "music_dawn";
+            if (_cache.TryGetValue(key, out AudioClip cached)) return cached;
+
+            float duration = 10f;
+            int numSamples = (int)(SampleRate * duration);
+            float[] samples = new float[numSamples];
+
+            for (int i = 0; i < numSamples; i++)
+            {
+                float t = (float)i / SampleRate;
+                float norm = t / duration;
+
+                float chord = SineWave(t, 261.6f) * 0.1f +
+                              SineWave(t, 329.6f) * 0.08f +
+                              SineWave(t, 392.0f) * 0.06f +
+                              SineWave(t, 523.3f) * 0.04f;
+
+                float swell = norm * norm;
+                float shimmer = SineWave(t, 1760f) * 0.015f * (SineWave(t, 3f) + 1f) * 0.5f;
+
+                samples[i] = Mathf.Clamp((chord + shimmer) * swell * 2f, -1f, 1f);
+            }
+
+            AudioClip clip = CreateClip(key, samples, SampleRate);
+            _cache[key] = clip;
+            return clip;
+        }
     }
 }

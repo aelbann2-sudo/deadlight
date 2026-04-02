@@ -28,6 +28,22 @@ namespace Deadlight.Core
         [SerializeField] private Color twilightColor = new Color(0.4f, 0.3f, 0.5f);
         [SerializeField] private Color dawnColor = new Color(0.85f, 0.6f, 0.5f);
 
+        [Header("Per-Level Sky Moods")]
+        [SerializeField] private Color[] levelDaySkyColors =
+        {
+            new Color(0.55f, 0.75f, 0.95f),
+            new Color(0.6f, 0.68f, 0.78f),
+            new Color(0.45f, 0.52f, 0.62f),
+            new Color(0.35f, 0.38f, 0.48f)
+        };
+        [SerializeField] private Color[] levelNightSkyColors =
+        {
+            new Color(0.03f, 0.04f, 0.08f),
+            new Color(0.04f, 0.03f, 0.1f),
+            new Color(0.06f, 0.04f, 0.06f),
+            new Color(0.02f, 0.02f, 0.04f)
+        };
+
         [Header("Environment Effects")]
         [SerializeField] private float nightFogDensity = 0.03f;
         [SerializeField] private Color nightFogColor = new Color(0.1f, 0.12f, 0.2f);
@@ -160,6 +176,7 @@ namespace Deadlight.Core
             currentTime = 0f;
             isPaused = false;
 
+            ApplyLevelSkyMood();
             SetDayLighting();
             OnDayStart?.Invoke();
 
@@ -172,10 +189,27 @@ namespace Deadlight.Core
             currentTime = 0f;
             isPaused = false;
 
+            ApplyLevelSkyMood();
             SetNightLighting();
             OnNightStart?.Invoke();
 
             Debug.Log("[DayNightCycle] Night phase started");
+        }
+
+        private void ApplyLevelSkyMood()
+        {
+            int night = GameManager.Instance != null ? GameManager.Instance.CurrentNight : 1;
+            int idx = Mathf.Clamp(night - 1, 0, 3);
+
+            if (levelDaySkyColors != null && idx < levelDaySkyColors.Length)
+            {
+                daySkyColor = levelDaySkyColors[idx];
+            }
+
+            if (levelNightSkyColors != null && idx < levelNightSkyColors.Length)
+            {
+                nightSkyColor = levelNightSkyColors[idx];
+            }
         }
 
         private void StartTransitionToNight()

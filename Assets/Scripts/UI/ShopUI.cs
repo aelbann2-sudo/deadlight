@@ -77,25 +77,80 @@ namespace Deadlight.UI
 
         private void InitializeDefaultItems()
         {
-            if (supplyItems.Count == 0)
+            supplyItems = new List<ShopItem>
             {
-                supplyItems = new List<ShopItem>
+                new ShopItem { itemName = "Ammo Pack", description = "Restore 50 ammo", cost = 50, itemType = ShopItemType.Ammo, amount = 50 },
+                new ShopItem { itemName = "Health Kit", description = "Restore 50 health", cost = 75, itemType = ShopItemType.Health, amount = 50 },
+                new ShopItem { itemName = "Large Ammo Pack", description = "Restore 100 ammo", cost = 90, itemType = ShopItemType.Ammo, amount = 100 },
+                new ShopItem { itemName = "Large Health Kit", description = "Restore full health", cost = 150, itemType = ShopItemType.Health, amount = 100 }
+            };
+
+            upgradeItems = new List<ShopItem>
+            {
+                new ShopItem { itemName = "Speed Boost", description = "Move 20% faster next level", cost = 100, itemType = ShopItemType.SpeedBoost, amount = 20 },
+                new ShopItem { itemName = "Damage Boost", description = "Upgrade damage tier permanently", cost = 120, itemType = ShopItemType.DamageBoost, amount = 15 },
+                new ShopItem { itemName = "Vest Armor", description = "Absorb 30% of incoming damage", cost = 120, itemType = ShopItemType.Armor, amount = 15 }
+            };
+
+            PopulateWeaponsForLevel();
+        }
+
+        private void PopulateWeaponsForLevel()
+        {
+            int night = GameManager.Instance != null ? GameManager.Instance.CurrentNight : 1;
+            weaponItems.Clear();
+
+            weaponItems.Add(new ShopItem
+            {
+                itemName = "Shotgun",
+                description = "Recovered from quarantine checkpoint",
+                cost = 100,
+                itemType = ShopItemType.Weapon,
+                weaponData = Data.WeaponData.CreateShotgun()
+            });
+
+            if (night >= 2)
+            {
+                weaponItems.Add(new ShopItem
                 {
-                    new ShopItem { itemName = "Ammo Pack", description = "Restore 50 ammo", cost = 50, itemType = ShopItemType.Ammo, amount = 50 },
-                    new ShopItem { itemName = "Health Kit", description = "Restore 50 health", cost = 75, itemType = ShopItemType.Health, amount = 50 },
-                    new ShopItem { itemName = "Large Ammo Pack", description = "Restore 100 ammo", cost = 90, itemType = ShopItemType.Ammo, amount = 100 },
-                    new ShopItem { itemName = "Large Health Kit", description = "Restore full health", cost = 150, itemType = ShopItemType.Health, amount = 100 }
-                };
+                    itemName = "SMG",
+                    description = "Military issue, found in shelter armory",
+                    cost = 150,
+                    itemType = ShopItemType.Weapon,
+                    weaponData = Data.WeaponData.CreateSMG()
+                });
             }
 
-            if (upgradeItems.Count == 0)
+            if (night >= 3)
             {
-                upgradeItems = new List<ShopItem>
+                weaponItems.Add(new ShopItem
                 {
-                    new ShopItem { itemName = "Speed Boost", description = "Move 20% faster next level", cost = 100, itemType = ShopItemType.SpeedBoost, amount = 20 },
-                    new ShopItem { itemName = "Damage Boost", description = "Deal 15% more damage next level", cost = 120, itemType = ShopItemType.DamageBoost, amount = 15 },
-                    new ShopItem { itemName = "Armor", description = "Take 15% less damage next level", cost = 120, itemType = ShopItemType.Armor, amount = 15 }
-                };
+                    itemName = "Assault Rifle",
+                    description = "Lazarus lab security weapon",
+                    cost = 250,
+                    itemType = ShopItemType.Weapon,
+                    weaponData = Data.WeaponData.CreateAssaultRifle()
+                });
+                weaponItems.Add(new ShopItem
+                {
+                    itemName = "Sniper Rifle",
+                    description = "Overwatch tower, long range precision",
+                    cost = 200,
+                    itemType = ShopItemType.Weapon,
+                    weaponData = Data.WeaponData.CreateSniperRifle()
+                });
+            }
+
+            if (night >= 4)
+            {
+                weaponItems.Add(new ShopItem
+                {
+                    itemName = "Railgun",
+                    description = "Lazarus containment prototype",
+                    cost = 400,
+                    itemType = ShopItemType.Weapon,
+                    weaponData = Data.WeaponData.CreateRailgun()
+                });
             }
         }
 
@@ -116,6 +171,7 @@ namespace Deadlight.UI
             if (shopPanel != null)
                 shopPanel.SetActive(true);
 
+            PopulateWeaponsForLevel();
             UpdateStatistics();
             UpdatePointsDisplay();
             ShowCategory(ShopCategory.Supplies);
@@ -244,6 +300,28 @@ namespace Deadlight.UI
                 case ShopItemType.SpeedBoost:
                     var controller = player.GetComponent<Player.PlayerController>();
                     controller?.ApplySpeedModifier(1f + item.amount / 100f, 210f);
+                    break;
+
+                case ShopItemType.DamageBoost:
+                    if (Player.PlayerUpgrades.Instance != null)
+                    {
+                        Player.PlayerUpgrades.Instance.TryUpgradeDamage();
+                    }
+                    break;
+
+                case ShopItemType.Armor:
+                    var armor = player.GetComponent<Player.PlayerArmor>();
+                    if (armor == null) armor = player.AddComponent<Player.PlayerArmor>();
+                    int tier = Mathf.Clamp(item.amount / 15, 1, 3);
+                    armor.EquipVest((Player.ArmorTier)tier);
+                    break;
+
+                case ShopItemType.Weapon:
+                    if (item.weaponData != null)
+                    {
+                        var playerShooting = player.GetComponent<Player.PlayerShooting>();
+                        playerShooting?.SetWeapon(item.weaponData);
+                    }
                     break;
             }
         }

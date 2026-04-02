@@ -282,6 +282,11 @@ namespace Deadlight.Narrative
 
             RadioTransmissions.Instance?.ShowMessage(currentBeat.CompletionMessage, 4.5f);
 
+            if (DayObjectiveSystem.Instance != null)
+            {
+                DayObjectiveSystem.Instance.MarkCompleted();
+            }
+
             if (FloatingTextManager.Instance != null)
             {
                 GameObject player = GameObject.Find("Player");

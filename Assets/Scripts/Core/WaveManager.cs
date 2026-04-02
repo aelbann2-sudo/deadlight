@@ -62,6 +62,7 @@ namespace Deadlight.Core
         private float idleNightTimer;
         private bool daySkirmishTriggered;
         private bool bossSpawned;
+        private bool miniBossSpawned;
 
         private void Start()
         {
@@ -175,6 +176,7 @@ namespace Deadlight.Core
             totalEnemiesSpawned = 0;
             enemiesRemaining = 0;
             isSpawning = false;
+            miniBossSpawned = false;
 
             LoadNightConfig();
         }
@@ -312,10 +314,10 @@ namespace Deadlight.Core
             int night = Mathf.Max(1, GameManager.Instance?.CurrentNight ?? 1);
             return night switch
             {
-                1 => 10,
-                2 => 18,
-                3 => 25,
-                _ => 34
+                1 => 8,
+                2 => 14,
+                3 => 22,
+                _ => 30
             };
         }
 
@@ -385,11 +387,22 @@ namespace Deadlight.Core
             int finalLevel = GameManager.Instance?.MaxNights ?? 4;
             bool isDaySkirmish = GameManager.Instance?.CurrentState == GameState.DayPhase;
             var spawnType = SelectSpawnType(nightNum, isDaySkirmish);
+
+            bool shouldSpawnMiniBoss = nightNum == 3 &&
+                                       currentWave >= (currentNightConfig?.waveCount ?? 3) &&
+                                       !isDaySkirmish &&
+                                       !miniBossSpawned;
+
             bool shouldSpawnBoss = nightNum >= finalLevel &&
                                    spawnType == SpawnType.Tank &&
                                    currentWave >= (currentNightConfig?.waveCount ?? 3) &&
                                    !isDaySkirmish &&
                                    !bossSpawned;
+
+            if (shouldSpawnMiniBoss)
+            {
+                spawnType = SpawnType.Tank;
+            }
             var enemyType = spawnType switch
             {
                 SpawnType.Runner => Visuals.ProceduralSpriteGenerator.ZombieType.Runner,
@@ -403,11 +416,22 @@ namespace Deadlight.Core
             {
                 enemy = Instantiate(basicZombiePrefab, spawnPosition, Quaternion.identity);
             }
+            else if (shouldSpawnMiniBoss)
+            {
+                enemy = CreateMiniBoss(spawnPosition);
+            }
             else
             {
                 enemy = CreateEnemyOfType(enemyType, spawnPosition, shouldSpawnBoss);
             }
             enemy.SetActive(true);
+
+            if (shouldSpawnMiniBoss)
+            {
+                miniBossSpawned = true;
+                RadioTransmissions.Instance?.ShowMessage(
+                    "RADIO: Prototype 23 detected! An early-stage Lazarus host — kill it before it evolves.", 4f);
+            }
 
             if (shouldSpawnBoss)
             {
@@ -463,28 +487,46 @@ namespace Deadlight.Core
 
             if (isDaySkirmish)
             {
-                if (night >= 4 && roll < 0.12f)
+                if (night >= 3 && roll < 0.12f)
                     return SpawnType.Runner;
                 return SpawnType.Basic;
             }
 
             int finalLevel = GameManager.Instance?.MaxNights ?? 4;
+
+            // Level 4: force boss spawn (Tank) on final wave if not yet spawned
             if (night >= finalLevel && currentWave >= (currentNightConfig?.waveCount ?? 3) && !bossSpawned)
             {
                 return SpawnType.Tank;
             }
 
-            if (night >= 4 && roll < 0.08f)
-                return SpawnType.Tank;
-            if (night >= 3 && roll < 0.18f)
-                return SpawnType.Spitter;
-            if (night >= 3 && roll < 0.32f)
-                return SpawnType.Exploder;
-            if (night == 2 && roll < 0.28f)
-                return SpawnType.Runner;
-            if (night >= 3 && roll < 0.5f)
-                return SpawnType.Runner;
+            // Level 1: basic zombies only
+            if (night <= 1)
+            {
+                return SpawnType.Basic;
+            }
 
+            // Level 2: basics + runners
+            if (night == 2)
+            {
+                if (roll < 0.28f) return SpawnType.Runner;
+                return SpawnType.Basic;
+            }
+
+            // Level 3: basics + runners + exploders + spitters
+            if (night == 3)
+            {
+                if (roll < 0.12f) return SpawnType.Spitter;
+                if (roll < 0.28f) return SpawnType.Exploder;
+                if (roll < 0.50f) return SpawnType.Runner;
+                return SpawnType.Basic;
+            }
+
+            // Level 4+: all types including tanks
+            if (roll < 0.08f) return SpawnType.Tank;
+            if (roll < 0.18f) return SpawnType.Spitter;
+            if (roll < 0.32f) return SpawnType.Exploder;
+            if (roll < 0.52f) return SpawnType.Runner;
             return SpawnType.Basic;
         }
 
@@ -553,6 +595,37 @@ namespace Deadlight.Core
                 go.AddComponent<Enemy.BossController>();
                 go.name = "Subject23_Boss";
             }
+
+            return go;
+        }
+
+        private GameObject CreateMiniBoss(Vector3 position)
+        {
+            var go = new GameObject("Prototype23_MiniBoss");
+            go.transform.position = position;
+
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = Visuals.ProceduralSpriteGenerator.CreateZombieSprite(
+                Visuals.ProceduralSpriteGenerator.ZombieType.Tank, 0, 0);
+            sr.sortingOrder = 9;
+            sr.color = new Color(0.6f, 0.2f, 0.25f);
+
+            var rb = go.AddComponent<Rigidbody2D>();
+            rb.gravityScale = 0;
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+            rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+
+            go.AddComponent<CircleCollider2D>().radius = 0.4f;
+
+            var health = go.AddComponent<Enemy.EnemyHealth>();
+            health.SetMaxHealth(400f);
+            health.SetPointsOnDeath(100);
+
+            var ai = go.AddComponent<Enemy.SimpleEnemyAI>();
+            ai.ApplySpeedMultiplier(0.85f);
+            ai.ApplyDamageMultiplier(1.8f);
+
+            go.transform.localScale = Vector3.one * 1.3f;
 
             return go;
         }

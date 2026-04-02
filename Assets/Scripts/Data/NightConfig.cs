@@ -63,18 +63,18 @@ namespace Deadlight.Core
         {
             var config = CreateInstance<NightConfig>();
             config.nightNumber = 1;
-            config.nightTitle = "First Night";
-            config.description = "Tutorial night. Small waves of basic zombies.";
-            config.waveCount = 3;
-            config.baseEnemyCount = 6;
-            config.timeBetweenWaves = 3.5f;
-            config.spawnInterval = 1.35f;
-            config.healthMultiplier = 1f;
-            config.damageMultiplier = 1f;
-            config.speedMultiplier = 1f;
+            config.nightTitle = "First Light";
+            config.description = "Tutorial night. Small waves of basic zombies only.";
+            config.waveCount = 2;
+            config.baseEnemyCount = 4;
+            config.timeBetweenWaves = 5f;
+            config.spawnInterval = 1.8f;
+            config.healthMultiplier = 0.8f;
+            config.damageMultiplier = 0.7f;
+            config.speedMultiplier = 0.9f;
             config.hasBoss = false;
-            config.completionBonus = 100;
-            config.radioMessage = "Survivor, this is Rescue Base Alpha. Hold your position. We're tracking your signal. Survive until dawn and we'll coordinate extraction.";
+            config.completionBonus = 75;
+            config.radioMessage = "Hold your position, medic. Survive until dawn and we coordinate next steps.";
             return config;
         }
 
@@ -82,19 +82,19 @@ namespace Deadlight.Core
         {
             var config = CreateInstance<NightConfig>();
             config.nightNumber = 2;
-            config.nightTitle = "Growing Threat";
-            config.description = "Zombies attack from multiple directions. First mutation appears.";
-            config.waveCount = 4;
-            config.baseEnemyCount = 8;
-            config.timeBetweenWaves = 3.4f;
-            config.spawnInterval = 1.2f;
-            config.healthMultiplier = 1.25f;
-            config.damageMultiplier = 1.15f;
-            config.speedMultiplier = 1.08f;
+            config.nightTitle = "No One Left Behind";
+            config.description = "Runners appear among the horde. Faster, more aggressive infected.";
+            config.waveCount = 3;
+            config.baseEnemyCount = 7;
+            config.timeBetweenWaves = 4f;
+            config.spawnInterval = 1.3f;
+            config.healthMultiplier = 1f;
+            config.damageMultiplier = 1f;
+            config.speedMultiplier = 1f;
             config.hasBoss = false;
-            config.completionBonus = 150;
-            config.radioMessage = "Night two. The infected are getting stronger. We're seeing unusual behavior patterns. Stay alert.";
-            config.warningMessage = "Warning: Mutation detected";
+            config.completionBonus = 125;
+            config.radioMessage = "The infected are evolving. Watch for runners — they hunt, not shamble.";
+            config.warningMessage = "Warning: Runners detected";
             return config;
         }
 
@@ -102,19 +102,19 @@ namespace Deadlight.Core
         {
             var config = CreateInstance<NightConfig>();
             config.nightNumber = 3;
-            config.nightTitle = "Escalation";
-            config.description = "Runners and Exploders join the horde. Multiple mutations active.";
+            config.nightTitle = "The Source";
+            config.description = "Exploders and Spitters join the horde. Full mutation spectrum active.";
             config.waveCount = 4;
-            config.baseEnemyCount = 11;
-            config.timeBetweenWaves = 2.8f;
-            config.spawnInterval = 0.95f;
-            config.healthMultiplier = 1.5f;
+            config.baseEnemyCount = 10;
+            config.timeBetweenWaves = 3f;
+            config.spawnInterval = 1f;
+            config.healthMultiplier = 1.4f;
             config.damageMultiplier = 1.3f;
-            config.speedMultiplier = 1.16f;
+            config.speedMultiplier = 1.1f;
             config.hasBoss = false;
             config.completionBonus = 200;
-            config.radioMessage = "Halfway there, survivor. New infected types have been spotted. Fast ones. Explosive ones. Be ready for anything.";
-            config.warningMessage = "Warning: New enemy types detected";
+            config.radioMessage = "New mutation types detected. Exploders, spitters — the infection is adapting to you.";
+            config.warningMessage = "Warning: New mutations inbound";
             return config;
         }
 
@@ -122,19 +122,19 @@ namespace Deadlight.Core
         {
             var config = CreateInstance<NightConfig>();
             config.nightNumber = 4;
-            config.nightTitle = "Final Stand";
-            config.description = "The final level. Survive Subject 23 and secure extraction.";
-            config.waveCount = 4;
-            config.baseEnemyCount = 16;
+            config.nightTitle = "Operation Deadlight";
+            config.description = "Final stand. All enemy types plus Subject 23 boss. Longest night.";
+            config.waveCount = 5;
+            config.baseEnemyCount = 14;
             config.timeBetweenWaves = 2f;
-            config.spawnInterval = 0.72f;
-            config.healthMultiplier = 2f;
-            config.damageMultiplier = 2f;
-            config.speedMultiplier = 1.32f;
+            config.spawnInterval = 0.7f;
+            config.healthMultiplier = 1.8f;
+            config.damageMultiplier = 1.8f;
+            config.speedMultiplier = 1.25f;
             config.hasBoss = true;
             config.completionBonus = 500;
-            config.radioMessage = "This is it. Final level. Helicopter is en route but Subject 23 is closing fast. Hold until dawn.";
-            config.warningMessage = "WARNING: BOSS INCOMING";
+            config.radioMessage = "Final night. Subject 23 is converging. Hold until dawn. This is everything.";
+            config.warningMessage = "SUBJECT 23 INBOUND";
             return config;
         }
 

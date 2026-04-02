@@ -21,6 +21,11 @@ namespace Deadlight.Core
 
         public void RollMutation(int night)
         {
+            if (RunModifierSystem.Instance != null)
+            {
+                return;
+            }
+
             if (night <= 1)
             {
                 activeMutation = MutationType.None;
@@ -36,39 +41,21 @@ namespace Deadlight.Core
                 _ => MutationType.Reinforcements
             };
 
-            ApplyMutation();
             OnMutationApplied?.Invoke(activeMutation);
         }
 
-        void ApplyMutation()
+        public void SetMutationFromEvent(string eventName)
         {
-            var cam = Camera.main;
-            switch (activeMutation)
+            activeMutation = eventName switch
             {
-                case MutationType.ThickFog:
-                    if (cam != null)
-                        cam.backgroundColor = new Color(0.2f, 0.22f, 0.24f);
-                    if (RadioTransmissions.Instance != null)
-                        RadioTransmissions.Instance.ShowMessage("RADIO: Heavy fog rolling in. Watch your corners.", 3f);
-                    break;
+                "Thick Fog" => MutationType.ThickFog,
+                "Full Moon" => MutationType.FullMoon,
+                "Contamination" => MutationType.Contamination,
+                "Reinforcements" => MutationType.Reinforcements,
+                _ => MutationType.None
+            };
 
-                case MutationType.FullMoon:
-                    if (cam != null)
-                        cam.backgroundColor = new Color(0.1f, 0.1f, 0.2f);
-                    if (RadioTransmissions.Instance != null)
-                        RadioTransmissions.Instance.ShowMessage("RADIO: Full moon tonight. They'll be more active.", 3f);
-                    break;
-
-                case MutationType.Contamination:
-                    if (RadioTransmissions.Instance != null)
-                        RadioTransmissions.Instance.ShowMessage("RADIO: Toxin levels rising. Dead ones are leaving pools.", 3f);
-                    break;
-
-                case MutationType.Reinforcements:
-                    if (RadioTransmissions.Instance != null)
-                        RadioTransmissions.Instance.ShowMessage("RADIO: Seismic activity detected. Expect a larger horde.", 3f);
-                    break;
-            }
+            OnMutationApplied?.Invoke(activeMutation);
         }
 
         public float GetSpeedMultiplier()

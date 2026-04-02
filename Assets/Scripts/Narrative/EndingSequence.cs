@@ -117,11 +117,27 @@ namespace Deadlight.Narrative
         {
             yield return FadeBackground(0f, 1f, 1f, Color.black);
 
-            yield return ShowLine("[Subject 23 collapses]", new Color(1f, 0.9f, 0.5f), 3f);
-            yield return ShowLine("RADIO: \"Biological signature terminated. You did it, survivor.\"", new Color(0.3f, 1f, 0.3f), 4f);
-            yield return ShowLine("RADIO: \"Helicopter is 2 minutes out. Hold position.\"", new Color(0.3f, 1f, 0.3f), 3f);
-            yield return ShowLine("[Dawn breaks]", new Color(1f, 0.85f, 0.4f), 3f);
-            yield return ShowLine("RADIO: \"Welcome home, soldier.\"", new Color(0.3f, 1f, 0.3f), 4f);
+            yield return ShowLine("[Subject 23 collapses. The horde falters.]", new Color(1f, 0.9f, 0.5f), 3.5f);
+            yield return ShowLine("RADIO: \"Biological signature... terminated. You did it, medic.\"", new Color(0.3f, 1f, 0.3f), 4f);
+            yield return ShowLine("RADIO: \"Lazarus data is broadcasting. The whole world is going to know.\"", new Color(0.3f, 1f, 0.3f), 4f);
+            yield return ShowLine("[The sky lightens. Dawn breaks across the quarantine zone.]", new Color(1f, 0.85f, 0.4f), 3.5f);
+            try
+            {
+                var heliClip = Audio.ProceduralAudioGenerator.GenerateHelicopterApproach();
+                if (heliClip != null)
+                {
+                    AudioSource.PlayClipAtPoint(heliClip, Camera.main != null ? Camera.main.transform.position : Vector3.zero, 0.6f);
+                }
+            }
+            catch (System.Exception) { }
+
+            yield return ShowLine("PILOT: \"EVAC Bravo on approach! I see the beacon — coming in hot!\"", new Color(0.5f, 0.9f, 1f), 4f);
+            yield return ShowLine("[Rotors overhead. Wind kicks up dust. A hand reaches down.]", new Color(0.9f, 0.9f, 0.8f), 3.5f);
+            yield return ShowLine("PILOT: \"Grab on, medic. You're going home.\"", new Color(0.5f, 0.9f, 1f), 4f);
+
+            yield return new WaitForSecondsRealtime(1.5f);
+
+            yield return ShowLine("OPERATION DEADLIGHT — COMPLETE", new Color(1f, 0.85f, 0.3f), 4f);
 
             int kills = 0;
             if (PointsSystem.Instance != null)
@@ -137,15 +153,30 @@ namespace Deadlight.Narrative
                 loreTotal = EnvironmentalLore.Instance.TotalLoreCount;
             }
 
+            float runTime = 0f;
+            if (GameManager.Instance != null)
+            {
+                runTime = Time.realtimeSinceStartup - GameManager.Instance.RunStartTime;
+            }
+
+            int minutes = Mathf.FloorToInt(runTime / 60f);
+            int seconds = Mathf.FloorToInt(runTime % 60f);
+
             int maxNights = GameManager.Instance != null ? GameManager.Instance.MaxNights : 4;
-            string statsLine = $"CLEARED: {maxNights} LEVELS  |  KILLS: {kills}  |  LORE: {loreFound}/{loreTotal}";
+            string statsLine = $"CLEARED: {maxNights} LEVELS  |  KILLS: {kills}  |  LORE: {loreFound}/{loreTotal}  |  TIME: {minutes}:{seconds:D2}";
             yield return ShowLine(statsLine, new Color(0.9f, 0.85f, 0.5f), 5f);
 
-            yield return new WaitForSecondsRealtime(1f);
+            yield return new WaitForSecondsRealtime(2f);
+
+            yield return ShowLine("[THREE WEEKS LATER]", new Color(0.5f, 0.5f, 0.5f), 3f);
+            yield return ShowLine("The Lazarus data went public. Congressional hearings began within days.", new Color(0.8f, 0.8f, 0.8f), 4f);
+            yield return ShowLine("Dr. Chen was never found.", new Color(0.8f, 0.8f, 0.8f), 3f);
+
+            yield return new WaitForSecondsRealtime(1.5f);
 
             yield return ShowLine(
-                "POST-CREDITS: [Static] \"This is Research Station Omega. Project Lazarus... continues.\"",
-                new Color(0.6f, 0.2f, 0.2f), 5f);
+                "[Static] \"...this is Research Station Omega. Project Lazarus... continues.\"",
+                new Color(0.6f, 0.15f, 0.15f), 5f);
 
             yield return new WaitForSecondsRealtime(1f);
             ShowEndButtons(true);
@@ -156,9 +187,21 @@ namespace Deadlight.Narrative
         {
             yield return FadeBackground(0f, 0.9f, 1.5f, new Color(0.3f, 0f, 0f));
 
-            yield return ShowLine("RADIO: \"Survivor? Survivor, do you copy?\"", new Color(0.3f, 1f, 0.3f), 3f);
-            yield return ShowLine("RADIO: \"We've lost contact...\"", new Color(0.3f, 0.8f, 0.3f), 3f);
-            yield return ShowLine("RADIO: \"Another one gone...\"", new Color(0.2f, 0.6f, 0.2f), 3f);
+            int currentNight = GameManager.Instance != null ? GameManager.Instance.CurrentNight : 1;
+            string[] deathLines = currentNight switch
+            {
+                1 => new[] { "RADIO: \"Medic? Medic, respond!\"", "RADIO: \"Signal lost at the town center. Didn't even make it past level one.\"" },
+                2 => new[] { "RADIO: \"We've lost the medic in the suburbs.\"", "RADIO: \"So close to the truth... and the zone took another.\"" },
+                3 => new[] { "RADIO: \"Contact lost near the industrial sector.\"", "RADIO: \"The Lazarus data dies with them. Subject 23 is still out there.\"" },
+                _ => new[] { "RADIO: \"Medic is down at the research facility.\"", "RADIO: \"So close to extraction... Operation Deadlight failed.\"" },
+            };
+
+            foreach (string line in deathLines)
+            {
+                yield return ShowLine(line, new Color(0.3f, 0.8f, 0.3f), 3.5f);
+            }
+
+            yield return ShowLine("RADIO: \"...mark the location. Another one the zone claimed.\"", new Color(0.2f, 0.5f, 0.2f), 3f);
 
             int kills = 0;
             int nightsSurvived = 0;
@@ -168,7 +211,7 @@ namespace Deadlight.Narrative
                 nightsSurvived = PointsSystem.Instance.NightsSurvived;
             }
 
-            string statsLine = $"CLEARED: {nightsSurvived} LEVELS  |  KILLS: {kills}";
+            string statsLine = $"SURVIVED: {nightsSurvived} OF 4 LEVELS  |  KILLS: {kills}";
             yield return ShowLine(statsLine, new Color(0.8f, 0.3f, 0.3f), 4f);
 
             yield return new WaitForSecondsRealtime(0.5f);
