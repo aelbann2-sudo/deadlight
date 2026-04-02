@@ -407,8 +407,6 @@ namespace Deadlight.Editor
                 Core.NightConfig.CreateNight3);
             CreateAssetIfNotExists("Assets/ScriptableObjects/Nights/Night_4.asset",
                 Core.NightConfig.CreateNight4);
-            CreateAssetIfNotExists("Assets/ScriptableObjects/Nights/Night_5.asset",
-                Core.NightConfig.CreateNight5);
         }
 
         private static void CreateAssetIfNotExists<T>(string path, System.Func<T> creator) where T : ScriptableObject

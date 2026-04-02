@@ -44,6 +44,7 @@ namespace Deadlight.UI
 
         private bool _waitingForEnding;
         private bool _resumeGameplayOnGuideClose;
+        private Sprite _campaignNodeSprite;
 
         public bool IsGuideOpen => _guidePanel != null && _guidePanel.activeSelf;
 
@@ -185,11 +186,14 @@ namespace Deadlight.UI
             CreateButton(_mainMenuPanel.transform, "LeaderboardButton", "LEADERBOARD", new Color(0.3f, 0.4f, 0.7f),
                 new Vector2(0.5f, 0.38f), new Vector2(260, 45), ShowLeaderboard);
 
+            CreateButton(_mainMenuPanel.transform, "CampaignMapButton", "CAMPAIGN MAP", new Color(0.65f, 0.5f, 0.2f),
+                new Vector2(0.5f, 0.30f), new Vector2(260, 45), ShowCampaignMap);
+
             CreateButton(_mainMenuPanel.transform, "GuideButton", "GUIDE", new Color(0.2f, 0.45f, 0.6f),
-                new Vector2(0.5f, 0.30f), new Vector2(260, 45), OpenGuideFromButton);
+                new Vector2(0.5f, 0.22f), new Vector2(260, 45), OpenGuideFromButton);
 
             CreateButton(_mainMenuPanel.transform, "QuitButton", "QUIT", new Color(0.45f, 0.45f, 0.45f),
-                new Vector2(0.5f, 0.22f), new Vector2(200, 42), QuitGame);
+                new Vector2(0.5f, 0.14f), new Vector2(200, 42), QuitGame);
         }
 
         private void StartCampaign()
@@ -201,47 +205,148 @@ namespace Deadlight.UI
             GameManager.Instance?.StartSelectedMapRun();
         }
 
+        private void ShowCampaignMap()
+        {
+            HideAllPanels();
+            _mapSelectPanel?.SetActive(true);
+        }
+
         // ===================== MAP SELECT =====================
 
         private void BuildMapSelect()
         {
             _mapSelectPanel = CreatePanel(_canvasRoot.transform, "MapSelectPanel");
-            _mapSelectPanel.GetComponent<Image>().color = new Color(0.08f, 0.08f, 0.12f, 1f);
+            _mapSelectPanel.GetComponent<Image>().color = new Color(0.08f, 0.07f, 0.05f, 1f);
 
-            // Title
             var titleObj = CreateText(_mapSelectPanel.transform, "Title",
-                "MAP PREVIEW", 42, TextAnchor.MiddleCenter, Color.white,
-                new Vector2(0.5f, 0.92f), new Vector2(0.5f, 0.92f), Vector2.zero, new Vector2(500, 55));
+                "LEVEL MAP 1-4", 42, TextAnchor.MiddleCenter, new Color(1f, 0.93f, 0.75f),
+                new Vector2(0.5f, 0.93f), new Vector2(0.5f, 0.93f), Vector2.zero, new Vector2(500, 55));
             titleObj.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
             CreateText(_mapSelectPanel.transform, "Subtitle",
-                "Campaign order: Town -> Suburban -> Industrial -> Research", 18, TextAnchor.MiddleCenter, new Color(0.55f, 0.55f, 0.6f),
-                new Vector2(0.5f, 0.86f), new Vector2(0.5f, 0.86f), Vector2.zero, new Vector2(400, 25));
+                "Town Center -> Suburban -> Industrial -> Research", 18, TextAnchor.MiddleCenter, new Color(0.95f, 0.86f, 0.68f),
+                new Vector2(0.5f, 0.875f), new Vector2(0.5f, 0.875f), Vector2.zero, new Vector2(760, 25));
 
-            // Map cards
-            BuildMapOption(_mapSelectPanel.transform, "TOWN CENTER",
-                "Streets, shops, and plazas. Balanced layout with moderate cover and varied sightlines.",
-                "LEVEL 1", new Color(0.3f, 0.5f, 0.3f), 0.72f, MapType.TownCenter);
+            var mapBoard = CreateInsetPanel(_mapSelectPanel.transform, "CampaignBoard",
+                new Vector2(0.1f, 0.2f), new Vector2(0.9f, 0.79f), new Color(0.86f, 0.72f, 0.46f, 0.94f));
+            var boardOutline = mapBoard.AddComponent<Outline>();
+            boardOutline.effectColor = new Color(0.34f, 0.2f, 0.07f, 0.9f);
+            boardOutline.effectDistance = new Vector2(2f, -2f);
 
-            BuildMapOption(_mapSelectPanel.transform, "SUBURBAN OUTSKIRTS",
-                "Houses, yards, and wide open spaces. Rewards mobility but offers less cover.",
-                "LEVEL 2", new Color(0.3f, 0.45f, 0.25f), 0.56f, MapType.Suburban);
+            Vector2 level1Pos = new Vector2(-360f, -130f);
+            Vector2 level2Pos = new Vector2(-120f, 130f);
+            Vector2 level3Pos = new Vector2(120f, -15f);
+            Vector2 level4Pos = new Vector2(360f, 150f);
 
-            BuildMapOption(_mapSelectPanel.transform, "INDUSTRIAL DISTRICT",
-                "Warehouses and narrow corridors. Tight chokepoints with limited escape routes.",
-                "LEVEL 3", new Color(0.55f, 0.4f, 0.25f), 0.40f, MapType.Industrial);
+            CreateCampaignPathSegment(mapBoard.transform, level1Pos, level2Pos, new Color(0.54f, 0.31f, 0.07f, 0.95f));
+            CreateCampaignPathSegment(mapBoard.transform, level2Pos, level3Pos, new Color(0.54f, 0.31f, 0.07f, 0.95f));
+            CreateCampaignPathSegment(mapBoard.transform, level3Pos, level4Pos, new Color(0.54f, 0.31f, 0.07f, 0.95f));
 
-            BuildMapOption(_mapSelectPanel.transform, "RESEARCH COMPLEX",
-                "Containment corridors and dense hazard zones. Highest pressure final layout.",
-                "LEVEL 4", new Color(0.35f, 0.55f, 0.75f), 0.24f, MapType.Research);
+            CreateCampaignNode(mapBoard.transform, 1, "Town Center", level1Pos, new Color(0.3f, 0.65f, 0.35f));
+            CreateCampaignNode(mapBoard.transform, 2, "Suburban", level2Pos, new Color(0.52f, 0.73f, 0.3f));
+            CreateCampaignNode(mapBoard.transform, 3, "Industrial", level3Pos, new Color(0.83f, 0.56f, 0.24f));
+            CreateCampaignNode(mapBoard.transform, 4, "Research", level4Pos, new Color(0.36f, 0.62f, 0.83f));
 
-            // Back button
+            CreateText(mapBoard.transform, "MapHint",
+                "Progress automatically from Level 1 to Level 4 in one run.", 16, TextAnchor.MiddleCenter,
+                new Color(0.2f, 0.15f, 0.1f),
+                new Vector2(0.5f, 0.08f), new Vector2(0.5f, 0.08f), Vector2.zero, new Vector2(720f, 30f));
+
             CreateButton(_mapSelectPanel.transform, "BackButton", "BACK", new Color(0.3f, 0.3f, 0.35f),
                 new Vector2(0.5f, 0.1f), new Vector2(200, 45), () =>
                 {
                     _mapSelectPanel?.SetActive(false);
                     _mainMenuPanel?.SetActive(true);
                 });
+        }
+
+        private void CreateCampaignPathSegment(Transform parent, Vector2 start, Vector2 end, Color color)
+        {
+            var segment = new GameObject("PathSegment");
+            segment.transform.SetParent(parent, false);
+
+            var rect = segment.AddComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.5f, 0.5f);
+            rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = (start + end) * 0.5f;
+
+            Vector2 delta = end - start;
+            rect.sizeDelta = new Vector2(delta.magnitude, 14f);
+            rect.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg);
+
+            var image = segment.AddComponent<Image>();
+            image.color = color;
+        }
+
+        private void CreateCampaignNode(Transform parent, int levelNumber, string mapName, Vector2 position, Color color)
+        {
+            var node = new GameObject($"LevelNode_{levelNumber}");
+            node.transform.SetParent(parent, false);
+
+            var nodeRect = node.AddComponent<RectTransform>();
+            nodeRect.anchorMin = new Vector2(0.5f, 0.5f);
+            nodeRect.anchorMax = new Vector2(0.5f, 0.5f);
+            nodeRect.pivot = new Vector2(0.5f, 0.5f);
+            nodeRect.anchoredPosition = position;
+            nodeRect.sizeDelta = new Vector2(110f, 110f);
+
+            var nodeImage = node.AddComponent<Image>();
+            nodeImage.sprite = GetCampaignNodeSprite();
+            nodeImage.color = color;
+            nodeImage.type = Image.Type.Simple;
+
+            var nodeOutline = node.AddComponent<Outline>();
+            nodeOutline.effectColor = new Color(0.15f, 0.12f, 0.05f, 0.85f);
+            nodeOutline.effectDistance = new Vector2(2f, -2f);
+
+            var levelLabel = CreateText(node.transform, "LevelNumber",
+                $"{levelNumber}", 44, TextAnchor.MiddleCenter, Color.black,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(80f, 80f));
+            levelLabel.GetComponent<Text>().fontStyle = FontStyle.Bold;
+
+            var levelTag = CreateText(node.transform, "LevelTag",
+                $"LEVEL {levelNumber}", 13, TextAnchor.MiddleCenter, new Color(0.15f, 0.1f, 0.05f),
+                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, 10f), new Vector2(120f, 18f));
+            levelTag.GetComponent<Text>().fontStyle = FontStyle.Bold;
+
+            var mapLabel = CreateText(node.transform, "MapLabel",
+                mapName.ToUpperInvariant(), 15, TextAnchor.MiddleCenter, new Color(0.18f, 0.12f, 0.05f),
+                new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, -22f), new Vector2(200f, 24f));
+            mapLabel.GetComponent<Text>().fontStyle = FontStyle.Bold;
+        }
+
+        private Sprite GetCampaignNodeSprite()
+        {
+            if (_campaignNodeSprite != null)
+            {
+                return _campaignNodeSprite;
+            }
+
+            const int size = 64;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false)
+            {
+                filterMode = FilterMode.Bilinear,
+                wrapMode = TextureWrapMode.Clamp
+            };
+
+            var pixels = new Color[size * size];
+            Vector2 center = new Vector2(size * 0.5f, size * 0.5f);
+            float radius = size * 0.46f;
+
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float distance = Vector2.Distance(new Vector2(x, y), center);
+                    pixels[y * size + x] = distance <= radius ? Color.white : Color.clear;
+                }
+            }
+
+            texture.SetPixels(pixels);
+            texture.Apply();
+            _campaignNodeSprite = Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100f);
+            return _campaignNodeSprite;
         }
 
         private void BuildMapOption(Transform parent, string mapName, string desc,
