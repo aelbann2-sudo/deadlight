@@ -122,28 +122,8 @@ namespace Deadlight.Core
         {
             var config = CreateInstance<NightConfig>();
             config.nightNumber = 4;
-            config.nightTitle = "The Horde";
-            config.description = "Heavy waves with Tank zombies. All mutations possible.";
-            config.waveCount = 4;
-            config.baseEnemyCount = 14;
-            config.timeBetweenWaves = 2.3f;
-            config.spawnInterval = 0.82f;
-            config.healthMultiplier = 1.75f;
-            config.damageMultiplier = 1.5f;
-            config.speedMultiplier = 1.24f;
-            config.hasBoss = false;
-            config.completionBonus = 300;
-            config.radioMessage = "One more night after this. The infected are massing. We're detecting massive life signs. Something big is coming.";
-            config.warningMessage = "Warning: Elite enemies detected";
-            return config;
-        }
-
-        public static NightConfig CreateNight5()
-        {
-            var config = CreateInstance<NightConfig>();
-            config.nightNumber = 5;
             config.nightTitle = "Final Stand";
-            config.description = "The final night. Survive the boss to earn your rescue.";
+            config.description = "The final level. Survive Subject 23 and secure extraction.";
             config.waveCount = 4;
             config.baseEnemyCount = 16;
             config.timeBetweenWaves = 2f;
@@ -153,7 +133,7 @@ namespace Deadlight.Core
             config.speedMultiplier = 1.32f;
             config.hasBoss = true;
             config.completionBonus = 500;
-            config.radioMessage = "This is it. Final night. Helicopter is en route but there's something massive heading your way. Everything we have depends on you surviving this. Good luck.";
+            config.radioMessage = "This is it. Final level. Helicopter is en route but Subject 23 is closing fast. Hold until dawn.";
             config.warningMessage = "WARNING: BOSS INCOMING";
             return config;
         }

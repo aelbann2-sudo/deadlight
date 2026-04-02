@@ -199,12 +199,19 @@ namespace Deadlight.Narrative
         private void StartDayObjective(int night)
         {
             StoryBeatDefinition[] arc = GetStoryArc();
-            if (night < 1 || night > arc.Length)
+            if (night < 1 || arc.Length == 0)
             {
                 return;
             }
 
-            currentBeat = arc[night - 1];
+            int finalLevel = GameManager.Instance != null ? GameManager.Instance.MaxNights : 4;
+            int beatIndex = Mathf.Clamp(night - 1, 0, arc.Length - 1);
+            if (night >= finalLevel)
+            {
+                beatIndex = arc.Length - 1;
+            }
+
+            currentBeat = arc[beatIndex];
             currentPhase = StoryObjectivePhase.DayInvestigation;
             currentTitle = currentBeat.DayTitle;
             currentDescription = currentBeat.DayDescription;
@@ -221,12 +228,19 @@ namespace Deadlight.Narrative
         private void StartNightObjective(int night)
         {
             StoryBeatDefinition[] arc = GetStoryArc();
-            if (night < 1 || night > arc.Length)
+            if (night < 1 || arc.Length == 0)
             {
                 return;
             }
 
-            StoryBeatDefinition beat = arc[night - 1];
+            int finalLevel = GameManager.Instance != null ? GameManager.Instance.MaxNights : 4;
+            int beatIndex = Mathf.Clamp(night - 1, 0, arc.Length - 1);
+            if (night >= finalLevel)
+            {
+                beatIndex = arc.Length - 1;
+            }
+
+            StoryBeatDefinition beat = arc[beatIndex];
             bool intelSecured = completedDayLeads.Contains(night);
 
             ClearActiveTarget();
@@ -240,7 +254,7 @@ namespace Deadlight.Narrative
             isObjectiveActive = true;
             isObjectiveComplete = intelSecured;
 
-            ShowObjectiveAnnouncement($"NIGHT {night}: {beat.NightTitle}");
+            ShowObjectiveAnnouncement($"LEVEL {night}: {beat.NightTitle}");
             UpdateUI();
             RaiseChanged();
         }
@@ -252,8 +266,9 @@ namespace Deadlight.Narrative
                 return;
             }
 
-            completedDayLeads.Add(currentBeat.Night);
-            completedBeats.Add(new StoryBeatRecord(currentBeat.Night, currentBeat.DayTitle, currentBeat.JournalSummary));
+            int currentLevel = GameManager.Instance != null ? GameManager.Instance.CurrentNight : currentBeat.Night;
+            completedDayLeads.Add(currentLevel);
+            completedBeats.Add(new StoryBeatRecord(currentLevel, currentBeat.DayTitle, currentBeat.JournalSummary));
 
             if (PointsSystem.Instance != null && currentBeat.RewardPoints > 0)
             {
@@ -471,6 +486,8 @@ namespace Deadlight.Narrative
                     return GetIndustrialArc();
                 case MapType.Suburban:
                     return GetSuburbanArc();
+                case MapType.Research:
+                    return GetResearchArc();
                 default:
                     return GetTownCenterArc();
             }
@@ -528,7 +545,7 @@ namespace Deadlight.Narrative
                     5,
                     "landing zone",
                     "Light the flare plan",
-                    "Return to the crash site and lock in the flare position for fifth-dawn extraction.",
+                    "Return to the crash site and lock in the flare position for final-dawn extraction.",
                     "Final stand",
                     "Subject 23 is tracking the signal. Hold the landing zone through the last night and the helicopter comes at dawn.",
                     "Extraction flare plan set. Dawn pickup is committed if the landing zone stays clear.",
@@ -591,7 +608,7 @@ namespace Deadlight.Narrative
                     5,
                     "north extraction pad",
                     "Set the extraction beacon",
-                    "Return to the north crash pad and place the final beacon for the fifth-dawn pickup.",
+                    "Return to the north crash pad and place the final beacon for final-dawn pickup.",
                     "Final containment break",
                     "Subject 23 is coming to the beacon. Hold the pad until sunrise and end the Lazarus chain here.",
                     "Beacon armed. Dawn extraction is locked to the north pad if you can keep it clear.",
@@ -634,7 +651,7 @@ namespace Deadlight.Narrative
                     "Trace the infection",
                     "Sweep the clinic for triage notes that explain how Lazarus cases reached the suburb.",
                     "Survive the spread",
-                    "The clinic saw the change before anyone named it. Night three will hit harder and faster.",
+                    "The clinic saw the change before anyone named it. Level three will hit harder and faster.",
                     "Clinic notes confirm Lazarus transfers were hidden among regular evac patients until symptoms escalated.",
                     "Clinic triage notes showed Lazarus patients were moved through the suburb under evacuation cover.",
                     SuburbanLayout.HospitalPosition,
@@ -654,13 +671,65 @@ namespace Deadlight.Narrative
                     5,
                     "cul-de-sac landing zone",
                     "Mark the landing circle",
-                    "Move to the cul-de-sac and lock the fifth-dawn landing circle before the horde closes in.",
+                    "Move to the cul-de-sac and lock the final-dawn landing circle before the horde closes in.",
                     "Final stand in the cul-de-sac",
                     "Subject 23 is homing in on the rescue flare. Hold the landing circle until sunrise.",
                     "Landing circle marked. Dawn pickup is committed if the cul-de-sac stays clear.",
                     "Marked the cul-de-sac as the final landing circle and committed the last stand to dawn extraction.",
                     SuburbanLayout.CulDeSacPosition,
                     160,
+                    true)
+            };
+        }
+
+        private static StoryBeatDefinition[] GetResearchArc()
+        {
+            return new[]
+            {
+                new StoryBeatDefinition(
+                    1,
+                    "quarantine gate",
+                    "Recover access credentials",
+                    "Reach the quarantine gate and pull the final facility access log from the lockdown terminal.",
+                    "Stabilize the perimeter",
+                    "Containment shutters are failing. Survive the opening wave before the inner labs are exposed.",
+                    "Gate logs recovered. The complex was sealed from command before evacuation arrived.",
+                    "Recovered quarantine credentials that prove command locked the complex and abandoned live personnel inside.",
+                    ResearchLayout.QuarantineGatePosition,
+                    70),
+                new StoryBeatDefinition(
+                    2,
+                    "reactor yard",
+                    "Restore emergency power",
+                    "Reach the reactor yard and reroute emergency power to the lab corridor doors.",
+                    "Hold the reactor lane",
+                    "With power restored, infected pressure will focus through the central lanes. Hold the line.",
+                    "Emergency grid is online. Main doors can cycle long enough for extraction prep.",
+                    "Brought emergency power back online and re-enabled the lab corridor locks for the final push.",
+                    ResearchLayout.ReactorYardPosition,
+                    90),
+                new StoryBeatDefinition(
+                    3,
+                    "data vault",
+                    "Extract Lazarus evidence",
+                    "Reach the data vault and secure the final Lazarus experiment records before they are purged.",
+                    "Protect the archive",
+                    "The horde is converging on the vault wings. Survive and keep the evidence intact.",
+                    "Data archive secured. Subject 23 containment logs are intact and transmitted to EVAC.",
+                    "Extracted Lazarus archive data proving Subject 23 was weaponized and deployed before collapse.",
+                    ResearchLayout.DataVaultPosition,
+                    120),
+                new StoryBeatDefinition(
+                    4,
+                    "main lab",
+                    "Trigger extraction beacon",
+                    "Reach the main lab and arm the final extraction beacon in the containment core.",
+                    "Final stand in containment",
+                    "Subject 23 is tracking the beacon through the lab corridors. Hold the complex until dawn.",
+                    "Beacon armed. Dawn extraction is committed if containment holds.",
+                    "Armed the final beacon in the main lab and committed the run to a last stand at dawn.",
+                    ResearchLayout.MainLabPosition,
+                    180,
                     true)
             };
         }

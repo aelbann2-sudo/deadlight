@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using Deadlight.Enemy;
 using Deadlight.Audio;
 using Deadlight.Data;
 using Deadlight.Level;
@@ -89,6 +90,26 @@ namespace Deadlight.Core
             CreateEnvironment();
             CreateEnemies();
             BuildHUD();
+        }
+
+        public void RebuildMap(MapType mapType, bool repositionPlayer = true)
+        {
+            activeMapConfig = MapConfig.GetConfigForType(mapType);
+
+            RemoveRuntimeObject("Ground");
+            RemoveRuntimeObject("Environment");
+            RemoveRuntimeObject("Enemies");
+
+            CreateGround();
+            CreateEnvironment();
+
+            LevelManager.Instance?.RefreshLevelObjects();
+            RefreshWaveSpawnPoints();
+
+            if (repositionPlayer)
+            {
+                RepositionPlayerToSpawn();
+            }
         }
 
         private bool ShouldBuildGameplayScene()
@@ -184,6 +205,7 @@ namespace Deadlight.Core
                 MapType.TownCenter => GetTileType_TownCenter(x, y),
                 MapType.Industrial => GetTileType_Industrial(x, y),
                 MapType.Suburban => GetTileType_Suburban(x, y),
+                MapType.Research => GetTileType_Research(x, y),
                 _ => GetTileType_TownCenter(x, y)
             };
         }
@@ -201,6 +223,11 @@ namespace Deadlight.Core
         private int GetTileType_Suburban(int x, int y)
         {
             return SuburbanLayout.GetTileType(activeMapConfig, x, y);
+        }
+
+        private int GetTileType_Research(int x, int y)
+        {
+            return ResearchLayout.GetTileType(activeMapConfig, x, y);
         }
 
         // ===================== PLAYER =====================
@@ -557,8 +584,70 @@ namespace Deadlight.Core
             {
                 MapType.Industrial => new IndustrialBuilder(),
                 MapType.Suburban => new SuburbanBuilder(),
+                MapType.Research => new ResearchBuilder(),
                 _ => new TownCenterBuilder()
             };
+        }
+
+        private void RemoveRuntimeObject(string objectName)
+        {
+            var existing = GameObject.Find(objectName);
+            if (existing == null)
+            {
+                return;
+            }
+
+            existing.SetActive(false);
+            if (Application.isPlaying)
+            {
+                Destroy(existing);
+            }
+            else
+            {
+                DestroyImmediate(existing);
+            }
+        }
+
+        private void RefreshWaveSpawnPoints()
+        {
+            var waveManager = FindFirstObjectByType<WaveManager>();
+            if (waveManager == null)
+            {
+                return;
+            }
+
+            waveManager.ClearSpawnPoints();
+
+            var spawners = FindObjectsByType<EnemySpawner>(FindObjectsSortMode.None);
+            foreach (var spawner in spawners)
+            {
+                if (spawner != null)
+                {
+                    waveManager.AddSpawnPoint(spawner.transform);
+                }
+            }
+        }
+
+        private void RepositionPlayerToSpawn()
+        {
+            var player = GameObject.FindWithTag("Player");
+            if (player == null)
+            {
+                return;
+            }
+
+            Vector3 spawnPosition = LevelManager.Instance != null && LevelManager.Instance.PlayerSpawnPoint != null
+                ? LevelManager.Instance.PlayerSpawnPoint.position
+                : Vector3.zero;
+
+            player.transform.position = spawnPosition;
+
+            var rb = player.GetComponent<Rigidbody2D>();
+            if (rb != null)
+            {
+                rb.linearVelocity = Vector2.zero;
+                rb.angularVelocity = 0f;
+            }
         }
 
         private void SpawnLorePickups(Transform parent)
@@ -905,9 +994,9 @@ namespace Deadlight.Core
 
             armorPanelObj.SetActive(false);
 
-            // Night & Round (top center)
+            // Level & Round (top center)
             var nightText = CreateUIText(canvas.transform, "NightText",
-                new Vector2(0.5f, 1), "NIGHT 1", font, 32, TextAnchor.UpperCenter, new Color(0.9f, 0.8f, 0.5f),
+                new Vector2(0.5f, 1), "LEVEL 1", font, 32, TextAnchor.UpperCenter, new Color(0.9f, 0.8f, 0.5f),
                 new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -12), new Vector2(300, 40));
             nightText.GetComponent<Text>().fontStyle = FontStyle.Bold;
 

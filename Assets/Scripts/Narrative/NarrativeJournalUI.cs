@@ -310,7 +310,7 @@ namespace Deadlight.Narrative
             MapType map = boundGameManager != null ? boundGameManager.SelectedMap : MapType.TownCenter;
             int night = boundGameManager != null ? boundGameManager.CurrentNight : 1;
             string stateLabel = boundGameManager != null ? boundGameManager.CurrentState.ToString() : "Unknown";
-            headerText.text = $"FIELD JOURNAL // {GetMapLabel(map)} // NIGHT {night} // {stateLabel.ToUpperInvariant()}";
+            headerText.text = $"FIELD JOURNAL // {GetMapLabel(map)} // LEVEL {night} // {stateLabel.ToUpperInvariant()}";
 
             objectiveText.text = BuildObjectiveSection();
             storyLogText.text = BuildStoryLog();
@@ -343,7 +343,7 @@ namespace Deadlight.Narrative
             for (int i = 0; i < records.Count; i++)
             {
                 StoryBeatRecord record = records[i];
-                builder.Append("Night ");
+                builder.Append("Level ");
                 builder.Append(record.Night);
                 builder.Append(": ");
                 builder.AppendLine(record.Title);
@@ -419,6 +419,8 @@ namespace Deadlight.Narrative
                     return "Industrial District";
                 case MapType.Suburban:
                     return "Suburban Outskirts";
+                case MapType.Research:
+                    return "Research Complex";
                 default:
                     return "Town Center";
             }

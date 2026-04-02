@@ -82,6 +82,18 @@ namespace Deadlight.Level
             }
         }
 
+        public void RefreshLevelObjects()
+        {
+            zones = FindObjectsByType<MapZone>(FindObjectsSortMode.None).ToList();
+            spawnPoints = FindObjectsByType<SpawnPoint>(FindObjectsSortMode.None).ToList();
+            obstacles = FindObjectsByType<Obstacle>(FindObjectsSortMode.None).ToList();
+
+            safeZone = zones.FirstOrDefault(z => z.Type == ZoneType.SafeZone);
+            shopZone = zones.FirstOrDefault(z => z.IsShopLocation);
+
+            ValidateLevel();
+        }
+
         private void ValidateLevel()
         {
             if (playerSpawnPoint == null)

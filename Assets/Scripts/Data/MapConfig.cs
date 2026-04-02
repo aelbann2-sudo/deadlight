@@ -185,6 +185,51 @@ namespace Deadlight.Data
             return config;
         }
 
+        public static MapConfig CreateResearch()
+        {
+            var config = CreateInstance<MapConfig>();
+            config.mapName = "Research Complex";
+            config.mapType = MapType.Research;
+            config.description = "Quarantine labs, containment corridors, and pressure chokepoints. Tightest final-level arena.";
+            config.halfWidth = 36;
+            config.halfHeight = 36;
+            config.perimeterHalfW = 35f;
+            config.perimeterHalfH = 35f;
+            config.houseCount = 0;
+            config.treeCount = 4;
+            config.rockCount = 10;
+            config.crateCount = 8;
+            config.barrelCount = 16;
+            config.carCount = 4;
+            config.pathWidth = 1.2f;
+            config.hasDiagonalConcrete = false;
+            config.streetGridSpacing = 0f;
+            config.mainRoadWidth = 1.8f;
+            config.sideRoadWidth = 1.2f;
+            config.groundTint = new Color(0.72f, 0.78f, 0.82f);
+            config.buildingTint = new Color(0.76f, 0.82f, 0.9f);
+            config.buildingDensity = 1.35f;
+            config.coverDensity = 1.25f;
+            config.openAreaSize = 0.8f;
+            config.roadComplexity = 1.4f;
+            config.layoutType = MapLayoutType.Corridor;
+            config.enemySpawnPositions = new[]
+            {
+                new Vector3(30f, 30f, 0f), new Vector3(-30f, 30f, 0f),
+                new Vector3(30f, -30f, 0f), new Vector3(-30f, -30f, 0f),
+                new Vector3(0f, 32f, 0f), new Vector3(0f, -32f, 0f),
+                new Vector3(32f, 0f, 0f), new Vector3(-32f, 0f, 0f)
+            };
+            config.lorePositions = new[]
+            {
+                new Vector3(-26f, 26f, 0f), new Vector3(26f, 26f, 0f),
+                new Vector3(-26f, -26f, 0f), new Vector3(26f, -26f, 0f),
+                new Vector3(-12f, 8f, 0f), new Vector3(12f, 8f, 0f),
+                new Vector3(-10f, -18f, 0f), new Vector3(10f, -18f, 0f)
+            };
+            return config;
+        }
+
         public static MapConfig GetConfigForType(MapType type)
         {
             return type switch
@@ -192,6 +237,7 @@ namespace Deadlight.Data
                 MapType.TownCenter => CreateTownCenter(),
                 MapType.Industrial => CreateIndustrial(),
                 MapType.Suburban => CreateSuburban(),
+                MapType.Research => CreateResearch(),
                 _ => CreateTownCenter()
             };
         }

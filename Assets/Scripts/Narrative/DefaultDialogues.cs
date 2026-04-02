@@ -13,7 +13,6 @@ namespace Deadlight.Narrative
             dialogues.Add(CreateNight2StartDialogue());
             dialogues.Add(CreateNight3StartDialogue());
             dialogues.Add(CreateNight4StartDialogue());
-            dialogues.Add(CreateNight5StartDialogue());
             dialogues.Add(CreateVictoryDialogue());
             dialogues.Add(CreateGameOverDialogue());
             dialogues.Add(CreateGameStartDialogue());
@@ -33,7 +32,7 @@ namespace Deadlight.Narrative
                 {
                     "*static* This is an Emergency Broadcast System message...",
                     "The evacuation convoy has departed. All remaining survivors must shelter in place.",
-                    "A rescue helicopter will attempt extraction at dawn on the fifth day.",
+                    "A rescue helicopter will attempt extraction at final dawn.",
                     "Clear the landing zone of infected. Repeat: clear the LZ.",
                     "Good luck, survivor. *static*"
                 });
@@ -87,27 +86,10 @@ namespace Deadlight.Narrative
                 4,
                 new string[]
                 {
-                    "*static* Rescue ETA: 24 hours...",
+                    "*static* Final level, survivor...",
                     "You've made it further than anyone else in your sector.",
-                    "The helicopter is being prepped. Just one more night after this.",
-                    "Stay alive. We're coming for you. *static*"
-                });
-            return dialogue;
-        }
-
-        private static DialogueData CreateNight5StartDialogue()
-        {
-            var dialogue = ScriptableObject.CreateInstance<DialogueData>();
-            SetDialogueValues(dialogue,
-                "night_5_start",
-                "Radio Command",
-                DialogueTriggerType.NightStart,
-                5,
-                new string[]
-                {
-                    "*static* Final night, survivor...",
                     "We're detecting a massive infected signature heading your way.",
-                    "Something big. Something we haven't seen before.",
+                    "Subject 23 is active. Something big. Something we haven't seen before.",
                     "Hold the line. The helicopter will be there at dawn.",
                     "This is it. Make it count. *static*"
                 });
@@ -121,7 +103,7 @@ namespace Deadlight.Narrative
                 "victory",
                 "Helicopter Pilot",
                 DialogueTriggerType.Victory,
-                5,
+                4,
                 new string[]
                 {
                     "*helicopter sounds* Survivor, we have visual!",
@@ -162,7 +144,7 @@ namespace Deadlight.Narrative
                 new string[]
                 {
                     "The convoy... they left without me.",
-                    "Five days. I just need to survive five days.",
+                    "Four levels. I just need to survive four levels.",
                     "Find supplies during the day. Hold out at night.",
                     "I can do this. I have to."
                 });

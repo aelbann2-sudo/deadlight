@@ -86,35 +86,28 @@ namespace Deadlight.Systems
                 new NightMilestone
                 {
                     night = 1,
-                    description = "Survive Night 1 - Shotgun and Barricades unlocked",
+                    description = "Clear Level 1 - Shotgun and barricades unlocked",
                     bonusPoints = 100,
                     isCompleted = false
                 },
                 new NightMilestone
                 {
                     night = 2,
-                    description = "Survive Night 2 - Automatic Rifle and Traps unlocked",
+                    description = "Clear Level 2 - Automatic rifle and traps unlocked",
                     bonusPoints = 150,
                     isCompleted = false
                 },
                 new NightMilestone
                 {
                     night = 3,
-                    description = "Survive Night 3 - Grenade Launcher unlocked",
+                    description = "Clear Level 3 - Grenade launcher unlocked",
                     bonusPoints = 200,
                     isCompleted = false
                 },
                 new NightMilestone
                 {
                     night = 4,
-                    description = "Survive Night 4 - Flamethrower and advanced upgrades",
-                    bonusPoints = 300,
-                    isCompleted = false
-                },
-                new NightMilestone
-                {
-                    night = 5,
-                    description = "Survive Night 5 - Victory! All weapons mastered",
+                    description = "Clear Level 4 - Final stand complete",
                     bonusPoints = 500,
                     isCompleted = false
                 }
@@ -140,8 +133,8 @@ namespace Deadlight.Systems
             }
             else if (newState == GameState.Victory)
             {
-                CompleteMilestone(5);
-                highestNightReached = 5;
+                CompleteMilestone(4);
+                highestNightReached = 4;
             }
         }
 
@@ -168,7 +161,7 @@ namespace Deadlight.Systems
                 var pointsSystem = PointsSystem.Instance;
                 if (pointsSystem != null && milestone.bonusPoints > 0)
                 {
-                    pointsSystem.AddPoints(milestone.bonusPoints, $"Night {night} Milestone");
+                    pointsSystem.AddPoints(milestone.bonusPoints, $"Level {night} Milestone");
                 }
 
                 OnMilestoneCompleted?.Invoke(milestone);

@@ -286,7 +286,7 @@ namespace Deadlight.UI
         private void UpdateNight(int night)
         {
             if (nightText != null)
-                nightText.text = $"Night {night}";
+                nightText.text = $"Level {night}";
         }
 
         private void UpdateEnemyCount(int count)
@@ -379,7 +379,7 @@ namespace Deadlight.UI
                     ShowStatus("DAYTIME - Prepare and explore!", 3f);
                     break;
                 case GameState.NightPhase:
-                    ShowStatus("NIGHT FALLS - Survive!", 3f);
+                    ShowStatus("LEVEL ACTIVE - Survive!", 3f);
                     break;
             }
         }

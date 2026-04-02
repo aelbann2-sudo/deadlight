@@ -37,7 +37,7 @@ namespace Deadlight.Systems
         {
             if (summary.nightsSurvived >= 1)
             {
-                Unlock("Title: Night Watch");
+                Unlock("Title: Level Watch");
             }
 
             if (summary.nightsSurvived >= 3)
@@ -45,7 +45,7 @@ namespace Deadlight.Systems
                 Unlock("Badge: Dark Survivor");
             }
 
-            if (summary.nightsSurvived >= 5)
+            if (summary.nightsSurvived >= 4)
             {
                 Unlock("Skin: Extraction Veteran");
             }

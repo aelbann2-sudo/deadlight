@@ -137,8 +137,8 @@ namespace Deadlight.Narrative
                 loreTotal = EnvironmentalLore.Instance.TotalLoreCount;
             }
 
-            int maxNights = GameManager.Instance != null ? GameManager.Instance.MaxNights : 5;
-            string statsLine = $"SURVIVED: {maxNights} NIGHTS  |  KILLS: {kills}  |  LORE: {loreFound}/{loreTotal}";
+            int maxNights = GameManager.Instance != null ? GameManager.Instance.MaxNights : 4;
+            string statsLine = $"CLEARED: {maxNights} LEVELS  |  KILLS: {kills}  |  LORE: {loreFound}/{loreTotal}";
             yield return ShowLine(statsLine, new Color(0.9f, 0.85f, 0.5f), 5f);
 
             yield return new WaitForSecondsRealtime(1f);
@@ -168,7 +168,7 @@ namespace Deadlight.Narrative
                 nightsSurvived = PointsSystem.Instance.NightsSurvived;
             }
 
-            string statsLine = $"SURVIVED: {nightsSurvived} NIGHTS  |  KILLS: {kills}";
+            string statsLine = $"CLEARED: {nightsSurvived} LEVELS  |  KILLS: {kills}";
             yield return ShowLine(statsLine, new Color(0.8f, 0.3f, 0.3f), 4f);
 
             yield return new WaitForSecondsRealtime(0.5f);

@@ -19,7 +19,7 @@ namespace Deadlight.Core
     }
 
     /// <summary>
-    /// Manages the full game flow: Main Menu -> Day Phase -> Night Phase -> Dawn Phase -> repeat for 5 nights -> Victory or Game Over.
+    /// Manages the full game flow: Main Menu -> Day Phase -> Night Phase -> Dawn Phase -> repeat for 4 levels -> Victory or Game Over.
     /// Works with GameManager, WaveSpawner, and DayNightCycle.
     /// </summary>
     public class GameFlowController : MonoBehaviour
@@ -27,7 +27,7 @@ namespace Deadlight.Core
         public static GameFlowController Instance { get; private set; }
 
         [Header("Phase Settings")]
-        [SerializeField] private float[] dayDurationsByNight = { 70f, 60f, 55f, 50f, 45f };
+        [SerializeField] private float[] dayDurationsByNight = { 70f, 60f, 52f, 45f };
         [SerializeField] private float nightDuration = 120f;
         [SerializeField] private int healthPickupCount = 6;
         [SerializeField] private int ammoPickupCount = 8;
@@ -127,13 +127,19 @@ namespace Deadlight.Core
         }
 
         /// <summary>
-        /// Call to start a new game. Resets everything and begins Night 1 Day Phase.
+        /// Call to start a new game. Resets everything and begins Level 1 Day Phase.
         /// </summary>
+        public void StartGame()
+        {
+            StartGame(Difficulty.Normal);
+        }
+
         public void StartGame(Difficulty difficulty)
         {
             if (GameManager.Instance == null) return;
 
-            GameManager.Instance.SetDifficulty(difficulty);
+            // Campaign mode is level-based only; keep runtime balancing on Normal.
+            GameManager.Instance.SetDifficulty(Difficulty.Normal);
 
             // Use an absolute duration so repeated restarts do not compound scaling.
             if (dayNightCycle != null)
@@ -143,11 +149,11 @@ namespace Deadlight.Core
 
             ClearSpawnedPickups();
             GameManager.Instance.StartNewGame();
-            OnStatusMessage?.Invoke($"Day Phase - Night {GameManager.Instance.CurrentNight}");
+            OnStatusMessage?.Invoke($"Day Phase - Level {GameManager.Instance.CurrentNight}");
         }
 
         /// <summary>
-        /// Call when the player clicks Continue in the Dawn/Shop phase. Awards points and advances to next night.
+        /// Call when the player clicks Continue in the Dawn/Shop phase. Awards points and advances to next level.
         /// </summary>
         public void RequestDawnContinue()
         {
@@ -163,7 +169,7 @@ namespace Deadlight.Core
 
             OnDawnPhaseEnded?.Invoke();
             GameManager.Instance.AdvanceToNextNight();
-            OnStatusMessage?.Invoke($"Day Phase - Night {GameManager.Instance.CurrentNight}");
+            OnStatusMessage?.Invoke($"Day Phase - Level {GameManager.Instance.CurrentNight}");
         }
 
         /// <summary>
@@ -337,7 +343,7 @@ namespace Deadlight.Core
                     SpawnSupplyCrates();
                     SpawnObjectiveInteractables();
                     ScheduleDayContestedDrop();
-                    OnStatusMessage?.Invoke($"Day Phase - Night {GameManager.Instance?.CurrentNight ?? 1}");
+                    OnStatusMessage?.Invoke($"Day Phase - Level {GameManager.Instance?.CurrentNight ?? 1}");
                     break;
                 case GameState.NightPhase:
                     if (CraftingSystem.Instance != null)
@@ -357,12 +363,12 @@ namespace Deadlight.Core
                     nextHelicopterDropTime = float.PositiveInfinity;
                     dayContestedDropState = DayContestedDropState.Inactive;
                     OnDawnPhaseStarted?.Invoke();
-                    OnStatusMessage?.Invoke("Dawn - Visit the shop and prepare for the next night.");
+                    OnStatusMessage?.Invoke("Dawn - Visit the shop and prepare for the next level.");
                     break;
                 case GameState.Victory:
                     nextHelicopterDropTime = float.PositiveInfinity;
                     dayContestedDropState = DayContestedDropState.Inactive;
-                    OnStatusMessage?.Invoke("Victory! You survived all 5 nights!");
+                    OnStatusMessage?.Invoke("Victory! You cleared all 4 levels!");
                     break;
                 case GameState.GameOver:
                     nextHelicopterDropTime = float.PositiveInfinity;
