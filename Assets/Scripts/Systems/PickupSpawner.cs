@@ -314,6 +314,7 @@ namespace Deadlight.Systems
             }
 
             consumed = true;
+            UI.GameplayHelpSystem.Instance?.ShowPickup(type, Mathf.Max(1, Mathf.RoundToInt(value)));
 
             var clip = Audio.ProceduralAudioGenerator.GeneratePickup();
             if (clip != null)

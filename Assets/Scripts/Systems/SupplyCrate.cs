@@ -289,26 +289,32 @@ namespace Deadlight.Systems
             }
             else
             {
+                var gameplayHelp = Deadlight.UI.GameplayHelpSystem.Instance;
+
                 switch (contents)
                 {
                     case CrateContents.Ammo:
                         int ammo = Mathf.RoundToInt(Random.Range(20, 50) * nightMult * tierMult);
                         player?.GetComponent<PlayerShooting>()?.AddAmmo(ammo);
+                        gameplayHelp?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Ammo, ammo);
                         reward = $"+{ammo} Ammo";
                         break;
                     case CrateContents.Health:
                         float heal = Random.Range(15f, 35f) * nightMult * tierMult;
                         player?.GetComponent<PlayerHealth>()?.Heal(heal);
+                        gameplayHelp?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Health, Mathf.RoundToInt(heal));
                         reward = $"+{Mathf.RoundToInt(heal)} HP";
                         break;
                     case CrateContents.Points:
                         int pts = Mathf.RoundToInt(Random.Range(30, 80) * nightMult * tierMult);
                         PointsSystem.Instance?.AddPoints(pts, "Supply Crate");
+                        gameplayHelp?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Points, pts);
                         reward = $"+{pts} Points";
                         break;
                     case CrateContents.Powerup:
                         var ps = FindFirstObjectByType<PowerupSystem>();
                         if (ps != null) ps.GrantRandomPowerup();
+                        gameplayHelp?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Powerup, 1);
                         reward = "POWERUP!";
                         break;
                     case CrateContents.Armor:
@@ -326,6 +332,7 @@ namespace Deadlight.Systems
                             PlayerArmor.Instance?.EquipVest(armorTier);
                             reward = $"Lv{(int)armorTier} Vest!";
                         }
+                        gameplayHelp?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Armor, 1);
                         break;
                     default:
                         reward = "Loot!";
@@ -397,6 +404,12 @@ namespace Deadlight.Systems
             }
 
             PointsSystem.Instance?.AddPoints(points, "Contested Drop");
+            if (blueprintTokens > 0)
+            {
+                Deadlight.UI.GameplayHelpSystem.Instance?.ShowItem(
+                    Deadlight.UI.GameplayGuideContent.ItemIds.BlueprintToken,
+                    blueprintTokens);
+            }
 
             var sb = new StringBuilder("DROP SECURED: ");
             sb.Append($"+{scrap} Scrap, +{wood} Wood");

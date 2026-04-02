@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -26,6 +27,8 @@ namespace Deadlight.Narrative
     public class EnvironmentalLore : MonoBehaviour
     {
         public static EnvironmentalLore Instance { get; private set; }
+
+        public event Action<LoreEntry> OnLoreDiscovered;
 
         [Header("Lore Database")]
         [SerializeField] private List<LoreEntry> allLoreEntries = new List<LoreEntry>();
@@ -179,6 +182,78 @@ namespace Deadlight.Narrative
                 category = LoreCategory.LabNotes,
                 content = "If you're reading this, I'm already gone. I created the thing that ended the world. I can't undo what I've done, but maybe you can. Subject 23 has a weakness: it can't regenerate from complete cellular destruction. Overwhelm it. Burn it. End what I started. Please."
             });
+
+            allLoreEntries.Add(new LoreEntry
+            {
+                id = "facility_1",
+                title = "Facility Intake Sheet",
+                category = LoreCategory.LabNotes,
+                content = "PROJECT LAZARUS - Intake Summary\n\nObjective: accelerated tissue regeneration under battlefield trauma.\nSecondary review notes indicate military observers requested survivability metrics, obedience screening, and rapid deployment estimates.\n\nSomeone crossed out 'medical trial' and wrote 'weapons program' in red pen."
+            });
+
+            allLoreEntries.Add(new LoreEntry
+            {
+                id = "survivor_log",
+                title = "Neighborhood Voice Memo",
+                category = LoreCategory.SurvivorJournal,
+                content = "If anybody hears this, the buses never reached the school. They turned the gym into a shelter, then a triage room, then locked the doors. If you're still moving, stay ahead of the noise and never wait for the convoy twice."
+            });
+
+            allLoreEntries.Add(new LoreEntry
+            {
+                id = "evac_manifest",
+                title = "Evacuation Manifest - Flight 7",
+                category = LoreCategory.RadioLog,
+                content = "Flight 7 was scheduled to clear the district at first light with one final sweep before full quarantine. Margin notes list the landing zone as 'safe if perimeter remains open.' The last line is handwritten: 'convoy departed early - one survivor unaccounted for.'"
+            });
+
+            allLoreEntries.Add(new LoreEntry
+            {
+                id = "lz_brief",
+                title = "Landing Zone Brief",
+                category = LoreCategory.MilitaryOrders,
+                content = "Extraction is authorized only at dawn on Day 5 if the zone remains free of infected concentration. Survivors are instructed to preserve line of sight, maintain flares, and prevent corpse buildup near the approach vector."
+            });
+
+            allLoreEntries.Add(new LoreEntry
+            {
+                id = "checkpoint_report",
+                title = "Checkpoint Status Report",
+                category = LoreCategory.MilitaryOrders,
+                content = "Civilian throughput suspended after breach at the north barricade. Orders revised: hold infected inside the district, deny movement across the quarantine line, and await sealed command transfer. No guidance provided for stranded noncombatants."
+            });
+
+            allLoreEntries.Add(new LoreEntry
+            {
+                id = "convoy_blackbox",
+                title = "Convoy Recorder Fragment",
+                category = LoreCategory.RadioLog,
+                content = "Recorder playback recovered from the convoy lead truck:\n\n'Route is blocked. Repeat, blocked. Air support is gone. We are leaving now.'\n\nThe rest of the recording is static and small-arms fire."
+            });
+
+            allLoreEntries.Add(new LoreEntry
+            {
+                id = "evac_notice",
+                title = "Emergency Evacuation Notice",
+                category = LoreCategory.NewspaperClipping,
+                content = "Residents of the outer suburbs are ordered to report to designated school and clinic shelters for screening and transport. Bring only essential medicine, identification, and one bag. Pets are prohibited. Curfew begins immediately."
+            });
+
+            allLoreEntries.Add(new LoreEntry
+            {
+                id = "field_report_7",
+                title = "Field Report - Route 7",
+                category = LoreCategory.MilitaryOrders,
+                content = "Route 7 collapsed during the second relocation wave. Infected behavior was no longer random; they were hitting bus lanes and med tents first. Recommend abandoning neighborhood sweeps and falling back to hardened perimeter zones."
+            });
+
+            allLoreEntries.Add(new LoreEntry
+            {
+                id = "tower_maintenance",
+                title = "Tower Maintenance Log",
+                category = LoreCategory.RadioLog,
+                content = "Backup power to the neighborhood relay remains unstable but functional. With enough fuel, one more long-range signal could be pushed through at dawn. Technician note: 'If anyone is still out there, this tower is the only thing still speaking for us.'"
+            });
         }
 
         public void DiscoverLore(string loreId)
@@ -193,6 +268,7 @@ namespace Deadlight.Narrative
                 entry.discovered = true;
                 Debug.Log($"[Lore] Discovered: {entry.title}");
 
+                OnLoreDiscovered?.Invoke(entry);
                 ShowLoreNotification(entry);
             }
         }
@@ -209,15 +285,20 @@ namespace Deadlight.Narrative
             type.GetField("playRadioStatic", flags)?.SetValue(dialogue, false);
             type.GetField("playOnce", flags)?.SetValue(dialogue, true);
 
+            string prompt = $"Recovered: {entry.title}. Press J to review the journal.";
             var lines = new DialogueLine[]
             {
-                new DialogueLine { text = entry.content, displayDuration = 5f, autoAdvance = false }
+                new DialogueLine { text = prompt, displayDuration = 3.5f, autoAdvance = true }
             };
             type.GetField("lines", flags)?.SetValue(dialogue, lines);
 
             if (NarrativeManager.Instance != null)
             {
                 NarrativeManager.Instance.QueueDialogue(dialogue);
+            }
+            else
+            {
+                Core.RadioTransmissions.Instance?.ShowMessage(prompt, 3.5f);
             }
         }
 
@@ -234,6 +315,12 @@ namespace Deadlight.Narrative
         public List<LoreEntry> GetLoreByCategory(LoreCategory category)
         {
             return allLoreEntries.FindAll(l => l.category == category);
+        }
+
+        public bool TryGetLoreEntry(string loreId, out LoreEntry entry)
+        {
+            entry = allLoreEntries.Find(l => l.id == loreId);
+            return entry != null;
         }
 
         public void ResetDiscoveries()
