@@ -13,7 +13,8 @@ namespace Deadlight.Systems
         AmmoCache,
         FieldMed,
         ShockBeacon,
-        WeakpointIntel
+        WeakpointIntel,
+        TacticalPrep
     }
 
     [Serializable]
@@ -121,8 +122,7 @@ namespace Deadlight.Systems
         {
             CraftingRecipeId.AmmoCache,
             CraftingRecipeId.FieldMed,
-            CraftingRecipeId.ShockBeacon,
-            CraftingRecipeId.WeakpointIntel
+            CraftingRecipeId.TacticalPrep
         };
 
         private void Awake()
@@ -179,8 +179,7 @@ namespace Deadlight.Systems
 
             if (Input.GetKeyDown(KeyCode.Alpha1)) Craft(CraftingRecipeId.AmmoCache);
             if (Input.GetKeyDown(KeyCode.Alpha2)) Craft(CraftingRecipeId.FieldMed);
-            if (Input.GetKeyDown(KeyCode.Alpha3)) Craft(CraftingRecipeId.ShockBeacon);
-            if (Input.GetKeyDown(KeyCode.Alpha4)) Craft(CraftingRecipeId.WeakpointIntel);
+            if (Input.GetKeyDown(KeyCode.Alpha3)) Craft(CraftingRecipeId.TacticalPrep);
 
             RefreshPanelText();
         }
@@ -411,8 +410,7 @@ namespace Deadlight.Systems
                 2,
                 new List<ResourceAmount>
                 {
-                    new ResourceAmount(ResourceType.Scrap, 4),
-                    new ResourceAmount(ResourceType.Wood, 2)
+                    new ResourceAmount(ResourceType.Salvage, 3)
                 });
 
             recipes[CraftingRecipeId.FieldMed] = new CraftingRecipeDefinition(
@@ -422,32 +420,18 @@ namespace Deadlight.Systems
                 2,
                 new List<ResourceAmount>
                 {
-                    new ResourceAmount(ResourceType.Chemicals, 3),
-                    new ResourceAmount(ResourceType.Scrap, 1)
+                    new ResourceAmount(ResourceType.Salvage, 2),
+                    new ResourceAmount(ResourceType.TechParts, 1)
                 });
 
-            recipes[CraftingRecipeId.ShockBeacon] = new CraftingRecipeDefinition(
-                CraftingRecipeId.ShockBeacon,
-                "Shock Beacon",
-                $"Night enemies move {Mathf.RoundToInt((1f - shockBeaconEnemySpeedMultiplier) * 100f)}% slower.",
-                2,
+            recipes[CraftingRecipeId.TacticalPrep] = new CraftingRecipeDefinition(
+                CraftingRecipeId.TacticalPrep,
+                "Tactical Prep",
+                $"Night enemies -{Mathf.RoundToInt((1f - weakpointEnemyHealthMultiplier) * 100f)}% HP and -{Mathf.RoundToInt((1f - shockBeaconEnemySpeedMultiplier) * 100f)}% speed.",
+                1,
                 new List<ResourceAmount>
                 {
-                    new ResourceAmount(ResourceType.Electronics, 3),
-                    new ResourceAmount(ResourceType.Chemicals, 2),
-                    new ResourceAmount(ResourceType.BlueprintToken, 1)
-                });
-
-            recipes[CraftingRecipeId.WeakpointIntel] = new CraftingRecipeDefinition(
-                CraftingRecipeId.WeakpointIntel,
-                "Weakpoint Intel",
-                $"Night enemies lose {Mathf.RoundToInt((1f - weakpointEnemyHealthMultiplier) * 100f)}% HP & damage.",
-                2,
-                new List<ResourceAmount>
-                {
-                    new ResourceAmount(ResourceType.Electronics, 2),
-                    new ResourceAmount(ResourceType.Scrap, 3),
-                    new ResourceAmount(ResourceType.BlueprintToken, 1)
+                    new ResourceAmount(ResourceType.TechParts, 3)
                 });
 
             foreach (var id in recipeOrder)
@@ -490,6 +474,11 @@ namespace Deadlight.Systems
                     pendingNightPrep.enemyHealthMultiplier *= weakpointEnemyHealthMultiplier;
                     pendingNightPrep.enemyDamageMultiplier *= weakpointEnemyDamageMultiplier;
                     break;
+                case CraftingRecipeId.TacticalPrep:
+                    pendingNightPrep.enemySpeedMultiplier *= shockBeaconEnemySpeedMultiplier;
+                    pendingNightPrep.enemyHealthMultiplier *= weakpointEnemyHealthMultiplier;
+                    pendingNightPrep.enemyDamageMultiplier *= weakpointEnemyDamageMultiplier;
+                    break;
             }
         }
 
@@ -500,22 +489,15 @@ namespace Deadlight.Systems
 
         private bool IsHintResource(ResourceType type)
         {
-            return type == ResourceType.Scrap ||
-                   type == ResourceType.Wood ||
-                   type == ResourceType.Chemicals ||
-                   type == ResourceType.Electronics ||
-                   type == ResourceType.BlueprintToken;
+            return type == ResourceType.Salvage || type == ResourceType.TechParts;
         }
 
         private string GetResourceHint(ResourceType type)
         {
             return type switch
             {
-                ResourceType.Scrap => "Ammo Cache / Weakpoint Intel",
-                ResourceType.Wood => "Ammo Cache / Drop Fortification",
-                ResourceType.Chemicals => "Field Med / Shock Beacon",
-                ResourceType.Electronics => "Shock Beacon / Weakpoint Intel",
-                ResourceType.BlueprintToken => "Advanced recipes",
+                ResourceType.Salvage => "Ammo Cache / Field Med",
+                ResourceType.TechParts => "Field Med / Tactical Prep",
                 _ => "Crafting"
             };
         }
@@ -692,8 +674,7 @@ namespace Deadlight.Systems
             {
                 CraftingRecipeId.AmmoCache => "1",
                 CraftingRecipeId.FieldMed => "2",
-                CraftingRecipeId.ShockBeacon => "3",
-                CraftingRecipeId.WeakpointIntel => "4",
+                CraftingRecipeId.TacticalPrep => "3",
                 _ => "?"
             };
         }

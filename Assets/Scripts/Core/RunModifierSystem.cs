@@ -109,39 +109,47 @@ namespace Deadlight.Core
 
         public void RollNightEvent(int night, int seed)
         {
+            if (night <= 1)
+            {
+                activeWorldEvent = "";
+                OnWorldEventChanged?.Invoke(activeWorldEvent);
+                return;
+            }
+
             var events = new[]
             {
-                "Fog Front",
-                "Blackout",
-                "Supply Drop",
-                "Roaming Elite"
+                "Thick Fog",
+                "Full Moon",
+                "Contamination",
+                "Reinforcements"
             };
 
             var rng = new System.Random(seed + night * 389);
             activeWorldEvent = events[rng.Next(0, events.Length)];
             OnWorldEventChanged?.Invoke(activeWorldEvent);
 
-            if (activeWorldEvent == "Supply Drop")
+            var cam = Camera.main;
+            switch (activeWorldEvent)
             {
-                var player = GameObject.Find("Player");
-                if (player != null)
-                {
-                    var shooting = player.GetComponent<Deadlight.Player.PlayerShooting>();
-                    shooting?.AddAmmo(25 + night * 5);
-                }
+                case "Thick Fog":
+                    if (cam != null) cam.backgroundColor = new Color(0.2f, 0.22f, 0.24f);
+                    RadioTransmissions.Instance?.ShowMessage("RADIO: Heavy fog rolling in. Watch your corners.", 3f);
+                    break;
+                case "Full Moon":
+                    if (cam != null) cam.backgroundColor = new Color(0.1f, 0.1f, 0.2f);
+                    RadioTransmissions.Instance?.ShowMessage("RADIO: Full moon tonight. They'll be more active.", 3f);
+                    break;
+                case "Contamination":
+                    RadioTransmissions.Instance?.ShowMessage("RADIO: Toxin levels rising. Dead ones are leaving pools.", 3f);
+                    break;
+                case "Reinforcements":
+                    RadioTransmissions.Instance?.ShowMessage("RADIO: Seismic activity detected. Expect a larger horde.", 3f);
+                    break;
             }
 
-            var cam = Camera.main;
-            if (cam != null)
+            if (NightMutation.Instance != null)
             {
-                if (activeWorldEvent == "Blackout")
-                {
-                    cam.backgroundColor = new Color(0.03f, 0.03f, 0.05f, 1f);
-                }
-                else if (activeWorldEvent == "Fog Front")
-                {
-                    cam.backgroundColor = new Color(0.18f, 0.2f, 0.22f, 1f);
-                }
+                NightMutation.Instance.SetMutationFromEvent(activeWorldEvent);
             }
         }
 

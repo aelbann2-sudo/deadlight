@@ -28,18 +28,20 @@ namespace Deadlight.Narrative
 
         private static readonly IntroLine[] introLines =
         {
-            new IntroLine("", 2f),
-            new IntroLine("EVAC FLIGHT 7 - QUARANTINE ZONE EXTRACTION", 3f),
-            new IntroLine("RADIO: \"All units, extraction is a go. ETA to quarantine zone: 15 minutes.\"", 4f),
-            new IntroLine("RADIO: \"Wait... picking up massive biological signatures below.\"", 3f),
-            new IntroLine("PILOT: \"What the hell is—\"", 1.5f),
-            new IntroLine("[EXPLOSION - Screen shakes]", 2f),
-            new IntroLine("RADIO: \"MAYDAY! MAYDAY! Flight 7 is going down!\"", 3f),
-            new IntroLine("[Silence... then static]", 3f),
-            new IntroLine("RADIO: \"...survivor... do you copy? This is EVAC Command...\"", 4f),
-            new IntroLine("RADIO: \"You're the only one who made it. Another team is being assembled.\"", 4f),
-            new IntroLine("RADIO: \"ETA: Five nights. You need to survive until then.\"", 4f),
-            new IntroLine("RADIO: \"Good luck, soldier. EVAC Command out.\"", 3f),
+            new IntroLine("", 1.5f),
+            new IntroLine("EVAC FLIGHT 7 — QUARANTINE ZONE EXTRACTION", 3f),
+            new IntroLine("PILOT: \"Approaching the quarantine perimeter. Medic, get the stretchers ready.\"", 3.5f),
+            new IntroLine("YOU: \"Copy. How many survivors are we pulling out?\"", 3f),
+            new IntroLine("PILOT: \"As many as we— wait. Proximity alert. Something big on therm—\"", 2.5f),
+            new IntroLine("[EXPLOSION — Screen shakes]", 2f),
+            new IntroLine("PILOT: \"MAYDAY! Flight 7 is hit! Brace for impact!\"", 2.5f),
+            new IntroLine("[Impact. Silence. Then static.]", 3f),
+            new IntroLine("RADIO: \"...survivor, do you copy? This is EVAC Command.\"", 4f),
+            new IntroLine("RADIO: \"Flight 7 is down. You're the only signal we're reading.\"", 3.5f),
+            new IntroLine("RADIO: \"A rescue bird can reach you in four days — but we need something first.\"", 3.5f),
+            new IntroLine("RADIO: \"There's a research facility on the far side of the zone. Project Lazarus.\"", 3.5f),
+            new IntroLine("RADIO: \"Reach it. Transmit the proof. Then we come get you.\"", 3f),
+            new IntroLine("RADIO: \"Scavenge during the day. Survive the night. Four levels, medic. That's all.\"", 4f),
         };
 
         private struct IntroLine

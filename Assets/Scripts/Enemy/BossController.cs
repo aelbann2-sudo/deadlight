@@ -103,23 +103,39 @@ namespace Deadlight.Enemy
         
         void OnPhaseChanged()
         {
-            string msg = currentPhase switch
+            if (currentPhase == BossPhase.Phase2)
             {
-                BossPhase.Phase2 => "SUBJECT 23 IS ADAPTING! DON'T LET UP!",
-                BossPhase.Phase3 => "IT'S ENRAGED! EVERYTHING OR NOTHING!",
-                _ => ""
-            };
-            
-            if (!string.IsNullOrEmpty(msg) && RadioTransmissions.Instance != null)
-                RadioTransmissions.Instance.ShowMessage(msg, 3f);
-            
-            if (currentPhase == BossPhase.Phase2 && ai != null)
-                ai.ApplySpeedMultiplier(1.25f);
-            
+                if (RadioTransmissions.Instance != null)
+                {
+                    RadioTransmissions.Instance.TriggerBossHalfHealth();
+                }
+
+                if (Core.AudioManager.Instance != null)
+                {
+                    Core.AudioManager.Instance.PlayBossMusic();
+                }
+
+                try
+                {
+                    var heartbeat = Audio.ProceduralAudioGenerator.GenerateHeartbeat();
+                    if (heartbeat != null)
+                        AudioSource.PlayClipAtPoint(heartbeat, transform.position, 0.6f);
+                }
+                catch (System.Exception) { }
+
+                if (ai != null) ai.ApplySpeedMultiplier(1.25f);
+                if (GameEffects.Instance != null)
+                    GameEffects.Instance.FlashScreen(new Color(0.5f, 0f, 0f, 0.3f), 0.2f);
+            }
+
             if (currentPhase == BossPhase.Phase3)
             {
+                if (RadioTransmissions.Instance != null)
+                    RadioTransmissions.Instance.ShowMessage("RADIO: It's enraged! Everything you've got — now!", 3f);
                 if (ai != null) ai.ApplySpeedMultiplier(1.5f);
                 if (spriteRenderer != null) spriteRenderer.color = new Color(1f, 0.3f, 0.2f);
+                if (GameEffects.Instance != null)
+                    GameEffects.Instance.ScreenShake(0.2f, 0.4f);
             }
         }
         
@@ -277,14 +293,18 @@ namespace Deadlight.Enemy
         void OnDeath()
         {
             currentPhase = BossPhase.Dead;
+
             if (RadioTransmissions.Instance != null)
-                RadioTransmissions.Instance.ShowMessage("SUBJECT 23 IS DOWN! HELICOPTER INBOUND!", 4f);
-            
+                RadioTransmissions.Instance.TriggerBossDefeated();
+
             if (VFXManager.Instance != null)
             {
                 VFXManager.Instance.PlayDeathExplosion(transform.position, false);
-                VFXManager.Instance.TriggerScreenShake(1f, 0.6f);
+                VFXManager.Instance.TriggerScreenShake(1.2f, 0.8f);
             }
+
+            if (GameEffects.Instance != null)
+                GameEffects.Instance.FlashScreen(new Color(1f, 0.9f, 0.5f, 0.6f), 0.5f);
         }
         
         void OnDestroy()

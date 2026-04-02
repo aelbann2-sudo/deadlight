@@ -17,6 +17,7 @@ namespace Deadlight.Core
         [SerializeField] private AudioClip dayMusic;
         [SerializeField] private AudioClip nightMusic;
         [SerializeField] private AudioClip bossMusic;
+        [SerializeField] private AudioClip dawnMusic;
 
         [Header("Ambient")]
         [SerializeField] private AudioClip dayAmbient;
@@ -71,8 +72,14 @@ namespace Deadlight.Core
                     nightAmbient = Audio.ProceduralAudioGenerator.GenerateAmbientWind();
                 if (dayAmbient == null)
                     dayAmbient = Audio.ProceduralAudioGenerator.GenerateAmbientWind();
+                if (dayMusic == null)
+                    dayMusic = Audio.ProceduralAudioGenerator.GenerateDayMusic();
                 if (nightMusic == null)
-                    nightMusic = Audio.ProceduralAudioGenerator.GenerateHeartbeat();
+                    nightMusic = Audio.ProceduralAudioGenerator.GenerateNightMusic();
+                if (bossMusic == null)
+                    bossMusic = Audio.ProceduralAudioGenerator.GenerateBossMusic();
+                if (dawnMusic == null)
+                    dawnMusic = Audio.ProceduralAudioGenerator.GenerateDawnMusic();
 
                 RegisterSFX("gunshot_pistol", Audio.ProceduralAudioGenerator.GenerateGunshot("pistol"));
                 RegisterSFX("gunshot_shotgun", Audio.ProceduralAudioGenerator.GenerateGunshot("shotgun"));
@@ -80,6 +87,10 @@ namespace Deadlight.Core
                 RegisterSFX("reload", Audio.ProceduralAudioGenerator.GenerateReload());
                 RegisterSFX("explosion", Audio.ProceduralAudioGenerator.GenerateExplosion());
                 RegisterSFX("pickup", Audio.ProceduralAudioGenerator.GeneratePickup());
+                RegisterSFX("radio_static", Audio.ProceduralAudioGenerator.GenerateRadioStatic());
+                RegisterSFX("alarm_siren", Audio.ProceduralAudioGenerator.GenerateAlarmSiren());
+                RegisterSFX("heartbeat", Audio.ProceduralAudioGenerator.GenerateHeartbeat());
+                RegisterSFX("helicopter_approach", Audio.ProceduralAudioGenerator.GenerateHelicopterApproach());
             }
             catch (System.Exception e)
             {
@@ -142,11 +153,20 @@ namespace Deadlight.Core
                 case GameState.NightPhase:
                     PlayNightAudio();
                     break;
+                case GameState.DawnPhase:
+                    PlayMusic(dawnMusic);
+                    StopAmbient();
+                    break;
                 case GameState.GameOver:
                 case GameState.Victory:
                     FadeOutMusic();
                     break;
             }
+        }
+
+        public void PlayBossMusic()
+        {
+            PlayMusic(bossMusic);
         }
 
         private void PlayDayAudio()

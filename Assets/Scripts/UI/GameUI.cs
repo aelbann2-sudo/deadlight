@@ -205,6 +205,15 @@ namespace Deadlight.UI
             GameManager.Instance?.StartSelectedMapRun();
         }
 
+        private void StartCampaignAtLevel(int level)
+        {
+            Time.timeScale = 1f;
+            HideAllPanels();
+            _purchasedWeapons.Clear();
+            PlayerUpgrades.Instance?.ResetUpgrades();
+            GameManager.Instance?.StartCampaignFromLevel(level);
+        }
+
         private void ShowCampaignMap()
         {
             HideAllPanels();
@@ -213,47 +222,65 @@ namespace Deadlight.UI
 
         // ===================== MAP SELECT =====================
 
+        private static readonly string[] levelSubtitles = { "First Light", "No One Left Behind", "The Source", "Operation Deadlight" };
+        private static readonly string[] levelMapNames = { "Town Center", "Suburban", "Industrial", "Research" };
+        private static readonly string[] levelTeasers = {
+            "Recover Flight 7's black box from the crash site.",
+            "Search the school shelter for evacuation records.",
+            "Breach the Lazarus lab and recover Subject 23 data.",
+            "Arm the extraction beacon. Survive Subject 23."
+        };
+
         private void BuildMapSelect()
         {
             _mapSelectPanel = CreatePanel(_canvasRoot.transform, "MapSelectPanel");
-            _mapSelectPanel.GetComponent<Image>().color = new Color(0.08f, 0.07f, 0.05f, 1f);
+            _mapSelectPanel.GetComponent<Image>().color = new Color(0.06f, 0.06f, 0.08f, 1f);
 
             var titleObj = CreateText(_mapSelectPanel.transform, "Title",
-                "LEVEL MAP 1-4", 42, TextAnchor.MiddleCenter, new Color(1f, 0.93f, 0.75f),
-                new Vector2(0.5f, 0.93f), new Vector2(0.5f, 0.93f), Vector2.zero, new Vector2(500, 55));
+                "OPERATION DEADLIGHT", 38, TextAnchor.MiddleCenter, new Color(1f, 0.85f, 0.3f),
+                new Vector2(0.5f, 0.93f), new Vector2(0.5f, 0.93f), Vector2.zero, new Vector2(600, 50));
             titleObj.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
             CreateText(_mapSelectPanel.transform, "Subtitle",
-                "Town Center -> Suburban -> Industrial -> Research", 18, TextAnchor.MiddleCenter, new Color(0.95f, 0.86f, 0.68f),
-                new Vector2(0.5f, 0.875f), new Vector2(0.5f, 0.875f), Vector2.zero, new Vector2(760, 25));
+                "Survive four levels. Reach the facility. Transmit the truth.", 16, TextAnchor.MiddleCenter, new Color(0.7f, 0.7f, 0.65f),
+                new Vector2(0.5f, 0.875f), new Vector2(0.5f, 0.875f), Vector2.zero, new Vector2(760, 22));
 
             var mapBoard = CreateInsetPanel(_mapSelectPanel.transform, "CampaignBoard",
-                new Vector2(0.1f, 0.2f), new Vector2(0.9f, 0.79f), new Color(0.86f, 0.72f, 0.46f, 0.94f));
+                new Vector2(0.05f, 0.18f), new Vector2(0.95f, 0.82f), new Color(0.1f, 0.1f, 0.12f, 0.95f));
             var boardOutline = mapBoard.AddComponent<Outline>();
-            boardOutline.effectColor = new Color(0.34f, 0.2f, 0.07f, 0.9f);
+            boardOutline.effectColor = new Color(0.3f, 0.25f, 0.1f, 0.7f);
             boardOutline.effectDistance = new Vector2(2f, -2f);
 
-            Vector2 level1Pos = new Vector2(-360f, -130f);
-            Vector2 level2Pos = new Vector2(-120f, 130f);
-            Vector2 level3Pos = new Vector2(120f, -15f);
-            Vector2 level4Pos = new Vector2(360f, 150f);
+            Vector2 level1Pos = new Vector2(-340f, -80f);
+            Vector2 level2Pos = new Vector2(-115f, 80f);
+            Vector2 level3Pos = new Vector2(115f, -40f);
+            Vector2 level4Pos = new Vector2(340f, 100f);
 
-            CreateCampaignPathSegment(mapBoard.transform, level1Pos, level2Pos, new Color(0.54f, 0.31f, 0.07f, 0.95f));
-            CreateCampaignPathSegment(mapBoard.transform, level2Pos, level3Pos, new Color(0.54f, 0.31f, 0.07f, 0.95f));
-            CreateCampaignPathSegment(mapBoard.transform, level3Pos, level4Pos, new Color(0.54f, 0.31f, 0.07f, 0.95f));
+            Color[] nodeColors = {
+                new Color(0.3f, 0.65f, 0.35f),
+                new Color(0.52f, 0.73f, 0.3f),
+                new Color(0.83f, 0.56f, 0.24f),
+                new Color(0.7f, 0.25f, 0.25f)
+            };
+            Vector2[] positions = { level1Pos, level2Pos, level3Pos, level4Pos };
 
-            CreateCampaignNode(mapBoard.transform, 1, "Town Center", level1Pos, new Color(0.3f, 0.65f, 0.35f));
-            CreateCampaignNode(mapBoard.transform, 2, "Suburban", level2Pos, new Color(0.52f, 0.73f, 0.3f));
-            CreateCampaignNode(mapBoard.transform, 3, "Industrial", level3Pos, new Color(0.83f, 0.56f, 0.24f));
-            CreateCampaignNode(mapBoard.transform, 4, "Research", level4Pos, new Color(0.36f, 0.62f, 0.83f));
+            for (int i = 0; i < 3; i++)
+            {
+                CreateCampaignPathSegment(mapBoard.transform, positions[i], positions[i + 1], new Color(0.4f, 0.35f, 0.2f, 0.7f));
+            }
+
+            for (int i = 0; i < 4; i++)
+            {
+                CreateCampaignNode(mapBoard.transform, i + 1, levelMapNames[i], positions[i], nodeColors[i]);
+            }
 
             CreateText(mapBoard.transform, "MapHint",
-                "Progress automatically from Level 1 to Level 4 in one run.", 16, TextAnchor.MiddleCenter,
-                new Color(0.2f, 0.15f, 0.1f),
-                new Vector2(0.5f, 0.08f), new Vector2(0.5f, 0.08f), Vector2.zero, new Vector2(720f, 30f));
+                "Select a level to begin. Difficulty increases left to right.", 14, TextAnchor.MiddleCenter,
+                new Color(0.5f, 0.5f, 0.45f),
+                new Vector2(0.5f, 0.05f), new Vector2(0.5f, 0.05f), Vector2.zero, new Vector2(720f, 24f));
 
             CreateButton(_mapSelectPanel.transform, "BackButton", "BACK", new Color(0.3f, 0.3f, 0.35f),
-                new Vector2(0.5f, 0.1f), new Vector2(200, 45), () =>
+                new Vector2(0.5f, 0.08f), new Vector2(200, 45), () =>
                 {
                     _mapSelectPanel?.SetActive(false);
                     _mainMenuPanel?.SetActive(true);
@@ -289,31 +316,64 @@ namespace Deadlight.UI
             nodeRect.anchorMax = new Vector2(0.5f, 0.5f);
             nodeRect.pivot = new Vector2(0.5f, 0.5f);
             nodeRect.anchoredPosition = position;
-            nodeRect.sizeDelta = new Vector2(110f, 110f);
+            nodeRect.sizeDelta = new Vector2(100f, 100f);
 
             var nodeImage = node.AddComponent<Image>();
             nodeImage.sprite = GetCampaignNodeSprite();
             nodeImage.color = color;
             nodeImage.type = Image.Type.Simple;
 
+            var button = node.AddComponent<Button>();
+            button.targetGraphic = nodeImage;
+            var colors = button.colors;
+            colors.normalColor = color;
+            colors.highlightedColor = new Color(
+                Mathf.Min(1f, color.r + 0.15f),
+                Mathf.Min(1f, color.g + 0.15f),
+                Mathf.Min(1f, color.b + 0.15f),
+                1f);
+            colors.pressedColor = new Color(color.r * 0.8f, color.g * 0.8f, color.b * 0.8f, 1f);
+            colors.selectedColor = colors.normalColor;
+            colors.disabledColor = new Color(0.35f, 0.35f, 0.35f, 0.6f);
+            button.colors = colors;
+            button.onClick.AddListener(() => StartCampaignAtLevel(levelNumber));
+
             var nodeOutline = node.AddComponent<Outline>();
-            nodeOutline.effectColor = new Color(0.15f, 0.12f, 0.05f, 0.85f);
+            nodeOutline.effectColor = new Color(color.r * 0.5f, color.g * 0.5f, color.b * 0.5f, 0.9f);
             nodeOutline.effectDistance = new Vector2(2f, -2f);
 
             var levelLabel = CreateText(node.transform, "LevelNumber",
-                $"{levelNumber}", 44, TextAnchor.MiddleCenter, Color.black,
-                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(80f, 80f));
+                $"{levelNumber}", 36, TextAnchor.MiddleCenter, new Color(1f, 1f, 1f, 0.95f),
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(70f, 70f));
             levelLabel.GetComponent<Text>().fontStyle = FontStyle.Bold;
+            var numShadow = levelLabel.AddComponent<Shadow>();
+            numShadow.effectColor = new Color(0f, 0f, 0f, 0.6f);
+            numShadow.effectDistance = new Vector2(1f, -1f);
+
+            int subtitleIdx = Mathf.Clamp(levelNumber - 1, 0, levelSubtitles.Length - 1);
+            string subtitle = levelSubtitles[subtitleIdx];
+            string mapTitle = levelMapNames[subtitleIdx];
 
             var levelTag = CreateText(node.transform, "LevelTag",
-                $"LEVEL {levelNumber}", 13, TextAnchor.MiddleCenter, new Color(0.15f, 0.1f, 0.05f),
-                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, 10f), new Vector2(120f, 18f));
+                $"LEVEL {levelNumber}: {mapTitle.ToUpperInvariant()}", 12, TextAnchor.MiddleCenter, new Color(0.9f, 0.85f, 0.6f),
+                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, 14f), new Vector2(220f, 18f));
             levelTag.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
-            var mapLabel = CreateText(node.transform, "MapLabel",
-                mapName.ToUpperInvariant(), 15, TextAnchor.MiddleCenter, new Color(0.18f, 0.12f, 0.05f),
-                new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, -22f), new Vector2(200f, 24f));
-            mapLabel.GetComponent<Text>().fontStyle = FontStyle.Bold;
+            var subtitleLabel = CreateText(node.transform, "Subtitle",
+                $"\"{subtitle}\"", 13, TextAnchor.MiddleCenter, new Color(0.8f, 0.8f, 0.7f),
+                new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, -18f), new Vector2(220f, 20f));
+            subtitleLabel.GetComponent<Text>().fontStyle = FontStyle.Italic;
+
+            string teaser = levelTeasers[subtitleIdx];
+            CreateText(node.transform, "Teaser",
+                teaser, 11, TextAnchor.MiddleCenter, new Color(0.55f, 0.55f, 0.5f),
+                new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, -36f), new Vector2(240f, 28f));
+
+            string diffBars = new string('|', levelNumber) + new string('.', 4 - levelNumber);
+            Color diffColor = levelNumber <= 2 ? new Color(0.4f, 0.8f, 0.4f) : (levelNumber == 3 ? new Color(0.9f, 0.7f, 0.2f) : new Color(0.9f, 0.3f, 0.3f));
+            CreateText(node.transform, "Difficulty",
+                $"DIFFICULTY [{diffBars}]", 10, TextAnchor.MiddleCenter, diffColor,
+                new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, -52f), new Vector2(160f, 16f));
         }
 
         private Sprite GetCampaignNodeSprite()

@@ -10,10 +10,10 @@ namespace Deadlight.Systems
         public static PickupSpawner Instance { get; private set; }
 
         [Header("Drop Chances")]
-        [SerializeField] private float ammoDropChance = 0.30f;
-        [SerializeField] private float healthDropChance = 0.15f;
-        [SerializeField] private float pointsDropChance = 0.20f;
-        [SerializeField] private float powerupDropChance = 0.05f;
+        [SerializeField] private float ammoDropChance = 0.20f;
+        [SerializeField] private float healthDropChance = 0.10f;
+        [SerializeField] private float pointsDropChance = 0.10f;
+        [SerializeField] private float powerupDropChance = 0.03f;
 
         [Header("Pickup Values")]
         [SerializeField] private int ammoAmount = 15;

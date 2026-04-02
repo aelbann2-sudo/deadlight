@@ -27,16 +27,16 @@ namespace Deadlight.Core
         public static GameFlowController Instance { get; private set; }
 
         [Header("Phase Settings")]
-        [SerializeField] private float[] dayDurationsByNight = { 70f, 60f, 52f, 45f };
-        [SerializeField] private float nightDuration = 120f;
-        [SerializeField] private int healthPickupCount = 6;
-        [SerializeField] private int ammoPickupCount = 8;
-        [SerializeField] private int scrapPickupCount = 5;
-        [SerializeField] private int woodPickupCount = 3;
-        [SerializeField] private int chemicalsPickupCount = 2;
-        [SerializeField] private int electronicsPickupCount = 2;
+        [SerializeField] private float[] dayDurationsByNight = { 90f, 75f, 60f, 50f };
+        [SerializeField] private float[] nightDurationsByNight = { 60f, 90f, 120f, 180f };
+        [SerializeField] private int[] healthPickupsByNight = { 3, 3, 2, 2 };
+        [SerializeField] private int[] ammoPickupsByNight = { 4, 4, 3, 3 };
+        [SerializeField] private int[] scrapPickupsByNight = { 3, 2, 2, 1 };
+        [SerializeField] private int[] woodPickupsByNight = { 2, 1, 1, 1 };
+        [SerializeField] private int[] chemicalsPickupsByNight = { 1, 1, 1, 0 };
+        [SerializeField] private int[] electronicsPickupsByNight = { 0, 1, 1, 1 };
         [SerializeField] private float pickupSpawnMinDistanceFromPlayer = 10f;
-        [SerializeField] private float pickupMinSpacing = 8f;
+        [SerializeField] private float pickupMinSpacing = 6f;
 
         private DayNightCycle dayNightCycle;
         private readonly List<GameObject> spawnedPickups = new List<GameObject>();
@@ -45,8 +45,8 @@ namespace Deadlight.Core
         private bool nightWarningShown;
 
         [SerializeField] private float helicopterCooldown = 45f;
-        [SerializeField] private int maxDropsPerPhase = 2;
-        [SerializeField] private float helicopterFirstDropDelay = 22f;
+        [SerializeField] private int maxDropsPerPhase = 1;
+        [SerializeField] private float helicopterFirstDropDelay = 35f;
         [SerializeField] private float helicopterDropJitter = 8f;
         private int dropsThisPhase;
         private float nextHelicopterDropTime = float.PositiveInfinity;
@@ -160,13 +160,6 @@ namespace Deadlight.Core
             if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameState.DawnPhase)
                 return;
 
-            // Award points for surviving the night
-            if (PointsSystem.Instance != null)
-            {
-                int points = 100 + (GameManager.Instance.CurrentNight * 50);
-                PointsSystem.Instance.AddPoints(points, "Night Survived");
-            }
-
             OnDawnPhaseEnded?.Invoke();
             GameManager.Instance.AdvanceToNextNight();
             OnStatusMessage?.Invoke($"Day Phase - Level {GameManager.Instance.CurrentNight}");
@@ -182,14 +175,22 @@ namespace Deadlight.Core
             var player = GameObject.Find("Player");
             Vector3 playerPos = player != null ? player.transform.position : Vector3.zero;
 
+            int nightIdx = Mathf.Clamp((GameManager.Instance?.CurrentNight ?? 1) - 1, 0, 3);
+
             var usedPositions = new List<Vector3>();
 
-            SpawnTypeScattered(PickupType.Health, healthPickupCount, playerPos, usedPositions);
-            SpawnTypeScattered(PickupType.Ammo, ammoPickupCount, playerPos, usedPositions);
-            SpawnTypeScattered(PickupType.Scrap, scrapPickupCount, playerPos, usedPositions);
-            SpawnTypeScattered(PickupType.Wood, woodPickupCount, playerPos, usedPositions);
-            SpawnTypeScattered(PickupType.Chemicals, chemicalsPickupCount, playerPos, usedPositions);
-            SpawnTypeScattered(PickupType.Electronics, electronicsPickupCount, playerPos, usedPositions);
+            SpawnTypeScattered(PickupType.Health, GetPickupCount(healthPickupsByNight, nightIdx), playerPos, usedPositions);
+            SpawnTypeScattered(PickupType.Ammo, GetPickupCount(ammoPickupsByNight, nightIdx), playerPos, usedPositions);
+            SpawnTypeScattered(PickupType.Scrap, GetPickupCount(scrapPickupsByNight, nightIdx), playerPos, usedPositions);
+            SpawnTypeScattered(PickupType.Wood, GetPickupCount(woodPickupsByNight, nightIdx), playerPos, usedPositions);
+            SpawnTypeScattered(PickupType.Chemicals, GetPickupCount(chemicalsPickupsByNight, nightIdx), playerPos, usedPositions);
+            SpawnTypeScattered(PickupType.Electronics, GetPickupCount(electronicsPickupsByNight, nightIdx), playerPos, usedPositions);
+        }
+
+        private int GetPickupCount(int[] perNight, int nightIdx)
+        {
+            if (perNight == null || perNight.Length == 0) return 0;
+            return perNight[Mathf.Clamp(nightIdx, 0, perNight.Length - 1)];
         }
 
         private void SpawnTypeScattered(PickupType type, int count, Vector3 playerPos, List<Vector3> usedPositions)
@@ -421,6 +422,9 @@ namespace Deadlight.Core
                 return;
             }
 
+            int night = GameManager.Instance?.CurrentNight ?? 1;
+            if (night < 2) return;
+
             float dayDuration = dayNightCycle != null ? dayNightCycle.DayDuration : 60f;
             float progress = Mathf.Clamp(contestedDropDayProgress, 0.2f, 0.85f);
             dayContestedDropTriggerTime = Time.time + (dayDuration * progress);
@@ -563,12 +567,15 @@ namespace Deadlight.Core
             RadioTransmissions.Instance?.ShowMessage("RADIO: Contested drop lost.", 2f);
         }
 
+        private static readonly int[] crateCountsByNight = { 2, 2, 3, 3 };
+
         private void SpawnSupplyCrates()
         {
             var player = GameObject.Find("Player");
             Vector3 playerPos = player != null ? player.transform.position : Vector3.zero;
             int night = GameManager.Instance?.CurrentNight ?? 1;
-            int crateCount = UnityEngine.Random.Range(5, 9);
+            int nightIdx = Mathf.Clamp(night - 1, 0, crateCountsByNight.Length - 1);
+            int crateCount = crateCountsByNight[nightIdx];
 
             for (int i = 0; i < crateCount; i++)
             {
@@ -735,9 +742,11 @@ namespace Deadlight.Core
                 return;
             }
 
-            int idx = Mathf.Clamp(night - 1, 0, dayDurationsByNight.Length - 1);
-            dayNightCycle.SetDayDuration(dayDurationsByNight[idx]);
-            dayNightCycle.SetNightDuration(nightDuration);
+            int idx = Mathf.Clamp(night - 1, 0, Mathf.Max(0, dayDurationsByNight.Length - 1));
+            dayNightCycle.SetDayDuration(dayDurationsByNight.Length > 0 ? dayDurationsByNight[idx] : 60f);
+
+            int nightIdx = Mathf.Clamp(night - 1, 0, Mathf.Max(0, nightDurationsByNight.Length - 1));
+            dayNightCycle.SetNightDuration(nightDurationsByNight.Length > 0 ? nightDurationsByNight[nightIdx] : 120f);
         }
 
     }
