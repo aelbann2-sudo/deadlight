@@ -67,19 +67,16 @@ namespace Deadlight.Systems
                 nightsReached = GameManager.Instance.CurrentNight;
             }
 
-            float difficultyMultiplier = GetDifficultyMultiplier();
             float timeBonus = CalculateTimeBonus();
 
-            entry.score = Mathf.RoundToInt((rawScore + timeBonus) * difficultyMultiplier);
+            entry.score = Mathf.RoundToInt(rawScore + timeBonus);
             entry.nightsReached = nightsReached;
             entry.kills = kills;
             entry.victory = victory;
             entry.runTimeSeconds = GameManager.Instance != null
                 ? Time.realtimeSinceStartup - GameManager.Instance.RunStartTime
                 : 0f;
-            entry.difficulty = GameManager.Instance != null
-                ? GameManager.Instance.CurrentDifficulty.ToString()
-                : "Normal";
+            entry.difficulty = "Campaign";
             entry.map = GameManager.Instance != null
                 ? GameManager.Instance.SelectedMap.ToString()
                 : "TownCenter";
@@ -104,18 +101,6 @@ namespace Deadlight.Systems
                 if (score >= data.entries[i].score) return i + 1;
             }
             return data.entries.Count + 1;
-        }
-
-        private float GetDifficultyMultiplier()
-        {
-            if (GameManager.Instance == null) return 1f;
-            return GameManager.Instance.CurrentDifficulty switch
-            {
-                Difficulty.Easy => 0.75f,
-                Difficulty.Normal => 1.0f,
-                Difficulty.Hard => 1.5f,
-                _ => 1f
-            };
         }
 
         private float CalculateTimeBonus()
@@ -146,6 +131,43 @@ namespace Deadlight.Systems
             else
             {
                 data = new LeaderboardData();
+            }
+
+            if (data == null)
+            {
+                data = new LeaderboardData();
+            }
+
+            if (data.entries == null)
+            {
+                data.entries = new List<LeaderboardEntry>();
+            }
+
+            bool migrated = false;
+            foreach (var entry in data.entries)
+            {
+                if (entry == null)
+                {
+                    continue;
+                }
+
+                if (!string.Equals(entry.difficulty, "Campaign", StringComparison.Ordinal))
+                {
+                    entry.difficulty = "Campaign";
+                    migrated = true;
+                }
+
+                int clamped = Mathf.Clamp(entry.nightsReached, 1, 4);
+                if (clamped != entry.nightsReached)
+                {
+                    entry.nightsReached = clamped;
+                    migrated = true;
+                }
+            }
+
+            if (migrated)
+            {
+                Save();
             }
         }
 

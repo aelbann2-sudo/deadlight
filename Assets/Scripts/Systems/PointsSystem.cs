@@ -199,7 +199,7 @@ namespace Deadlight.Systems
                 enemiesKilled = enemiesKilled,
                 nightsSurvived = nightsSurvived,
                 finalScore = GetFinalScore(),
-                difficulty = GameManager.Instance?.CurrentDifficulty ?? Difficulty.Normal
+                difficulty = Difficulty.Normal
             };
         }
 

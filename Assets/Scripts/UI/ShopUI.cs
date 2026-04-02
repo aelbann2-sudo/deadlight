@@ -92,9 +92,9 @@ namespace Deadlight.UI
             {
                 upgradeItems = new List<ShopItem>
                 {
-                    new ShopItem { itemName = "Speed Boost", description = "Move 20% faster next night", cost = 100, itemType = ShopItemType.SpeedBoost, amount = 20 },
-                    new ShopItem { itemName = "Damage Boost", description = "Deal 15% more damage next night", cost = 120, itemType = ShopItemType.DamageBoost, amount = 15 },
-                    new ShopItem { itemName = "Armor", description = "Take 15% less damage next night", cost = 120, itemType = ShopItemType.Armor, amount = 15 }
+                    new ShopItem { itemName = "Speed Boost", description = "Move 20% faster next level", cost = 100, itemType = ShopItemType.SpeedBoost, amount = 20 },
+                    new ShopItem { itemName = "Damage Boost", description = "Deal 15% more damage next level", cost = 120, itemType = ShopItemType.DamageBoost, amount = 15 },
+                    new ShopItem { itemName = "Armor", description = "Take 15% less damage next level", cost = 120, itemType = ShopItemType.Armor, amount = 15 }
                 };
             }
         }
@@ -135,7 +135,7 @@ namespace Deadlight.UI
         private void UpdateStatistics()
         {
             if (GameManager.Instance != null && nightSurvivedText != null)
-                nightSurvivedText.text = $"Night {GameManager.Instance.CurrentNight} Survived!";
+                nightSurvivedText.text = $"Level {GameManager.Instance.CurrentNight} Cleared!";
 
             if (PointsSystem.Instance != null)
             {
@@ -255,11 +255,11 @@ namespace Deadlight.UI
                 int nextNight = GameManager.Instance.CurrentNight + 1;
                 if (nextNight <= GameManager.Instance.MaxNights)
                 {
-                    nextNightPreviewText.text = $"Next: Night {nextNight}\nEnemies will be stronger!";
+                    nextNightPreviewText.text = $"Next: Level {nextNight}\nEnemies will be stronger!";
                 }
                 else
                 {
-                    nextNightPreviewText.text = "Final Night Complete!\nVictory is yours!";
+                    nextNightPreviewText.text = "Final Level Complete!\nVictory is yours!";
                 }
             }
         }

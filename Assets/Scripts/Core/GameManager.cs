@@ -34,7 +34,8 @@ namespace Deadlight.Core
     {
         TownCenter,
         Industrial,
-        Suburban
+        Suburban,
+        Research
     }
 
     public class GameManager : MonoBehaviour
@@ -51,14 +52,23 @@ namespace Deadlight.Core
         [SerializeField] private Difficulty currentDifficulty = Difficulty.Normal;
         [SerializeField] private MapType selectedMap = MapType.TownCenter;
         [SerializeField] private int currentNight = 1;
-        [SerializeField] private int maxNights = 5;
+        [SerializeField] private int maxNights = 4;
         [SerializeField] private bool isPaused;
+
+        [Header("Campaign Progression")]
+        [SerializeField] private MapType[] campaignMapOrder =
+        {
+            MapType.TownCenter,
+            MapType.Suburban,
+            MapType.Industrial,
+            MapType.Research
+        };
 
         [Header("Runtime Fallback")]
         [SerializeField] private bool autoBootstrapGameScene = true;
         [SerializeField] private bool autoStartWhenGameSceneLoads = false;
         [SerializeField] private float dawnAutoAdvanceDelay = 2f;
-        [SerializeField] private float[] dayDurationsByNight = { 70f, 60f, 55f, 50f, 45f };
+        [SerializeField] private float[] dayDurationsByNight = { 70f, 60f, 52f, 45f };
         [SerializeField] private float targetNightDuration = 120f;
 
         private const float DefaultFixedDeltaTime = 0.02f;
@@ -114,6 +124,7 @@ namespace Deadlight.Core
 
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            EnsureCampaignMapOrder();
             EnsureDifficultySettings();
         }
 
@@ -237,6 +248,7 @@ namespace Deadlight.Core
 
         public void StartNewGame()
         {
+            EnsureCampaignMapOrder();
             EnsureDifficultySettings();
             EnsureCoreManagers();
 
@@ -247,9 +259,12 @@ namespace Deadlight.Core
                 deferredRestartCoroutine = null;
             }
 
+            currentDifficulty = Difficulty.Normal;
             currentNight = 1;
+            selectedMap = GetCampaignMapForNight(currentNight);
             RunStartTime = Time.realtimeSinceStartup;
             ResetRunState();
+            RebuildMapForCurrentLevel();
 
             var player = EnsurePlayerExists();
             ConfigurePlayer(player);
@@ -352,6 +367,8 @@ namespace Deadlight.Core
             }
 
             currentNight = Mathf.Min(currentNight + 1, maxNights);
+            selectedMap = GetCampaignMapForNight(currentNight);
+            RebuildMapForCurrentLevel();
             ApplyPhaseDurationsForNight(currentNight);
             OnNightChanged?.Invoke(currentNight);
             ChangeState(GameState.DayPhase);
@@ -395,6 +412,7 @@ namespace Deadlight.Core
         public void StartSelectedMapRun()
         {
             currentNight = 1;
+            selectedMap = GetCampaignMapForNight(currentNight);
             startNewRunAfterGameSceneLoad = true;
 
             if (deferredRestartCoroutine != null)
@@ -473,6 +491,59 @@ namespace Deadlight.Core
             if (hardSettings == null)
             {
                 hardSettings = DifficultySettings.CreateHardSettings();
+            }
+        }
+
+        private void EnsureCampaignMapOrder()
+        {
+            maxNights = 4;
+
+            if (campaignMapOrder != null && campaignMapOrder.Length >= maxNights)
+            {
+                return;
+            }
+
+            campaignMapOrder = new[]
+            {
+                MapType.TownCenter,
+                MapType.Suburban,
+                MapType.Industrial,
+                MapType.Research
+            };
+        }
+
+        private MapType GetCampaignMapForNight(int night)
+        {
+            EnsureCampaignMapOrder();
+
+            if (campaignMapOrder == null || campaignMapOrder.Length == 0)
+            {
+                return MapType.TownCenter;
+            }
+
+            int idx = Mathf.Clamp(night - 1, 0, campaignMapOrder.Length - 1);
+            return campaignMapOrder[idx];
+        }
+
+        private void RebuildMapForCurrentLevel()
+        {
+            var sceneSetup = FindFirstObjectByType<TestSceneSetup>();
+            if (sceneSetup != null)
+            {
+                sceneSetup.RebuildMap(selectedMap, repositionPlayer: true);
+                return;
+            }
+
+            var player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+            {
+                player.transform.position = GetPlayerSpawnPosition();
+                var rb = player.GetComponent<Rigidbody2D>();
+                if (rb != null)
+                {
+                    rb.linearVelocity = Vector2.zero;
+                    rb.angularVelocity = 0f;
+                }
             }
         }
 

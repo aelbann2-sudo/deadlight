@@ -166,6 +166,17 @@ namespace Deadlight.Narrative
                     "tower_maintenance",
                     "military_1"
                 },
+                MapType.Research => new[]
+                {
+                    "chen_2",
+                    "chen_3",
+                    "chen_6",
+                    "facility_1",
+                    "lab_note_1",
+                    "military_2",
+                    "chen_8",
+                    "field_report_7"
+                },
                 _ => new[]
                 {
                     "evac_manifest",
@@ -192,16 +203,16 @@ namespace Deadlight.Narrative
                         IndustrialLayout.CrashSitePosition + new Vector3(0f, -2.4f, 0f),
                         new Vector2(6f, 4f),
                         1,
-                        5,
+                        4,
                         "Another aircraft torn apart before landing. Whatever brought Flight 7 down was already here.",
-                        "If extraction comes again on the fifth dawn, the landing zone has to stay clear."),
+                        "If extraction comes at final dawn, the landing zone has to stay clear."),
                     new TriggerSpec(
                         "industrial_lab_story",
                         "Facility Intercom",
                         IndustrialLayout.ResearchLabPosition + new Vector3(0f, 2.2f, 0f),
                         new Vector2(7f, 4f),
                         1,
-                        5,
+                        4,
                         "PROJECT LAZARUS. Authorized personnel only. This is where regeneration research became a weapon.",
                         "Dr. Chen built the cure she wanted. The military turned it into Subject 23."),
                     new TriggerSpec(
@@ -210,7 +221,7 @@ namespace Deadlight.Narrative
                         IndustrialLayout.ControlOfficePosition + new Vector3(0f, -2.2f, 0f),
                         new Vector2(6f, 4f),
                         1,
-                        5,
+                        4,
                         "Containment failed, and command switched from rescue to erasure.",
                         "They were not trying to save the district. They were trying to delete the evidence.")
                 },
@@ -222,7 +233,7 @@ namespace Deadlight.Narrative
                         SuburbanLayout.CheckpointPosition + new Vector3(0f, 2.2f, 0f),
                         new Vector2(6f, 4f),
                         1,
-                        5,
+                        4,
                         "The convoy route ran through this neighborhood first.",
                         "Families were screened, tagged, and left behind when the quarantine line broke."),
                     new TriggerSpec(
@@ -231,7 +242,7 @@ namespace Deadlight.Narrative
                         SuburbanLayout.SchoolPosition + new Vector3(0f, 2.4f, 0f),
                         new Vector2(7f, 4f),
                         1,
-                        5,
+                        4,
                         "The school became a shelter before the buses stopped coming.",
                         "Classrooms turned into cots, then triage, then silence."),
                     new TriggerSpec(
@@ -240,9 +251,39 @@ namespace Deadlight.Narrative
                         SuburbanLayout.HospitalPosition + new Vector3(0f, 2.4f, 0f),
                         new Vector2(7f, 4f),
                         1,
-                        5,
+                        4,
                         "The clinic held as long as it could.",
                         "By the time they understood the infected were changing, there was nothing left to treat them with.")
+                },
+                MapType.Research => new[]
+                {
+                    new TriggerSpec(
+                        "research_gate_story",
+                        "Quarantine Console",
+                        ResearchLayout.QuarantineGatePosition + new Vector3(0f, -2.4f, 0f),
+                        new Vector2(7f, 4f),
+                        1,
+                        4,
+                        "Gate records show the facility was sealed before any civilian extraction arrived.",
+                        "Command trapped everyone inside once Lazarus results became strategic."),
+                    new TriggerSpec(
+                        "research_reactor_story",
+                        "Power Relay Log",
+                        ResearchLayout.ReactorYardPosition + new Vector3(0f, -2.2f, 0f),
+                        new Vector2(7f, 4f),
+                        1,
+                        4,
+                        "Emergency power was rerouted to containment shutters, not medical systems.",
+                        "They chose to lock subjects in before they chose to treat anyone."),
+                    new TriggerSpec(
+                        "research_lab_story",
+                        "Main Lab Terminal",
+                        ResearchLayout.MainLabPosition + new Vector3(0f, 2.3f, 0f),
+                        new Vector2(8f, 4f),
+                        1,
+                        4,
+                        "Subject 23 wasn't an accident. It was the final planned Lazarus deployment.",
+                        "If this signal gets out, the cover-up ends here.")
                 },
                 _ => new[]
                 {
@@ -252,16 +293,16 @@ namespace Deadlight.Narrative
                         TownCenterLandmarks.CrashSitePosition + new Vector3(0f, -2.4f, 0f),
                         new Vector2(7f, 4f),
                         1,
-                        5,
+                        4,
                         "Flight 7 never made the extraction run. The convoy left, and this district was written off.",
-                        "If another helicopter reaches the city on the fifth dawn, the landing zone has to stay open."),
+                        "If another helicopter reaches the city at final dawn, the landing zone has to stay open."),
                     new TriggerSpec(
                         "town_checkpoint_story",
                         "Checkpoint Graffiti",
                         TownCenterLandmarks.MilitaryCheckpointPosition + new Vector3(0f, -2.1f, 0f),
                         new Vector2(6f, 4f),
                         1,
-                        5,
+                        4,
                         "Quarantine line broken. No civilian passage.",
                         "This was containment long before it was rescue."),
                     new TriggerSpec(
@@ -270,7 +311,7 @@ namespace Deadlight.Narrative
                         TownCenterLandmarks.GasStationPosition + new Vector3(-1.6f, 2f, 0f),
                         new Vector2(6f, 4f),
                         1,
-                        5,
+                        4,
                         "The gas station was the last relief point in town.",
                         "Somebody stacked supplies here and marked routes out. No one came back for them.")
                 }

@@ -155,7 +155,7 @@ namespace Deadlight.Data
         {
             var enemy = CreateInstance<EnemyData>();
             enemy.enemyName = "Abomination";
-            enemy.description = "The ultimate threat. Final boss of Night 5.";
+            enemy.description = "The ultimate threat. Final boss of Level 4.";
             enemy.enemyType = EnemyType.Boss;
             enemy.maxHealth = 1000f;
             enemy.damage = 40f;
@@ -166,7 +166,7 @@ namespace Deadlight.Data
             enemy.detectionRange = 30f;
             enemy.pointsOnKill = 500;
             enemy.dropChance = 1f;
-            enemy.minNight = 5;
+            enemy.minNight = 4;
             enemy.spawnWeight = 0f;
             return enemy;
         }

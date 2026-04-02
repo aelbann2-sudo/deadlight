@@ -137,8 +137,7 @@ namespace Deadlight.Core
                     NightConfig.CreateNight1(),
                     NightConfig.CreateNight2(),
                     NightConfig.CreateNight3(),
-                    NightConfig.CreateNight4(),
-                    NightConfig.CreateNight5()
+                    NightConfig.CreateNight4()
                 };
             }
 
@@ -316,7 +315,6 @@ namespace Deadlight.Core
                 1 => 10,
                 2 => 18,
                 3 => 25,
-                4 => 30,
                 _ => 34
             };
         }
@@ -327,19 +325,7 @@ namespace Deadlight.Core
             {
                 return Mathf.Max(0.2f, GameManager.Instance.CurrentSettings.waveEnemyCountMultiplier);
             }
-
-            if (GameManager.Instance == null)
-            {
-                return 1f;
-            }
-
-            return GameManager.Instance.CurrentDifficulty switch
-            {
-                Difficulty.Easy => 0.7f,
-                Difficulty.Normal => 1f,
-                Difficulty.Hard => 1.4f,
-                _ => 1f
-            };
+            return 1f;
         }
 
         private float GetSpawnIntervalMultiplier()
@@ -396,9 +382,10 @@ namespace Deadlight.Core
             }
 
             int nightNum = GameManager.Instance?.CurrentNight ?? 1;
+            int finalLevel = GameManager.Instance?.MaxNights ?? 4;
             bool isDaySkirmish = GameManager.Instance?.CurrentState == GameState.DayPhase;
             var spawnType = SelectSpawnType(nightNum, isDaySkirmish);
-            bool shouldSpawnBoss = nightNum >= 5 &&
+            bool shouldSpawnBoss = nightNum >= finalLevel &&
                                    spawnType == SpawnType.Tank &&
                                    currentWave >= (currentNightConfig?.waveCount ?? 3) &&
                                    !isDaySkirmish &&
@@ -481,7 +468,8 @@ namespace Deadlight.Core
                 return SpawnType.Basic;
             }
 
-            if (night >= 5 && currentWave >= (currentNightConfig?.waveCount ?? 3) && !bossSpawned)
+            int finalLevel = GameManager.Instance?.MaxNights ?? 4;
+            if (night >= finalLevel && currentWave >= (currentNightConfig?.waveCount ?? 3) && !bossSpawned)
             {
                 return SpawnType.Tank;
             }
@@ -785,6 +773,11 @@ namespace Deadlight.Core
         public void RemoveSpawnPoint(Transform point)
         {
             spawnPoints.Remove(point);
+        }
+
+        public void ClearSpawnPoints()
+        {
+            spawnPoints.Clear();
         }
 
         private void StopAllSpawning()

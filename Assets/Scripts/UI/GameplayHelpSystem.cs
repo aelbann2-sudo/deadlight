@@ -75,7 +75,7 @@ namespace Deadlight.UI
             [ItemIds.Points] = new GameplayHelpEntry(
                 ItemIds.Points,
                 "Points",
-                "Spend these at dawn on weapons, armor, and permanent upgrades for later nights.",
+                "Spend these at dawn on weapons, armor, and permanent upgrades for later levels.",
                 "Spend at dawn shop."),
             [ItemIds.Powerup] = new GameplayHelpEntry(
                 ItemIds.Powerup,
@@ -85,7 +85,7 @@ namespace Deadlight.UI
             [ItemIds.BlueprintToken] = new GameplayHelpEntry(
                 ItemIds.BlueprintToken,
                 "Blueprint Token",
-                "Unlocks advanced daytime recipes that improve your odds during the next night.",
+                "Unlocks advanced daytime recipes that improve your odds in the next level.",
                 "Needed for advanced crafting."),
             [ItemIds.Armor] = new GameplayHelpEntry(
                 ItemIds.Armor,
@@ -137,7 +137,7 @@ namespace Deadlight.UI
         {
             return "Daytime is for scavenging, story leads, and prep. Collect supplies, recover lore, and secure contested drops before sunset.\n\n" +
                    "Nighttime is pure survival. Hold out through the waves until dawn while using the resources and upgrades you prepared earlier.\n\n" +
-                   "At dawn, spend points on weapons, armor, and upgrades. Strong day prep makes later nights manageable.";
+                   "At dawn, spend points on weapons, armor, and upgrades. Strong day prep makes later levels manageable.";
         }
 
         public static string GetSystemsText()
@@ -162,7 +162,7 @@ namespace Deadlight.UI
 
         public static string GetAccessibilityNote()
         {
-            return "Easy shows fuller pickup explanations for first-time discoveries. Normal and Hard keep the same information concise so the HUD stays clear.";
+            return "First-time discoveries show fuller guidance; repeat pickups stay compact so the HUD remains readable.";
         }
     }
 
@@ -290,19 +290,15 @@ namespace Deadlight.UI
                     continue;
                 }
 
-                Difficulty difficulty = GameManager.Instance != null
-                    ? GameManager.Instance.CurrentDifficulty
-                    : Difficulty.Normal;
-
-                bool useDetailedEasyHint = difficulty == Difficulty.Easy && !easyModeExplainedItems.Contains(request.itemId);
-                if (useDetailedEasyHint)
+                bool useDetailedHint = !easyModeExplainedItems.Contains(request.itemId);
+                if (useDetailedHint)
                 {
                     easyModeExplainedItems.Add(request.itemId);
                 }
 
                 string label = BuildLabel(entry.DisplayName, request.amount);
-                string hintText = BuildHintBody(entry, difficulty, useDetailedEasyHint);
-                float holdTime = useDetailedEasyHint ? DetailedDisplaySeconds : CompactDisplaySeconds;
+                string hintText = BuildHintBody(entry, useDetailedHint);
+                float holdTime = useDetailedHint ? DetailedDisplaySeconds : CompactDisplaySeconds;
 
                 ApplyHint(label, hintText);
                 yield return FadeHint(0f, 1f, 0.15f);
@@ -320,16 +316,11 @@ namespace Deadlight.UI
             return amount > 0 ? $"{displayName} x{amount}" : displayName;
         }
 
-        private string BuildHintBody(GameplayHelpEntry entry, Difficulty difficulty, bool useDetailedEasyHint)
+        private string BuildHintBody(GameplayHelpEntry entry, bool useDetailedHint)
         {
-            if (difficulty == Difficulty.Easy && useDetailedEasyHint)
+            if (useDetailedHint)
             {
                 return entry.EasyDescription;
-            }
-
-            if (difficulty == Difficulty.Hard)
-            {
-                return string.Empty;
             }
 
             return entry.ShortHint;

@@ -176,33 +176,29 @@ namespace Deadlight.UI
             title.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
             CreateText(_mainMenuPanel.transform, "Subtitle",
-                "Select Difficulty", 24, TextAnchor.MiddleCenter, new Color(0.7f, 0.7f, 0.7f),
+                "4-Level Campaign", 24, TextAnchor.MiddleCenter, new Color(0.7f, 0.7f, 0.7f),
                 new Vector2(0.5f, 0.72f), new Vector2(0.5f, 0.72f), Vector2.zero, new Vector2(400, 35));
 
-            CreateButton(_mainMenuPanel.transform, "EasyButton", "EASY", new Color(0.2f, 0.7f, 0.2f),
-                new Vector2(0.5f, 0.6f), new Vector2(260, 50), () => OnDifficultySelected(Difficulty.Easy));
-
-            CreateButton(_mainMenuPanel.transform, "NormalButton", "NORMAL", new Color(0.85f, 0.85f, 0.2f),
-                new Vector2(0.5f, 0.5f), new Vector2(260, 50), () => OnDifficultySelected(Difficulty.Normal));
-
-            CreateButton(_mainMenuPanel.transform, "HardButton", "HARD", new Color(0.85f, 0.2f, 0.2f),
-                new Vector2(0.5f, 0.4f), new Vector2(260, 50), () => OnDifficultySelected(Difficulty.Hard));
+            CreateButton(_mainMenuPanel.transform, "StartCampaignButton", "START LEVEL 1", new Color(0.2f, 0.7f, 0.2f),
+                new Vector2(0.5f, 0.56f), new Vector2(320, 58), StartCampaign);
 
             CreateButton(_mainMenuPanel.transform, "LeaderboardButton", "LEADERBOARD", new Color(0.3f, 0.4f, 0.7f),
-                new Vector2(0.5f, 0.25f), new Vector2(260, 45), ShowLeaderboard);
+                new Vector2(0.5f, 0.38f), new Vector2(260, 45), ShowLeaderboard);
 
             CreateButton(_mainMenuPanel.transform, "GuideButton", "GUIDE", new Color(0.2f, 0.45f, 0.6f),
-                new Vector2(0.5f, 0.18f), new Vector2(260, 45), OpenGuideFromButton);
+                new Vector2(0.5f, 0.30f), new Vector2(260, 45), OpenGuideFromButton);
 
             CreateButton(_mainMenuPanel.transform, "QuitButton", "QUIT", new Color(0.45f, 0.45f, 0.45f),
-                new Vector2(0.5f, 0.1f), new Vector2(200, 42), QuitGame);
+                new Vector2(0.5f, 0.22f), new Vector2(200, 42), QuitGame);
         }
 
-        private void OnDifficultySelected(Difficulty difficulty)
+        private void StartCampaign()
         {
-            GameManager.Instance?.SetDifficulty(difficulty);
-            _mainMenuPanel?.SetActive(false);
-            _mapSelectPanel?.SetActive(true);
+            Time.timeScale = 1f;
+            HideAllPanels();
+            _purchasedWeapons.Clear();
+            PlayerUpgrades.Instance?.ResetUpgrades();
+            GameManager.Instance?.StartSelectedMapRun();
         }
 
         // ===================== MAP SELECT =====================
@@ -214,26 +210,30 @@ namespace Deadlight.UI
 
             // Title
             var titleObj = CreateText(_mapSelectPanel.transform, "Title",
-                "SELECT MAP", 42, TextAnchor.MiddleCenter, Color.white,
+                "MAP PREVIEW", 42, TextAnchor.MiddleCenter, Color.white,
                 new Vector2(0.5f, 0.92f), new Vector2(0.5f, 0.92f), Vector2.zero, new Vector2(500, 55));
             titleObj.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
             CreateText(_mapSelectPanel.transform, "Subtitle",
-                "Choose your deployment zone", 18, TextAnchor.MiddleCenter, new Color(0.55f, 0.55f, 0.6f),
+                "Campaign order: Town -> Suburban -> Industrial -> Research", 18, TextAnchor.MiddleCenter, new Color(0.55f, 0.55f, 0.6f),
                 new Vector2(0.5f, 0.86f), new Vector2(0.5f, 0.86f), Vector2.zero, new Vector2(400, 25));
 
             // Map cards
             BuildMapOption(_mapSelectPanel.transform, "TOWN CENTER",
                 "Streets, shops, and plazas. Balanced layout with moderate cover and varied sightlines.",
-                "BALANCED", new Color(0.3f, 0.5f, 0.3f), 0.70f, MapType.TownCenter);
-
-            BuildMapOption(_mapSelectPanel.transform, "INDUSTRIAL DISTRICT",
-                "Warehouses and narrow corridors. Tight chokepoints with limited escape routes.",
-                "TACTICAL", new Color(0.55f, 0.4f, 0.25f), 0.50f, MapType.Industrial);
+                "LEVEL 1", new Color(0.3f, 0.5f, 0.3f), 0.72f, MapType.TownCenter);
 
             BuildMapOption(_mapSelectPanel.transform, "SUBURBAN OUTSKIRTS",
                 "Houses, yards, and wide open spaces. Rewards mobility but offers less cover.",
-                "OPEN", new Color(0.3f, 0.45f, 0.25f), 0.30f, MapType.Suburban);
+                "LEVEL 2", new Color(0.3f, 0.45f, 0.25f), 0.56f, MapType.Suburban);
+
+            BuildMapOption(_mapSelectPanel.transform, "INDUSTRIAL DISTRICT",
+                "Warehouses and narrow corridors. Tight chokepoints with limited escape routes.",
+                "LEVEL 3", new Color(0.55f, 0.4f, 0.25f), 0.40f, MapType.Industrial);
+
+            BuildMapOption(_mapSelectPanel.transform, "RESEARCH COMPLEX",
+                "Containment corridors and dense hazard zones. Highest pressure final layout.",
+                "LEVEL 4", new Color(0.35f, 0.55f, 0.75f), 0.24f, MapType.Research);
 
             // Back button
             CreateButton(_mapSelectPanel.transform, "BackButton", "BACK", new Color(0.3f, 0.3f, 0.35f),
@@ -518,7 +518,7 @@ namespace Deadlight.UI
             _dawnShopPanel.GetComponent<Image>().color = new Color(0.05f, 0.05f, 0.1f, 0.95f);
 
             _shopTitleText = CreateText(_dawnShopPanel.transform, "ShopTitle",
-                "DAWN - Night 1 Survived!", 34, TextAnchor.UpperCenter, new Color(0.95f, 0.85f, 0.4f),
+                "DAWN - Level 1 Cleared!", 34, TextAnchor.UpperCenter, new Color(0.95f, 0.85f, 0.4f),
                 new Vector2(0.5f, 0.96f), new Vector2(0.5f, 0.96f), Vector2.zero, new Vector2(700, 45)).GetComponent<Text>();
             _shopTitleText.fontStyle = FontStyle.Bold;
 
@@ -608,7 +608,7 @@ namespace Deadlight.UI
             BuildUpgradeItems();
             _upgradesTabContent.SetActive(false);
 
-            CreateButton(_dawnShopPanel.transform, "ContinueButton", "Continue to Next Night",
+            CreateButton(_dawnShopPanel.transform, "ContinueButton", "Continue to Next Level",
                 new Color(0.15f, 0.55f, 0.85f),
                 new Vector2(0.5f, 0.08f), new Vector2(350, 55), OnContinueToNextNight);
         }
@@ -650,7 +650,7 @@ namespace Deadlight.UI
 
             CreateText(root.transform, "Name", name, 22, TextAnchor.MiddleLeft, Color.white,
                 new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(15, 8), new Vector2(300, 30));
-            CreateText(root.transform, "Desc", $"{desc}  |  {cost} pts  |  Night {unlockNight}+", 15,
+            CreateText(root.transform, "Desc", $"{desc}  |  {cost} pts  |  Level {unlockNight}+", 15,
                 TextAnchor.MiddleLeft, new Color(0.65f, 0.65f, 0.65f),
                 new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(15, -12), new Vector2(400, 22));
 
@@ -823,7 +823,7 @@ namespace Deadlight.UI
                 _shopPointsText.text = $"Points: {PointsSystem.Instance.CurrentPoints}";
 
             if (_shopTitleText != null && GameManager.Instance != null)
-                _shopTitleText.text = $"DAWN - Night {GameManager.Instance.CurrentNight} Survived!";
+                _shopTitleText.text = $"DAWN - Level {GameManager.Instance.CurrentNight} Cleared!";
 
             if (_shopSummaryText != null && PointsSystem.Instance != null)
             {
@@ -840,7 +840,7 @@ namespace Deadlight.UI
             // Weapon buttons (indices 2..8)
             WeaponType[] weaponTypes = { WeaponType.Shotgun, WeaponType.SMG, WeaponType.SniperRifle, WeaponType.AssaultRifle, WeaponType.GrenadeLauncher, WeaponType.Flamethrower, WeaponType.Railgun };
             int[] weaponCosts = { 100, 150, 250, 200, 350, 400, 500 };
-            int[] weaponNights = { 1, 2, 2, 3, 4, 4, 5 };
+            int[] weaponNights = { 1, 2, 2, 3, 3, 4, 4 };
             for (int i = 0; i < weaponTypes.Length; i++)
             {
                 int btnIdx = 2 + i;
@@ -1094,10 +1094,10 @@ namespace Deadlight.UI
                 "LEADERBOARD", 40, TextAnchor.MiddleCenter, new Color(0.9f, 0.8f, 0.3f),
                 new Vector2(0.5f, 0.92f), new Vector2(0.5f, 0.92f), Vector2.zero, new Vector2(500, 55));
 
-            var headerText = "RANK    SCORE    NIGHTS    KILLS    DIFFICULTY    MAP";
+            var headerText = "RANK    SCORE    LEVELS    KILLS    MAP";
             CreateText(_leaderboardPanel.transform, "Header", headerText, 16, TextAnchor.MiddleCenter,
                 new Color(0.6f, 0.6f, 0.6f),
-                new Vector2(0.5f, 0.84f), new Vector2(0.5f, 0.84f), Vector2.zero, new Vector2(800, 25));
+                new Vector2(0.5f, 0.84f), new Vector2(0.5f, 0.84f), Vector2.zero, new Vector2(760, 25));
 
             for (int i = 0; i < 10; i++)
             {
@@ -1188,7 +1188,7 @@ namespace Deadlight.UI
                 {
                     var e = entries[i];
                     string victoryMark = e.victory ? " *" : "";
-                    entryText.text = $"#{i + 1}      {e.score}      {e.nightsReached}      {e.kills}      {e.difficulty}      {e.map}{victoryMark}";
+                    entryText.text = $"#{i + 1}      {e.score}      {e.nightsReached}      {e.kills}      {e.map}{victoryMark}";
                     entryText.color = e.victory ? new Color(0.9f, 0.8f, 0.3f) : Color.white;
                 }
                 else
@@ -1303,8 +1303,7 @@ namespace Deadlight.UI
         {
             if (_statsText == null) return;
 
-            int nightReached = Core.GameManager.Instance != null ? Core.GameManager.Instance.CurrentNight : 1;
-            string difficulty = Core.GameManager.Instance != null ? Core.GameManager.Instance.CurrentDifficulty.ToString() : "Normal";
+            int levelReached = Core.GameManager.Instance != null ? Core.GameManager.Instance.CurrentNight : 1;
             string map = Core.GameManager.Instance != null ? Core.GameManager.Instance.SelectedMap.ToString() : "TownCenter";
             int kills = 0;
             int totalEarned = 0;
@@ -1324,7 +1323,7 @@ namespace Deadlight.UI
                 rank = 1;
                 foreach (var entry in LeaderboardManager.Instance.Entries)
                 {
-                    if (entry.nightsReached == nightReached && entry.kills == kills)
+                    if (entry.nightsReached == levelReached && entry.kills == kills)
                     {
                         finalScore = entry.score;
                         rank = LeaderboardManager.Instance.GetRank(entry.score);
@@ -1333,10 +1332,9 @@ namespace Deadlight.UI
                 }
             }
 
-            _statsText.text = $"Night Reached: {nightReached}\n" +
+            _statsText.text = $"Level Reached: {levelReached}\n" +
                 $"Enemies Killed: {kills}\n" +
                 $"Points Earned: {totalEarned}\n" +
-                $"Difficulty: {difficulty}\n" +
                 $"Map: {map}\n" +
                 (rank > 0 ? $"Leaderboard Rank: #{rank}  (Score: {finalScore})" : "");
         }
@@ -1355,18 +1353,17 @@ namespace Deadlight.UI
         {
             if (_statsText == null) return;
 
-            string difficulty = Core.GameManager.Instance != null ? Core.GameManager.Instance.CurrentDifficulty.ToString() : "Normal";
             string map = Core.GameManager.Instance != null ? Core.GameManager.Instance.SelectedMap.ToString() : "TownCenter";
             int kills = 0;
             int totalEarned = 0;
-            int nightsSurvived = 5;
+            int levelsCleared = 4;
 
             if (PointsSystem.Instance != null)
             {
                 var stats = PointsSystem.Instance.GetGameStats();
                 kills = stats.enemiesKilled;
                 totalEarned = stats.totalEarned;
-                nightsSurvived = stats.nightsSurvived;
+                levelsCleared = stats.nightsSurvived;
             }
 
             int rank = -1;
@@ -1386,23 +1383,11 @@ namespace Deadlight.UI
                 rank = LeaderboardManager.Instance.GetRank(finalScore);
             }
 
-            _statsText.text = $"ALL {nightsSurvived} NIGHTS SURVIVED!\n" +
+            _statsText.text = $"ALL {levelsCleared} LEVELS CLEARED!\n" +
                 $"Enemies Killed: {kills}\n" +
                 $"Points Earned: {totalEarned}\n" +
-                $"Difficulty: {difficulty} ({GetMultiplierText(difficulty)})\n" +
                 $"Map: {map}\n" +
                 (rank > 0 ? $"Leaderboard Rank: #{rank}  (Score: {finalScore})" : "");
-        }
-
-        private string GetMultiplierText(string difficulty)
-        {
-            return difficulty switch
-            {
-                "Easy" => "0.75x",
-                "Normal" => "1.0x",
-                "Hard" => "1.5x",
-                _ => "1.0x"
-            };
         }
     }
 }

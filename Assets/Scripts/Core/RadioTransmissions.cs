@@ -15,10 +15,10 @@ namespace Deadlight.Core
         private AudioClip radioBeepClip;
 
         private static readonly string[][] nightTransmissions = {
-            // Night 1 - Introduction & First Hints of Project Lazarus
+            // Level 1 - Introduction & First Hints of Project Lazarus
             new[] {
                 "[Radio crackle] ...this is EVAC Command. We've detected a survivor in the quarantine zone.",
-                "Survivor, do you copy? Extraction team is en route. ETA: five nights.",
+                "Survivor, do you copy? Extraction team is en route. ETA: four levels.",
                 "The convoy left without you. We're sorry. But we will get you out.",
                 "During daylight, the infected are sluggish. Scavenge supplies. Stay quiet.",
                 "At night... they become aggressive. Find shelter. Defend your position.",
@@ -26,9 +26,9 @@ namespace Deadlight.Core
                 "Something about 'Project Lazarus'. Stay away from that area if you can.",
                 "Survive until dawn, soldier. EVAC Command out."
             },
-            // Night 2 - Hints of Dr. Chen, Evolution of Infected
+            // Level 2 - Hints of Dr. Chen, Evolution of Infected
             new[] {
-                "[Radio] EVAC Command checking in. Outstanding work surviving Night 1.",
+                "[Radio] EVAC Command checking in. Outstanding work surviving Level 1.",
                 "Bad news: our scouts report the infected are... changing.",
                 "They're faster. More coordinated. This isn't normal pathogen behavior.",
                 "We found partial records from the research facility. Something about a Dr. Chen.",
@@ -36,9 +36,9 @@ namespace Deadlight.Core
                 "Whatever she created, it's spreading. The infected are adapting.",
                 "A shotgun was found in a supply drop. Check the shop at dawn.",
                 "Watch for runners. They don't shamble, survivor. They hunt.",
-                "Four nights to extraction. Stay sharp. EVAC Command out."
+                "Three levels to extraction. Stay sharp. EVAC Command out."
             },
-            // Night 3 - Revelation: Project Lazarus & Subject 23
+            // Level 3 - Revelation: Project Lazarus & Subject 23
             new[] {
                 "[Radio crackle] ...urgent transmission, survivor.",
                 "We've decoded more files from the facility. Project Lazarus was a military contract.",
@@ -48,25 +48,14 @@ namespace Deadlight.Core
                 "The mutation is accelerating. We're seeing new infected types.",
                 "Exploders. Their bodies are... unstable. Keep your distance when they fall.",
                 "The assault rifle should help with the larger hordes. It's in the shop.",
-                "Three nights, survivor. The helicopter is on schedule.",
+                "Two levels, survivor. The helicopter is on schedule.",
                 "Whatever you do, don't let them surround you. EVAC Command out."
             },
-            // Night 4 - Military Cover-up & Tank Infected
+            // Level 4 - Final Stand: Subject 23 Boss Fight
             new[] {
-                "[Static] ...survivor, this is EVAC Command. Priority alert.",
+                "[Radio] Survivor. This is it. Final level.",
                 "We've intercepted military comms. Operation Deadlight was initiated.",
                 "They're trying to cover this up. Destroy all evidence of Project Lazarus.",
-                "Dr. Chen's last transmission mentioned Subject 23 was 'learning'. Adapting.",
-                "The infected are testing our perimeters now. Probing for weaknesses.",
-                "New threat detected: Tank-class infected. Heavily mutated. Armored tissue.",
-                "They were soldiers once. Project Lazarus subjects that didn't die.",
-                "Use incendiary rounds if you have them. Fire disrupts their regeneration.",
-                "Two more nights. The extraction window is narrow.",
-                "Whatever happens, the world needs to know the truth. EVAC Command out."
-            },
-            // Night 5 - Final Night: Subject 23 Boss Fight
-            new[] {
-                "[Radio] Survivor. This is it. Final night.",
                 "Massive biological signature detected approaching your position.",
                 "It's Subject 23. The original. The source of all of this.",
                 "Dr. Chen's notes say it absorbed every sample, every test subject.",
@@ -74,7 +63,6 @@ namespace Deadlight.Core
                 "Every infected you've killed... it felt. It's angry. And it's coming for you.",
                 "This creature ended the world. Tonight, you end it.",
                 "Helicopter is inbound. Hold until dawn. Do not let it reach the extraction point.",
-                "If Subject 23 escapes the quarantine zone... there will be no stopping it.",
                 "Everything we've done comes down to this moment.",
                 "For everyone we've lost. For everyone who's still fighting.",
                 "Make it count, survivor. EVAC Command... [voice breaks] ...we believe in you."
@@ -156,7 +144,7 @@ namespace Deadlight.Core
             else if (state == GameState.NightPhase)
             {
                 int night = GameManager.Instance?.CurrentNight ?? 1;
-                ShowMessage($"NIGHT {night} - SURVIVE!", 3f);
+                ShowMessage($"LEVEL {night} - SURVIVE!", 3f);
             }
         }
 

@@ -57,8 +57,8 @@ namespace Deadlight.Narrative
                 if (nightsSurvived > 0 && RadioTransmissions.Instance != null)
                 {
                     string[] survivalMessages = {
-                        "You made it through another night. Don't let your guard down.",
-                        "Dawn breaks... but the next night will be worse.",
+                        "You cleared another level. Don't let your guard down.",
+                        "Dawn breaks... but the next level will be worse.",
                         "Another sunrise. Use the daylight wisely, survivor.",
                         "The infected retreat at dawn. Scavenge while you can."
                     };
