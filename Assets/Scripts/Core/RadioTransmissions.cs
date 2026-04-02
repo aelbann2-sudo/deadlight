@@ -17,47 +17,27 @@ namespace Deadlight.Core
         private static readonly string[][] nightTransmissions = {
             // Level 1 — Town Center: "First Light"
             new[] {
-                "[Radio crackle] EVAC Command to ground. Welcome to your first day in the zone, medic.",
-                "Flight 7's wreckage is nearby. Something brought that bird down from inside the perimeter.",
-                "During daylight the infected are slow. Scavenge what you can — ammo, medical supplies, anything.",
-                "When the sun sets, they change. Faster. Angrier. Find a defensible position.",
-                "We're picking up faint signals from a research facility to the north. 'Project Lazarus.'",
-                "Reach it in four days and transmit the data. That's your ticket home.",
-                "First things first: survive tonight. EVAC Command out."
+                "[Radio] EVAC Command. Welcome to the zone, medic. Scavenge during daylight — they're slow in the sun.",
+                "When the sun sets, they change. Find a defensible position.",
+                "Signals from a research facility to the north. 'Project Lazarus.' Reach it in four days. EVAC out."
             },
             // Level 2 — Suburban: "No One Left Behind"
             new[] {
-                "[Radio] Good work making it through Level 1, medic.",
-                "You're entering the suburbs now. This neighborhood was on the evacuation route.",
-                "Keyword: was. The military sealed the quarantine line before the buses cleared out.",
-                "We intercepted partial files from a Dr. Chen — lead researcher on Project Lazarus.",
-                "She was working on cellular regeneration. Making soldiers that couldn't die.",
-                "Whatever she built, it's still spreading. The infected are evolving.",
-                "Watch for runners. They don't shamble — they hunt. Two levels left. Stay sharp."
+                "[Radio] Good work, medic. Suburbs ahead — the military sealed the quarantine before buses cleared out.",
+                "Dr. Chen's files mention cellular regeneration. Making soldiers that couldn't die.",
+                "Watch for runners. They hunt, not shamble. Stay sharp. EVAC out."
             },
             // Level 3 — Industrial: "The Source"
             new[] {
-                "[Radio crackle] Urgent transmission, medic.",
-                "We decoded the Lazarus files. It was a military black project — immortal soldiers.",
-                "Subject 23 was the breakthrough. Perfect regeneration. Perfect weapon.",
-                "Then it escaped containment three weeks ago. Patient zero for everything you see out there.",
-                "The mutation is accelerating. Exploders — bodies so unstable they detonate on death.",
-                "Spitters — ranged acid projectors. Keep your distance from both.",
-                "The research facility is close. One more level after tonight.",
-                "Don't let them surround you. EVAC Command out."
+                "[Radio] Urgent. Lazarus files decoded — a black project. Subject 23 was patient zero.",
+                "Mutation is accelerating. Exploders and spitters. Keep your distance.",
+                "The facility is close. One more level after tonight. Don't let them surround you."
             },
             // Level 4 — Research: "Operation Deadlight"
             new[] {
-                "[Radio] Medic. This is the final level.",
-                "We've intercepted military comms. They've initiated 'Operation Deadlight.'",
-                "The order is to destroy the facility and bury every trace of Project Lazarus.",
-                "We need that data transmitted before they succeed. The world deserves the truth.",
-                "Massive biological signature moving toward your position.",
-                "It's Subject 23. The original host. The source of all of this.",
-                "Dr. Chen's last entry says it absorbed every test subject. It gets stronger with each kill.",
-                "This thing ended the world, medic. Tonight, you end it.",
-                "Helicopter is inbound. Hold until dawn.",
-                "For everyone we've lost. Make it count. EVAC Command... we believe in you."
+                "[Radio] Final level. Military initiated 'Operation Deadlight' — they'll bury everything.",
+                "Subject 23 is converging. The original host. It gets stronger with each kill.",
+                "Transmit the data before they destroy it. Helicopter inbound at dawn. Make it count."
             }
         };
 
@@ -140,21 +120,21 @@ namespace Deadlight.Core
 
         private IEnumerator PlayTransmissions(int nightIndex)
         {
-            yield return new WaitForSeconds(1.5f);
+            yield return new WaitForSeconds(2f);
 
             if (nightIndex >= 0 && nightIndex < nightTransmissions.Length)
             {
                 string[] lines = nightTransmissions[nightIndex];
                 foreach (var line in lines)
                 {
-                    yield return ShowTransmission(line, 4f);
-                    yield return new WaitForSeconds(1f);
+                    yield return ShowTransmission(line, 4.5f);
+                    yield return new WaitForSeconds(3f);
                 }
             }
 
-            yield return new WaitForSeconds(3f);
+            yield return new WaitForSeconds(8f);
             string tip = dayTips[Random.Range(0, dayTips.Length)];
-            yield return ShowTransmission(tip, 3f);
+            yield return ShowTransmission(tip, 3.5f);
         }
 
         private IEnumerator ShowTransmission(string text, float duration)
@@ -212,8 +192,14 @@ namespace Deadlight.Core
             transmissionPanel.SetActive(false);
         }
 
+        private float lastMessageTime = -10f;
+        private const float MessageCooldown = 5f;
+
         public void ShowMessage(string text, float duration)
         {
+            if (Time.unscaledTime - lastMessageTime < MessageCooldown)
+                return;
+            lastMessageTime = Time.unscaledTime;
             StartCoroutine(ShowTransmission(text, duration));
         }
 

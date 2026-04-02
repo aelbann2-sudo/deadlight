@@ -68,8 +68,8 @@ namespace Deadlight.Core
         [SerializeField] private bool autoBootstrapGameScene = true;
         [SerializeField] private bool autoStartWhenGameSceneLoads = false;
         [SerializeField] private float dawnAutoAdvanceDelay = 2f;
-        [SerializeField] private float[] dayDurationsByNight = { 90f, 75f, 60f, 50f };
-        [SerializeField] private float[] nightDurationsByNight = { 60f, 90f, 120f, 180f };
+        [SerializeField] private float[] dayDurationsByNight = { 100f, 90f, 75f, 65f };
+        [SerializeField] private float[] nightDurationsByNight = { 50f, 70f, 100f, 140f };
 
         private const float DefaultFixedDeltaTime = 0.02f;
 

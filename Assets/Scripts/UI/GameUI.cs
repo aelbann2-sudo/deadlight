@@ -34,6 +34,7 @@ namespace Deadlight.UI
 
         private GameObject _weaponsTabContent;
         private GameObject _upgradesTabContent;
+        private GameObject _armorTabContent;
         private Button _weaponsTabBtn;
         private Button _upgradesTabBtn;
 
@@ -169,31 +170,37 @@ namespace Deadlight.UI
         {
             _mainMenuPanel = CreatePanel(_canvasRoot.transform, "MainMenuPanel");
             var bg = _mainMenuPanel.GetComponent<Image>();
-            bg.color = new Color(0.08f, 0.08f, 0.12f, 1f);
+            bg.color = new Color(0.04f, 0.04f, 0.07f, 1f);
 
-            var title = CreateText(_mainMenuPanel.transform, "Title",
-                "DEADLIGHT: Survival After Dark", 44, TextAnchor.MiddleCenter, Color.white,
-                new Vector2(0.5f, 0.88f), new Vector2(0.5f, 0.88f), Vector2.zero, new Vector2(900, 80));
+            var headerBg = CreateInsetPanel(_mainMenuPanel.transform, "MenuHeaderBg",
+                new Vector2(0f, 0.7f), new Vector2(1f, 1f), new Color(0.06f, 0.05f, 0.1f, 0.9f));
+
+            var title = CreateText(headerBg.transform, "Title",
+                "DEADLIGHT", 56, TextAnchor.MiddleCenter, new Color(1f, 0.9f, 0.4f),
+                new Vector2(0.5f, 0.6f), new Vector2(0.5f, 0.6f), Vector2.zero, new Vector2(700, 70));
             title.GetComponent<Text>().fontStyle = FontStyle.Bold;
+            var titleGlow = title.AddComponent<Shadow>();
+            titleGlow.effectColor = new Color(0.9f, 0.7f, 0f, 0.25f);
+            titleGlow.effectDistance = new Vector2(0f, -2f);
 
-            CreateText(_mainMenuPanel.transform, "Subtitle",
-                "4-Level Campaign", 24, TextAnchor.MiddleCenter, new Color(0.7f, 0.7f, 0.7f),
-                new Vector2(0.5f, 0.72f), new Vector2(0.5f, 0.72f), Vector2.zero, new Vector2(400, 35));
+            CreateText(headerBg.transform, "Subtitle",
+                "SURVIVAL AFTER DARK", 20, TextAnchor.MiddleCenter, new Color(0.6f, 0.6f, 0.55f),
+                new Vector2(0.5f, 0.25f), new Vector2(0.5f, 0.25f), Vector2.zero, new Vector2(400, 28));
 
-            CreateButton(_mainMenuPanel.transform, "StartCampaignButton", "START LEVEL 1", new Color(0.2f, 0.7f, 0.2f),
-                new Vector2(0.5f, 0.56f), new Vector2(320, 58), StartCampaign);
+            CreateButton(_mainMenuPanel.transform, "StartCampaignButton", "START CAMPAIGN", new Color(0.2f, 0.65f, 0.25f),
+                new Vector2(0.5f, 0.55f), new Vector2(300, 55), StartCampaign);
 
-            CreateButton(_mainMenuPanel.transform, "LeaderboardButton", "LEADERBOARD", new Color(0.3f, 0.4f, 0.7f),
-                new Vector2(0.5f, 0.38f), new Vector2(260, 45), ShowLeaderboard);
+            CreateButton(_mainMenuPanel.transform, "CampaignMapButton", "CAMPAIGN MAP", new Color(0.6f, 0.48f, 0.18f),
+                new Vector2(0.5f, 0.42f), new Vector2(260, 44), ShowCampaignMap);
 
-            CreateButton(_mainMenuPanel.transform, "CampaignMapButton", "CAMPAIGN MAP", new Color(0.65f, 0.5f, 0.2f),
-                new Vector2(0.5f, 0.30f), new Vector2(260, 45), ShowCampaignMap);
+            CreateButton(_mainMenuPanel.transform, "LeaderboardButton", "LEADERBOARD", new Color(0.25f, 0.35f, 0.6f),
+                new Vector2(0.5f, 0.32f), new Vector2(260, 44), ShowLeaderboard);
 
-            CreateButton(_mainMenuPanel.transform, "GuideButton", "GUIDE", new Color(0.2f, 0.45f, 0.6f),
-                new Vector2(0.5f, 0.22f), new Vector2(260, 45), OpenGuideFromButton);
+            CreateButton(_mainMenuPanel.transform, "GuideButton", "GUIDE", new Color(0.2f, 0.4f, 0.55f),
+                new Vector2(0.5f, 0.22f), new Vector2(260, 44), OpenGuideFromButton);
 
-            CreateButton(_mainMenuPanel.transform, "QuitButton", "QUIT", new Color(0.45f, 0.45f, 0.45f),
-                new Vector2(0.5f, 0.14f), new Vector2(200, 42), QuitGame);
+            CreateButton(_mainMenuPanel.transform, "QuitButton", "QUIT", new Color(0.35f, 0.35f, 0.38f),
+                new Vector2(0.5f, 0.12f), new Vector2(180, 38), QuitGame);
         }
 
         private void StartCampaign()
@@ -234,146 +241,207 @@ namespace Deadlight.UI
         private void BuildMapSelect()
         {
             _mapSelectPanel = CreatePanel(_canvasRoot.transform, "MapSelectPanel");
-            _mapSelectPanel.GetComponent<Image>().color = new Color(0.06f, 0.06f, 0.08f, 1f);
+            _mapSelectPanel.GetComponent<Image>().color = new Color(0.04f, 0.04f, 0.07f, 1f);
 
-            var titleObj = CreateText(_mapSelectPanel.transform, "Title",
-                "OPERATION DEADLIGHT", 38, TextAnchor.MiddleCenter, new Color(1f, 0.85f, 0.3f),
-                new Vector2(0.5f, 0.93f), new Vector2(0.5f, 0.93f), Vector2.zero, new Vector2(600, 50));
+            var headerGlow = CreateInsetPanel(_mapSelectPanel.transform, "HeaderGlow",
+                new Vector2(0f, 0.87f), new Vector2(1f, 1f), new Color(0.08f, 0.06f, 0.14f, 0.9f));
+
+            var titleObj = CreateText(headerGlow.transform, "Title",
+                "OPERATION DEADLIGHT", 42, TextAnchor.MiddleCenter, new Color(1f, 0.85f, 0.3f),
+                new Vector2(0.5f, 0.65f), new Vector2(0.5f, 0.65f), Vector2.zero, new Vector2(700, 55));
             titleObj.GetComponent<Text>().fontStyle = FontStyle.Bold;
+            var titleShadow = titleObj.AddComponent<Shadow>();
+            titleShadow.effectColor = new Color(0.8f, 0.6f, 0f, 0.3f);
+            titleShadow.effectDistance = new Vector2(0f, -2f);
 
-            CreateText(_mapSelectPanel.transform, "Subtitle",
-                "Survive four levels. Reach the facility. Transmit the truth.", 16, TextAnchor.MiddleCenter, new Color(0.7f, 0.7f, 0.65f),
-                new Vector2(0.5f, 0.875f), new Vector2(0.5f, 0.875f), Vector2.zero, new Vector2(760, 22));
+            CreateText(headerGlow.transform, "Subtitle",
+                "Survive four levels. Reach the facility. Transmit the truth.", 16, TextAnchor.MiddleCenter, new Color(0.65f, 0.65f, 0.6f),
+                new Vector2(0.5f, 0.2f), new Vector2(0.5f, 0.2f), Vector2.zero, new Vector2(760, 22));
 
             var mapBoard = CreateInsetPanel(_mapSelectPanel.transform, "CampaignBoard",
-                new Vector2(0.05f, 0.18f), new Vector2(0.95f, 0.82f), new Color(0.1f, 0.1f, 0.12f, 0.95f));
+                new Vector2(0.04f, 0.15f), new Vector2(0.96f, 0.85f), new Color(0.06f, 0.06f, 0.09f, 0.98f));
             var boardOutline = mapBoard.AddComponent<Outline>();
-            boardOutline.effectColor = new Color(0.3f, 0.25f, 0.1f, 0.7f);
+            boardOutline.effectColor = new Color(0.4f, 0.3f, 0.1f, 0.5f);
             boardOutline.effectDistance = new Vector2(2f, -2f);
 
-            Vector2 level1Pos = new Vector2(-340f, -80f);
-            Vector2 level2Pos = new Vector2(-115f, 80f);
-            Vector2 level3Pos = new Vector2(115f, -40f);
-            Vector2 level4Pos = new Vector2(340f, 100f);
+            Vector2[] positions = {
+                new Vector2(-320f, 0f),
+                new Vector2(-108f, 0f),
+                new Vector2(108f, 0f),
+                new Vector2(320f, 0f)
+            };
 
             Color[] nodeColors = {
-                new Color(0.3f, 0.65f, 0.35f),
-                new Color(0.52f, 0.73f, 0.3f),
-                new Color(0.83f, 0.56f, 0.24f),
-                new Color(0.7f, 0.25f, 0.25f)
+                new Color(0.25f, 0.65f, 0.35f),
+                new Color(0.5f, 0.7f, 0.3f),
+                new Color(0.85f, 0.55f, 0.2f),
+                new Color(0.75f, 0.2f, 0.2f)
             };
-            Vector2[] positions = { level1Pos, level2Pos, level3Pos, level4Pos };
+
+            Color[] glowColors = {
+                new Color(0.2f, 0.8f, 0.3f, 0.15f),
+                new Color(0.5f, 0.8f, 0.2f, 0.12f),
+                new Color(0.9f, 0.6f, 0.1f, 0.12f),
+                new Color(0.9f, 0.15f, 0.1f, 0.12f)
+            };
 
             for (int i = 0; i < 3; i++)
             {
-                CreateCampaignPathSegment(mapBoard.transform, positions[i], positions[i + 1], new Color(0.4f, 0.35f, 0.2f, 0.7f));
+                CreateCampaignPathDotted(mapBoard.transform, positions[i], positions[i + 1],
+                    Color.Lerp(nodeColors[i], nodeColors[i + 1], 0.5f));
             }
 
             for (int i = 0; i < 4; i++)
             {
-                CreateCampaignNode(mapBoard.transform, i + 1, levelMapNames[i], positions[i], nodeColors[i]);
+                CreateCampaignNodeStyled(mapBoard.transform, i + 1, levelMapNames[i], positions[i], nodeColors[i], glowColors[i]);
             }
 
             CreateText(mapBoard.transform, "MapHint",
-                "Select a level to begin. Difficulty increases left to right.", 14, TextAnchor.MiddleCenter,
-                new Color(0.5f, 0.5f, 0.45f),
-                new Vector2(0.5f, 0.05f), new Vector2(0.5f, 0.05f), Vector2.zero, new Vector2(720f, 24f));
+                "Click a level to begin  |  Difficulty increases left to right", 13, TextAnchor.MiddleCenter,
+                new Color(0.45f, 0.45f, 0.4f),
+                new Vector2(0.5f, 0.04f), new Vector2(0.5f, 0.04f), Vector2.zero, new Vector2(720f, 20f));
 
-            CreateButton(_mapSelectPanel.transform, "BackButton", "BACK", new Color(0.3f, 0.3f, 0.35f),
-                new Vector2(0.5f, 0.08f), new Vector2(200, 45), () =>
+            CreateButton(_mapSelectPanel.transform, "BackButton", "BACK", new Color(0.25f, 0.25f, 0.3f),
+                new Vector2(0.5f, 0.06f), new Vector2(200, 42), () =>
                 {
                     _mapSelectPanel?.SetActive(false);
                     _mainMenuPanel?.SetActive(true);
                 });
         }
 
-        private void CreateCampaignPathSegment(Transform parent, Vector2 start, Vector2 end, Color color)
+        private void CreateCampaignPathDotted(Transform parent, Vector2 start, Vector2 end, Color color)
         {
-            var segment = new GameObject("PathSegment");
-            segment.transform.SetParent(parent, false);
-
-            var rect = segment.AddComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.5f, 0.5f);
-            rect.anchorMax = new Vector2(0.5f, 0.5f);
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.anchoredPosition = (start + end) * 0.5f;
-
             Vector2 delta = end - start;
-            rect.sizeDelta = new Vector2(delta.magnitude, 14f);
-            rect.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg);
+            float length = delta.magnitude;
+            int dotCount = Mathf.Max(3, Mathf.RoundToInt(length / 16f));
+            float angle = Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg;
 
-            var image = segment.AddComponent<Image>();
-            image.color = color;
+            for (int i = 0; i <= dotCount; i++)
+            {
+                float t = (float)i / dotCount;
+                Vector2 pos = Vector2.Lerp(start, end, t);
+
+                var dot = new GameObject($"PathDot_{i}");
+                dot.transform.SetParent(parent, false);
+                var rect = dot.AddComponent<RectTransform>();
+                rect.anchorMin = new Vector2(0.5f, 0.5f);
+                rect.anchorMax = new Vector2(0.5f, 0.5f);
+                rect.pivot = new Vector2(0.5f, 0.5f);
+                rect.anchoredPosition = pos;
+                float dotSize = 6f + Mathf.Sin(t * Mathf.PI) * 3f;
+                rect.sizeDelta = new Vector2(dotSize, dotSize);
+
+                var img = dot.AddComponent<Image>();
+                float fade = 0.3f + Mathf.Sin(t * Mathf.PI) * 0.4f;
+                img.color = new Color(color.r, color.g, color.b, fade);
+                img.raycastTarget = false;
+                img.sprite = GetCampaignNodeSprite();
+            }
+
+            var arrowPos = Vector2.Lerp(start, end, 0.5f);
+            var arrow = new GameObject("PathArrow");
+            arrow.transform.SetParent(parent, false);
+            var arrowRect = arrow.AddComponent<RectTransform>();
+            arrowRect.anchorMin = new Vector2(0.5f, 0.5f);
+            arrowRect.anchorMax = new Vector2(0.5f, 0.5f);
+            arrowRect.pivot = new Vector2(0.5f, 0.5f);
+            arrowRect.anchoredPosition = arrowPos;
+            arrowRect.sizeDelta = new Vector2(20f, 16f);
+            arrowRect.localRotation = Quaternion.Euler(0f, 0f, angle);
+
+            var arrowText = arrow.AddComponent<Text>();
+            arrowText.text = "\u25B6";
+            arrowText.font = _font;
+            arrowText.fontSize = 14;
+            arrowText.alignment = TextAnchor.MiddleCenter;
+            arrowText.color = new Color(color.r, color.g, color.b, 0.6f);
+            arrowText.raycastTarget = false;
         }
 
-        private void CreateCampaignNode(Transform parent, int levelNumber, string mapName, Vector2 position, Color color)
+        private void CreateCampaignNodeStyled(Transform parent, int levelNumber, string mapName,
+            Vector2 position, Color color, Color glowColor)
         {
+            var glowObj = new GameObject($"NodeGlow_{levelNumber}");
+            glowObj.transform.SetParent(parent, false);
+            var glowRect = glowObj.AddComponent<RectTransform>();
+            glowRect.anchorMin = new Vector2(0.5f, 0.5f);
+            glowRect.anchorMax = new Vector2(0.5f, 0.5f);
+            glowRect.pivot = new Vector2(0.5f, 0.5f);
+            glowRect.anchoredPosition = position;
+            glowRect.sizeDelta = new Vector2(160f, 160f);
+            var glowImg = glowObj.AddComponent<Image>();
+            glowImg.sprite = GetCampaignNodeSprite();
+            glowImg.color = glowColor;
+            glowImg.raycastTarget = false;
+
             var node = new GameObject($"LevelNode_{levelNumber}");
             node.transform.SetParent(parent, false);
-
             var nodeRect = node.AddComponent<RectTransform>();
             nodeRect.anchorMin = new Vector2(0.5f, 0.5f);
             nodeRect.anchorMax = new Vector2(0.5f, 0.5f);
             nodeRect.pivot = new Vector2(0.5f, 0.5f);
             nodeRect.anchoredPosition = position;
-            nodeRect.sizeDelta = new Vector2(100f, 100f);
+            nodeRect.sizeDelta = new Vector2(110f, 110f);
 
             var nodeImage = node.AddComponent<Image>();
             nodeImage.sprite = GetCampaignNodeSprite();
             nodeImage.color = color;
-            nodeImage.type = Image.Type.Simple;
 
             var button = node.AddComponent<Button>();
             button.targetGraphic = nodeImage;
             var colors = button.colors;
             colors.normalColor = color;
             colors.highlightedColor = new Color(
-                Mathf.Min(1f, color.r + 0.15f),
-                Mathf.Min(1f, color.g + 0.15f),
-                Mathf.Min(1f, color.b + 0.15f),
-                1f);
-            colors.pressedColor = new Color(color.r * 0.8f, color.g * 0.8f, color.b * 0.8f, 1f);
+                Mathf.Min(1f, color.r + 0.2f),
+                Mathf.Min(1f, color.g + 0.2f),
+                Mathf.Min(1f, color.b + 0.2f), 1f);
+            colors.pressedColor = new Color(color.r * 0.7f, color.g * 0.7f, color.b * 0.7f, 1f);
             colors.selectedColor = colors.normalColor;
-            colors.disabledColor = new Color(0.35f, 0.35f, 0.35f, 0.6f);
             button.colors = colors;
             button.onClick.AddListener(() => StartCampaignAtLevel(levelNumber));
 
-            var nodeOutline = node.AddComponent<Outline>();
-            nodeOutline.effectColor = new Color(color.r * 0.5f, color.g * 0.5f, color.b * 0.5f, 0.9f);
-            nodeOutline.effectDistance = new Vector2(2f, -2f);
+            var outerRing = node.AddComponent<Outline>();
+            outerRing.effectColor = new Color(1f, 1f, 1f, 0.15f);
+            outerRing.effectDistance = new Vector2(2f, -2f);
 
             var levelLabel = CreateText(node.transform, "LevelNumber",
-                $"{levelNumber}", 36, TextAnchor.MiddleCenter, new Color(1f, 1f, 1f, 0.95f),
-                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(70f, 70f));
+                $"{levelNumber}", 40, TextAnchor.MiddleCenter, new Color(1f, 1f, 1f, 0.95f),
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(80f, 80f));
             levelLabel.GetComponent<Text>().fontStyle = FontStyle.Bold;
             var numShadow = levelLabel.AddComponent<Shadow>();
-            numShadow.effectColor = new Color(0f, 0f, 0f, 0.6f);
-            numShadow.effectDistance = new Vector2(1f, -1f);
+            numShadow.effectColor = new Color(0f, 0f, 0f, 0.7f);
+            numShadow.effectDistance = new Vector2(1f, -2f);
 
             int subtitleIdx = Mathf.Clamp(levelNumber - 1, 0, levelSubtitles.Length - 1);
             string subtitle = levelSubtitles[subtitleIdx];
             string mapTitle = levelMapNames[subtitleIdx];
 
             var levelTag = CreateText(node.transform, "LevelTag",
-                $"LEVEL {levelNumber}: {mapTitle.ToUpperInvariant()}", 12, TextAnchor.MiddleCenter, new Color(0.9f, 0.85f, 0.6f),
-                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, 14f), new Vector2(220f, 18f));
+                $"LEVEL {levelNumber}: {mapTitle.ToUpperInvariant()}", 13, TextAnchor.MiddleCenter, new Color(1f, 0.9f, 0.5f),
+                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, 20f), new Vector2(240f, 20f));
             levelTag.GetComponent<Text>().fontStyle = FontStyle.Bold;
+            var tagShadow = levelTag.AddComponent<Shadow>();
+            tagShadow.effectColor = new Color(0f, 0f, 0f, 0.5f);
+            tagShadow.effectDistance = new Vector2(1f, -1f);
 
             var subtitleLabel = CreateText(node.transform, "Subtitle",
-                $"\"{subtitle}\"", 13, TextAnchor.MiddleCenter, new Color(0.8f, 0.8f, 0.7f),
-                new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, -18f), new Vector2(220f, 20f));
+                $"\"{subtitle}\"", 14, TextAnchor.MiddleCenter, new Color(0.85f, 0.85f, 0.75f),
+                new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, -22f), new Vector2(240f, 22f));
             subtitleLabel.GetComponent<Text>().fontStyle = FontStyle.Italic;
 
             string teaser = levelTeasers[subtitleIdx];
             CreateText(node.transform, "Teaser",
-                teaser, 11, TextAnchor.MiddleCenter, new Color(0.55f, 0.55f, 0.5f),
-                new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, -36f), new Vector2(240f, 28f));
+                teaser, 11, TextAnchor.MiddleCenter, new Color(0.5f, 0.5f, 0.48f),
+                new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, -42f), new Vector2(250f, 30f));
 
-            string diffBars = new string('|', levelNumber) + new string('.', 4 - levelNumber);
-            Color diffColor = levelNumber <= 2 ? new Color(0.4f, 0.8f, 0.4f) : (levelNumber == 3 ? new Color(0.9f, 0.7f, 0.2f) : new Color(0.9f, 0.3f, 0.3f));
+            string diffPips = "";
+            for (int i = 0; i < 4; i++)
+                diffPips += i < levelNumber ? "\u25CF " : "\u25CB ";
+            Color diffColor = levelNumber <= 2 ? new Color(0.4f, 0.85f, 0.4f)
+                : (levelNumber == 3 ? new Color(0.95f, 0.75f, 0.2f) : new Color(0.95f, 0.3f, 0.3f));
             CreateText(node.transform, "Difficulty",
-                $"DIFFICULTY [{diffBars}]", 10, TextAnchor.MiddleCenter, diffColor,
-                new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, -52f), new Vector2(160f, 16f));
+                diffPips.Trim(), 12, TextAnchor.MiddleCenter, diffColor,
+                new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, -60f), new Vector2(120f, 18f));
         }
 
         private Sprite GetCampaignNodeSprite()
@@ -399,7 +467,15 @@ namespace Deadlight.UI
                 for (int x = 0; x < size; x++)
                 {
                     float distance = Vector2.Distance(new Vector2(x, y), center);
-                    pixels[y * size + x] = distance <= radius ? Color.white : Color.clear;
+                    if (distance <= radius)
+                    {
+                        float edge = Mathf.Clamp01((radius - distance) / 2f);
+                        pixels[y * size + x] = new Color(1f, 1f, 1f, edge);
+                    }
+                    else
+                    {
+                        pixels[y * size + x] = Color.clear;
+                    }
                 }
             }
 
@@ -680,122 +756,109 @@ namespace Deadlight.UI
         private void BuildDawnShop()
         {
             _dawnShopPanel = CreatePanel(_canvasRoot.transform, "DawnShopPanel");
-            _dawnShopPanel.GetComponent<Image>().color = new Color(0.05f, 0.05f, 0.1f, 0.95f);
+            _dawnShopPanel.GetComponent<Image>().color = new Color(0.04f, 0.04f, 0.08f, 0.97f);
 
-            _shopTitleText = CreateText(_dawnShopPanel.transform, "ShopTitle",
-                "DAWN - Level 1 Cleared!", 34, TextAnchor.UpperCenter, new Color(0.95f, 0.85f, 0.4f),
-                new Vector2(0.5f, 0.96f), new Vector2(0.5f, 0.96f), Vector2.zero, new Vector2(700, 45)).GetComponent<Text>();
+            var headerBg = CreateInsetPanel(_dawnShopPanel.transform, "HeaderBg",
+                new Vector2(0f, 0.88f), new Vector2(1f, 1f), new Color(0.08f, 0.06f, 0.14f, 0.95f));
+
+            _shopTitleText = CreateText(headerBg.transform, "ShopTitle",
+                "DAWN - Level 1 Cleared!", 30, TextAnchor.MiddleCenter, new Color(0.95f, 0.85f, 0.4f),
+                new Vector2(0.5f, 0.7f), new Vector2(0.5f, 0.7f), Vector2.zero, new Vector2(600, 36)).GetComponent<Text>();
             _shopTitleText.fontStyle = FontStyle.Bold;
 
-            _shopSummaryText = CreateText(_dawnShopPanel.transform, "ShopSummary",
-                "", 16, TextAnchor.UpperCenter, new Color(0.7f, 0.7f, 0.7f),
-                new Vector2(0.5f, 0.915f), new Vector2(0.5f, 0.915f), Vector2.zero, new Vector2(700, 22)).GetComponent<Text>();
+            _shopSummaryText = CreateText(headerBg.transform, "ShopSummary",
+                "", 14, TextAnchor.MiddleCenter, new Color(0.6f, 0.6f, 0.6f),
+                new Vector2(0.5f, 0.3f), new Vector2(0.5f, 0.3f), Vector2.zero, new Vector2(600, 20)).GetComponent<Text>();
 
             _shopPointsText = CreateText(_dawnShopPanel.transform, "ShopPoints",
-                "Points: 0", 26, TextAnchor.UpperCenter, new Color(0.4f, 1f, 0.4f),
-                new Vector2(0.5f, 0.88f), new Vector2(0.5f, 0.88f), Vector2.zero, new Vector2(300, 35)).GetComponent<Text>();
+                "Points: 0", 24, TextAnchor.MiddleCenter, new Color(0.4f, 1f, 0.4f),
+                new Vector2(0.5f, 0.86f), new Vector2(0.5f, 0.86f), Vector2.zero, new Vector2(250, 30)).GetComponent<Text>();
             _shopPointsText.fontStyle = FontStyle.Bold;
 
-            // Supplies row
             var suppliesRow = new GameObject("SuppliesRow");
             suppliesRow.transform.SetParent(_dawnShopPanel.transform);
             var srRect = suppliesRow.AddComponent<RectTransform>();
-            srRect.anchorMin = new Vector2(0.5f, 0.82f);
-            srRect.anchorMax = new Vector2(0.5f, 0.82f);
+            srRect.anchorMin = new Vector2(0.5f, 0.81f);
+            srRect.anchorMax = new Vector2(0.5f, 0.81f);
             srRect.pivot = new Vector2(0.5f, 0.5f);
             srRect.anchoredPosition = Vector2.zero;
-            srRect.sizeDelta = new Vector2(600, 45);
+            srRect.sizeDelta = new Vector2(500, 38);
 
-            var healBtn = CreateButton(suppliesRow.transform, "HealBtn", "Health Kit (50)", new Color(0.6f, 0.2f, 0.2f),
-                new Vector2(0.25f, 0.5f), new Vector2(220, 40), BuyHealthKit);
+            var healBtn = CreateButton(suppliesRow.transform, "HealBtn", "Health Kit (50)", new Color(0.55f, 0.2f, 0.2f),
+                new Vector2(0.25f, 0.5f), new Vector2(200, 34), BuyHealthKit);
             _shopBuyButtons.Add(healBtn.GetComponent<Button>());
 
-            var ammoBtn = CreateButton(suppliesRow.transform, "AmmoBtn", "Ammo Refill (30)", new Color(0.7f, 0.6f, 0.15f),
-                new Vector2(0.75f, 0.5f), new Vector2(220, 40), BuyAmmoRefill);
+            var ammoBtn = CreateButton(suppliesRow.transform, "AmmoBtn", "Ammo Refill (30)", new Color(0.6f, 0.5f, 0.12f),
+                new Vector2(0.75f, 0.5f), new Vector2(200, 34), BuyAmmoRefill);
             _shopBuyButtons.Add(ammoBtn.GetComponent<Button>());
 
-            // Armor row
-            var armorRow = new GameObject("ArmorRow");
-            armorRow.transform.SetParent(_dawnShopPanel.transform);
-            var arRect = armorRow.AddComponent<RectTransform>();
-            arRect.anchorMin = new Vector2(0.5f, 0.77f);
-            arRect.anchorMax = new Vector2(0.5f, 0.77f);
-            arRect.pivot = new Vector2(0.5f, 0.5f);
-            arRect.anchoredPosition = Vector2.zero;
-            arRect.sizeDelta = new Vector2(600, 45);
-
-            var vest1Btn = CreateButton(armorRow.transform, "Vest1Btn", "Vest Lv1 (80)", new Color(0.2f, 0.4f, 0.7f),
-                new Vector2(0.15f, 0.5f), new Vector2(160, 36), () => BuyArmor(ArmorTier.Level1, false, 80));
-            _shopBuyButtons.Add(vest1Btn.GetComponent<Button>());
-
-            var vest2Btn = CreateButton(armorRow.transform, "Vest2Btn", "Vest Lv2 (180)", new Color(0.2f, 0.4f, 0.7f),
-                new Vector2(0.38f, 0.5f), new Vector2(160, 36), () => BuyArmor(ArmorTier.Level2, false, 180));
-            _shopBuyButtons.Add(vest2Btn.GetComponent<Button>());
-
-            var helm1Btn = CreateButton(armorRow.transform, "Helm1Btn", "Helm Lv1 (60)", new Color(0.5f, 0.5f, 0.6f),
-                new Vector2(0.62f, 0.5f), new Vector2(160, 36), () => BuyArmor(ArmorTier.Level1, true, 60));
-            _shopBuyButtons.Add(helm1Btn.GetComponent<Button>());
-
-            var helm2Btn = CreateButton(armorRow.transform, "Helm2Btn", "Helm Lv2 (140)", new Color(0.5f, 0.5f, 0.6f),
-                new Vector2(0.85f, 0.5f), new Vector2(160, 36), () => BuyArmor(ArmorTier.Level2, true, 140));
-            _shopBuyButtons.Add(helm2Btn.GetComponent<Button>());
-
-            // Tab buttons
             _weaponsTabBtn = CreateButton(_dawnShopPanel.transform, "WeaponsTab", "WEAPONS",
                 new Color(0.3f, 0.45f, 0.6f),
-                new Vector2(0.35f, 0.755f), new Vector2(200, 38), () => ShowShopTab(true)).GetComponent<Button>();
+                new Vector2(0.3f, 0.76f), new Vector2(180, 34), () => ShowShopTab(true)).GetComponent<Button>();
             _upgradesTabBtn = CreateButton(_dawnShopPanel.transform, "UpgradesTab", "UPGRADES",
                 new Color(0.45f, 0.35f, 0.55f),
-                new Vector2(0.65f, 0.755f), new Vector2(200, 38), () => ShowShopTab(false)).GetComponent<Button>();
+                new Vector2(0.5f, 0.76f), new Vector2(180, 34), () => ShowShopTab(false)).GetComponent<Button>();
 
-            // Weapons content
+            var armorTabBtn = CreateButton(_dawnShopPanel.transform, "ArmorTab", "ARMOR",
+                new Color(0.2f, 0.35f, 0.55f),
+                new Vector2(0.7f, 0.76f), new Vector2(180, 34), () => ShowShopTab(2));
+
             _weaponsTabContent = new GameObject("WeaponsContent");
             _weaponsTabContent.transform.SetParent(_dawnShopPanel.transform);
             var wcRect = _weaponsTabContent.AddComponent<RectTransform>();
-            wcRect.anchorMin = new Vector2(0.5f, 0.18f);
-            wcRect.anchorMax = new Vector2(0.5f, 0.72f);
+            wcRect.anchorMin = new Vector2(0.5f, 0.16f);
+            wcRect.anchorMax = new Vector2(0.5f, 0.73f);
             wcRect.pivot = new Vector2(0.5f, 0.5f);
             wcRect.anchoredPosition = Vector2.zero;
-            wcRect.sizeDelta = new Vector2(650, 0);
+            wcRect.sizeDelta = new Vector2(600, 0);
 
             BuildWeaponItems();
 
-            // Upgrades content
             _upgradesTabContent = new GameObject("UpgradesContent");
             _upgradesTabContent.transform.SetParent(_dawnShopPanel.transform);
             var ucRect = _upgradesTabContent.AddComponent<RectTransform>();
-            ucRect.anchorMin = new Vector2(0.5f, 0.18f);
-            ucRect.anchorMax = new Vector2(0.5f, 0.72f);
+            ucRect.anchorMin = new Vector2(0.5f, 0.16f);
+            ucRect.anchorMax = new Vector2(0.5f, 0.73f);
             ucRect.pivot = new Vector2(0.5f, 0.5f);
             ucRect.anchoredPosition = Vector2.zero;
-            ucRect.sizeDelta = new Vector2(650, 0);
+            ucRect.sizeDelta = new Vector2(600, 0);
 
             BuildUpgradeItems();
             _upgradesTabContent.SetActive(false);
 
-            CreateButton(_dawnShopPanel.transform, "ContinueButton", "Continue to Next Level",
+            _armorTabContent = new GameObject("ArmorContent");
+            _armorTabContent.transform.SetParent(_dawnShopPanel.transform);
+            var acRect = _armorTabContent.AddComponent<RectTransform>();
+            acRect.anchorMin = new Vector2(0.5f, 0.16f);
+            acRect.anchorMax = new Vector2(0.5f, 0.73f);
+            acRect.pivot = new Vector2(0.5f, 0.5f);
+            acRect.anchoredPosition = Vector2.zero;
+            acRect.sizeDelta = new Vector2(600, 0);
+
+            BuildArmorItems();
+            _armorTabContent.SetActive(false);
+
+            CreateButton(_dawnShopPanel.transform, "ContinueButton", "CONTINUE",
                 new Color(0.15f, 0.55f, 0.85f),
-                new Vector2(0.5f, 0.08f), new Vector2(350, 55), OnContinueToNextNight);
+                new Vector2(0.5f, 0.07f), new Vector2(300, 50), OnContinueToNextNight);
         }
 
         private void BuildWeaponItems()
         {
             float y = 0;
-            int h = 72;
-            AddWeaponShopItem(_weaponsTabContent.transform, "Shotgun", "Close-range, 8 pellets", 100, 1,
+            int h = 60;
+            AddWeaponShopItem(_weaponsTabContent.transform, "Shotgun", "Close-range spread", 100, 1,
                 WeaponType.Shotgun, ref y, h);
-            AddWeaponShopItem(_weaponsTabContent.transform, "SMG", "Auto, fast fire rate", 150, 2,
+            AddWeaponShopItem(_weaponsTabContent.transform, "SMG", "Fast fire rate", 150, 2,
                 WeaponType.SMG, ref y, h);
-            AddWeaponShopItem(_weaponsTabContent.transform, "Sniper Rifle", "High damage, long range", 250, 2,
+            AddWeaponShopItem(_weaponsTabContent.transform, "Sniper Rifle", "High damage", 250, 2,
                 WeaponType.SniperRifle, ref y, h);
-            AddWeaponShopItem(_weaponsTabContent.transform, "Assault Rifle", "Auto, balanced stats", 200, 3,
+            AddWeaponShopItem(_weaponsTabContent.transform, "Assault Rifle", "Balanced auto", 200, 3,
                 WeaponType.AssaultRifle, ref y, h);
-            AddWeaponShopItem(_weaponsTabContent.transform, "Grenade Launcher", "Explosive, area damage", 350, 4,
+            AddWeaponShopItem(_weaponsTabContent.transform, "Grenade Launcher", "Area damage", 350, 3,
                 WeaponType.GrenadeLauncher, ref y, h);
-            AddWeaponShopItem(_weaponsTabContent.transform, "Flamethrower", "Burn damage over time", 400, 4,
+            AddWeaponShopItem(_weaponsTabContent.transform, "Flamethrower", "Burn DoT", 400, 4,
                 WeaponType.Flamethrower, ref y, h);
-            AddWeaponShopItem(_weaponsTabContent.transform, "Railgun", "Piercing charged shot", 500, 5,
-                WeaponType.Railgun, ref y, h);
         }
 
         private void AddWeaponShopItem(Transform parent, string name, string desc, int cost, int unlockNight,
@@ -808,25 +871,25 @@ namespace Deadlight.UI
             rect.anchorMax = new Vector2(0.5f, 1);
             rect.pivot = new Vector2(0.5f, 1);
             rect.anchoredPosition = new Vector2(0, y);
-            rect.sizeDelta = new Vector2(620, height - 4);
+            rect.sizeDelta = new Vector2(560, height - 4);
 
             var bg = root.AddComponent<Image>();
-            bg.color = new Color(0.15f, 0.15f, 0.2f, 0.7f);
+            bg.color = new Color(0.12f, 0.12f, 0.18f, 0.8f);
 
-            CreateText(root.transform, "Name", name, 22, TextAnchor.MiddleLeft, Color.white,
-                new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(15, 8), new Vector2(300, 30));
-            CreateText(root.transform, "Desc", $"{desc}  |  {cost} pts  |  Level {unlockNight}+", 15,
-                TextAnchor.MiddleLeft, new Color(0.65f, 0.65f, 0.65f),
-                new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(15, -12), new Vector2(400, 22));
+            CreateText(root.transform, "Name", name, 19, TextAnchor.MiddleLeft, Color.white,
+                new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(12, 6), new Vector2(260, 26));
+            CreateText(root.transform, "Desc", $"{desc}  |  {cost} pts", 13,
+                TextAnchor.MiddleLeft, new Color(0.55f, 0.55f, 0.6f),
+                new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(12, -12), new Vector2(320, 18));
 
             var wt = weaponType;
             var buyBtn = CreateButton(root.transform, "Buy", "BUY", new Color(0.25f, 0.55f, 0.25f),
-                new Vector2(1, 0.5f), new Vector2(90, 38), () => BuyWeapon(wt, cost, unlockNight));
+                new Vector2(1, 0.5f), new Vector2(80, 32), () => BuyWeapon(wt, cost, unlockNight));
             var btnRect = buyBtn.GetComponent<RectTransform>();
             btnRect.anchorMin = new Vector2(1, 0.5f);
             btnRect.anchorMax = new Vector2(1, 0.5f);
             btnRect.pivot = new Vector2(1, 0.5f);
-            btnRect.anchoredPosition = new Vector2(-10, 0);
+            btnRect.anchoredPosition = new Vector2(-8, 0);
 
             _shopBuyButtons.Add(buyBtn.GetComponent<Button>());
             y -= height;
@@ -835,7 +898,7 @@ namespace Deadlight.UI
         private void BuildUpgradeItems()
         {
             float y = 0;
-            int h = 65;
+            int h = 56;
             AddUpgradeItem(_upgradesTabContent.transform, "Damage", ref y, h, () => {
                 var u = PlayerUpgrades.Instance;
                 if (u != null && u.TryUpgradeDamage()) RefreshShop();
@@ -867,42 +930,94 @@ namespace Deadlight.UI
             rect.anchorMax = new Vector2(0.5f, 1);
             rect.pivot = new Vector2(0.5f, 1);
             rect.anchoredPosition = new Vector2(0, y);
-            rect.sizeDelta = new Vector2(620, height - 4);
+            rect.sizeDelta = new Vector2(560, height - 4);
 
             var bg = root.AddComponent<Image>();
-            bg.color = new Color(0.18f, 0.13f, 0.22f, 0.7f);
+            bg.color = new Color(0.14f, 0.1f, 0.2f, 0.8f);
 
-            var label = CreateText(root.transform, "Label", name, 20, TextAnchor.MiddleLeft, Color.white,
-                new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(15, 0), new Vector2(420, height)).GetComponent<Text>();
+            var label = CreateText(root.transform, "Label", name, 18, TextAnchor.MiddleLeft, Color.white,
+                new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(12, 0), new Vector2(380, height)).GetComponent<Text>();
             _upgradeLabels.Add(label);
 
             var buyBtn = CreateButton(root.transform, "Buy", "UPGRADE", new Color(0.45f, 0.3f, 0.6f),
-                new Vector2(1, 0.5f), new Vector2(110, 36), onBuy);
+                new Vector2(1, 0.5f), new Vector2(100, 32), onBuy);
             var btnRect = buyBtn.GetComponent<RectTransform>();
             btnRect.anchorMin = new Vector2(1, 0.5f);
             btnRect.anchorMax = new Vector2(1, 0.5f);
             btnRect.pivot = new Vector2(1, 0.5f);
-            btnRect.anchoredPosition = new Vector2(-10, 0);
+            btnRect.anchoredPosition = new Vector2(-8, 0);
 
             _upgradeBuyButtons.Add(buyBtn.GetComponent<Button>());
             y -= height;
         }
 
+        private void BuildArmorItems()
+        {
+            float y = 0;
+            int h = 60;
+            AddArmorItem(_armorTabContent.transform, "Vest Lv1", "Light body armor", 80, ArmorTier.Level1, false, ref y, h);
+            AddArmorItem(_armorTabContent.transform, "Vest Lv2", "Heavy body armor", 180, ArmorTier.Level2, false, ref y, h);
+            AddArmorItem(_armorTabContent.transform, "Helmet Lv1", "Basic head protection", 60, ArmorTier.Level1, true, ref y, h);
+            AddArmorItem(_armorTabContent.transform, "Helmet Lv2", "Reinforced helmet", 140, ArmorTier.Level2, true, ref y, h);
+        }
+
+        private void AddArmorItem(Transform parent, string name, string desc, int cost,
+            ArmorTier tier, bool isHelmet, ref float y, int height)
+        {
+            var root = new GameObject($"Armor_{name}");
+            root.transform.SetParent(parent);
+            var rect = root.AddComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.5f, 1);
+            rect.anchorMax = new Vector2(0.5f, 1);
+            rect.pivot = new Vector2(0.5f, 1);
+            rect.anchoredPosition = new Vector2(0, y);
+            rect.sizeDelta = new Vector2(560, height - 4);
+
+            var bg = root.AddComponent<Image>();
+            bg.color = new Color(0.1f, 0.14f, 0.2f, 0.8f);
+
+            CreateText(root.transform, "Name", name, 19, TextAnchor.MiddleLeft, Color.white,
+                new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(12, 6), new Vector2(260, 26));
+            CreateText(root.transform, "Desc", $"{desc}  |  {cost} pts", 13,
+                TextAnchor.MiddleLeft, new Color(0.55f, 0.55f, 0.6f),
+                new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(12, -12), new Vector2(320, 18));
+
+            var buyBtn = CreateButton(root.transform, "Buy", "BUY", new Color(0.2f, 0.4f, 0.65f),
+                new Vector2(1, 0.5f), new Vector2(80, 32), () => BuyArmor(tier, isHelmet, cost));
+            var btnRect = buyBtn.GetComponent<RectTransform>();
+            btnRect.anchorMin = new Vector2(1, 0.5f);
+            btnRect.anchorMax = new Vector2(1, 0.5f);
+            btnRect.pivot = new Vector2(1, 0.5f);
+            btnRect.anchoredPosition = new Vector2(-8, 0);
+
+            _shopBuyButtons.Add(buyBtn.GetComponent<Button>());
+            y -= height;
+        }
+
         private void ShowShopTab(bool showWeapons)
         {
-            if (_weaponsTabContent != null) _weaponsTabContent.SetActive(showWeapons);
-            if (_upgradesTabContent != null) _upgradesTabContent.SetActive(!showWeapons);
+            ShowShopTab(showWeapons ? 0 : 1);
+        }
+
+        private void ShowShopTab(int tabIndex)
+        {
+            if (_weaponsTabContent != null) _weaponsTabContent.SetActive(tabIndex == 0);
+            if (_upgradesTabContent != null) _upgradesTabContent.SetActive(tabIndex == 1);
+            if (_armorTabContent != null) _armorTabContent.SetActive(tabIndex == 2);
+
+            Color active = new Color(0.3f, 0.5f, 0.7f);
+            Color inactive = new Color(0.15f, 0.15f, 0.22f);
 
             if (_weaponsTabBtn != null)
             {
                 var c = _weaponsTabBtn.colors;
-                c.normalColor = showWeapons ? new Color(0.3f, 0.5f, 0.7f) : new Color(0.2f, 0.2f, 0.3f);
+                c.normalColor = tabIndex == 0 ? active : inactive;
                 _weaponsTabBtn.colors = c;
             }
             if (_upgradesTabBtn != null)
             {
                 var c = _upgradesTabBtn.colors;
-                c.normalColor = !showWeapons ? new Color(0.5f, 0.35f, 0.65f) : new Color(0.2f, 0.2f, 0.3f);
+                c.normalColor = tabIndex == 1 ? new Color(0.5f, 0.35f, 0.65f) : inactive;
                 _upgradesTabBtn.colors = c;
             }
         }
@@ -993,19 +1108,17 @@ namespace Deadlight.UI
             if (_shopSummaryText != null && PointsSystem.Instance != null)
             {
                 var stats = PointsSystem.Instance.GetGameStats();
-                _shopSummaryText.text = $"Kills: {stats.enemiesKilled}  |  Points Earned: {stats.totalEarned}";
+                _shopSummaryText.text = $"Kills: {stats.enemiesKilled}  |  Earned: {stats.totalEarned}";
             }
 
             int night = GameManager.Instance?.CurrentNight ?? 1;
 
-            // Supply buttons (indices 0,1)
             UpdateSupplyButton(0, 50);
             UpdateSupplyButton(1, 30);
 
-            // Weapon buttons (indices 2..8)
-            WeaponType[] weaponTypes = { WeaponType.Shotgun, WeaponType.SMG, WeaponType.SniperRifle, WeaponType.AssaultRifle, WeaponType.GrenadeLauncher, WeaponType.Flamethrower, WeaponType.Railgun };
-            int[] weaponCosts = { 100, 150, 250, 200, 350, 400, 500 };
-            int[] weaponNights = { 1, 2, 2, 3, 3, 4, 4 };
+            WeaponType[] weaponTypes = { WeaponType.Shotgun, WeaponType.SMG, WeaponType.SniperRifle, WeaponType.AssaultRifle, WeaponType.GrenadeLauncher, WeaponType.Flamethrower };
+            int[] weaponCosts = { 100, 150, 250, 200, 350, 400 };
+            int[] weaponNights = { 1, 2, 2, 3, 3, 4 };
             for (int i = 0; i < weaponTypes.Length; i++)
             {
                 int btnIdx = 2 + i;
@@ -1018,10 +1131,9 @@ namespace Deadlight.UI
 
                 var labelText = btn.GetComponentInChildren<Text>();
                 if (labelText != null)
-                    labelText.text = sold ? "SOLD" : "BUY";
+                    labelText.text = sold ? "SOLD" : (unlocked ? "BUY" : $"Lv{weaponNights[i]}+");
             }
 
-            // Upgrade buttons and labels
             var upgrades = PlayerUpgrades.Instance;
             if (upgrades != null)
             {

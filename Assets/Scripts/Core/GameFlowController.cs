@@ -27,10 +27,10 @@ namespace Deadlight.Core
         public static GameFlowController Instance { get; private set; }
 
         [Header("Phase Settings")]
-        [SerializeField] private float[] dayDurationsByNight = { 90f, 75f, 60f, 50f };
-        [SerializeField] private float[] nightDurationsByNight = { 60f, 90f, 120f, 180f };
-        [SerializeField] private int[] healthPickupsByNight = { 3, 3, 2, 2 };
-        [SerializeField] private int[] ammoPickupsByNight = { 4, 4, 3, 3 };
+        [SerializeField] private float[] dayDurationsByNight = { 100f, 90f, 75f, 65f };
+        [SerializeField] private float[] nightDurationsByNight = { 50f, 70f, 100f, 140f };
+        [SerializeField] private int[] healthPickupsByNight = { 4, 4, 3, 3 };
+        [SerializeField] private int[] ammoPickupsByNight = { 5, 5, 4, 4 };
         [SerializeField] private int[] scrapPickupsByNight = { 3, 2, 2, 1 };
         [SerializeField] private int[] woodPickupsByNight = { 2, 1, 1, 1 };
         [SerializeField] private int[] chemicalsPickupsByNight = { 1, 1, 1, 0 };
