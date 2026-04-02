@@ -21,6 +21,7 @@ namespace Deadlight.UI
         private GameObject _mainMenuPanel;
         private GameObject _mapSelectPanel;
         private GameObject _pausePanel;
+        private GameObject _guidePanel;
         private GameObject _dawnShopPanel;
         private GameObject _gameOverPanel;
         private GameObject _victoryPanel;
@@ -42,6 +43,9 @@ namespace Deadlight.UI
         private List<Button> _upgradeBuyButtons = new List<Button>();
 
         private bool _waitingForEnding;
+        private bool _resumeGameplayOnGuideClose;
+
+        public bool IsGuideOpen => _guidePanel != null && _guidePanel.activeSelf;
 
         private void Awake()
         {
@@ -97,6 +101,35 @@ namespace Deadlight.UI
             }
         }
 
+        private void Update()
+        {
+            bool guideHotkeyPressed = Input.GetKeyDown(KeyCode.H) || Input.GetKeyDown(KeyCode.F1);
+
+            if (IsGuideOpen)
+            {
+                if (guideHotkeyPressed || Input.GetKeyDown(KeyCode.Escape))
+                {
+                    CloseGuide();
+                }
+
+                return;
+            }
+
+            if (!guideHotkeyPressed)
+            {
+                return;
+            }
+
+            bool inMenuFlow = GameManager.Instance == null || GameManager.Instance.CurrentState == GameState.MainMenu;
+            bool inGameplay = GameManager.Instance != null && GameManager.Instance.IsGameplayState;
+            if (!inMenuFlow && !inGameplay)
+            {
+                return;
+            }
+
+            OpenGuide(inGameplay && !GameManager.Instance.IsPaused);
+        }
+
         private void EnsureEventSystem()
         {
             if (FindFirstObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
@@ -122,6 +155,7 @@ namespace Deadlight.UI
             BuildMainMenu();
             BuildMapSelect();
             BuildPauseMenu();
+            BuildGuidePanel();
             BuildDawnShop();
             BuildGameOverScreen();
             BuildVictoryScreen();
@@ -157,8 +191,11 @@ namespace Deadlight.UI
             CreateButton(_mainMenuPanel.transform, "LeaderboardButton", "LEADERBOARD", new Color(0.3f, 0.4f, 0.7f),
                 new Vector2(0.5f, 0.25f), new Vector2(260, 45), ShowLeaderboard);
 
+            CreateButton(_mainMenuPanel.transform, "GuideButton", "GUIDE", new Color(0.2f, 0.45f, 0.6f),
+                new Vector2(0.5f, 0.18f), new Vector2(260, 45), OpenGuideFromButton);
+
             CreateButton(_mainMenuPanel.transform, "QuitButton", "QUIT", new Color(0.45f, 0.45f, 0.45f),
-                new Vector2(0.5f, 0.14f), new Vector2(200, 42), QuitGame);
+                new Vector2(0.5f, 0.1f), new Vector2(200, 42), QuitGame);
         }
 
         private void OnDifficultySelected(Difficulty difficulty)
@@ -350,16 +387,101 @@ namespace Deadlight.UI
                 new Vector2(0.5f, 0.75f), new Vector2(0.5f, 0.75f), Vector2.zero, new Vector2(400, 70));
 
             CreateButton(_pausePanel.transform, "ResumeButton", "RESUME", new Color(0.2f, 0.65f, 0.3f),
-                new Vector2(0.5f, 0.55f), new Vector2(260, 50), OnResume);
+                new Vector2(0.5f, 0.6f), new Vector2(260, 50), OnResume);
+
+            CreateButton(_pausePanel.transform, "PauseGuideButton", "GUIDE", new Color(0.2f, 0.45f, 0.6f),
+                new Vector2(0.5f, 0.48f), new Vector2(260, 50), OpenGuideFromButton);
 
             CreateButton(_pausePanel.transform, "PauseRestartButton", "RESTART", new Color(0.7f, 0.6f, 0.2f),
-                new Vector2(0.5f, 0.42f), new Vector2(260, 50), RestartGame);
+                new Vector2(0.5f, 0.36f), new Vector2(260, 50), RestartGame);
 
             CreateButton(_pausePanel.transform, "PauseMainMenuButton", "MAIN MENU", new Color(0.5f, 0.5f, 0.5f),
-                new Vector2(0.5f, 0.29f), new Vector2(260, 50), GoToMainMenu);
+                new Vector2(0.5f, 0.24f), new Vector2(260, 50), GoToMainMenu);
 
             CreateButton(_pausePanel.transform, "PauseQuitButton", "QUIT GAME", new Color(0.65f, 0.2f, 0.2f),
-                new Vector2(0.5f, 0.16f), new Vector2(260, 50), QuitGame);
+                new Vector2(0.5f, 0.12f), new Vector2(260, 50), QuitGame);
+        }
+
+        private void BuildGuidePanel()
+        {
+            _guidePanel = CreatePanel(_canvasRoot.transform, "GuidePanel");
+            _guidePanel.GetComponent<Image>().color = new Color(0.03f, 0.05f, 0.08f, 0.96f);
+
+            CreateText(_guidePanel.transform, "Title",
+                "SURVIVAL GUIDE", 42, TextAnchor.MiddleCenter, Color.white,
+                new Vector2(0.5f, 0.92f), new Vector2(0.5f, 0.92f), Vector2.zero, new Vector2(640, 56));
+
+            CreateText(_guidePanel.transform, "Subtitle",
+                "Controls, core rules, and item explanations for the full day-night loop",
+                18, TextAnchor.MiddleCenter, new Color(0.72f, 0.78f, 0.84f),
+                new Vector2(0.5f, 0.875f), new Vector2(0.5f, 0.875f), Vector2.zero, new Vector2(900, 28));
+
+            CreateGuideSection(_guidePanel.transform, "ControlsSection", "CONTROLS",
+                GameplayGuideContent.GetControlsText(),
+                new Vector2(0.05f, 0.17f), new Vector2(0.31f, 0.8f),
+                new Color(0.1f, 0.14f, 0.2f, 0.95f));
+
+            string loopText = GameplayGuideContent.GetRulesText() + "\n\n" + GameplayGuideContent.GetSystemsText();
+            CreateGuideSection(_guidePanel.transform, "LoopSection", "SURVIVAL LOOP",
+                loopText,
+                new Vector2(0.345f, 0.17f), new Vector2(0.655f, 0.8f),
+                new Color(0.1f, 0.13f, 0.17f, 0.95f));
+
+            string itemText = GameplayGuideContent.GetItemsText() + "\n\n" + GameplayGuideContent.GetAccessibilityNote();
+            CreateGuideSection(_guidePanel.transform, "ItemsSection", "ITEMS + ONBOARDING",
+                itemText,
+                new Vector2(0.69f, 0.17f), new Vector2(0.95f, 0.8f),
+                new Color(0.12f, 0.11f, 0.16f, 0.95f));
+
+            CreateText(_guidePanel.transform, "Footer",
+                "Press H, F1, or Esc to close this guide.",
+                17, TextAnchor.MiddleCenter, new Color(0.75f, 0.8f, 0.85f),
+                new Vector2(0.5f, 0.11f), new Vector2(0.5f, 0.11f), Vector2.zero, new Vector2(520, 26));
+
+            CreateButton(_guidePanel.transform, "GuideCloseButton", "CLOSE", new Color(0.25f, 0.5f, 0.68f),
+                new Vector2(0.5f, 0.06f), new Vector2(220, 46), CloseGuide);
+        }
+
+        private void OpenGuideFromButton()
+        {
+            bool pauseGameplay = GameManager.Instance != null && GameManager.Instance.IsGameplayState && !GameManager.Instance.IsPaused;
+            OpenGuide(pauseGameplay);
+        }
+
+        private void OpenGuide(bool pauseGameplay)
+        {
+            if (_guidePanel == null)
+            {
+                return;
+            }
+
+            if (pauseGameplay && GameManager.Instance != null)
+            {
+                GameManager.Instance.SetPaused(true);
+                _resumeGameplayOnGuideClose = true;
+            }
+            else
+            {
+                _resumeGameplayOnGuideClose = false;
+            }
+
+            _guidePanel.SetActive(true);
+        }
+
+        private void CloseGuide()
+        {
+            if (_guidePanel != null)
+            {
+                _guidePanel.SetActive(false);
+            }
+
+            bool shouldResumeGameplay = _resumeGameplayOnGuideClose;
+            _resumeGameplayOnGuideClose = false;
+
+            if (shouldResumeGameplay && GameManager.Instance != null && GameManager.Instance.IsPaused)
+            {
+                GameManager.Instance.SetPaused(false);
+            }
         }
 
         private void OnResume()
@@ -376,6 +498,12 @@ namespace Deadlight.UI
             else
             {
                 _pausePanel?.SetActive(false);
+
+                if (_resumeGameplayOnGuideClose)
+                {
+                    _guidePanel?.SetActive(false);
+                    _resumeGameplayOnGuideClose = false;
+                }
             }
         }
 
@@ -947,10 +1075,12 @@ namespace Deadlight.UI
             if (_mainMenuPanel != null) _mainMenuPanel.SetActive(false);
             if (_mapSelectPanel != null) _mapSelectPanel.SetActive(false);
             if (_pausePanel != null) _pausePanel.SetActive(false);
+            if (_guidePanel != null) _guidePanel.SetActive(false);
             if (_dawnShopPanel != null) _dawnShopPanel.SetActive(false);
             if (_gameOverPanel != null) _gameOverPanel.SetActive(false);
             if (_victoryPanel != null) _victoryPanel.SetActive(false);
             if (_leaderboardPanel != null) _leaderboardPanel.SetActive(false);
+            _resumeGameplayOnGuideClose = false;
         }
 
         // ===================== LEADERBOARD =====================
@@ -996,6 +1126,53 @@ namespace Deadlight.UI
             }
         }
 
+        private void CreateGuideSection(Transform parent, string name, string title, string body,
+            Vector2 anchorMin, Vector2 anchorMax, Color backgroundColor)
+        {
+            var section = CreateInsetPanel(parent, name, anchorMin, anchorMax, backgroundColor);
+
+            var titleObj = new GameObject("Title");
+            titleObj.transform.SetParent(section.transform, false);
+            var titleRect = titleObj.AddComponent<RectTransform>();
+            titleRect.anchorMin = new Vector2(0f, 1f);
+            titleRect.anchorMax = new Vector2(1f, 1f);
+            titleRect.offsetMin = new Vector2(18f, -56f);
+            titleRect.offsetMax = new Vector2(-18f, -18f);
+
+            var titleText = titleObj.AddComponent<Text>();
+            titleText.font = _font;
+            titleText.fontSize = 21;
+            titleText.fontStyle = FontStyle.Bold;
+            titleText.alignment = TextAnchor.MiddleLeft;
+            titleText.color = new Color(0.95f, 0.87f, 0.45f);
+            titleText.text = title;
+
+            var titleShadow = titleObj.AddComponent<Shadow>();
+            titleShadow.effectColor = new Color(0f, 0f, 0f, 0.4f);
+            titleShadow.effectDistance = new Vector2(1f, -1f);
+
+            var bodyObj = new GameObject("Body");
+            bodyObj.transform.SetParent(section.transform, false);
+            var bodyRect = bodyObj.AddComponent<RectTransform>();
+            bodyRect.anchorMin = new Vector2(0f, 0f);
+            bodyRect.anchorMax = new Vector2(1f, 1f);
+            bodyRect.offsetMin = new Vector2(18f, 18f);
+            bodyRect.offsetMax = new Vector2(-18f, -70f);
+
+            var bodyText = bodyObj.AddComponent<Text>();
+            bodyText.font = _font;
+            bodyText.fontSize = 17;
+            bodyText.alignment = TextAnchor.UpperLeft;
+            bodyText.color = new Color(0.86f, 0.9f, 0.95f);
+            bodyText.text = body;
+            bodyText.horizontalOverflow = HorizontalWrapMode.Wrap;
+            bodyText.verticalOverflow = VerticalWrapMode.Overflow;
+
+            var bodyShadow = bodyObj.AddComponent<Shadow>();
+            bodyShadow.effectColor = new Color(0f, 0f, 0f, 0.3f);
+            bodyShadow.effectDistance = new Vector2(1f, -1f);
+        }
+
         private void RefreshLeaderboardDisplay()
         {
             if (_leaderboardPanel == null) return;
@@ -1033,6 +1210,22 @@ namespace Deadlight.UI
             rect.offsetMax = Vector2.zero;
             var img = obj.AddComponent<Image>();
             img.color = new Color(0, 0, 0, 0.85f);
+            return obj;
+        }
+
+        private GameObject CreateInsetPanel(Transform parent, string name, Vector2 anchorMin, Vector2 anchorMax, Color color)
+        {
+            var obj = new GameObject(name);
+            obj.transform.SetParent(parent, false);
+
+            var rect = obj.AddComponent<RectTransform>();
+            rect.anchorMin = anchorMin;
+            rect.anchorMax = anchorMax;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+
+            var img = obj.AddComponent<Image>();
+            img.color = color;
             return obj;
         }
 

@@ -138,6 +138,24 @@ namespace Deadlight.Narrative
             dialogueToPlay = dialogue;
         }
 
+        public void ConfigureRuntime(
+            string id,
+            bool once = true,
+            bool dayOnly = false,
+            bool nightOnly = false,
+            int minNightValue = 1,
+            int maxNightValue = 5,
+            bool requireUse = false)
+        {
+            triggerId = id;
+            triggerOnce = once;
+            requireDayPhase = dayOnly;
+            requireNightPhase = nightOnly;
+            minimumNight = minNightValue;
+            maximumNight = Mathf.Max(minNightValue, maxNightValue);
+            requireInteraction = requireUse;
+        }
+
         private void OnDrawGizmos()
         {
             Color gizmoColor = hasTriggered ? Color.gray : triggerColor;

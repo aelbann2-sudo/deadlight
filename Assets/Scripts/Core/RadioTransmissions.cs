@@ -198,9 +198,9 @@ namespace Deadlight.Core
                 while (elapsed < fadeIn)
                 {
                     elapsed += Time.deltaTime;
-                    float alpha = Mathf.Lerp(0, 0.85f, elapsed / fadeIn);
-                    transmissionBg.color = new Color(0, 0, 0, alpha);
-                    transmissionText.color = new Color(0.3f, 1f, 0.3f, elapsed / fadeIn);
+                    float alpha = Mathf.Lerp(0f, 0.72f, elapsed / fadeIn);
+                    transmissionBg.color = new Color(0.02f, 0.03f, 0.04f, alpha);
+                    transmissionText.color = new Color(0.95f, 0.95f, 0.9f, elapsed / fadeIn);
                     yield return null;
                 }
             }
@@ -214,9 +214,9 @@ namespace Deadlight.Core
                 while (elapsed < fadeOut)
                 {
                     elapsed += Time.deltaTime;
-                    float alpha = Mathf.Lerp(0.85f, 0, elapsed / fadeOut);
-                    transmissionBg.color = new Color(0, 0, 0, alpha);
-                    transmissionText.color = new Color(0.3f, 1f, 0.3f, 1f - elapsed / fadeOut);
+                    float alpha = Mathf.Lerp(0.72f, 0f, elapsed / fadeOut);
+                    transmissionBg.color = new Color(0.02f, 0.03f, 0.04f, alpha);
+                    transmissionText.color = new Color(0.95f, 0.95f, 0.9f, 1f - elapsed / fadeOut);
                     yield return null;
                 }
             }

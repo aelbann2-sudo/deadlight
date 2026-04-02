@@ -137,7 +137,8 @@ namespace Deadlight.Core
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Escape) && IsGameplayState)
+            if (Input.GetKeyDown(KeyCode.Escape) && IsGameplayState &&
+                !(GameUI.Instance != null && GameUI.Instance.IsGuideOpen))
             {
                 TogglePause();
             }
@@ -194,6 +195,14 @@ namespace Deadlight.Core
                 var player = EnsurePlayerExists();
                 ConfigurePlayer(player);
                 EnsureCameraTargetsPlayer(player);
+            }
+
+            if (!startNewRunAfterGameSceneLoad &&
+                !autoStartWhenGameSceneLoads &&
+                currentState == GameState.MainMenu &&
+                FindFirstObjectByType<IntroSequence>() == null)
+            {
+                new GameObject("IntroSequence").AddComponent<IntroSequence>();
             }
 
             var intro = FindFirstObjectByType<IntroSequence>();
@@ -267,9 +276,14 @@ namespace Deadlight.Core
 
             if (NarrativeManager.Instance != null)
             {
+                NarrativeManager.Instance.ClearQueue();
                 NarrativeManager.Instance.ResetPlayedDialogues();
                 NarrativeManager.Instance.TriggerDialogue(DialogueTriggerType.GameStart, currentNight);
             }
+
+            StoryObjective.Instance?.ResetStoryProgress();
+            EnvironmentalLore.Instance?.ResetDiscoveries();
+            GameplayHelpSystem.Instance?.ResetSession();
 
             if (currentState == GameState.DayPhase)
             {
@@ -519,6 +533,18 @@ namespace Deadlight.Core
                 new GameObject("CraftingSystem").AddComponent<CraftingSystem>();
             }
 
+            var narrativeManager = FindFirstObjectByType<NarrativeManager>();
+            if (narrativeManager == null)
+            {
+                var narrativeObject = new GameObject("NarrativeManager");
+                narrativeManager = narrativeObject.AddComponent<NarrativeManager>();
+                narrativeObject.AddComponent<EnvironmentalLore>();
+            }
+            else if (FindFirstObjectByType<EnvironmentalLore>() == null)
+            {
+                narrativeManager.gameObject.AddComponent<EnvironmentalLore>();
+            }
+
             if (FindFirstObjectByType<CosmeticUnlockSystem>() == null)
             {
                 new GameObject("CosmeticUnlockSystem").AddComponent<CosmeticUnlockSystem>();
@@ -537,6 +563,21 @@ namespace Deadlight.Core
             if (FindFirstObjectByType<StoryEventManager>() == null)
             {
                 new GameObject("StoryEventManager").AddComponent<StoryEventManager>();
+            }
+
+            if (FindFirstObjectByType<StoryObjective>() == null)
+            {
+                new GameObject("StoryObjective").AddComponent<StoryObjective>();
+            }
+
+            if (FindFirstObjectByType<NarrativeJournalUI>() == null)
+            {
+                new GameObject("NarrativeJournalUI").AddComponent<NarrativeJournalUI>();
+            }
+
+            if (FindFirstObjectByType<GameplayHelpSystem>() == null)
+            {
+                new GameObject("GameplayHelpSystem").AddComponent<GameplayHelpSystem>();
             }
 
             if (FindFirstObjectByType<RadioTransmissions>() == null)

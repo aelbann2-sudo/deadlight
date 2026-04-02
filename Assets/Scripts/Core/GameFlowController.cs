@@ -856,6 +856,9 @@ namespace Deadlight.Core
             if (didConsume)
             {
                 this.consumed = true;
+                Deadlight.UI.GameplayHelpSystem.Instance?.ShowPickup(
+                    kind == PickupKind.Health ? PickupType.Health : PickupType.Ammo,
+                    amount);
                 Destroy(gameObject);
             }
         }

@@ -435,6 +435,68 @@ namespace Deadlight.Core
                 vfxObj.AddComponent<VFXManager>();
             }
 
+            if (NarrativeManager.Instance == null)
+            {
+                var narrativeObj = new GameObject("NarrativeManager");
+                if (managersParent != null)
+                    narrativeObj.transform.SetParent(managersParent);
+                narrativeObj.AddComponent<NarrativeManager>();
+                narrativeObj.AddComponent<EnvironmentalLore>();
+            }
+            else if (EnvironmentalLore.Instance == null)
+            {
+                NarrativeManager.Instance.gameObject.AddComponent<EnvironmentalLore>();
+            }
+
+            if (RadioTransmissions.Instance == null)
+            {
+                var rtObj = new GameObject("RadioTransmissions");
+                if (managersParent != null)
+                    rtObj.transform.SetParent(managersParent);
+                rtObj.AddComponent<RadioTransmissions>();
+            }
+
+            if (Narrative.EndingSequence.Instance == null)
+            {
+                var endingObj = new GameObject("EndingSequence");
+                if (managersParent != null)
+                    endingObj.transform.SetParent(managersParent);
+                endingObj.AddComponent<Narrative.EndingSequence>();
+            }
+
+            if (Narrative.StoryEventManager.Instance == null)
+            {
+                var storyEventObj = new GameObject("StoryEventManager");
+                if (managersParent != null)
+                    storyEventObj.transform.SetParent(managersParent);
+                storyEventObj.AddComponent<Narrative.StoryEventManager>();
+            }
+
+            if (Narrative.StoryObjective.Instance == null)
+            {
+                var objectiveObj = new GameObject("StoryObjective");
+                if (managersParent != null)
+                    objectiveObj.transform.SetParent(managersParent);
+                objectiveObj.AddComponent<Narrative.StoryObjective>();
+            }
+
+            if (FindFirstObjectByType<Narrative.NarrativeJournalUI>() == null)
+            {
+                var journalObj = new GameObject("NarrativeJournalUI");
+                if (managersParent != null)
+                    journalObj.transform.SetParent(managersParent);
+                journalObj.AddComponent<Narrative.NarrativeJournalUI>();
+            }
+
+            if (FindFirstObjectByType<Narrative.IntroSequence>() == null &&
+                (GameManager.Instance == null || GameManager.Instance.CurrentState == GameState.MainMenu))
+            {
+                var introObj = new GameObject("IntroSequence");
+                if (managersParent != null)
+                    introObj.transform.SetParent(managersParent);
+                introObj.AddComponent<Narrative.IntroSequence>();
+            }
+
             if (AtmosphereController.Instance == null)
             {
                 var atmObj = new GameObject("AtmosphereController");
@@ -466,8 +528,8 @@ namespace Deadlight.Core
             var envParent = new GameObject("Environment");
             MapBuilderBase builder = CreateMapEnvironment(envParent.transform);
             CreatePerimeter(envParent.transform);
-            SpawnLorePickups(envParent.transform);
             CreateLandmarks(envParent.transform, builder);
+            NarrativeWorldBuilder.PopulateWorld(activeMapConfig, envParent.transform);
         }
 
         private MapBuilderBase CreateMapEnvironment(Transform parent)
@@ -884,12 +946,12 @@ namespace Deadlight.Core
                 new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 50), new Vector2(200, 35));
             pointsText.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
-            // Radio transmission panel - upper-center, highly visible
+            // Radio transmission panel - compact lower-right comms strip
             var radioPanel = CreateUIPanel(canvas.transform, "RadioPanel",
-                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-                new Vector2(0, 120), new Vector2(900, 120));
+                new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(1f, 0f),
+                new Vector2(-24f, 118f), new Vector2(560f, 104f));
             var radioBg = radioPanel.AddComponent<Image>();
-            radioBg.color = new Color(0, 0, 0, 0.85f);
+            radioBg.color = new Color(0.02f, 0.03f, 0.04f, 0.72f);
 
             var radioBorder = new GameObject("RadioBorder");
             radioBorder.transform.SetParent(radioPanel.transform, false);
@@ -899,23 +961,26 @@ namespace Deadlight.Core
             borderRect.offsetMin = new Vector2(-2, -2);
             borderRect.offsetMax = new Vector2(2, 2);
             var borderImg = radioBorder.AddComponent<Image>();
-            borderImg.color = new Color(0.2f, 0.8f, 0.2f, 0.6f);
+            borderImg.color = new Color(0.95f, 0.74f, 0.32f, 0.45f);
             radioBorder.transform.SetAsFirstSibling();
 
             var radioLabel = CreateUIText(radioPanel.transform, "RadioLabel",
-                new Vector2(0.5f, 1f), "[RADIO TRANSMISSION]", font, 14, TextAnchor.UpperCenter,
-                new Color(0.5f, 1f, 0.5f, 0.7f),
-                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -5), new Vector2(300, 18));
+                new Vector2(0f, 1f), "COMMS", font, 13, TextAnchor.UpperLeft,
+                new Color(0.95f, 0.8f, 0.45f, 0.8f),
+                new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(14f, -6f), new Vector2(-14f, 18f));
+            radioLabel.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
             var radioText = CreateUIText(radioPanel.transform, "RadioText",
-                new Vector2(0.5f, 0.5f), "", font, 24, TextAnchor.MiddleCenter, new Color(0.3f, 1f, 0.3f),
-                new Vector2(0, 0), new Vector2(1, 1), new Vector2(0, 0), new Vector2(0, 0));
-            radioText.GetComponent<RectTransform>().offsetMin = new Vector2(30, 15);
-            radioText.GetComponent<RectTransform>().offsetMax = new Vector2(-30, -20);
-            radioText.GetComponent<Text>().fontStyle = FontStyle.BoldAndItalic;
+                new Vector2(0f, 0.5f), "", font, 18, TextAnchor.MiddleLeft, new Color(0.95f, 0.95f, 0.9f),
+                new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(0f, 0f), new Vector2(0f, 0f));
+            radioText.GetComponent<RectTransform>().offsetMin = new Vector2(16f, 14f);
+            radioText.GetComponent<RectTransform>().offsetMax = new Vector2(-16f, -24f);
+            radioText.GetComponent<Text>().fontStyle = FontStyle.Normal;
+            radioText.GetComponent<Text>().horizontalOverflow = HorizontalWrapMode.Wrap;
+            radioText.GetComponent<Text>().verticalOverflow = VerticalWrapMode.Overflow;
             var radioOutline = radioText.AddComponent<Outline>();
             radioOutline.effectColor = Color.black;
-            radioOutline.effectDistance = new Vector2(2, -2);
+            radioOutline.effectDistance = new Vector2(1, -1);
             radioPanel.SetActive(false);
 
             if (RadioTransmissions.Instance != null)

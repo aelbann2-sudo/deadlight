@@ -181,6 +181,7 @@ namespace Deadlight.Systems
                     Core.DayObjectiveSystem.Instance.AddProgress(1);
                 }
 
+                UI.GameplayHelpSystem.Instance?.ShowPickup(pickupType, amount);
                 PlayPickupSound();
                 Destroy(gameObject);
             }
