@@ -811,7 +811,7 @@ namespace Deadlight.UI
             srRect.anchoredPosition = Vector2.zero;
             srRect.sizeDelta = new Vector2(500, 38);
 
-            var healBtn = CreateButton(suppliesRow.transform, "HealBtn", "Health Kit (50)", new Color(0.55f, 0.2f, 0.2f),
+            var healBtn = CreateButton(suppliesRow.transform, "HealBtn", "Full Heal (50)", new Color(0.55f, 0.2f, 0.2f),
                 new Vector2(0.25f, 0.5f), new Vector2(200, 34), BuyHealthKit);
             _shopBuyButtons.Add(healBtn.GetComponent<Button>());
 
@@ -1083,10 +1083,9 @@ namespace Deadlight.UI
 
         private void BuyHealthKit()
         {
-            if (PointsSystem.Instance == null || !PointsSystem.Instance.CanAfford(50)) return;
+            if (!CanPurchaseHealthKit(out var health)) return;
             if (!PointsSystem.Instance.SpendPoints(50, "Health Kit")) return;
-            var player = GameObject.Find("Player");
-            player?.GetComponent<PlayerHealth>()?.FullHeal();
+            health.FullHeal();
             RefreshShop();
         }
 
@@ -1144,8 +1143,19 @@ namespace Deadlight.UI
 
             int night = GameManager.Instance?.CurrentLevel ?? 1;
 
-            UpdateSupplyButton(0, 50);
+            bool needsHeal = NeedsHealing(out _);
+            bool canBuyHeal = needsHeal && PointsSystem.Instance != null && PointsSystem.Instance.CanAfford(50);
+            UpdateSupplyButton(0, 50, canBuyHeal);
             UpdateSupplyButton(1, 30);
+
+            if (_shopBuyButtons.Count > 0)
+            {
+                var healLabel = _shopBuyButtons[0].GetComponentInChildren<Text>();
+                if (healLabel != null)
+                {
+                    healLabel.text = needsHeal ? "Full Heal (50)" : "Health Full";
+                }
+            }
 
             WeaponType[] weaponTypes = { WeaponType.Shotgun, WeaponType.SMG, WeaponType.SniperRifle, WeaponType.AssaultRifle, WeaponType.GrenadeLauncher, WeaponType.Flamethrower };
             int[] weaponCosts = { 100, 150, 250, 200, 350, 400 };
@@ -1181,10 +1191,31 @@ namespace Deadlight.UI
             }
         }
 
-        private void UpdateSupplyButton(int index, int cost)
+        private bool CanPurchaseHealthKit(out PlayerHealth health)
+        {
+            if (!NeedsHealing(out health))
+                return false;
+
+            return PointsSystem.Instance != null && PointsSystem.Instance.CanAfford(50);
+        }
+
+        private bool NeedsHealing(out PlayerHealth health)
+        {
+            var player = GameObject.Find("Player");
+            health = player != null ? player.GetComponent<PlayerHealth>() : null;
+            if (health == null)
+                return false;
+
+            return health.CurrentHealth < health.MaxHealth - 0.01f;
+        }
+
+        private void UpdateSupplyButton(int index, int cost, bool extraCondition = true)
         {
             if (index >= _shopBuyButtons.Count) return;
-            _shopBuyButtons[index].interactable = PointsSystem.Instance != null && PointsSystem.Instance.CanAfford(cost);
+            _shopBuyButtons[index].interactable =
+                extraCondition &&
+                PointsSystem.Instance != null &&
+                PointsSystem.Instance.CanAfford(cost);
         }
 
         private void UpdateUpgradeRow(int index, int currentTier, int maxTier, int cost, string desc, string name)

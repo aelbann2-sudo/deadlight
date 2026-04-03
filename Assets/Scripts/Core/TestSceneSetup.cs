@@ -373,9 +373,13 @@ namespace Deadlight.Core
                 rmObj.transform.SetParent(managersParent);
                 rmObj.AddComponent<Systems.ResourceManager>();
 
-                var csObj = new GameObject("CraftingSystem");
-                csObj.transform.SetParent(managersParent);
-                csObj.AddComponent<Systems.CraftingSystem>();
+                bool craftingEnabled = GameManager.Instance == null || GameManager.Instance.CraftingEnabled;
+                if (craftingEnabled)
+                {
+                    var csObj = new GameObject("CraftingSystem");
+                    csObj.transform.SetParent(managersParent);
+                    csObj.AddComponent<Systems.CraftingSystem>();
+                }
 
                 var psObj = new GameObject("PointsSystem");
                 psObj.transform.SetParent(managersParent);

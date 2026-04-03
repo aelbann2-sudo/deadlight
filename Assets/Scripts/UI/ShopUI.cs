@@ -266,6 +266,17 @@ namespace Deadlight.UI
 
         private void OnItemPurchased(ShopItem item)
         {
+            if (item.itemType == ShopItemType.Health)
+            {
+                var player = GameObject.FindGameObjectWithTag("Player");
+                var health = player != null ? player.GetComponent<Player.PlayerHealth>() : null;
+                if (health == null || health.CurrentHealth >= health.MaxHealth - 0.01f)
+                {
+                    Debug.Log("[ShopUI] Health is already full");
+                    return;
+                }
+            }
+
             if (PointsSystem.Instance == null || !PointsSystem.Instance.CanAfford(item.cost))
             {
                 Debug.Log("[ShopUI] Cannot afford item");

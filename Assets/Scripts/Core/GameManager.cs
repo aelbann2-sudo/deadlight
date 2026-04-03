@@ -73,6 +73,8 @@ namespace Deadlight.Core
         [SerializeField] private bool autoBootstrapGameScene = true;
         [SerializeField] private bool autoStartWhenGameSceneLoads = false;
         [SerializeField] private float dawnAutoAdvanceDelay = 2f;
+        [Header("Feature Toggles")]
+        [SerializeField] private bool enableCrafting = false;
         [SerializeField] private float[] dayDurationsByNight = {
             90f, 80f, 70f,
             85f, 75f, 65f,
@@ -99,6 +101,7 @@ namespace Deadlight.Core
         public bool IsPaused => isPaused;
         public bool IsGameplayState => IsGameplayStateValue(currentState);
         public bool ShouldSetupGameplayScene => startNewRunAfterGameSceneLoad || currentState != GameState.MainMenu || autoStartWhenGameSceneLoads;
+        public bool CraftingEnabled => enableCrafting;
         public float RunStartTime { get; private set; }
 
         public static int GetLevelForNight(int night) => Mathf.Clamp((night - 1) / NightsPerLevel + 1, 1, TotalLevels);
@@ -700,9 +703,20 @@ namespace Deadlight.Core
                 new GameObject("RunModifierSystem").AddComponent<RunModifierSystem>();
             }
 
-            if (FindFirstObjectByType<CraftingSystem>() == null)
+            if (enableCrafting)
             {
-                new GameObject("CraftingSystem").AddComponent<CraftingSystem>();
+                if (FindFirstObjectByType<CraftingSystem>() == null)
+                {
+                    new GameObject("CraftingSystem").AddComponent<CraftingSystem>();
+                }
+            }
+            else
+            {
+                var crafting = FindFirstObjectByType<CraftingSystem>();
+                if (crafting != null)
+                {
+                    Destroy(crafting.gameObject);
+                }
             }
 
             var narrativeManager = FindFirstObjectByType<NarrativeManager>();

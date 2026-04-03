@@ -84,10 +84,15 @@ namespace Deadlight.Core
                 pmObj.AddComponent<ProgressionManager>();
             }
 
-            if (CraftingSystem.Instance == null)
+            bool craftingEnabled = GameManager.Instance == null || GameManager.Instance.CraftingEnabled;
+            if (craftingEnabled && CraftingSystem.Instance == null)
             {
                 var csObj = new GameObject("CraftingSystem");
                 csObj.AddComponent<CraftingSystem>();
+            }
+            else if (!craftingEnabled && CraftingSystem.Instance != null)
+            {
+                Destroy(CraftingSystem.Instance.gameObject);
             }
         }
 

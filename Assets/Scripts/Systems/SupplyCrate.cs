@@ -359,6 +359,52 @@ namespace Deadlight.Systems
 
         private string GrantContestedRewards()
         {
+            bool craftingEnabled = GameManager.Instance != null && GameManager.Instance.CraftingEnabled;
+
+            if (!craftingEnabled)
+            {
+                int bonusPoints;
+                int ammo;
+                float heal;
+
+                switch (tier)
+                {
+                    case CrateTier.Legendary:
+                        bonusPoints = 260;
+                        ammo = 90;
+                        heal = 45f;
+                        break;
+                    case CrateTier.Rare:
+                        bonusPoints = 170;
+                        ammo = 60;
+                        heal = 30f;
+                        break;
+                    default:
+                        bonusPoints = 110;
+                        ammo = 35;
+                        heal = 18f;
+                        break;
+                }
+
+                PointsSystem.Instance?.AddPoints(bonusPoints, "Contested Drop");
+
+                var playerObj = GameObject.Find("Player");
+                var shooting = playerObj != null ? playerObj.GetComponent<PlayerShooting>() : null;
+                var health = playerObj != null ? playerObj.GetComponent<PlayerHealth>() : null;
+
+                shooting?.AddAmmo(ammo);
+                health?.Heal(heal);
+
+                var help = Deadlight.UI.GameplayHelpSystem.Instance;
+                help?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Points, bonusPoints);
+                help?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Ammo, ammo);
+                help?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Health, Mathf.RoundToInt(heal));
+
+                var directSummary = new StringBuilder("DROP SECURED: ");
+                directSummary.Append($"+{bonusPoints} Points, +{ammo} Ammo, +{Mathf.RoundToInt(heal)} HP");
+                return directSummary.ToString();
+            }
+
             int scrap;
             int wood;
             int chemicals;

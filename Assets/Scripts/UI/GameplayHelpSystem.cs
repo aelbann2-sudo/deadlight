@@ -127,7 +127,6 @@ namespace Deadlight.UI
                    "Q  Throw grenade\n" +
                    "G  Throw molotov\n" +
                    "F  Interact\n" +
-                   "C  Open crafting (day only)\n" +
                    "J  Open journal\n" +
                    "[ and ]  Cycle journal pages\n" +
                    "H or F1  Open guide\n" +
@@ -138,13 +137,12 @@ namespace Deadlight.UI
         {
             return "Daytime is for scavenging, story leads, and prep. Collect supplies, recover lore, and secure contested drops before sunset.\n\n" +
                    "Nighttime is pure survival. Hold out through the waves until dawn while using the resources and upgrades you prepared earlier.\n\n" +
-                   "At dawn, spend points on weapons, armor, and upgrades. Strong day prep makes later levels manageable.";
+                   "At dawn, spend points on weapons, armor, and upgrades. Smart purchases make later levels manageable.";
         }
 
         public static string GetSystemsText()
         {
-            return "Crafting: Press C during the day to convert resources into night bonuses like extra ammo, healing, slower enemies, or weaker enemies.\n\n" +
-                   "Contested Drops: High-value crates during the day that pay out bundled resources, points, and blueprint tokens if you secure them.\n\n" +
+            return "Contested Drops: High-value crates during the day that pay out bundled combat supplies and points if you secure them.\n\n" +
                    "Journal: Press J to review recovered lore and the current story arc so players can reconnect mechanics with the world.";
         }
 
@@ -153,10 +151,8 @@ namespace Deadlight.UI
             var builder = new StringBuilder();
             builder.AppendLine("Health Packs: restore lost HP.");
             builder.AppendLine("Ammo: refills reserve ammo.");
-            builder.AppendLine("Scrap / Wood / Chemicals / Electronics: daytime crafting resources.");
             builder.AppendLine("Points: currency for the dawn shop and upgrades.");
             builder.AppendLine("Powerups: temporary combat boosts.");
-            builder.AppendLine("Blueprint Tokens: unlock advanced recipes from contested drops.");
             builder.Append("Armor: helmets and vests soak damage before health.");
             return builder.ToString();
         }
