@@ -538,7 +538,7 @@ namespace Deadlight.Systems
             canvasObj.transform.localScale = Vector3.one * 0.01f;
 
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (font == null) font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            if (font == null) font = Font.CreateDynamicFontFromOSFont("Arial", 16);
 
             var promptObj = new GameObject("Prompt");
             promptObj.transform.SetParent(canvasObj.transform, false);

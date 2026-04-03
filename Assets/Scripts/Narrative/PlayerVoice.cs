@@ -106,8 +106,6 @@ namespace Deadlight.Narrative
         {
             font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             if (font == null)
-                font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            if (font == null)
                 font = Font.CreateDynamicFontFromOSFont("Arial", 14);
             if (font == null)
             {

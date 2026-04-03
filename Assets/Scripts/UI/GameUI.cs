@@ -47,6 +47,28 @@ namespace Deadlight.UI
         private bool _waitingForEnding;
         private bool _resumeGameplayOnGuideClose;
         private Sprite _campaignNodeSprite;
+        private Text _mainMenuProgressText;
+        private Text _mapSelectProgressText;
+        private readonly List<CampaignRouteRowBinding> _campaignRouteRows = new List<CampaignRouteRowBinding>();
+        private readonly List<CampaignCardBinding> _campaignCards = new List<CampaignCardBinding>();
+
+        private sealed class CampaignRouteRowBinding
+        {
+            public int Level;
+            public Text StatusText;
+            public Image StatusBackground;
+        }
+
+        private sealed class CampaignCardBinding
+        {
+            public int Level;
+            public Button Button;
+            public Text StatusText;
+            public Text ActionText;
+            public Image PreviewImage;
+            public Image LockOverlay;
+            public Color FallbackColor;
+        }
 
         public bool IsGuideOpen => _guidePanel != null && _guidePanel.activeSelf;
 
@@ -63,17 +85,7 @@ namespace Deadlight.UI
 
         private void Start()
         {
-            _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (_font == null)
-                _font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            if (_font == null)
-                _font = Font.CreateDynamicFontFromOSFont("Arial", 14);
-            if (_font == null)
-            {
-                string[] fallbacks = Font.GetOSInstalledFontNames();
-                if (fallbacks != null && fallbacks.Length > 0)
-                    _font = Font.CreateDynamicFontFromOSFont(fallbacks[0], 14);
-            }
+            _font = LoadReadableFont(16);
             if (_font == null)
             {
                 Debug.LogError("[GameUI] Could not load any font. UI will not display correctly.");
@@ -81,6 +93,7 @@ namespace Deadlight.UI
 
             EnsureEventSystem();
             BuildAllUI();
+            RefreshCampaignPresentation();
             HideAllPanels();
 
             if (GameManager.Instance != null)
@@ -172,37 +185,64 @@ namespace Deadlight.UI
         {
             _mainMenuPanel = CreatePanel(_canvasRoot.transform, "MainMenuPanel");
             var bg = _mainMenuPanel.GetComponent<Image>();
-            bg.color = new Color(0.04f, 0.04f, 0.07f, 1f);
+            bg.color = new Color(0.08f, 0.11f, 0.14f, 1f);
 
-            var headerBg = CreateInsetPanel(_mainMenuPanel.transform, "MenuHeaderBg",
-                new Vector2(0f, 0.7f), new Vector2(1f, 1f), new Color(0.06f, 0.05f, 0.1f, 0.9f));
+            var left = CreateStretchSurface(_mainMenuPanel.transform, "MainMenuLeft",
+                new Vector2(0f, 0f), new Vector2(0f, 1f),
+                new Vector2(44f, 44f), new Vector2(592f, -44f),
+                new Color(0.05f, 0.07f, 0.09f, 0.96f), 0.4f);
+            var right = CreateStretchSurface(_mainMenuPanel.transform, "MainMenuRight",
+                new Vector2(0f, 0f), new Vector2(1f, 1f),
+                new Vector2(624f, 44f), new Vector2(-44f, -44f),
+                new Color(0.05f, 0.07f, 0.09f, 0.92f), 0.32f);
 
-            var title = CreateText(headerBg.transform, "Title",
-                "DEADLIGHT", 56, TextAnchor.MiddleCenter, new Color(1f, 0.9f, 0.4f),
-                new Vector2(0.5f, 0.6f), new Vector2(0.5f, 0.6f), Vector2.zero, new Vector2(700, 70));
-            title.GetComponent<Text>().fontStyle = FontStyle.Bold;
-            var titleGlow = title.AddComponent<Shadow>();
-            titleGlow.effectColor = new Color(0.9f, 0.7f, 0f, 0.25f);
-            titleGlow.effectDistance = new Vector2(0f, -2f);
+            CreateMenuText(left.transform, "Title", "DEADLIGHT", 58, FontStyle.Bold, Color.white,
+                new Vector2(0f, 1f), new Vector2(34f, -38f), new Vector2(430f, 60f), TextAnchor.UpperLeft);
+            CreateMenuText(left.transform, "Subtitle", "Survival After Dark", 28, FontStyle.Bold, new Color(0.86f, 0.9f, 0.95f),
+                new Vector2(0f, 1f), new Vector2(36f, -102f), new Vector2(430f, 34f), TextAnchor.UpperLeft);
+            CreateMenuText(left.transform, "Body",
+                "Push through four operations, breach the Lazarus facility, and get the signal out before the city is lost.",
+                20, FontStyle.Normal, new Color(0.8f, 0.85f, 0.9f),
+                new Vector2(0f, 1f), new Vector2(36f, -170f), new Vector2(470f, 82f), TextAnchor.UpperLeft);
 
-            CreateText(headerBg.transform, "Subtitle",
-                "SURVIVAL AFTER DARK", 20, TextAnchor.MiddleCenter, new Color(0.6f, 0.6f, 0.55f),
-                new Vector2(0.5f, 0.25f), new Vector2(0.5f, 0.25f), Vector2.zero, new Vector2(400, 28));
+            CreateMenuText(left.transform, "ProgressLabel", "CAMPAIGN STATUS", 14, FontStyle.Bold,
+                new Color(0.54f, 0.82f, 1f), new Vector2(0f, 1f), new Vector2(36f, -276f), new Vector2(220f, 18f), TextAnchor.UpperLeft);
+            _mainMenuProgressText = CreateMenuText(left.transform, "ProgressValue", "", 22, FontStyle.Bold,
+                Color.white, new Vector2(0f, 1f), new Vector2(36f, -300f), new Vector2(470f, 34f), TextAnchor.UpperLeft);
 
-            CreateButton(_mainMenuPanel.transform, "StartCampaignButton", "START CAMPAIGN", new Color(0.2f, 0.65f, 0.25f),
-                new Vector2(0.5f, 0.55f), new Vector2(300, 55), StartCampaign);
+            CreateMenuActionButton(left.transform, "StartCampaignButton", "Start Campaign",
+                "Jump straight into the current operation.", new Color(0.25f, 0.64f, 0.36f),
+                new Vector2(0f, 1f), new Vector2(36f, -356f), new Vector2(500f, 92f), StartCampaign);
+            CreateMenuActionButton(left.transform, "CampaignMapButton", "Choose Operation",
+                "Pick any unlocked campaign level before deploying.", new Color(0.82f, 0.64f, 0.24f),
+                new Vector2(0f, 1f), new Vector2(36f, -458f), new Vector2(500f, 92f), ShowCampaignMap);
+            CreateMenuActionButton(left.transform, "GuideButton", "Guide",
+                "Controls, systems, and onboarding notes.", new Color(0.28f, 0.52f, 0.75f),
+                new Vector2(0f, 1f), new Vector2(36f, -560f), new Vector2(500f, 92f), OpenGuideFromButton);
 
-            CreateButton(_mainMenuPanel.transform, "CampaignMapButton", "CAMPAIGN MAP", new Color(0.6f, 0.48f, 0.18f),
-                new Vector2(0.5f, 0.42f), new Vector2(260, 44), ShowCampaignMap);
+            CreateMenuMiniButton(left.transform, "LeaderboardButton", "Leaderboard",
+                new Color(0.24f, 0.43f, 0.72f), new Vector2(0f, 0f), new Vector2(36f, 34f), new Vector2(290f, 58f),
+                ShowLeaderboard);
+            CreateMenuMiniButton(left.transform, "QuitButton", "Quit",
+                new Color(0.42f, 0.46f, 0.54f), new Vector2(0f, 0f), new Vector2(342f, 34f), new Vector2(194f, 58f),
+                QuitGame);
 
-            CreateButton(_mainMenuPanel.transform, "LeaderboardButton", "LEADERBOARD", new Color(0.25f, 0.35f, 0.6f),
-                new Vector2(0.5f, 0.32f), new Vector2(260, 44), ShowLeaderboard);
+            CreateMenuText(right.transform, "RouteTitle", "Campaign Route", 34, FontStyle.Bold, Color.white,
+                new Vector2(0f, 1f), new Vector2(34f, -34f), new Vector2(420f, 40f), TextAnchor.UpperLeft);
+            CreateMenuText(right.transform, "RouteBody",
+                "Live overhead previews from the current build. Start immediately or open the route view to deploy from any unlocked operation.",
+                18, FontStyle.Normal, new Color(0.8f, 0.85f, 0.9f),
+                new Vector2(0f, 1f), new Vector2(34f, -82f), new Vector2(940f, 54f), TextAnchor.UpperLeft);
 
-            CreateButton(_mainMenuPanel.transform, "GuideButton", "GUIDE", new Color(0.2f, 0.4f, 0.55f),
-                new Vector2(0.5f, 0.22f), new Vector2(260, 44), OpenGuideFromButton);
-
-            CreateButton(_mainMenuPanel.transform, "QuitButton", "QUIT", new Color(0.35f, 0.35f, 0.38f),
-                new Vector2(0.5f, 0.12f), new Vector2(180, 38), QuitGame);
+            _campaignRouteRows.Clear();
+            CreateCampaignRouteRow(right.transform, 1, LoadMenuPreviewSprite("TownCenter"), "Operation 01", "Town Center", levelTeasers[0],
+                new Vector2(0f, 1f), new Vector2(34f, -168f), new Vector2(1020f, 138f), new Color(0.27f, 0.63f, 0.38f));
+            CreateCampaignRouteRow(right.transform, 2, LoadMenuPreviewSprite("Suburban"), "Operation 02", "Suburban Evacuation", levelTeasers[1],
+                new Vector2(0f, 1f), new Vector2(34f, -326f), new Vector2(1020f, 138f), new Color(0.52f, 0.72f, 0.3f));
+            CreateCampaignRouteRow(right.transform, 3, LoadMenuPreviewSprite("Industrial"), "Operation 03", "Industrial District", levelTeasers[2],
+                new Vector2(0f, 1f), new Vector2(34f, -484f), new Vector2(1020f, 138f), new Color(0.82f, 0.55f, 0.24f));
+            CreateCampaignRouteRow(right.transform, 4, LoadMenuPreviewSprite("Research"), "Operation 04", "Research Facility", levelTeasers[3],
+                new Vector2(0f, 1f), new Vector2(34f, -642f), new Vector2(1020f, 138f), new Color(0.76f, 0.3f, 0.3f));
         }
 
         private void StartCampaign()
@@ -225,6 +265,7 @@ namespace Deadlight.UI
 
         private void ShowCampaignMap()
         {
+            RefreshCampaignPresentation();
             HideAllPanels();
             _mapSelectPanel?.SetActive(true);
         }
@@ -232,7 +273,9 @@ namespace Deadlight.UI
         // ===================== MAP SELECT =====================
 
         private static readonly string[] levelSubtitles = { "First Light", "No One Left Behind", "The Source", "Operation Deadlight" };
-        private static readonly string[] levelMapNames = { "Town Center", "Suburban", "Industrial", "Research" };
+        private static readonly string[] levelMapNames = { "Town Center", "Suburban Evacuation", "Industrial District", "Research Facility" };
+        private static readonly string[] levelThreatLabels = { "Low Threat", "Rising Threat", "High Threat", "Critical Threat" };
+        private static readonly string[] levelPreviewKeys = { "TownCenter", "Suburban", "Industrial", "Research" };
         private static readonly string[] levelTeasers = {
             "Recover Flight 7's black box from the crash site.",
             "Search the school shelter for evacuation records.",
@@ -243,72 +286,490 @@ namespace Deadlight.UI
         private void BuildMapSelect()
         {
             _mapSelectPanel = CreatePanel(_canvasRoot.transform, "MapSelectPanel");
-            _mapSelectPanel.GetComponent<Image>().color = new Color(0.04f, 0.04f, 0.07f, 1f);
+            _mapSelectPanel.GetComponent<Image>().color = new Color(0.08f, 0.11f, 0.14f, 1f);
 
-            var headerGlow = CreateInsetPanel(_mapSelectPanel.transform, "HeaderGlow",
-                new Vector2(0f, 0.87f), new Vector2(1f, 1f), new Color(0.08f, 0.06f, 0.14f, 0.9f));
-
-            var titleObj = CreateText(headerGlow.transform, "Title",
-                "OPERATION DEADLIGHT", 42, TextAnchor.MiddleCenter, new Color(1f, 0.85f, 0.3f),
-                new Vector2(0.5f, 0.65f), new Vector2(0.5f, 0.65f), Vector2.zero, new Vector2(700, 55));
-            titleObj.GetComponent<Text>().fontStyle = FontStyle.Bold;
-            var titleShadow = titleObj.AddComponent<Shadow>();
-            titleShadow.effectColor = new Color(0.8f, 0.6f, 0f, 0.3f);
-            titleShadow.effectDistance = new Vector2(0f, -2f);
-
-            CreateText(headerGlow.transform, "Subtitle",
-                "Survive four levels. Reach the facility. Transmit the truth.", 16, TextAnchor.MiddleCenter, new Color(0.65f, 0.65f, 0.6f),
-                new Vector2(0.5f, 0.2f), new Vector2(0.5f, 0.2f), Vector2.zero, new Vector2(760, 22));
-
-            var mapBoard = CreateInsetPanel(_mapSelectPanel.transform, "CampaignBoard",
-                new Vector2(0.04f, 0.15f), new Vector2(0.96f, 0.85f), new Color(0.06f, 0.06f, 0.09f, 0.98f));
-            var boardOutline = mapBoard.AddComponent<Outline>();
-            boardOutline.effectColor = new Color(0.4f, 0.3f, 0.1f, 0.5f);
-            boardOutline.effectDistance = new Vector2(2f, -2f);
-
-            Vector2[] positions = {
-                new Vector2(-320f, 0f),
-                new Vector2(-108f, 0f),
-                new Vector2(108f, 0f),
-                new Vector2(320f, 0f)
-            };
-
-            Color[] nodeColors = {
-                new Color(0.25f, 0.65f, 0.35f),
-                new Color(0.5f, 0.7f, 0.3f),
-                new Color(0.85f, 0.55f, 0.2f),
-                new Color(0.75f, 0.2f, 0.2f)
-            };
-
-            Color[] glowColors = {
-                new Color(0.2f, 0.8f, 0.3f, 0.15f),
-                new Color(0.5f, 0.8f, 0.2f, 0.12f),
-                new Color(0.9f, 0.6f, 0.1f, 0.12f),
-                new Color(0.9f, 0.15f, 0.1f, 0.12f)
-            };
-
-            for (int i = 0; i < 3; i++)
-            {
-                CreateCampaignPathDotted(mapBoard.transform, positions[i], positions[i + 1],
-                    Color.Lerp(nodeColors[i], nodeColors[i + 1], 0.5f));
-            }
-
-            for (int i = 0; i < 4; i++)
-            {
-                CreateCampaignNodeStyled(mapBoard.transform, i + 1, levelMapNames[i], positions[i], nodeColors[i], glowColors[i]);
-            }
-
-            CreateText(mapBoard.transform, "MapHint",
-                "Click a level to begin  |  Difficulty increases left to right", 13, TextAnchor.MiddleCenter,
-                new Color(0.45f, 0.45f, 0.4f),
-                new Vector2(0.5f, 0.04f), new Vector2(0.5f, 0.04f), Vector2.zero, new Vector2(720f, 20f));
-
-            CreateButton(_mapSelectPanel.transform, "BackButton", "BACK", new Color(0.25f, 0.25f, 0.3f),
-                new Vector2(0.5f, 0.06f), new Vector2(200, 42), () =>
+            CreateMenuText(_mapSelectPanel.transform, "BackLabel", "BACK", 16, FontStyle.Bold, new Color(0.78f, 0.84f, 0.9f),
+                new Vector2(0f, 1f), new Vector2(72f, -42f), new Vector2(140f, 20f), TextAnchor.UpperLeft);
+            CreateMenuMiniButton(_mapSelectPanel.transform, "BackButton", "Return to Menu",
+                new Color(0.42f, 0.46f, 0.54f), new Vector2(0f, 1f), new Vector2(72f, -70f), new Vector2(220f, 50f),
+                () =>
                 {
                     _mapSelectPanel?.SetActive(false);
                     _mainMenuPanel?.SetActive(true);
                 });
+
+            CreateMenuText(_mapSelectPanel.transform, "Title", "Campaign Route", 50, FontStyle.Bold, Color.white,
+                new Vector2(0f, 1f), new Vector2(72f, -148f), new Vector2(460f, 56f), TextAnchor.UpperLeft);
+            CreateMenuText(_mapSelectPanel.transform, "Subtitle",
+                "Choose any unlocked operation. Later deployments open harder spaces and longer survival windows.",
+                19, FontStyle.Normal, new Color(0.78f, 0.83f, 0.89f),
+                new Vector2(0f, 1f), new Vector2(74f, -206f), new Vector2(760f, 54f), TextAnchor.UpperLeft);
+            _mapSelectProgressText = CreateMenuText(_mapSelectPanel.transform, "ProgressText", "", 18, FontStyle.Bold,
+                new Color(0.96f, 0.84f, 0.45f), new Vector2(0f, 1f), new Vector2(74f, -268f), new Vector2(420f, 28f), TextAnchor.UpperLeft);
+
+            _campaignCards.Clear();
+            CreateCampaignCard(_mapSelectPanel.transform, 1, levelMapNames[0], levelSubtitles[0], levelThreatLabels[0], levelTeasers[0], LoadMenuPreviewSprite(levelPreviewKeys[0]),
+                new Color(0.27f, 0.63f, 0.38f), new Vector2(0.24f, 0.58f), new Vector2(520f, 310f));
+            CreateCampaignCard(_mapSelectPanel.transform, 2, levelMapNames[1], levelSubtitles[1], levelThreatLabels[1], levelTeasers[1], LoadMenuPreviewSprite(levelPreviewKeys[1]),
+                new Color(0.52f, 0.72f, 0.3f), new Vector2(0.76f, 0.58f), new Vector2(520f, 310f));
+            CreateCampaignCard(_mapSelectPanel.transform, 3, levelMapNames[2], levelSubtitles[2], levelThreatLabels[2], levelTeasers[2], LoadMenuPreviewSprite(levelPreviewKeys[2]),
+                new Color(0.82f, 0.55f, 0.24f), new Vector2(0.24f, 0.22f), new Vector2(520f, 310f));
+            CreateCampaignCard(_mapSelectPanel.transform, 4, levelMapNames[3], levelSubtitles[3], levelThreatLabels[3], levelTeasers[3], LoadMenuPreviewSprite(levelPreviewKeys[3]),
+                new Color(0.76f, 0.3f, 0.3f), new Vector2(0.76f, 0.22f), new Vector2(520f, 310f));
+        }
+
+        private Font LoadReadableFont(int size)
+        {
+            Font font = Font.CreateDynamicFontFromOSFont("Arial", size);
+            if (font != null)
+            {
+                return font;
+            }
+
+            font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            if (font != null)
+            {
+                return font;
+            }
+
+            string[] fallbacks = Font.GetOSInstalledFontNames();
+            if (fallbacks != null && fallbacks.Length > 0)
+            {
+                return Font.CreateDynamicFontFromOSFont(fallbacks[0], size);
+            }
+
+            return null;
+        }
+
+        private void RefreshCampaignPresentation()
+        {
+            int highestUnlocked = GetHighestUnlockedLevel();
+            highestUnlocked = Mathf.Clamp(highestUnlocked, 1, levelMapNames.Length);
+
+            if (_mainMenuProgressText != null)
+            {
+                _mainMenuProgressText.text = $"Operation {highestUnlocked:00} ready: {levelMapNames[highestUnlocked - 1]}";
+            }
+
+            if (_mapSelectProgressText != null)
+            {
+                _mapSelectProgressText.text = highestUnlocked >= levelMapNames.Length
+                    ? "All operations unlocked. Final objective is live."
+                    : $"Unlocked through Operation {highestUnlocked:00}. Locked operations open as you finish the route.";
+            }
+
+            foreach (var row in _campaignRouteRows)
+            {
+                bool unlocked = IsLevelUnlocked(row.Level);
+                bool ready = unlocked && row.Level == highestUnlocked;
+                row.StatusText.text = ready ? "READY" : unlocked ? "UNLOCKED" : "LOCKED";
+                row.StatusBackground.color = ready
+                    ? new Color(0.22f, 0.55f, 0.34f, 0.95f)
+                    : unlocked
+                        ? new Color(0.23f, 0.31f, 0.39f, 0.95f)
+                        : new Color(0.28f, 0.18f, 0.18f, 0.92f);
+            }
+
+            foreach (var card in _campaignCards)
+            {
+                bool unlocked = IsLevelUnlocked(card.Level);
+                bool ready = unlocked && card.Level == highestUnlocked;
+
+                if (card.Button != null)
+                {
+                    card.Button.interactable = unlocked;
+                }
+
+                if (card.StatusText != null)
+                {
+                    card.StatusText.text = ready ? "READY NOW" : unlocked ? "UNLOCKED" : "LOCKED";
+                    card.StatusText.color = unlocked ? Color.white : new Color(0.88f, 0.76f, 0.76f);
+                }
+
+                if (card.ActionText != null)
+                {
+                    card.ActionText.text = unlocked ? "CLICK TO DEPLOY" : "LOCKED";
+                    card.ActionText.color = unlocked ? new Color(0.94f, 0.96f, 1f) : new Color(0.72f, 0.72f, 0.76f);
+                }
+
+                if (card.PreviewImage != null)
+                {
+                    if (card.PreviewImage.sprite != null)
+                    {
+                        card.PreviewImage.color = unlocked ? Color.white : new Color(0.68f, 0.7f, 0.74f, 1f);
+                    }
+                    else
+                    {
+                        card.PreviewImage.color = unlocked
+                            ? card.FallbackColor
+                            : Color.Lerp(card.FallbackColor, new Color(0.22f, 0.24f, 0.28f, 1f), 0.35f);
+                    }
+                }
+
+                if (card.LockOverlay != null)
+                {
+                    card.LockOverlay.color = unlocked
+                        ? new Color(0f, 0f, 0f, 0.08f)
+                        : new Color(0.02f, 0.02f, 0.03f, 0.28f);
+                }
+            }
+        }
+
+        private int GetHighestUnlockedLevel()
+        {
+            int highestUnlocked = 1;
+            for (int level = 1; level <= levelMapNames.Length; level++)
+            {
+                if (IsLevelUnlocked(level))
+                {
+                    highestUnlocked = level;
+                }
+            }
+
+            return highestUnlocked;
+        }
+
+        private bool IsLevelUnlocked(int level)
+        {
+            return GameManager.Instance != null ? GameManager.Instance.IsLevelUnlocked(level) : level <= 1;
+        }
+
+        private GameObject CreateStretchSurface(Transform parent, string name, Vector2 anchorMin, Vector2 anchorMax,
+            Vector2 offsetMin, Vector2 offsetMax, Color color, float shadowAlpha)
+        {
+            var panel = new GameObject(name);
+            panel.transform.SetParent(parent, false);
+            var rect = panel.AddComponent<RectTransform>();
+            rect.anchorMin = anchorMin;
+            rect.anchorMax = anchorMax;
+            rect.offsetMin = offsetMin;
+            rect.offsetMax = offsetMax;
+
+            var image = panel.AddComponent<Image>();
+            image.color = color;
+
+            var shadow = panel.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0f, 0f, 0f, shadowAlpha);
+            shadow.effectDistance = new Vector2(0f, -8f);
+            return panel;
+        }
+
+        private GameObject CreateMenuSurface(Transform parent, string name, Vector2 anchor, Vector2 size, Color color,
+            float shadowAlpha, Vector2? anchoredPos = null, Vector2? pivot = null)
+        {
+            var panel = new GameObject(name);
+            panel.transform.SetParent(parent, false);
+            var rect = panel.AddComponent<RectTransform>();
+            rect.anchorMin = anchor;
+            rect.anchorMax = anchor;
+            rect.pivot = pivot ?? new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = anchoredPos ?? Vector2.zero;
+            rect.sizeDelta = size;
+
+            var image = panel.AddComponent<Image>();
+            image.color = color;
+
+            var shadow = panel.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0f, 0f, 0f, shadowAlpha);
+            shadow.effectDistance = new Vector2(0f, -8f);
+            return panel;
+        }
+
+        private Text CreateMenuText(Transform parent, string name, string text, int fontSize, FontStyle style, Color color,
+            Vector2 anchor, Vector2 anchoredPos, Vector2 size, TextAnchor alignment)
+        {
+            var obj = new GameObject(name);
+            obj.transform.SetParent(parent, false);
+            var rect = obj.AddComponent<RectTransform>();
+            rect.anchorMin = anchor;
+            rect.anchorMax = anchor;
+            rect.pivot = new Vector2(0f, 1f);
+            rect.anchoredPosition = anchoredPos;
+            rect.sizeDelta = size;
+
+            var label = obj.AddComponent<Text>();
+            label.font = _font;
+            label.text = text;
+            label.fontSize = fontSize;
+            label.fontStyle = style;
+            label.color = color;
+            label.alignment = alignment;
+            label.horizontalOverflow = HorizontalWrapMode.Wrap;
+            label.verticalOverflow = VerticalWrapMode.Overflow;
+            label.raycastTarget = false;
+
+            var shadow = obj.AddComponent<Shadow>();
+            shadow.enabled = fontSize >= 28;
+            shadow.effectColor = new Color(0f, 0f, 0f, 0.18f);
+            shadow.effectDistance = new Vector2(1f, -1f);
+            return label;
+        }
+
+        private void CreateMenuActionButton(Transform parent, string name, string title, string subtitle, Color accent,
+            Vector2 anchor, Vector2 anchoredPos, Vector2 size, System.Action onClick)
+        {
+            var buttonObj = new GameObject(name);
+            buttonObj.transform.SetParent(parent, false);
+            var rect = buttonObj.AddComponent<RectTransform>();
+            rect.anchorMin = anchor;
+            rect.anchorMax = anchor;
+            rect.pivot = new Vector2(0f, 1f);
+            rect.anchoredPosition = anchoredPos;
+            rect.sizeDelta = size;
+
+            var image = buttonObj.AddComponent<Image>();
+            image.color = new Color(0.11f, 0.14f, 0.18f, 0.98f);
+
+            var button = buttonObj.AddComponent<Button>();
+            button.targetGraphic = image;
+            var colors = button.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1.05f, 1.05f, 1.05f, 1f);
+            colors.pressedColor = new Color(0.92f, 0.92f, 0.92f, 1f);
+            colors.selectedColor = colors.highlightedColor;
+            button.colors = colors;
+            button.onClick.AddListener(() => onClick?.Invoke());
+
+            var accentBar = new GameObject("Accent");
+            accentBar.transform.SetParent(buttonObj.transform, false);
+            var accentRect = accentBar.AddComponent<RectTransform>();
+            accentRect.anchorMin = new Vector2(0f, 0f);
+            accentRect.anchorMax = new Vector2(0f, 1f);
+            accentRect.pivot = new Vector2(0f, 0.5f);
+            accentRect.anchoredPosition = Vector2.zero;
+            accentRect.sizeDelta = new Vector2(8f, 0f);
+            var accentImage = accentBar.AddComponent<Image>();
+            accentImage.color = accent;
+            accentImage.raycastTarget = false;
+
+            CreateMenuText(buttonObj.transform, "Title", title, 32, FontStyle.Bold, Color.white,
+                new Vector2(0f, 1f), new Vector2(26f, -16f), new Vector2(size.x - 40f, 36f), TextAnchor.UpperLeft);
+            CreateMenuText(buttonObj.transform, "Subtitle", subtitle, 18, FontStyle.Normal, new Color(0.82f, 0.86f, 0.9f),
+                new Vector2(0f, 1f), new Vector2(28f, -56f), new Vector2(size.x - 46f, 26f), TextAnchor.UpperLeft);
+        }
+
+        private void CreateMenuMiniButton(Transform parent, string name, string title, Color accent,
+            Vector2 anchor, Vector2 anchoredPos, Vector2 size, System.Action onClick)
+        {
+            var buttonObj = new GameObject(name);
+            buttonObj.transform.SetParent(parent, false);
+            var rect = buttonObj.AddComponent<RectTransform>();
+            rect.anchorMin = anchor;
+            rect.anchorMax = anchor;
+            rect.pivot = new Vector2(0f, 1f);
+            rect.anchoredPosition = anchoredPos;
+            rect.sizeDelta = size;
+
+            var image = buttonObj.AddComponent<Image>();
+            image.color = new Color(0.1f, 0.12f, 0.16f, 0.96f);
+
+            var button = buttonObj.AddComponent<Button>();
+            button.targetGraphic = image;
+            var colors = button.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1.05f, 1.05f, 1.05f, 1f);
+            colors.pressedColor = new Color(0.92f, 0.92f, 0.92f, 1f);
+            colors.selectedColor = colors.highlightedColor;
+            button.colors = colors;
+            button.onClick.AddListener(() => onClick?.Invoke());
+
+            var accentBar = new GameObject("Accent");
+            accentBar.transform.SetParent(buttonObj.transform, false);
+            var accentRect = accentBar.AddComponent<RectTransform>();
+            accentRect.anchorMin = new Vector2(0f, 0f);
+            accentRect.anchorMax = new Vector2(0f, 1f);
+            accentRect.pivot = new Vector2(0f, 0.5f);
+            accentRect.anchoredPosition = Vector2.zero;
+            accentRect.sizeDelta = new Vector2(6f, 0f);
+            var accentImage = accentBar.AddComponent<Image>();
+            accentImage.color = accent;
+            accentImage.raycastTarget = false;
+
+            var labelObj = new GameObject("Label");
+            labelObj.transform.SetParent(buttonObj.transform, false);
+            var labelRect = labelObj.AddComponent<RectTransform>();
+            labelRect.anchorMin = new Vector2(0f, 0f);
+            labelRect.anchorMax = new Vector2(1f, 1f);
+            labelRect.offsetMin = new Vector2(18f, 0f);
+            labelRect.offsetMax = new Vector2(-12f, 0f);
+
+            var label = labelObj.AddComponent<Text>();
+            label.font = _font;
+            label.text = title;
+            label.fontSize = 20;
+            label.fontStyle = FontStyle.Bold;
+            label.color = Color.white;
+            label.alignment = TextAnchor.MiddleLeft;
+            label.raycastTarget = false;
+        }
+
+        private void CreateCampaignRouteRow(Transform parent, int level, Sprite preview, string eyebrow, string title, string teaser,
+            Vector2 anchor, Vector2 anchoredPos, Vector2 size, Color accent)
+        {
+            var row = CreateMenuSurface(parent, $"RouteRow_{level}", anchor, size,
+                new Color(0.09f, 0.11f, 0.14f, 0.96f), 0.24f, anchoredPos, new Vector2(0f, 1f));
+
+            var previewObj = new GameObject("Preview");
+            previewObj.transform.SetParent(row.transform, false);
+            var previewRect = previewObj.AddComponent<RectTransform>();
+            previewRect.anchorMin = new Vector2(0f, 0.5f);
+            previewRect.anchorMax = new Vector2(0f, 0.5f);
+            previewRect.pivot = new Vector2(0f, 0.5f);
+            previewRect.anchoredPosition = new Vector2(14f, 0f);
+            previewRect.sizeDelta = new Vector2(220f, size.y - 24f);
+            var previewImage = previewObj.AddComponent<Image>();
+            previewImage.sprite = preview;
+            previewImage.color = preview != null ? Color.white : new Color(accent.r * 0.75f, accent.g * 0.75f, accent.b * 0.75f, 1f);
+            previewImage.preserveAspect = false;
+            previewImage.raycastTarget = false;
+
+            var previewOverlay = new GameObject("PreviewOverlay");
+            previewOverlay.transform.SetParent(previewObj.transform, false);
+            var overlayRect = previewOverlay.AddComponent<RectTransform>();
+            overlayRect.anchorMin = Vector2.zero;
+            overlayRect.anchorMax = Vector2.one;
+            overlayRect.offsetMin = Vector2.zero;
+            overlayRect.offsetMax = Vector2.zero;
+            var overlayImage = previewOverlay.AddComponent<Image>();
+            overlayImage.color = new Color(0f, 0f, 0f, preview != null ? 0.16f : 0.08f);
+            overlayImage.raycastTarget = false;
+
+            if (preview == null)
+            {
+                CreateMenuText(previewObj.transform, "PreviewFallback", title.ToUpperInvariant(), 22, FontStyle.Bold, Color.white,
+                    new Vector2(0f, 1f), new Vector2(18f, -24f), new Vector2(180f, 56f), TextAnchor.UpperLeft);
+            }
+
+            CreateMenuText(row.transform, "Eyebrow", eyebrow, 14, FontStyle.Bold, accent,
+                new Vector2(0f, 1f), new Vector2(258f, -24f), new Vector2(200f, 18f), TextAnchor.UpperLeft);
+            CreateMenuText(row.transform, "Title", title, 28, FontStyle.Bold, Color.white,
+                new Vector2(0f, 1f), new Vector2(258f, -48f), new Vector2(size.x - 430f, 34f), TextAnchor.UpperLeft);
+            CreateMenuText(row.transform, "Teaser", teaser, 16, FontStyle.Normal, new Color(0.8f, 0.85f, 0.9f),
+                new Vector2(0f, 1f), new Vector2(260f, -92f), new Vector2(size.x - 440f, 42f), TextAnchor.UpperLeft);
+
+            var statusPanel = new GameObject("StatusPanel");
+            statusPanel.transform.SetParent(row.transform, false);
+            var statusRect = statusPanel.AddComponent<RectTransform>();
+            statusRect.anchorMin = new Vector2(1f, 0.5f);
+            statusRect.anchorMax = new Vector2(1f, 0.5f);
+            statusRect.pivot = new Vector2(1f, 0.5f);
+            statusRect.anchoredPosition = new Vector2(-18f, 0f);
+            statusRect.sizeDelta = new Vector2(118f, 34f);
+            var statusImage = statusPanel.AddComponent<Image>();
+            statusImage.color = new Color(0.22f, 0.3f, 0.38f, 0.95f);
+            statusImage.raycastTarget = false;
+
+            var statusText = CreateMenuText(statusPanel.transform, "Status", "", 15, FontStyle.Bold, Color.white,
+                new Vector2(0f, 1f), new Vector2(14f, -8f), new Vector2(90f, 18f), TextAnchor.UpperLeft);
+
+            _campaignRouteRows.Add(new CampaignRouteRowBinding
+            {
+                Level = level,
+                StatusText = statusText,
+                StatusBackground = statusImage
+            });
+        }
+
+        private void CreateCampaignCard(Transform parent, int level, string title, string subtitle, string threatLabel, string teaser,
+            Sprite preview, Color accent, Vector2 anchor, Vector2 size)
+        {
+            var card = CreateMenuSurface(parent, $"CampaignCard_{level}", anchor, size,
+                new Color(0.06f, 0.08f, 0.1f, 0.98f), 0.34f);
+
+            var cardImage = card.GetComponent<Image>();
+            var button = card.AddComponent<Button>();
+            button.targetGraphic = cardImage;
+            var colors = button.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1.04f, 1.04f, 1.04f, 1f);
+            colors.pressedColor = new Color(0.92f, 0.92f, 0.92f, 1f);
+            colors.disabledColor = new Color(0.72f, 0.72f, 0.72f, 0.95f);
+            colors.selectedColor = colors.highlightedColor;
+            button.colors = colors;
+            button.onClick.AddListener(() => StartCampaignAtLevel(level));
+
+            var previewObj = new GameObject("Preview");
+            previewObj.transform.SetParent(card.transform, false);
+            var previewRect = previewObj.AddComponent<RectTransform>();
+            previewRect.anchorMin = new Vector2(0f, 1f);
+            previewRect.anchorMax = new Vector2(1f, 1f);
+            previewRect.pivot = new Vector2(0.5f, 1f);
+            previewRect.anchoredPosition = Vector2.zero;
+            previewRect.sizeDelta = new Vector2(-24f, 156f);
+            previewRect.offsetMin = new Vector2(12f, -156f);
+            previewRect.offsetMax = new Vector2(-12f, -12f);
+
+            var previewImage = previewObj.AddComponent<Image>();
+            previewImage.sprite = preview;
+            previewImage.color = preview != null ? Color.white : new Color(accent.r * 0.78f, accent.g * 0.78f, accent.b * 0.78f, 1f);
+            previewImage.preserveAspect = false;
+            previewImage.raycastTarget = false;
+
+            var lockOverlay = new GameObject("PreviewTint");
+            lockOverlay.transform.SetParent(previewObj.transform, false);
+            var lockRect = lockOverlay.AddComponent<RectTransform>();
+            lockRect.anchorMin = Vector2.zero;
+            lockRect.anchorMax = Vector2.one;
+            lockRect.offsetMin = Vector2.zero;
+            lockRect.offsetMax = Vector2.zero;
+            var lockImage = lockOverlay.AddComponent<Image>();
+            lockImage.color = new Color(0f, 0f, 0f, 0.1f);
+            lockImage.raycastTarget = false;
+
+            if (preview == null)
+            {
+                CreateMenuText(previewObj.transform, "PreviewFallback", title.ToUpperInvariant(), 24, FontStyle.Bold, Color.white,
+                    new Vector2(0f, 1f), new Vector2(18f, -28f), new Vector2(360f, 52f), TextAnchor.UpperLeft);
+            }
+
+            CreateMenuText(card.transform, "Eyebrow", $"OPERATION {level:00}", 14, FontStyle.Bold, accent,
+                new Vector2(0f, 1f), new Vector2(18f, -182f), new Vector2(180f, 18f), TextAnchor.UpperLeft);
+            CreateMenuText(card.transform, "Title", title, 28, FontStyle.Bold, Color.white,
+                new Vector2(0f, 1f), new Vector2(18f, -206f), new Vector2(320f, 34f), TextAnchor.UpperLeft);
+            CreateMenuText(card.transform, "Subtitle", subtitle, 17, FontStyle.Bold, new Color(0.84f, 0.88f, 0.93f),
+                new Vector2(0f, 1f), new Vector2(18f, -244f), new Vector2(240f, 22f), TextAnchor.UpperLeft);
+            CreateMenuText(card.transform, "Threat", threatLabel, 16, FontStyle.Bold, accent,
+                new Vector2(1f, 1f), new Vector2(-152f, -210f), new Vector2(140f, 22f), TextAnchor.UpperLeft);
+            CreateMenuText(card.transform, "Teaser", teaser, 15, FontStyle.Normal, new Color(0.76f, 0.82f, 0.88f),
+                new Vector2(0f, 1f), new Vector2(18f, -272f), new Vector2(484f, 42f), TextAnchor.UpperLeft);
+
+            var statusPanel = new GameObject("StatusPanel");
+            statusPanel.transform.SetParent(card.transform, false);
+            var statusRect = statusPanel.AddComponent<RectTransform>();
+            statusRect.anchorMin = new Vector2(1f, 0f);
+            statusRect.anchorMax = new Vector2(1f, 0f);
+            statusRect.pivot = new Vector2(1f, 0f);
+            statusRect.anchoredPosition = new Vector2(-16f, 16f);
+            statusRect.sizeDelta = new Vector2(136f, 36f);
+            var statusBg = statusPanel.AddComponent<Image>();
+            statusBg.color = new Color(0.2f, 0.3f, 0.38f, 0.95f);
+            statusBg.raycastTarget = false;
+
+            var statusText = CreateMenuText(statusPanel.transform, "StatusText", "", 14, FontStyle.Bold, Color.white,
+                new Vector2(0f, 1f), new Vector2(16f, -10f), new Vector2(104f, 18f), TextAnchor.UpperLeft);
+            var actionText = CreateMenuText(card.transform, "ActionText", "", 15, FontStyle.Bold, Color.white,
+                new Vector2(0f, 0f), new Vector2(18f, 20f), new Vector2(180f, 20f), TextAnchor.UpperLeft);
+
+            _campaignCards.Add(new CampaignCardBinding
+            {
+                Level = level,
+                Button = button,
+                StatusText = statusText,
+                ActionText = actionText,
+                PreviewImage = previewImage,
+                LockOverlay = lockImage,
+                FallbackColor = new Color(accent.r * 0.78f, accent.g * 0.78f, accent.b * 0.78f, 1f)
+            });
+        }
+
+        private Sprite LoadMenuPreviewSprite(string key)
+        {
+            if (string.IsNullOrEmpty(key))
+            {
+                return null;
+            }
+
+            return Resources.Load<Sprite>($"MenuPreviews/{key}");
         }
 
         private void CreateCampaignPathDotted(Transform parent, Vector2 start, Vector2 end, Color color)
@@ -650,24 +1111,26 @@ namespace Deadlight.UI
             _pausePanel = CreatePanel(_canvasRoot.transform, "PausePanel");
             _pausePanel.GetComponent<Image>().color = new Color(0, 0, 0, 0.75f);
 
-            CreateText(_pausePanel.transform, "Title",
-                "PAUSED", 48, TextAnchor.MiddleCenter, Color.white,
-                new Vector2(0.5f, 0.75f), new Vector2(0.5f, 0.75f), Vector2.zero, new Vector2(400, 70));
+            var card = CreateMenuSurface(_pausePanel.transform, "PauseCard", new Vector2(0.5f, 0.5f), new Vector2(560f, 620f),
+                new Color(0.04f, 0.06f, 0.08f, 0.96f), 0.45f);
 
-            CreateButton(_pausePanel.transform, "ResumeButton", "RESUME", new Color(0.2f, 0.65f, 0.3f),
-                new Vector2(0.5f, 0.6f), new Vector2(260, 50), OnResume);
+            CreateMenuText(card.transform, "Title", "PAUSED", 52, FontStyle.Bold, Color.white,
+                new Vector2(0f, 1f), new Vector2(42f, -42f), new Vector2(320f, 54f), TextAnchor.UpperLeft);
+            CreateMenuText(card.transform, "Subtitle", "Keep your current run, reset it, or head back to the campaign flow.",
+                18, FontStyle.Normal, new Color(0.78f, 0.83f, 0.89f),
+                new Vector2(0f, 1f), new Vector2(44f, -110f), new Vector2(470f, 56f), TextAnchor.UpperLeft);
 
-            CreateButton(_pausePanel.transform, "PauseGuideButton", "GUIDE", new Color(0.2f, 0.45f, 0.6f),
-                new Vector2(0.5f, 0.48f), new Vector2(260, 50), OpenGuideFromButton);
+            CreateMenuActionButton(card.transform, "ResumeButton", "Resume", "Return to the active operation.",
+                new Color(0.25f, 0.64f, 0.36f), new Vector2(0f, 1f), new Vector2(40f, -196f), new Vector2(480f, 88f), OnResume);
+            CreateMenuActionButton(card.transform, "GuideButton", "Guide", "Review controls and survival systems.",
+                new Color(0.28f, 0.52f, 0.75f), new Vector2(0f, 1f), new Vector2(40f, -294f), new Vector2(480f, 88f), OpenGuideFromButton);
+            CreateMenuActionButton(card.transform, "RestartButton", "Restart Run", "Reset the current operation from the beginning.",
+                new Color(0.82f, 0.64f, 0.24f), new Vector2(0f, 1f), new Vector2(40f, -392f), new Vector2(480f, 88f), RestartGame);
+            CreateMenuActionButton(card.transform, "MainMenuButton", "Main Menu", "Return to the campaign landing screen.",
+                new Color(0.55f, 0.58f, 0.64f), new Vector2(0f, 1f), new Vector2(40f, -490f), new Vector2(480f, 88f), GoToMainMenu);
 
-            CreateButton(_pausePanel.transform, "PauseRestartButton", "RESTART", new Color(0.7f, 0.6f, 0.2f),
-                new Vector2(0.5f, 0.36f), new Vector2(260, 50), RestartGame);
-
-            CreateButton(_pausePanel.transform, "PauseMainMenuButton", "MAIN MENU", new Color(0.5f, 0.5f, 0.5f),
-                new Vector2(0.5f, 0.24f), new Vector2(260, 50), GoToMainMenu);
-
-            CreateButton(_pausePanel.transform, "PauseQuitButton", "QUIT GAME", new Color(0.65f, 0.2f, 0.2f),
-                new Vector2(0.5f, 0.12f), new Vector2(260, 50), QuitGame);
+            CreateMenuMiniButton(card.transform, "PauseQuitButton", "Quit Game",
+                new Color(0.76f, 0.3f, 0.3f), new Vector2(0f, 0f), new Vector2(40f, 36f), new Vector2(480f, 58f), QuitGame);
         }
 
         private void BuildGuidePanel()
@@ -1380,6 +1843,7 @@ namespace Deadlight.UI
             switch (newState)
             {
                 case GameState.MainMenu:
+                    RefreshCampaignPresentation();
                     _mainMenuPanel?.SetActive(true);
                     break;
                 case GameState.DayPhase:

@@ -94,6 +94,13 @@ namespace Deadlight.Core
 
         public void SpawnMuzzleFlash(Vector3 position, Quaternion rotation, float scale = 0.4f, Color? tint = null)
         {
+            Vector3 direction = rotation * Vector3.up;
+            if (Visuals.VFXManager.Instance != null)
+            {
+                Visuals.VFXManager.Instance.PlayMuzzleFlash(position, direction.normalized);
+                return;
+            }
+
             var flash = new GameObject("MuzzleFlash");
             flash.transform.position = position;
             flash.transform.rotation = rotation;
@@ -109,6 +116,29 @@ namespace Deadlight.Core
 
         public void SpawnHitEffect(Vector3 position, bool heavyHit = false)
         {
+            SpawnBulletImpact(position, Vector3.up, true, heavyHit);
+        }
+
+        public void SpawnBulletImpact(Vector3 position, Vector3 normal, bool hitEnemy, bool heavyHit = false)
+        {
+            if (Visuals.VFXManager.Instance != null)
+            {
+                Vector3 safeNormal = normal.sqrMagnitude > 0.001f ? normal.normalized : Vector3.up;
+                Visuals.VFXManager.Instance.PlayBulletImpact(position, safeNormal, hitEnemy);
+
+                if (heavyHit && hitEnemy)
+                {
+                    Visuals.VFXManager.Instance.PlayBloodSplatter(position, safeNormal);
+                }
+
+                if (hitEnemy)
+                {
+                    OnHitConfirmed?.Invoke();
+                }
+
+                return;
+            }
+
             int particles = heavyHit ? 7 : 4;
             for (int i = 0; i < particles; i++)
             {
@@ -129,7 +159,10 @@ namespace Deadlight.Core
                 Destroy(particle, 0.3f);
             }
 
-            OnHitConfirmed?.Invoke();
+            if (hitEnemy)
+            {
+                OnHitConfirmed?.Invoke();
+            }
         }
 
         public void TriggerHitStop(float duration = 0.04f)
@@ -257,7 +290,7 @@ namespace Deadlight.Core
             damageFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             if (damageFont == null)
             {
-                damageFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                damageFont = Font.CreateDynamicFontFromOSFont("Arial", 16);
             }
         }
 

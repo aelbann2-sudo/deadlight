@@ -323,12 +323,12 @@ namespace Deadlight.Core
             bulletObj.AddComponent<Player.Bullet>();
 
             var trail = bulletObj.AddComponent<TrailRenderer>();
-            trail.time = 0.08f;
-            trail.startWidth = 0.12f;
+            trail.time = 0.05f;
+            trail.startWidth = 0.07f;
             trail.endWidth = 0f;
             trail.material = new Material(Shader.Find("Sprites/Default"));
-            trail.startColor = new Color(1f, 0.9f, 0.4f, 0.8f);
-            trail.endColor = new Color(1f, 0.5f, 0.2f, 0f);
+            trail.startColor = new Color(0.96f, 0.98f, 1f, 0.85f);
+            trail.endColor = new Color(0.5f, 0.72f, 1f, 0f);
 
             shooting.SetBulletPrefab(bulletObj);
 
@@ -840,8 +840,6 @@ namespace Deadlight.Core
             }
 
             Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (font == null)
-                font = Resources.GetBuiltinResource<Font>("Arial.ttf");
             if (font == null)
                 font = Font.CreateDynamicFontFromOSFont("Arial", 14);
             if (font == null)
