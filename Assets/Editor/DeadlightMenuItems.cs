@@ -29,10 +29,10 @@ namespace Deadlight.Editor
             CreateScriptableObject<Core.NightConfig>("Night_X");
         }
 
-        [MenuItem("Deadlight/Create/Difficulty Settings")]
-        public static void CreateDifficultySettings()
+        [MenuItem("Deadlight/Create/Campaign Balance Profile")]
+        public static void CreateCampaignBalanceProfile()
         {
-            CreateScriptableObject<Core.DifficultySettings>("NewDifficulty");
+            CreateScriptableObject<Core.CampaignBalanceProfile>("CampaignBalance");
         }
 
         private static void CreateScriptableObject<T>(string defaultName) where T : ScriptableObject

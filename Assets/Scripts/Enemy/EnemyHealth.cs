@@ -222,9 +222,9 @@ namespace Deadlight.Enemy
             float dropRoll = UnityEngine.Random.value;
             float actualDropChance = dropChance;
 
-            if (GameManager.Instance?.CurrentSettings != null)
+            if (GameManager.Instance?.CurrentBalance != null)
             {
-                actualDropChance *= GameManager.Instance.CurrentSettings.resourceSpawnMultiplier;
+                actualDropChance *= GameManager.Instance.CurrentBalance.resourceSpawnMultiplier;
             }
 
             if (RunModifierSystem.Instance != null)

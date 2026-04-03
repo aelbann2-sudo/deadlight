@@ -24,13 +24,6 @@ namespace Deadlight.Core
         Victory
     }
 
-    public enum Difficulty
-    {
-        Easy,
-        Normal,
-        Hard
-    }
-
     public enum MapType
     {
         TownCenter,
@@ -44,13 +37,10 @@ namespace Deadlight.Core
         public static GameManager Instance { get; private set; }
 
         [Header("Game Settings")]
-        [SerializeField] private DifficultySettings easySettings;
-        [SerializeField] private DifficultySettings normalSettings;
-        [SerializeField] private DifficultySettings hardSettings;
+        [SerializeField] private CampaignBalanceProfile campaignBalanceProfile;
 
         [Header("Current State")]
         [SerializeField] private GameState currentState = GameState.MainMenu;
-        [SerializeField] private Difficulty currentDifficulty = Difficulty.Normal;
         [SerializeField] private MapType selectedMap = MapType.TownCenter;
         [SerializeField] private int currentNight = 1;
         [SerializeField] private int maxNights = 12;
@@ -91,13 +81,12 @@ namespace Deadlight.Core
         private const float DefaultFixedDeltaTime = 0.02f;
 
         public GameState CurrentState => currentState;
-        public Difficulty CurrentDifficulty => currentDifficulty;
         public MapType SelectedMap => selectedMap;
         public int CurrentNight => currentNight;
         public int MaxNights => maxNights;
         public int CurrentLevel => GetLevelForNight(currentNight);
         public int NightWithinLevel => GetNightWithinLevel(currentNight);
-        public DifficultySettings CurrentSettings => GetDifficultySettings();
+        public CampaignBalanceProfile CurrentBalance => campaignBalanceProfile;
         public bool IsPaused => isPaused;
         public bool IsGameplayState => IsGameplayStateValue(currentState);
         public bool ShouldSetupGameplayScene => startNewRunAfterGameSceneLoad || currentState != GameState.MainMenu || autoStartWhenGameSceneLoads;
@@ -151,7 +140,7 @@ namespace Deadlight.Core
             Instance = this;
             DontDestroyOnLoad(gameObject);
             EnsureCampaignMapOrder();
-            EnsureDifficultySettings();
+            EnsureCampaignBalanceProfile();
         }
 
         private void OnEnable()
@@ -251,22 +240,6 @@ namespace Deadlight.Core
             isBootstrappingScene = false;
         }
 
-        public DifficultySettings GetDifficultySettings()
-        {
-            return currentDifficulty switch
-            {
-                Difficulty.Easy => easySettings,
-                Difficulty.Normal => normalSettings,
-                Difficulty.Hard => hardSettings,
-                _ => normalSettings
-            };
-        }
-
-        public void SetDifficulty(Difficulty difficulty)
-        {
-            currentDifficulty = difficulty;
-        }
-
         public void SetMap(MapType map)
         {
             selectedMap = map;
@@ -275,7 +248,7 @@ namespace Deadlight.Core
         public void StartNewGame()
         {
             EnsureCampaignMapOrder();
-            EnsureDifficultySettings();
+            EnsureCampaignBalanceProfile();
             EnsureCoreManagers();
 
             startNewRunAfterGameSceneLoad = false;
@@ -285,7 +258,6 @@ namespace Deadlight.Core
                 deferredRestartCoroutine = null;
             }
 
-            currentDifficulty = Difficulty.Normal;
             currentNight = Mathf.Clamp(queuedStartNight, 1, maxNights);
             queuedStartNight = 1;
             selectedMap = GetCampaignMapForNight(currentNight);
@@ -579,21 +551,11 @@ namespace Deadlight.Core
                    state == GameState.DawnPhase || state == GameState.LevelComplete;
         }
 
-        private void EnsureDifficultySettings()
+        private void EnsureCampaignBalanceProfile()
         {
-            if (easySettings == null)
+            if (campaignBalanceProfile == null)
             {
-                easySettings = DifficultySettings.CreateEasySettings();
-            }
-
-            if (normalSettings == null)
-            {
-                normalSettings = DifficultySettings.CreateNormalSettings();
-            }
-
-            if (hardSettings == null)
-            {
-                hardSettings = DifficultySettings.CreateHardSettings();
+                campaignBalanceProfile = CampaignBalanceProfile.CreateDefaultProfile();
             }
         }
 

@@ -54,15 +54,15 @@ namespace Deadlight.Player
         private void Start()
         {
             GenerateProceduralSounds();
-            ApplyDifficultyModifiers();
+            ApplyCampaignBalance();
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
         }
 
-        private void ApplyDifficultyModifiers()
+        private void ApplyCampaignBalance()
         {
-            if (GameManager.Instance?.CurrentSettings != null)
+            if (GameManager.Instance?.CurrentBalance != null)
             {
-                var settings = GameManager.Instance.CurrentSettings;
+                var settings = GameManager.Instance.CurrentBalance;
                 maxHealth *= settings.playerHealthMultiplier;
                 currentHealth = maxHealth;
             }
@@ -85,9 +85,9 @@ namespace Deadlight.Player
                 actualDamage = PlayerArmor.Instance.AbsorbDamage(actualDamage);
             }
 
-            if (GameManager.Instance?.CurrentSettings != null)
+            if (GameManager.Instance?.CurrentBalance != null)
             {
-                actualDamage *= GameManager.Instance.CurrentSettings.playerDamageTakenMultiplier;
+                actualDamage *= GameManager.Instance.CurrentBalance.playerDamageTakenMultiplier;
             }
 
             currentHealth = Mathf.Max(0, currentHealth - actualDamage);
@@ -135,9 +135,9 @@ namespace Deadlight.Player
 
             float actualHeal = amount;
             
-            if (GameManager.Instance?.CurrentSettings != null)
+            if (GameManager.Instance?.CurrentBalance != null)
             {
-                actualHeal *= GameManager.Instance.CurrentSettings.healthPickupMultiplier;
+                actualHeal *= GameManager.Instance.CurrentBalance.healthPickupMultiplier;
             }
 
             currentHealth = Mathf.Min(maxHealth, currentHealth + actualHeal);

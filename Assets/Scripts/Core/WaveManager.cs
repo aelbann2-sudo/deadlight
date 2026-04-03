@@ -293,10 +293,10 @@ namespace Deadlight.Core
         {
             int baseCount = currentNightConfig?.baseEnemyCount ?? 10;
             float waveScaling = 1f + (waveNumber - 1) * Mathf.Max(0.1f, waveEnemyGrowthPerWave);
-            float difficultyMultiplier = GetDifficultyWaveMultiplier() * GetAdaptiveEnemyCountMultiplier();
+            float campaignMultiplier = GetCampaignWaveMultiplier() * GetAdaptiveEnemyCountMultiplier();
             int maxPerWave = GetNightEnemyCap();
 
-            return Mathf.Clamp(Mathf.RoundToInt(baseCount * waveScaling * difficultyMultiplier), 1, maxPerWave);
+            return Mathf.Clamp(Mathf.RoundToInt(baseCount * waveScaling * campaignMultiplier), 1, maxPerWave);
         }
 
         private int GetNightEnemyCap()
@@ -314,20 +314,20 @@ namespace Deadlight.Core
             return baseCap + (nwl - 1) * 3;
         }
 
-        private float GetDifficultyWaveMultiplier()
+        private float GetCampaignWaveMultiplier()
         {
-            if (GameManager.Instance?.CurrentSettings != null)
+            if (GameManager.Instance?.CurrentBalance != null)
             {
-                return Mathf.Max(0.2f, GameManager.Instance.CurrentSettings.waveEnemyCountMultiplier);
+                return Mathf.Max(0.2f, GameManager.Instance.CurrentBalance.waveEnemyCountMultiplier);
             }
             return 1f;
         }
 
         private float GetSpawnIntervalMultiplier()
         {
-            if (GameManager.Instance?.CurrentSettings != null)
+            if (GameManager.Instance?.CurrentBalance != null)
             {
-                return Mathf.Max(0.2f, GameManager.Instance.CurrentSettings.spawnIntervalMultiplier);
+                return Mathf.Max(0.2f, GameManager.Instance.CurrentBalance.spawnIntervalMultiplier);
             }
 
             return 1f;
@@ -714,9 +714,9 @@ namespace Deadlight.Core
             float speedMultiplier = currentNightConfig.speedMultiplier;
             float objectiveBuff = 1f;
 
-            if (GameManager.Instance?.CurrentSettings != null)
+            if (GameManager.Instance?.CurrentBalance != null)
             {
-                var settings = GameManager.Instance.CurrentSettings;
+                var settings = GameManager.Instance.CurrentBalance;
                 healthMultiplier *= settings.enemyHealthMultiplier;
                 damageMultiplier *= settings.enemyDamageMultiplier;
                 speedMultiplier *= settings.enemySpeedMultiplier;
