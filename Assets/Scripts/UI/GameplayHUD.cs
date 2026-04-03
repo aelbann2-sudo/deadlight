@@ -3,7 +3,6 @@ using UnityEngine.UI;
 using System.Collections;
 using Deadlight.Core;
 using Deadlight.Data;
-using Deadlight.Narrative;
 
 namespace Deadlight.UI
 {
@@ -24,16 +23,14 @@ namespace Deadlight.UI
         private Image weaponIcon;
         private Text weaponNameText;
         private Text weaponStatsText;
+        private float weaponStatsShowTime = -10f;
+        private const float WeaponStatsDisplayDuration = 2f;
 
         private Image vestFill;
         private Image helmetFill;
         private Text vestLabel;
         private Text helmetLabel;
         private GameObject armorPanel;
-
-        private Text journalHintText;
-        private float journalPulseTimer;
-        private bool journalPulsing;
 
         private Player.PlayerHealth playerHealth;
         private Player.PlayerShooting playerShooting;
@@ -81,6 +78,12 @@ namespace Deadlight.UI
             vestLabel = vLabel;
             helmetLabel = hLabel;
             armorPanel = panel;
+        }
+
+        public void SetJournalHintText(Text hint)
+        {
+            if (hint != null)
+                hint.gameObject.SetActive(false);
         }
 
         private IEnumerator FindPlayerDelayed()
@@ -152,44 +155,7 @@ namespace Deadlight.UI
                 Systems.PointsSystem.Instance.OnPointsChanged += UpdatePoints;
             }
 
-            if (EnvironmentalLore.Instance != null)
-            {
-                EnvironmentalLore.Instance.OnLoreDiscovered += OnNewLoreDiscovered;
-            }
-        }
-
-        public void SetJournalHintText(Text hint)
-        {
-            journalHintText = hint;
-            if (journalHintText != null)
-            {
-                journalHintText.text = "JOURNAL [J]";
-                journalHintText.color = new Color(0.6f, 0.6f, 0.6f, 0.5f);
-            }
-        }
-
-        private void OnNewLoreDiscovered(LoreEntry entry)
-        {
-            journalPulsing = true;
-            journalPulseTimer = 0f;
-        }
-
-        private void UpdateJournalPulse()
-        {
-            if (journalHintText == null) return;
-
-            if (journalPulsing)
-            {
-                journalPulseTimer += Time.deltaTime;
-                float alpha = 0.5f + Mathf.Sin(journalPulseTimer * 5f) * 0.5f;
-                journalHintText.color = new Color(1f, 0.85f, 0.3f, alpha);
-
-                if (journalPulseTimer > 4f)
-                {
-                    journalPulsing = false;
-                    journalHintText.color = new Color(0.6f, 0.6f, 0.6f, 0.5f);
-                }
-            }
+            ApplyPhaseVisibility(GameManager.Instance?.CurrentState ?? GameState.DayPhase);
         }
 
         private void OnDestroy()
@@ -228,10 +194,6 @@ namespace Deadlight.UI
             {
                 Systems.PointsSystem.Instance.OnPointsChanged -= UpdatePoints;
             }
-            if (EnvironmentalLore.Instance != null)
-            {
-                EnvironmentalLore.Instance.OnLoreDiscovered -= OnNewLoreDiscovered;
-            }
         }
 
         private void Update()
@@ -239,7 +201,16 @@ namespace Deadlight.UI
             AnimateHealthBar();
             UpdateStamina();
             UpdateAmmoFromState();
-            UpdateJournalPulse();
+            UpdateWeaponStatsFade();
+        }
+
+        private void ApplyPhaseVisibility(GameState state)
+        {
+            bool isNight = state == GameState.NightPhase;
+
+            if (waveText != null) waveText.gameObject.SetActive(isNight);
+            if (enemyCountText != null) enemyCountText.gameObject.SetActive(isNight);
+            if (reloadHint != null && !isNight) reloadHint.gameObject.SetActive(false);
         }
 
         private void UpdateHealth(float current, float max)
@@ -327,7 +298,10 @@ namespace Deadlight.UI
         private void UpdateWave(int wave)
         {
             if (waveText != null)
+            {
+                waveText.gameObject.SetActive(true);
                 waveText.text = $"Wave {wave}";
+            }
 
             ShowStatus($"WAVE {wave} INCOMING!", 2f);
         }
@@ -335,7 +309,11 @@ namespace Deadlight.UI
         private void UpdateNight(int night)
         {
             if (nightText != null)
-                nightText.text = $"Level {night}";
+            {
+                int level = Core.GameManager.GetLevelForNight(night);
+                int nwl = Core.GameManager.GetNightWithinLevel(night);
+                nightText.text = $"Level {level} - Night {nwl}";
+            }
         }
 
         private void UpdateEnemyCount(int count)
@@ -374,12 +352,28 @@ namespace Deadlight.UI
                 weaponNameText.text = weapon.weaponName.ToUpper();
 
             if (weaponStatsText != null)
+            {
                 weaponStatsText.text = $"DMG: {weapon.damage:0}  ROF: {weapon.fireRate:0.0}";
+                weaponStatsText.gameObject.SetActive(true);
+                weaponStatsShowTime = Time.time;
+            }
 
             if (weaponIcon != null)
             {
                 try { weaponIcon.sprite = Visuals.ProceduralSpriteGenerator.CreateWeaponIcon(weapon.weaponType); }
                 catch { }
+            }
+        }
+
+        private void UpdateWeaponStatsFade()
+        {
+            if (weaponStatsText == null) return;
+            if (!weaponStatsText.gameObject.activeSelf) return;
+
+            float elapsed = Time.time - weaponStatsShowTime;
+            if (elapsed > WeaponStatsDisplayDuration)
+            {
+                weaponStatsText.gameObject.SetActive(false);
             }
         }
 
@@ -422,6 +416,8 @@ namespace Deadlight.UI
 
         private void OnGameStateChanged(GameState state)
         {
+            ApplyPhaseVisibility(state);
+
             switch (state)
             {
                 case GameState.DayPhase:

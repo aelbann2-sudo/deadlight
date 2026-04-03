@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using Deadlight.Core;
+using Deadlight.Narrative;
 
 namespace Deadlight.UI
 {
@@ -19,25 +20,19 @@ namespace Deadlight.UI
 
         private void Start()
         {
-            if (DayObjectiveSystem.Instance != null)
-            {
-                DayObjectiveSystem.Instance.OnObjectiveGenerated += OnObjectiveGenerated;
-                DayObjectiveSystem.Instance.OnObjectiveUpdated += OnObjectiveUpdated;
-                DayObjectiveSystem.Instance.OnObjectiveCompleted += OnObjectiveCompleted;
-            }
+            if (StoryObjective.Instance != null)
+                StoryObjective.Instance.OnObjectiveChanged += RefreshFromStory;
 
             if (GameManager.Instance != null)
                 GameManager.Instance.OnGameStateChanged += OnGameStateChanged;
+
+            RefreshFromStory();
         }
 
         private void OnDestroy()
         {
-            if (DayObjectiveSystem.Instance != null)
-            {
-                DayObjectiveSystem.Instance.OnObjectiveGenerated -= OnObjectiveGenerated;
-                DayObjectiveSystem.Instance.OnObjectiveUpdated -= OnObjectiveUpdated;
-                DayObjectiveSystem.Instance.OnObjectiveCompleted -= OnObjectiveCompleted;
-            }
+            if (StoryObjective.Instance != null)
+                StoryObjective.Instance.OnObjectiveChanged -= RefreshFromStory;
 
             if (GameManager.Instance != null)
                 GameManager.Instance.OnGameStateChanged -= OnGameStateChanged;
@@ -45,10 +40,9 @@ namespace Deadlight.UI
 
         private void OnGameStateChanged(GameState state)
         {
-            if (state == GameState.DayPhase)
+            if (state == GameState.DayPhase || state == GameState.NightPhase)
             {
-                if (DayObjectiveSystem.Instance?.ActiveObjective != null)
-                    ShowObjective(DayObjectiveSystem.Instance.ActiveObjective);
+                RefreshFromStory();
             }
             else
             {
@@ -56,47 +50,28 @@ namespace Deadlight.UI
             }
         }
 
-        private void OnObjectiveGenerated(DayObjective obj)
+        private void RefreshFromStory()
         {
-            ShowObjective(obj);
-        }
+            if (panel == null) return;
 
-        private void OnObjectiveUpdated(DayObjective obj)
-        {
-            if (obj == null)
+            var story = StoryObjective.Instance;
+            if (story == null || !story.HasActiveObjective || string.IsNullOrEmpty(story.CurrentTitle))
             {
-                if (panel != null) panel.SetActive(false);
+                panel.SetActive(false);
                 return;
             }
-            UpdateDisplay(obj);
-        }
 
-        private void OnObjectiveCompleted(DayObjective obj)
-        {
-            if (descText != null)
-                descText.text = $"{obj.title} - COMPLETE!";
-            if (progressText != null)
-            {
-                progressText.text = "DONE";
-                progressText.color = new Color(0.3f, 1f, 0.3f);
-            }
-        }
-
-        private void ShowObjective(DayObjective obj)
-        {
-            if (panel == null || obj == null) return;
             panel.SetActive(true);
-            UpdateDisplay(obj);
-        }
 
-        private void UpdateDisplay(DayObjective obj)
-        {
             if (descText != null)
-                descText.text = obj.title;
+                descText.text = story.CurrentTitle;
+
             if (progressText != null)
             {
-                progressText.text = $"{obj.progress}/{obj.targetCount}";
-                progressText.color = obj.IsComplete ? new Color(0.3f, 1f, 0.3f) : new Color(0.4f, 1f, 0.4f);
+                progressText.text = story.CurrentStatus;
+                progressText.color = story.IsComplete
+                    ? new Color(0.3f, 1f, 0.3f)
+                    : new Color(1f, 0.85f, 0.35f);
             }
         }
     }

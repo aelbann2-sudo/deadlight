@@ -125,7 +125,8 @@ namespace Deadlight.UI
                    "Left Shift  Sprint\n" +
                    "Space  Dodge\n" +
                    "Q  Throw grenade\n" +
-                   "E  Throw molotov / interact\n" +
+                   "G  Throw molotov\n" +
+                   "F  Interact\n" +
                    "C  Open crafting (day only)\n" +
                    "J  Open journal\n" +
                    "[ and ]  Cycle journal pages\n" +
@@ -255,6 +256,11 @@ namespace Deadlight.UI
             }
 
             if (GameManager.Instance != null && !GameManager.Instance.IsGameplayState)
+            {
+                return;
+            }
+
+            if (easyModeExplainedItems.Contains(itemId))
             {
                 return;
             }

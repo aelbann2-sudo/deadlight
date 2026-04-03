@@ -187,8 +187,8 @@ namespace Deadlight.Narrative
         {
             yield return FadeBackground(0f, 0.9f, 1.5f, new Color(0.3f, 0f, 0f));
 
-            int currentNight = GameManager.Instance != null ? GameManager.Instance.CurrentNight : 1;
-            string[] deathLines = currentNight switch
+            int currentLevel = GameManager.Instance != null ? GameManager.Instance.CurrentLevel : 1;
+            string[] deathLines = currentLevel switch
             {
                 1 => new[] { "RADIO: \"Medic? Medic, respond!\"", "RADIO: \"Signal lost at the town center. Didn't even make it past level one.\"" },
                 2 => new[] { "RADIO: \"We've lost the medic in the suburbs.\"", "RADIO: \"So close to the truth... and the zone took another.\"" },

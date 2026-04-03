@@ -27,8 +27,18 @@ namespace Deadlight.Core
         public static GameFlowController Instance { get; private set; }
 
         [Header("Phase Settings")]
-        [SerializeField] private float[] dayDurationsByNight = { 100f, 90f, 75f, 65f };
-        [SerializeField] private float[] nightDurationsByNight = { 50f, 70f, 100f, 140f };
+        [SerializeField] private float[] dayDurationsByNight = {
+            90f, 80f, 70f,
+            85f, 75f, 65f,
+            80f, 70f, 60f,
+            75f, 65f, 55f
+        };
+        [SerializeField] private float[] nightDurationsByNight = {
+            45f, 55f, 70f,
+            55f, 70f, 85f,
+            65f, 80f, 100f,
+            80f, 100f, 140f
+        };
         [SerializeField] private int[] healthPickupsByNight = { 4, 4, 3, 3 };
         [SerializeField] private int[] ammoPickupsByNight = { 5, 5, 4, 4 };
         [SerializeField] private int[] scrapPickupsByNight = { 3, 2, 2, 1 };
@@ -149,7 +159,7 @@ namespace Deadlight.Core
 
             ClearSpawnedPickups();
             GameManager.Instance.StartNewGame();
-            OnStatusMessage?.Invoke($"Day Phase - Level {GameManager.Instance.CurrentNight}");
+            OnStatusMessage?.Invoke($"Day Phase - Level {GameManager.Instance.CurrentLevel}, Night {GameManager.Instance.NightWithinLevel}");
         }
 
         /// <summary>
@@ -162,7 +172,9 @@ namespace Deadlight.Core
 
             OnDawnPhaseEnded?.Invoke();
             GameManager.Instance.AdvanceToNextNight();
-            OnStatusMessage?.Invoke($"Day Phase - Level {GameManager.Instance.CurrentNight}");
+            int dl = GameManager.Instance.CurrentLevel;
+            int dn = GameManager.Instance.NightWithinLevel;
+            OnStatusMessage?.Invoke($"Day Phase - Level {dl}, Night {dn}");
         }
 
         /// <summary>
@@ -175,7 +187,7 @@ namespace Deadlight.Core
             var player = GameObject.Find("Player");
             Vector3 playerPos = player != null ? player.transform.position : Vector3.zero;
 
-            int nightIdx = Mathf.Clamp((GameManager.Instance?.CurrentNight ?? 1) - 1, 0, 3);
+            int nightIdx = Mathf.Clamp((GameManager.Instance?.CurrentLevel ?? 1) - 1, 0, 3);
 
             var usedPositions = new List<Vector3>();
 
@@ -342,9 +354,10 @@ namespace Deadlight.Core
                     ResetDayContestedDropState();
                     SpawnPickups();
                     SpawnSupplyCrates();
-                    SpawnObjectiveInteractables();
                     ScheduleDayContestedDrop();
-                    OnStatusMessage?.Invoke($"Day Phase - Level {GameManager.Instance?.CurrentNight ?? 1}");
+                    int lvl = GameManager.Instance?.CurrentLevel ?? 1;
+                    int nwl = GameManager.Instance?.NightWithinLevel ?? 1;
+                    OnStatusMessage?.Invoke($"Day Phase - Level {lvl}, Night {nwl}");
                     break;
                 case GameState.NightPhase:
                     if (CraftingSystem.Instance != null)
@@ -358,13 +371,22 @@ namespace Deadlight.Core
                     dropsThisPhase = 0;
                     ScheduleNextHelicopterDrop(Time.time + helicopterFirstDropDelay);
                     OnNightStarted?.Invoke(GameManager.Instance?.CurrentNight ?? 1);
-                    OnStatusMessage?.Invoke($"Night {GameManager.Instance?.CurrentNight ?? 1} - Survive the waves!");
+                    int nl = GameManager.Instance?.CurrentLevel ?? 1;
+                    int nn = GameManager.Instance?.NightWithinLevel ?? 1;
+                    OnStatusMessage?.Invoke($"Level {nl}, Night {nn} - Survive the waves!");
                     break;
                 case GameState.DawnPhase:
                     nextHelicopterDropTime = float.PositiveInfinity;
                     dayContestedDropState = DayContestedDropState.Inactive;
                     OnDawnPhaseStarted?.Invoke();
                     OnStatusMessage?.Invoke("Dawn - Visit the shop and prepare for the next level.");
+                    break;
+                case GameState.LevelComplete:
+                    nextHelicopterDropTime = float.PositiveInfinity;
+                    dayContestedDropState = DayContestedDropState.Inactive;
+                    CleanupDayObjects();
+                    int completedLevel = GameManager.Instance?.CurrentLevel ?? 1;
+                    OnStatusMessage?.Invoke($"Level {completedLevel} Complete!");
                     break;
                 case GameState.Victory:
                     nextHelicopterDropTime = float.PositiveInfinity;
@@ -386,11 +408,6 @@ namespace Deadlight.Core
             if (GameManager.Instance?.CurrentState == GameState.DayPhase && !dayContestedDropSpawned)
             {
                 ScheduleDayContestedDrop();
-            }
-
-            if (DayObjectiveSystem.Instance != null)
-            {
-                DayObjectiveSystem.Instance.GenerateObjective(night, Time.frameCount + night * 991);
             }
 
             if (RunModifierSystem.Instance != null)
@@ -531,7 +548,8 @@ namespace Deadlight.Core
             RadioTransmissions.Instance?.ShowMessage("RADIO: Drop landed. Hold position and secure it now!", 3f);
 
             var marker = FindFirstObjectByType<Deadlight.UI.ObjectiveMarker>();
-            marker?.RefreshTargets();
+            if (marker != null && crate != null)
+                marker.PingContestedDrop(crate.transform);
         }
 
         private void HandleContestedDropSecured(SupplyCrate crate)

@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Deadlight.Core;
 using Deadlight.Narrative;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Deadlight.UI
@@ -12,12 +13,16 @@ namespace Deadlight.UI
         private readonly List<MarkerData> markers = new List<MarkerData>();
         private Font font;
 
+        private const float ContestedDropPingDuration = 7f;
+
         private class MarkerData
         {
             public Transform target;
             public RectTransform uiRoot;
             public Image arrow;
             public Text distText;
+            public bool isTemporary;
+            public float expireTime;
         }
 
         private void Start()
@@ -49,7 +54,7 @@ namespace Deadlight.UI
             }
         }
 
-        private System.Collections.IEnumerator FindTargetsDelayed()
+        private IEnumerator FindTargetsDelayed()
         {
             yield return new WaitForSeconds(0.5f);
             RefreshTargets();
@@ -59,28 +64,18 @@ namespace Deadlight.UI
         {
             ClearMarkers();
 
-            var zones = FindObjectsByType<ObjectiveZone>(FindObjectsSortMode.None);
-            foreach (var z in zones)
-                AddMarker(z.transform, new Color(0.3f, 0.7f, 1f));
-
-            var beacons = FindObjectsByType<ObjectiveBeacon>(FindObjectsSortMode.None);
-            foreach (var b in beacons)
-                AddMarker(b.transform, new Color(0.3f, 0.5f, 1f));
-
-            var caches = FindObjectsByType<ObjectiveCache>(FindObjectsSortMode.None);
-            foreach (var c in caches)
-                AddMarker(c.transform, new Color(0.9f, 0.75f, 0.2f));
-
             var storyTargets = FindObjectsByType<StoryObjectiveTarget>(FindObjectsSortMode.None);
             foreach (var target in storyTargets)
                 AddMarker(target.transform, new Color(1f, 0.78f, 0.25f));
-
-            var crates = FindObjectsByType<Systems.SupplyCrate>(FindObjectsSortMode.None);
-            foreach (var cr in crates)
-                AddMarker(cr.transform, new Color(0.7f, 0.5f, 0.2f, 0.6f));
         }
 
-        private void AddMarker(Transform target, Color color)
+        public void PingContestedDrop(Transform dropTransform)
+        {
+            if (dropTransform == null) return;
+            AddMarker(dropTransform, new Color(0.9f, 0.55f, 0.15f), true, Time.time + ContestedDropPingDuration);
+        }
+
+        private void AddMarker(Transform target, Color color, bool temporary = false, float expire = 0f)
         {
             if (markerCanvas == null) return;
 
@@ -113,7 +108,9 @@ namespace Deadlight.UI
                 target = target,
                 uiRoot = rootRect,
                 arrow = arrowImg,
-                distText = distText
+                distText = distText,
+                isTemporary = temporary,
+                expireTime = expire
             });
         }
 
@@ -129,7 +126,7 @@ namespace Deadlight.UI
             for (int i = markers.Count - 1; i >= 0; i--)
             {
                 var m = markers[i];
-                if (m.target == null)
+                if (m.target == null || (m.isTemporary && Time.time >= m.expireTime))
                 {
                     if (m.uiRoot != null) Destroy(m.uiRoot.gameObject);
                     markers.RemoveAt(i);

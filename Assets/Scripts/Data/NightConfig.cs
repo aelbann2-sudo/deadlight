@@ -122,19 +122,36 @@ namespace Deadlight.Core
         {
             var config = CreateInstance<NightConfig>();
             config.nightNumber = 4;
-            config.nightTitle = "Operation Deadlight";
-            config.description = "Final stand. All enemy types plus Subject 23 boss. Longest night.";
-            config.waveCount = 4;
-            config.baseEnemyCount = 10;
-            config.timeBetweenWaves = 3f;
-            config.spawnInterval = 1.0f;
-            config.healthMultiplier = 1.3f;
-            config.damageMultiplier = 1.3f;
-            config.speedMultiplier = 1.1f;
-            config.hasBoss = true;
-            config.completionBonus = 500;
-            config.radioMessage = "Final night. Subject 23 is converging. Hold until dawn. This is everything.";
-            config.warningMessage = "SUBJECT 23 INBOUND";
+            config.nightTitle = "Sealed Streets";
+            config.description = "Suburban night 1. Runners appear from side streets.";
+            config.waveCount = 2;
+            config.baseEnemyCount = 5;
+            config.timeBetweenWaves = 5f;
+            config.spawnInterval = 1.8f;
+            config.healthMultiplier = 0.85f;
+            config.damageMultiplier = 0.85f;
+            config.speedMultiplier = 0.95f;
+            config.hasBoss = false;
+            config.completionBonus = 120;
+            config.radioMessage = "Suburb perimeter breached. Runners closing in from the side streets.";
+            return config;
+        }
+
+        public static NightConfig CreateForNight(int nightNumber)
+        {
+            int level = Mathf.Clamp((nightNumber - 1) / 3 + 1, 1, 4);
+            int nwl = ((nightNumber - 1) % 3) + 1;
+            var config = CreateInstance<NightConfig>();
+            config.nightNumber = nightNumber;
+            config.waveCount = Mathf.Clamp(1 + level + (nwl - 1), 2, 6);
+            config.baseEnemyCount = 2 + level * 2 + (nwl - 1);
+            config.healthMultiplier = 0.5f + level * 0.2f + (nwl - 1) * 0.08f;
+            config.damageMultiplier = 0.4f + level * 0.2f + (nwl - 1) * 0.08f;
+            config.speedMultiplier = 0.75f + level * 0.08f + (nwl - 1) * 0.03f;
+            config.spawnInterval = Mathf.Max(0.8f, 2.4f - level * 0.25f - (nwl - 1) * 0.1f);
+            config.timeBetweenWaves = Mathf.Max(3f, 7f - level - (nwl - 1) * 0.5f);
+            config.hasBoss = nightNumber >= 12;
+            config.completionBonus = 50 + level * 50 + (nwl - 1) * 30;
             return config;
         }
 

@@ -34,6 +34,7 @@ namespace Deadlight.Narrative
         [SerializeField] private List<LoreEntry> allLoreEntries = new List<LoreEntry>();
 
         private HashSet<string> discoveredLore = new HashSet<string>();
+        private bool firstLoreToastShown;
 
         public IReadOnlyList<LoreEntry> AllLore => allLoreEntries;
         public int TotalLoreCount => allLoreEntries.Count;
@@ -275,31 +276,9 @@ namespace Deadlight.Narrative
 
         private void ShowLoreNotification(LoreEntry entry)
         {
-            var dialogue = ScriptableObject.CreateInstance<DialogueData>();
-            
-            var type = typeof(DialogueData);
-            var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
-
-            type.GetField("dialogueId", flags)?.SetValue(dialogue, $"lore_{entry.id}");
-            type.GetField("speakerName", flags)?.SetValue(dialogue, entry.title);
-            type.GetField("playRadioStatic", flags)?.SetValue(dialogue, false);
-            type.GetField("playOnce", flags)?.SetValue(dialogue, true);
-
-            string prompt = $"Recovered: {entry.title}. Press J to review the journal.";
-            var lines = new DialogueLine[]
-            {
-                new DialogueLine { text = prompt, displayDuration = 3.5f, autoAdvance = true }
-            };
-            type.GetField("lines", flags)?.SetValue(dialogue, lines);
-
-            if (NarrativeManager.Instance != null)
-            {
-                NarrativeManager.Instance.QueueDialogue(dialogue);
-            }
-            else
-            {
-                Core.RadioTransmissions.Instance?.ShowMessage(prompt, 3.5f);
-            }
+            if (firstLoreToastShown) return;
+            firstLoreToastShown = true;
+            Core.RadioTransmissions.Instance?.ShowMessage("Intel recovered. Press J for journal.", 2.5f);
         }
 
         public bool HasDiscovered(string loreId)
@@ -326,6 +305,7 @@ namespace Deadlight.Narrative
         public void ResetDiscoveries()
         {
             discoveredLore.Clear();
+            firstLoreToastShown = false;
             foreach (var entry in allLoreEntries)
             {
                 entry.discovered = false;

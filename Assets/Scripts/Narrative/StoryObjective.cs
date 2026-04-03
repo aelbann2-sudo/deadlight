@@ -5,7 +5,6 @@ using Deadlight.Level.MapBuilders;
 using Deadlight.Systems;
 using Deadlight.UI;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Deadlight.Narrative
 {
@@ -56,11 +55,6 @@ namespace Deadlight.Narrative
         private bool isObjectiveActive;
         private bool isObjectiveComplete;
 
-        private GameObject panel;
-        private Text headerText;
-        private Text titleText;
-        private Text descriptionText;
-        private Text statusText;
         private Font font;
 
         private readonly struct StoryBeatDefinition
@@ -118,8 +112,6 @@ namespace Deadlight.Narrative
 
         private void Start()
         {
-            CreateUI();
-
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.OnGameStateChanged += HandleGameStateChanged;
@@ -204,12 +196,8 @@ namespace Deadlight.Narrative
                 return;
             }
 
-            int finalLevel = GameManager.Instance != null ? GameManager.Instance.MaxNights : 4;
-            int beatIndex = Mathf.Clamp(night - 1, 0, arc.Length - 1);
-            if (night >= finalLevel)
-            {
-                beatIndex = arc.Length - 1;
-            }
+            int nightInLevel = GameManager.GetNightWithinLevel(night);
+            int beatIndex = Mathf.Clamp(nightInLevel - 1, 0, arc.Length - 1);
 
             currentBeat = arc[beatIndex];
             currentPhase = StoryObjectivePhase.DayInvestigation;
@@ -219,8 +207,9 @@ namespace Deadlight.Narrative
             isObjectiveActive = true;
             isObjectiveComplete = false;
 
+            int level = GameManager.GetLevelForNight(night);
             CreateTargetForBeat(currentBeat);
-            ShowObjectiveAnnouncement($"DAY {night}: {currentBeat.DayTitle}");
+            ShowObjectiveAnnouncement($"LEVEL {level}, NIGHT {nightInLevel}: {currentBeat.DayTitle}");
             UpdateUI();
             RaiseChanged();
         }
@@ -233,12 +222,8 @@ namespace Deadlight.Narrative
                 return;
             }
 
-            int finalLevel = GameManager.Instance != null ? GameManager.Instance.MaxNights : 4;
-            int beatIndex = Mathf.Clamp(night - 1, 0, arc.Length - 1);
-            if (night >= finalLevel)
-            {
-                beatIndex = arc.Length - 1;
-            }
+            int nightInLevel = GameManager.GetNightWithinLevel(night);
+            int beatIndex = Mathf.Clamp(nightInLevel - 1, 0, arc.Length - 1);
 
             StoryBeatDefinition beat = arc[beatIndex];
             bool intelSecured = completedDayLeads.Contains(night);
@@ -254,7 +239,8 @@ namespace Deadlight.Narrative
             isObjectiveActive = true;
             isObjectiveComplete = intelSecured;
 
-            ShowObjectiveAnnouncement($"LEVEL {night}: {beat.NightTitle}");
+            int level = GameManager.GetLevelForNight(night);
+            ShowObjectiveAnnouncement($"LEVEL {level}, NIGHT {nightInLevel}: {beat.NightTitle}");
             UpdateUI();
             RaiseChanged();
         }
@@ -285,20 +271,6 @@ namespace Deadlight.Narrative
             if (DayObjectiveSystem.Instance != null)
             {
                 DayObjectiveSystem.Instance.MarkCompleted();
-            }
-
-            if (FloatingTextManager.Instance != null)
-            {
-                GameObject player = GameObject.Find("Player");
-                if (player != null)
-                {
-                    FloatingTextManager.Instance.SpawnText(
-                        "STORY UPDATED",
-                        player.transform.position + Vector3.up * 2.25f,
-                        new Color(1f, 0.82f, 0.3f),
-                        1.8f,
-                        26);
-                }
             }
 
             currentStatus = currentBeat.RewardPoints > 0
@@ -358,122 +330,9 @@ namespace Deadlight.Narrative
             }
         }
 
-        private void CreateUI()
-        {
-            if (panel != null)
-            {
-                return;
-            }
-
-            Canvas screenCanvas = null;
-            Canvas[] canvases = FindObjectsByType<Canvas>(FindObjectsSortMode.None);
-            for (int i = 0; i < canvases.Length; i++)
-            {
-                if (canvases[i].renderMode == RenderMode.ScreenSpaceOverlay)
-                {
-                    screenCanvas = canvases[i];
-                    break;
-                }
-            }
-
-            if (screenCanvas == null)
-            {
-                return;
-            }
-
-            panel = new GameObject("StoryObjectivePanel");
-            panel.transform.SetParent(screenCanvas.transform, false);
-
-            RectTransform panelRect = panel.AddComponent<RectTransform>();
-            panelRect.anchorMin = new Vector2(1f, 1f);
-            panelRect.anchorMax = new Vector2(1f, 1f);
-            panelRect.pivot = new Vector2(1f, 1f);
-            panelRect.anchoredPosition = new Vector2(-12f, -105f);
-            panelRect.sizeDelta = new Vector2(430f, 120f);
-
-            Image bg = panel.AddComponent<Image>();
-            bg.color = new Color(0.03f, 0.03f, 0.03f, 0.72f);
-
-            headerText = CreateText("Header", panel.transform, new Vector2(0.5f, 1f), new Vector2(0f, 0.68f), new Vector2(1f, 1f), 14, TextAnchor.UpperCenter);
-            headerText.text = "STORY DIRECTIVE";
-            headerText.color = new Color(1f, 0.77f, 0.28f, 0.9f);
-
-            titleText = CreateText("Title", panel.transform, new Vector2(0f, 1f), new Vector2(12f, -28f), new Vector2(1f, 1f), 20, TextAnchor.UpperLeft);
-            titleText.fontStyle = FontStyle.Bold;
-            titleText.color = new Color(1f, 0.95f, 0.75f);
-
-            descriptionText = CreateText("Description", panel.transform, new Vector2(0f, 1f), new Vector2(12f, -54f), new Vector2(1f, 0.64f), 15, TextAnchor.UpperLeft);
-            descriptionText.horizontalOverflow = HorizontalWrapMode.Wrap;
-            descriptionText.verticalOverflow = VerticalWrapMode.Overflow;
-            descriptionText.color = new Color(0.88f, 0.88f, 0.88f);
-
-            statusText = CreateText("Status", panel.transform, new Vector2(0f, 0f), new Vector2(12f, 0f), new Vector2(1f, 0.2f), 14, TextAnchor.LowerLeft);
-            statusText.color = new Color(0.4f, 1f, 0.4f);
-
-            panel.SetActive(false);
-        }
-
-        private Text CreateText(
-            string name,
-            Transform parent,
-            Vector2 pivot,
-            Vector2 offsetMin,
-            Vector2 offsetMax,
-            int fontSize,
-            TextAnchor alignment)
-        {
-            GameObject textObject = new GameObject(name);
-            textObject.transform.SetParent(parent, false);
-
-            RectTransform rect = textObject.AddComponent<RectTransform>();
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.pivot = pivot;
-            rect.offsetMin = offsetMin;
-            rect.offsetMax = offsetMax;
-
-            Text text = textObject.AddComponent<Text>();
-            text.font = font;
-            text.fontSize = fontSize;
-            text.alignment = alignment;
-            text.color = Color.white;
-
-            Outline outline = textObject.AddComponent<Outline>();
-            outline.effectColor = new Color(0f, 0f, 0f, 0.85f);
-            outline.effectDistance = new Vector2(1f, -1f);
-
-            return text;
-        }
-
         private void UpdateUI()
         {
-            if (panel == null)
-            {
-                return;
-            }
-
-            bool show = isObjectiveActive && !string.IsNullOrEmpty(currentTitle);
-            panel.SetActive(show);
-
-            if (!show)
-            {
-                return;
-            }
-
-            titleText.text = currentTitle;
-            descriptionText.text = currentDescription;
-            statusText.text = currentStatus;
-
-            if (currentPhase == StoryObjectivePhase.DayInvestigation)
-            {
-                statusText.color = isObjectiveComplete
-                    ? new Color(0.4f, 1f, 0.4f)
-                    : new Color(1f, 0.85f, 0.35f);
-            }
-            else
-            {
-                statusText.color = new Color(0.4f, 0.8f, 1f);
-            }
+            // UI display is now handled by ObjectiveHUD subscribing to OnObjectiveChanged
         }
 
         private void RaiseChanged()
@@ -534,29 +393,7 @@ namespace Deadlight.Narrative
                     "Hospital triage notes link the earliest aggressive cases to Lazarus trial patients transferred under guard.",
                     "Hospital triage logs tied the first violent cases to Lazarus transfers, weeks before the public lockdown.",
                     TownCenterLandmarks.HospitalPosition,
-                    100),
-                new StoryBeatDefinition(
-                    4,
-                    "fuel route",
-                    "Mark the extraction corridor",
-                    "Reach the gas station and secure fuel for the dawn approach route into the landing zone.",
-                    "Protect the approach",
-                    "Rescue will only risk a landing if the access lane stays open through the night.",
-                    "Fuel reserves found. The dawn approach can stay lit if the route survives the night.",
-                    "Marked the final refuel point needed to keep the helicopter's approach path open at dawn.",
-                    TownCenterLandmarks.GasStationPosition,
-                    120),
-                new StoryBeatDefinition(
-                    5,
-                    "landing zone",
-                    "Light the flare plan",
-                    "Return to the crash site and lock in the flare position for final-dawn extraction.",
-                    "Final stand",
-                    "Subject 23 is tracking the signal. Hold the landing zone through the last night and the helicopter comes at dawn.",
-                    "Extraction flare plan set. Dawn pickup is committed if the landing zone stays clear.",
-                    "Set the final flare plan at the crash site. Dawn extraction now depends entirely on surviving one last night.",
-                    TownCenterLandmarks.CrashSitePosition,
-                    160,
+                    100,
                     true)
             };
         }
@@ -597,29 +434,7 @@ namespace Deadlight.Narrative
                     "Lab notes recovered. Subject 23 was the first stable Lazarus host and the start of the entire chain.",
                     "Broke into the Lazarus lab and confirmed Subject 23 as the original host that spread the networked infection.",
                     IndustrialLayout.ResearchLabPosition,
-                    100),
-                new StoryBeatDefinition(
-                    4,
-                    "fuel depot",
-                    "Prime the burn route",
-                    "Reach the fuel depot and secure enough incendiary stock to disrupt Lazarus regeneration.",
-                    "Defend the burn line",
-                    "Fire is your only real answer to Lazarus tissue. Keep the depot route alive through the night.",
-                    "Fuel depot secured. Enough incendiary stock remains to keep the extraction route burning at dawn.",
-                    "Secured incendiary fuel from the depot, giving the final defense a way to disrupt Lazarus regeneration.",
-                    IndustrialLayout.FuelDepotPosition,
-                    120),
-                new StoryBeatDefinition(
-                    5,
-                    "north extraction pad",
-                    "Set the extraction beacon",
-                    "Return to the north crash pad and place the final beacon for final-dawn pickup.",
-                    "Final containment break",
-                    "Subject 23 is coming to the beacon. Hold the pad until sunrise and end the Lazarus chain here.",
-                    "Beacon armed. Dawn extraction is locked to the north pad if you can keep it clear.",
-                    "Placed the final extraction beacon at the north pad and committed the last stand to dawn pickup.",
-                    IndustrialLayout.CrashSitePosition,
-                    160,
+                    100,
                     true)
             };
         }
@@ -660,29 +475,7 @@ namespace Deadlight.Narrative
                     "Clinic notes confirm Lazarus transfers were hidden among regular evac patients until symptoms escalated.",
                     "Clinic triage notes showed Lazarus patients were moved through the suburb under evacuation cover.",
                     SuburbanLayout.HospitalPosition,
-                    100),
-                new StoryBeatDefinition(
-                    4,
-                    "gas station pumps",
-                    "Recover flare fuel",
-                    "Reach the gas station and secure enough fuel to light the final dawn flare line.",
-                    "Protect the approach lane",
-                    "The helicopter can only risk the suburb if the landing flare route stays alive after dark.",
-                    "Flare fuel secured. The dawn approach can be marked if you survive tonight.",
-                    "Recovered the fuel needed to light a visible dawn flare line for the rescue helicopter.",
-                    SuburbanLayout.GasStationPosition,
-                    120),
-                new StoryBeatDefinition(
-                    5,
-                    "cul-de-sac landing zone",
-                    "Mark the landing circle",
-                    "Move to the cul-de-sac and lock the final-dawn landing circle before the horde closes in.",
-                    "Final stand in the cul-de-sac",
-                    "Subject 23 is homing in on the rescue flare. Hold the landing circle until sunrise.",
-                    "Landing circle marked. Dawn pickup is committed if the cul-de-sac stays clear.",
-                    "Marked the cul-de-sac as the final landing circle and committed the last stand to dawn extraction.",
-                    SuburbanLayout.CulDeSacPosition,
-                    160,
+                    100,
                     true)
             };
         }
@@ -704,17 +497,6 @@ namespace Deadlight.Narrative
                     70),
                 new StoryBeatDefinition(
                     2,
-                    "reactor yard",
-                    "Restore emergency power",
-                    "Reach the reactor yard and reroute emergency power to the lab corridor doors.",
-                    "Hold the reactor lane",
-                    "With power restored, infected pressure will focus through the central lanes. Hold the line.",
-                    "Emergency grid is online. Main doors can cycle long enough for extraction prep.",
-                    "Brought emergency power back online and re-enabled the lab corridor locks for the final push.",
-                    ResearchLayout.ReactorYardPosition,
-                    90),
-                new StoryBeatDefinition(
-                    3,
                     "data vault",
                     "Extract Lazarus evidence",
                     "Reach the data vault and secure the final Lazarus experiment records before they are purged.",
@@ -725,7 +507,7 @@ namespace Deadlight.Narrative
                     ResearchLayout.DataVaultPosition,
                     120),
                 new StoryBeatDefinition(
-                    4,
+                    3,
                     "main lab",
                     "Trigger extraction beacon",
                     "Reach the main lab and arm the final extraction beacon in the containment core.",

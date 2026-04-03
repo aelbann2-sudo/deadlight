@@ -56,6 +56,7 @@ namespace Deadlight.Narrative
             var positions = config.lorePositions ?? Array.Empty<Vector3>();
             var loreIds = GetLoreIdsForMap(config.mapType);
             int count = Mathf.Min(positions.Length, loreIds.Length);
+            count = Mathf.Min(count, 1);
 
             for (int i = 0; i < count; i++)
             {

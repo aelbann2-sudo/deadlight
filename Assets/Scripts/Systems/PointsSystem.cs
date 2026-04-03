@@ -1,5 +1,6 @@
 using UnityEngine;
 using Deadlight.Core;
+using Deadlight.Narrative;
 using System;
 using System.Collections.Generic;
 
@@ -270,9 +271,7 @@ namespace Deadlight.Systems
                 speedScore = Mathf.Clamp01(1f - cycle.NormalizedTime);
             }
 
-            bool objectiveDone = DayObjectiveSystem.Instance != null &&
-                                 DayObjectiveSystem.Instance.ActiveObjective != null &&
-                                 DayObjectiveSystem.Instance.ActiveObjective.IsComplete;
+            bool objectiveDone = StoryObjective.Instance != null && StoryObjective.Instance.IsComplete;
 
             var result = RunGradingSystem.ComputeNightGrade(new NightRunStats
             {
