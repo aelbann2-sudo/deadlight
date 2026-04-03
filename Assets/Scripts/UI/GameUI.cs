@@ -201,20 +201,20 @@ namespace Deadlight.UI
             CreateMenuText(left.transform, "Subtitle", "Survival After Dark", 28, FontStyle.Bold, new Color(0.86f, 0.9f, 0.95f),
                 new Vector2(0f, 1f), new Vector2(36f, -102f), new Vector2(430f, 34f), TextAnchor.UpperLeft);
             CreateMenuText(left.transform, "Body",
-                "Push through four operations, breach the Lazarus facility, and get the signal out before the city is lost.",
+                "Fight through four campaign levels. Each level carries three daylight objective pushes before nightfall, and the Research Facility ends with the Subject 23 boss fight.",
                 20, FontStyle.Normal, new Color(0.8f, 0.85f, 0.9f),
                 new Vector2(0f, 1f), new Vector2(36f, -170f), new Vector2(470f, 82f), TextAnchor.UpperLeft);
 
-            CreateMenuText(left.transform, "ProgressLabel", "CAMPAIGN STATUS", 14, FontStyle.Bold,
+            CreateMenuText(left.transform, "ProgressLabel", "NEXT DEPLOYMENT", 14, FontStyle.Bold,
                 new Color(0.54f, 0.82f, 1f), new Vector2(0f, 1f), new Vector2(36f, -276f), new Vector2(220f, 18f), TextAnchor.UpperLeft);
             _mainMenuProgressText = CreateMenuText(left.transform, "ProgressValue", "", 22, FontStyle.Bold,
-                Color.white, new Vector2(0f, 1f), new Vector2(36f, -300f), new Vector2(470f, 34f), TextAnchor.UpperLeft);
+                Color.white, new Vector2(0f, 1f), new Vector2(36f, -300f), new Vector2(470f, 58f), TextAnchor.UpperLeft);
 
-            CreateMenuActionButton(left.transform, "StartCampaignButton", "Start Campaign",
-                "Jump straight into the current operation.", new Color(0.25f, 0.64f, 0.36f),
+            CreateMenuActionButton(left.transform, "StartCampaignButton", "Continue Campaign",
+                "Deploy from the highest unlocked level.", new Color(0.25f, 0.64f, 0.36f),
                 new Vector2(0f, 1f), new Vector2(36f, -356f), new Vector2(500f, 92f), StartCampaign);
-            CreateMenuActionButton(left.transform, "CampaignMapButton", "Choose Operation",
-                "Pick any unlocked campaign level before deploying.", new Color(0.82f, 0.64f, 0.24f),
+            CreateMenuActionButton(left.transform, "CampaignMapButton", "Level Select",
+                "Review every unlocked level, its objective arc, and the final boss push.", new Color(0.82f, 0.64f, 0.24f),
                 new Vector2(0f, 1f), new Vector2(36f, -458f), new Vector2(500f, 92f), ShowCampaignMap);
             CreateMenuActionButton(left.transform, "GuideButton", "Guide",
                 "Controls, systems, and onboarding notes.", new Color(0.28f, 0.52f, 0.75f),
@@ -227,21 +227,21 @@ namespace Deadlight.UI
                 new Color(0.42f, 0.46f, 0.54f), new Vector2(0f, 0f), new Vector2(342f, 34f), new Vector2(194f, 58f),
                 QuitGame);
 
-            CreateMenuText(right.transform, "RouteTitle", "Campaign Route", 34, FontStyle.Bold, Color.white,
+            CreateMenuText(right.transform, "RouteTitle", "Level Overview", 34, FontStyle.Bold, Color.white,
                 new Vector2(0f, 1f), new Vector2(34f, -34f), new Vector2(420f, 40f), TextAnchor.UpperLeft);
             CreateMenuText(right.transform, "RouteBody",
-                "Live overhead previews from the current build. Start immediately or open the route view to deploy from any unlocked operation.",
+                "Live overhead previews from the current build. Each level contains three daylight objectives before the night holds, and Level 4 ends with the Subject 23 boss fight.",
                 18, FontStyle.Normal, new Color(0.8f, 0.85f, 0.9f),
                 new Vector2(0f, 1f), new Vector2(34f, -82f), new Vector2(940f, 54f), TextAnchor.UpperLeft);
 
             _campaignRouteRows.Clear();
-            CreateCampaignRouteRow(right.transform, 1, LoadMenuPreviewSprite("TownCenter"), "Operation 01", "Town Center", levelTeasers[0],
+            CreateCampaignRouteRow(right.transform, 1, LoadMenuPreviewSprite("TownCenter"), "Level 01", "Town Center", levelTeasers[0],
                 new Vector2(0f, 1f), new Vector2(34f, -168f), new Vector2(1020f, 138f), new Color(0.27f, 0.63f, 0.38f));
-            CreateCampaignRouteRow(right.transform, 2, LoadMenuPreviewSprite("Suburban"), "Operation 02", "Suburban Evacuation", levelTeasers[1],
+            CreateCampaignRouteRow(right.transform, 2, LoadMenuPreviewSprite("Suburban"), "Level 02", "Suburban Evacuation", levelTeasers[1],
                 new Vector2(0f, 1f), new Vector2(34f, -326f), new Vector2(1020f, 138f), new Color(0.52f, 0.72f, 0.3f));
-            CreateCampaignRouteRow(right.transform, 3, LoadMenuPreviewSprite("Industrial"), "Operation 03", "Industrial District", levelTeasers[2],
+            CreateCampaignRouteRow(right.transform, 3, LoadMenuPreviewSprite("Industrial"), "Level 03", "Industrial District", levelTeasers[2],
                 new Vector2(0f, 1f), new Vector2(34f, -484f), new Vector2(1020f, 138f), new Color(0.82f, 0.55f, 0.24f));
-            CreateCampaignRouteRow(right.transform, 4, LoadMenuPreviewSprite("Research"), "Operation 04", "Research Facility", levelTeasers[3],
+            CreateCampaignRouteRow(right.transform, 4, LoadMenuPreviewSprite("Research"), "Level 04", "Research Facility", levelTeasers[3],
                 new Vector2(0f, 1f), new Vector2(34f, -642f), new Vector2(1020f, 138f), new Color(0.76f, 0.3f, 0.3f));
         }
 
@@ -251,7 +251,7 @@ namespace Deadlight.UI
             HideAllPanels();
             _purchasedWeapons.Clear();
             PlayerUpgrades.Instance?.ResetUpgrades();
-            GameManager.Instance?.StartSelectedMapRun();
+            GameManager.Instance?.StartCampaignFromLevel(GetHighestUnlockedLevel());
         }
 
         private void StartCampaignAtLevel(int level)
@@ -272,16 +272,34 @@ namespace Deadlight.UI
 
         // ===================== MAP SELECT =====================
 
-        private static readonly string[] levelSubtitles = { "First Light", "No One Left Behind", "The Source", "Operation Deadlight" };
+        private static readonly string[] levelSubtitles = { "Crash Evidence", "Shelter Records", "Lazarus Breach", "Containment Finale" };
         private static readonly string[] levelMapNames = { "Town Center", "Suburban Evacuation", "Industrial District", "Research Facility" };
-        private static readonly string[] levelThreatLabels = { "Low Threat", "Rising Threat", "High Threat", "Critical Threat" };
+        private static readonly string[] levelStageLabels = { "3 objective nights", "3 objective nights", "3 objective nights", "3 objective nights + boss finale" };
         private static readonly string[] levelPreviewKeys = { "TownCenter", "Suburban", "Industrial", "Research" };
-        private static readonly string[] levelTeasers = {
-            "Recover Flight 7's black box from the crash site.",
-            "Search the school shelter for evacuation records.",
-            "Breach the Lazarus lab and recover Subject 23 data.",
-            "Arm the extraction beacon. Survive Subject 23."
+        private static readonly string[] levelObjectiveSummaries = {
+            "Recover Flight 7's black box.",
+            "Recover the shelter evacuation records.",
+            "Recover Lazarus and Subject 23 data.",
+            "Arm the beacon and defeat Subject 23."
         };
+        private static readonly string[] levelTeasers = {
+            "Primary objective: recover Flight 7's black box across three daylight leads.",
+            "Primary objective: recover the school shelter evacuation records across three neighborhood leads.",
+            "Primary objective: breach Lazarus and recover Subject 23 data across three industrial pushes.",
+            "Primary objective: arm the extraction beacon, finish the final three pushes, and defeat Subject 23."
+        };
+
+        internal static string GetMapDisplayName(MapType mapType)
+        {
+            return mapType switch
+            {
+                MapType.TownCenter => levelMapNames[0],
+                MapType.Suburban => levelMapNames[1],
+                MapType.Industrial => levelMapNames[2],
+                MapType.Research => levelMapNames[3],
+                _ => mapType.ToString()
+            };
+        }
 
         private void BuildMapSelect()
         {
@@ -298,23 +316,23 @@ namespace Deadlight.UI
                     _mainMenuPanel?.SetActive(true);
                 });
 
-            CreateMenuText(_mapSelectPanel.transform, "Title", "Campaign Route", 50, FontStyle.Bold, Color.white,
+            CreateMenuText(_mapSelectPanel.transform, "Title", "Select Level", 50, FontStyle.Bold, Color.white,
                 new Vector2(0f, 1f), new Vector2(72f, -148f), new Vector2(460f, 56f), TextAnchor.UpperLeft);
             CreateMenuText(_mapSelectPanel.transform, "Subtitle",
-                "Choose any unlocked operation. Later deployments open harder spaces and longer survival windows.",
+                "Choose any unlocked level. Each level contains three daylight objectives, and Level 4 ends with the Subject 23 boss fight.",
                 19, FontStyle.Normal, new Color(0.78f, 0.83f, 0.89f),
                 new Vector2(0f, 1f), new Vector2(74f, -206f), new Vector2(760f, 54f), TextAnchor.UpperLeft);
             _mapSelectProgressText = CreateMenuText(_mapSelectPanel.transform, "ProgressText", "", 18, FontStyle.Bold,
                 new Color(0.96f, 0.84f, 0.45f), new Vector2(0f, 1f), new Vector2(74f, -268f), new Vector2(420f, 28f), TextAnchor.UpperLeft);
 
             _campaignCards.Clear();
-            CreateCampaignCard(_mapSelectPanel.transform, 1, levelMapNames[0], levelSubtitles[0], levelThreatLabels[0], levelTeasers[0], LoadMenuPreviewSprite(levelPreviewKeys[0]),
+            CreateCampaignCard(_mapSelectPanel.transform, 1, levelMapNames[0], levelSubtitles[0], levelStageLabels[0], levelTeasers[0], LoadMenuPreviewSprite(levelPreviewKeys[0]),
                 new Color(0.27f, 0.63f, 0.38f), new Vector2(0.24f, 0.58f), new Vector2(520f, 310f));
-            CreateCampaignCard(_mapSelectPanel.transform, 2, levelMapNames[1], levelSubtitles[1], levelThreatLabels[1], levelTeasers[1], LoadMenuPreviewSprite(levelPreviewKeys[1]),
+            CreateCampaignCard(_mapSelectPanel.transform, 2, levelMapNames[1], levelSubtitles[1], levelStageLabels[1], levelTeasers[1], LoadMenuPreviewSprite(levelPreviewKeys[1]),
                 new Color(0.52f, 0.72f, 0.3f), new Vector2(0.76f, 0.58f), new Vector2(520f, 310f));
-            CreateCampaignCard(_mapSelectPanel.transform, 3, levelMapNames[2], levelSubtitles[2], levelThreatLabels[2], levelTeasers[2], LoadMenuPreviewSprite(levelPreviewKeys[2]),
+            CreateCampaignCard(_mapSelectPanel.transform, 3, levelMapNames[2], levelSubtitles[2], levelStageLabels[2], levelTeasers[2], LoadMenuPreviewSprite(levelPreviewKeys[2]),
                 new Color(0.82f, 0.55f, 0.24f), new Vector2(0.24f, 0.22f), new Vector2(520f, 310f));
-            CreateCampaignCard(_mapSelectPanel.transform, 4, levelMapNames[3], levelSubtitles[3], levelThreatLabels[3], levelTeasers[3], LoadMenuPreviewSprite(levelPreviewKeys[3]),
+            CreateCampaignCard(_mapSelectPanel.transform, 4, levelMapNames[3], levelSubtitles[3], levelStageLabels[3], levelTeasers[3], LoadMenuPreviewSprite(levelPreviewKeys[3]),
                 new Color(0.76f, 0.3f, 0.3f), new Vector2(0.76f, 0.22f), new Vector2(520f, 310f));
         }
 
@@ -348,14 +366,14 @@ namespace Deadlight.UI
 
             if (_mainMenuProgressText != null)
             {
-                _mainMenuProgressText.text = $"Operation {highestUnlocked:00} ready: {levelMapNames[highestUnlocked - 1]}";
+                _mainMenuProgressText.text = $"Level {highestUnlocked:00} ready: {levelObjectiveSummaries[highestUnlocked - 1]}";
             }
 
             if (_mapSelectProgressText != null)
             {
                 _mapSelectProgressText.text = highestUnlocked >= levelMapNames.Length
-                    ? "All operations unlocked. Final objective is live."
-                    : $"Unlocked through Operation {highestUnlocked:00}. Locked operations open as you finish the route.";
+                    ? "All levels unlocked. Final level contains the Subject 23 boss fight."
+                    : $"Unlocked through Level {highestUnlocked:00}. Each level contains three daylight objectives before the night holds.";
             }
 
             foreach (var row in _campaignRouteRows)
@@ -388,7 +406,7 @@ namespace Deadlight.UI
 
                 if (card.ActionText != null)
                 {
-                    card.ActionText.text = unlocked ? "CLICK TO DEPLOY" : "LOCKED";
+                    card.ActionText.text = unlocked ? "DEPLOY LEVEL" : "LOCKED";
                     card.ActionText.color = unlocked ? new Color(0.94f, 0.96f, 1f) : new Color(0.72f, 0.72f, 0.76f);
                 }
 
@@ -722,7 +740,7 @@ namespace Deadlight.UI
                     new Vector2(0f, 1f), new Vector2(18f, -28f), new Vector2(360f, 52f), TextAnchor.UpperLeft);
             }
 
-            CreateMenuText(card.transform, "Eyebrow", $"OPERATION {level:00}", 14, FontStyle.Bold, accent,
+            CreateMenuText(card.transform, "Eyebrow", $"LEVEL {level:00}", 14, FontStyle.Bold, accent,
                 new Vector2(0f, 1f), new Vector2(18f, -182f), new Vector2(180f, 18f), TextAnchor.UpperLeft);
             CreateMenuText(card.transform, "Title", title, 28, FontStyle.Bold, Color.white,
                 new Vector2(0f, 1f), new Vector2(18f, -206f), new Vector2(320f, 34f), TextAnchor.UpperLeft);
@@ -921,14 +939,14 @@ namespace Deadlight.UI
                     new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, -42f), new Vector2(250f, 30f));
             }
 
-            string diffPips = "";
+            string threatPips = "";
             for (int i = 0; i < 4; i++)
-                diffPips += i < levelNumber ? "\u25CF " : "\u25CB ";
-            Color diffColor = levelNumber <= 2 ? new Color(0.4f, 0.85f, 0.4f)
+                threatPips += i < levelNumber ? "\u25CF " : "\u25CB ";
+            Color threatColor = levelNumber <= 2 ? new Color(0.4f, 0.85f, 0.4f)
                 : (levelNumber == 3 ? new Color(0.95f, 0.75f, 0.2f) : new Color(0.95f, 0.3f, 0.3f));
-            if (!unlocked) diffColor = new Color(0.35f, 0.35f, 0.35f);
-            CreateText(node.transform, "Difficulty",
-                diffPips.Trim(), 12, TextAnchor.MiddleCenter, diffColor,
+            if (!unlocked) threatColor = new Color(0.35f, 0.35f, 0.35f);
+            CreateText(node.transform, "ThreatRating",
+                threatPips.Trim(), 12, TextAnchor.MiddleCenter, threatColor,
                 new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, -60f), new Vector2(120f, 18f));
         }
 
@@ -1748,7 +1766,7 @@ namespace Deadlight.UI
             if (_levelCompleteStatsText != null && GameManager.Instance != null)
             {
                 int level = GameManager.Instance.CurrentLevel;
-                string map = GameManager.Instance.SelectedMap.ToString();
+                string map = GetMapDisplayName(GameManager.Instance.SelectedMap);
                 int kills = 0;
                 int earned = 0;
                 if (PointsSystem.Instance != null)
@@ -1759,12 +1777,16 @@ namespace Deadlight.UI
                 }
                 int nextLevel = Mathf.Min(level + 1, GameManager.TotalLevels);
                 string nextMap = levelMapNames[Mathf.Clamp(nextLevel - 1, 0, levelMapNames.Length - 1)];
+                string nextObjective = nextLevel > level
+                    ? levelObjectiveSummaries[Mathf.Clamp(nextLevel - 1, 0, levelObjectiveSummaries.Length - 1)]
+                    : "Final containment cleared.";
 
                 _levelCompleteStatsText.text =
                     $"Level {level} - {map} cleared!\n\n" +
                     $"Enemies Killed: {kills}\n" +
                     $"Points Earned: {earned}\n\n" +
-                    $"Next: Level {nextLevel} - {nextMap}";
+                    $"Next: Level {nextLevel} - {nextMap}\n" +
+                    nextObjective;
             }
             _levelCompletePanel?.SetActive(true);
             Time.timeScale = 0f;
@@ -1801,7 +1823,7 @@ namespace Deadlight.UI
             bg.color = new Color(0, 0, 0, 0.85f);
 
             var title = CreateText(_victoryPanel.transform, "Title",
-                "YOU SURVIVED!", 56, TextAnchor.MiddleCenter, new Color(0.9f, 0.75f, 0.2f),
+                "SUBJECT 23 CONTAINED", 56, TextAnchor.MiddleCenter, new Color(0.9f, 0.75f, 0.2f),
                 new Vector2(0.5f, 0.75f), new Vector2(0.5f, 0.75f), Vector2.zero, new Vector2(500, 80));
             title.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
@@ -2175,7 +2197,9 @@ namespace Deadlight.UI
 
             int level = Core.GameManager.Instance != null ? Core.GameManager.Instance.CurrentLevel : 1;
             int nightInLevel = Core.GameManager.Instance != null ? Core.GameManager.Instance.NightWithinLevel : 1;
-            string map = Core.GameManager.Instance != null ? Core.GameManager.Instance.SelectedMap.ToString() : "TownCenter";
+            string map = Core.GameManager.Instance != null
+                ? GameUI.GetMapDisplayName(Core.GameManager.Instance.SelectedMap)
+                : "Town Center";
             int kills = 0;
             int totalEarned = 0;
 
@@ -2224,10 +2248,12 @@ namespace Deadlight.UI
         {
             if (_statsText == null) return;
 
-            string map = Core.GameManager.Instance != null ? Core.GameManager.Instance.SelectedMap.ToString() : "TownCenter";
+            string map = Core.GameManager.Instance != null
+                ? GameUI.GetMapDisplayName(Core.GameManager.Instance.SelectedMap)
+                : "Town Center";
             int kills = 0;
             int totalEarned = 0;
-            int levelsCleared = 4;
+            int levelsCleared = Core.GameManager.TotalLevels;
 
             if (PointsSystem.Instance != null)
             {
@@ -2255,6 +2281,7 @@ namespace Deadlight.UI
             }
 
             _statsText.text = $"ALL {levelsCleared} LEVELS CLEARED!\n" +
+                "Subject 23 defeated. Extraction signal is live.\n" +
                 $"Enemies Killed: {kills}\n" +
                 $"Points Earned: {totalEarned}\n" +
                 $"Map: {map}\n" +

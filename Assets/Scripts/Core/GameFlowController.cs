@@ -141,15 +141,7 @@ namespace Deadlight.Core
         /// </summary>
         public void StartGame()
         {
-            StartGame(Difficulty.Normal);
-        }
-
-        public void StartGame(Difficulty difficulty)
-        {
             if (GameManager.Instance == null) return;
-
-            // Campaign mode is level-based only; keep runtime balancing on Normal.
-            GameManager.Instance.SetDifficulty(Difficulty.Normal);
 
             // Use an absolute duration so repeated restarts do not compound scaling.
             if (dayNightCycle != null)
@@ -394,7 +386,7 @@ namespace Deadlight.Core
                 case GameState.Victory:
                     nextHelicopterDropTime = float.PositiveInfinity;
                     dayContestedDropState = DayContestedDropState.Inactive;
-                    OnStatusMessage?.Invoke("Victory! You cleared all 4 levels!");
+                    OnStatusMessage?.Invoke("Victory! Subject 23 contained. All 4 levels cleared.");
                     break;
                 case GameState.GameOver:
                     nextHelicopterDropTime = float.PositiveInfinity;

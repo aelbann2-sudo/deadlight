@@ -16,7 +16,7 @@ namespace Deadlight.Core
         [SerializeField] private float minSpawnDistance = 12f;
         [SerializeField] private float maxSpawnDistance = 20f;
         
-        [Header("Difficulty")]
+        [Header("Wave Growth")]
         [SerializeField] private float speedIncreasePerWave = 0.2f;
         [SerializeField] private float healthIncreasePerWave = 10f;
 
