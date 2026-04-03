@@ -23,6 +23,7 @@ namespace Deadlight.UI
         private GameObject _pausePanel;
         private GameObject _guidePanel;
         private GameObject _dawnShopPanel;
+        private GameObject _levelCompletePanel;
         private GameObject _gameOverPanel;
         private GameObject _victoryPanel;
         private GameObject _leaderboardPanel;
@@ -159,6 +160,7 @@ namespace Deadlight.UI
             BuildPauseMenu();
             BuildGuidePanel();
             BuildDawnShop();
+            BuildLevelCompleteScreen();
             BuildGameOverScreen();
             BuildVictoryScreen();
             BuildLeaderboardPanel();
@@ -361,6 +363,13 @@ namespace Deadlight.UI
         private void CreateCampaignNodeStyled(Transform parent, int levelNumber, string mapName,
             Vector2 position, Color color, Color glowColor)
         {
+            bool unlocked = GameManager.Instance != null
+                ? GameManager.Instance.IsLevelUnlocked(levelNumber)
+                : levelNumber <= 1;
+            Color lockedColor = new Color(0.25f, 0.25f, 0.3f);
+            Color nodeColor = unlocked ? color : lockedColor;
+            Color nodeGlow = unlocked ? glowColor : new Color(0.2f, 0.2f, 0.25f, 0.08f);
+
             var glowObj = new GameObject($"NodeGlow_{levelNumber}");
             glowObj.transform.SetParent(parent, false);
             var glowRect = glowObj.AddComponent<RectTransform>();
@@ -371,7 +380,7 @@ namespace Deadlight.UI
             glowRect.sizeDelta = new Vector2(160f, 160f);
             var glowImg = glowObj.AddComponent<Image>();
             glowImg.sprite = GetCampaignNodeSprite();
-            glowImg.color = glowColor;
+            glowImg.color = nodeGlow;
             glowImg.raycastTarget = false;
 
             var node = new GameObject($"LevelNode_{levelNumber}");
@@ -385,27 +394,32 @@ namespace Deadlight.UI
 
             var nodeImage = node.AddComponent<Image>();
             nodeImage.sprite = GetCampaignNodeSprite();
-            nodeImage.color = color;
+            nodeImage.color = nodeColor;
 
             var button = node.AddComponent<Button>();
             button.targetGraphic = nodeImage;
+            button.interactable = unlocked;
             var colors = button.colors;
-            colors.normalColor = color;
-            colors.highlightedColor = new Color(
-                Mathf.Min(1f, color.r + 0.2f),
-                Mathf.Min(1f, color.g + 0.2f),
-                Mathf.Min(1f, color.b + 0.2f), 1f);
-            colors.pressedColor = new Color(color.r * 0.7f, color.g * 0.7f, color.b * 0.7f, 1f);
+            colors.normalColor = nodeColor;
+            colors.highlightedColor = unlocked
+                ? new Color(Mathf.Min(1f, color.r + 0.2f), Mathf.Min(1f, color.g + 0.2f), Mathf.Min(1f, color.b + 0.2f), 1f)
+                : lockedColor;
+            colors.pressedColor = unlocked
+                ? new Color(color.r * 0.7f, color.g * 0.7f, color.b * 0.7f, 1f)
+                : lockedColor;
+            colors.disabledColor = new Color(0.2f, 0.2f, 0.22f, 0.7f);
             colors.selectedColor = colors.normalColor;
             button.colors = colors;
             button.onClick.AddListener(() => StartCampaignAtLevel(levelNumber));
 
             var outerRing = node.AddComponent<Outline>();
-            outerRing.effectColor = new Color(1f, 1f, 1f, 0.15f);
+            outerRing.effectColor = unlocked ? new Color(1f, 1f, 1f, 0.15f) : new Color(0.4f, 0.4f, 0.4f, 0.1f);
             outerRing.effectDistance = new Vector2(2f, -2f);
 
+            string nodeLabel = unlocked ? $"{levelNumber}" : "\U0001F512";
             var levelLabel = CreateText(node.transform, "LevelNumber",
-                $"{levelNumber}", 40, TextAnchor.MiddleCenter, new Color(1f, 1f, 1f, 0.95f),
+                nodeLabel, 40, TextAnchor.MiddleCenter,
+                unlocked ? new Color(1f, 1f, 1f, 0.95f) : new Color(0.5f, 0.5f, 0.5f, 0.7f),
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(80f, 80f));
             levelLabel.GetComponent<Text>().fontStyle = FontStyle.Bold;
             var numShadow = levelLabel.AddComponent<Shadow>();
@@ -416,29 +430,42 @@ namespace Deadlight.UI
             string subtitle = levelSubtitles[subtitleIdx];
             string mapTitle = levelMapNames[subtitleIdx];
 
+            Color tagColor = unlocked ? new Color(1f, 0.9f, 0.5f) : new Color(0.45f, 0.45f, 0.45f);
             var levelTag = CreateText(node.transform, "LevelTag",
-                $"LEVEL {levelNumber}: {mapTitle.ToUpperInvariant()}", 13, TextAnchor.MiddleCenter, new Color(1f, 0.9f, 0.5f),
+                $"LEVEL {levelNumber}: {mapTitle.ToUpperInvariant()}", 13, TextAnchor.MiddleCenter, tagColor,
                 new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, 20f), new Vector2(240f, 20f));
             levelTag.GetComponent<Text>().fontStyle = FontStyle.Bold;
             var tagShadow = levelTag.AddComponent<Shadow>();
             tagShadow.effectColor = new Color(0f, 0f, 0f, 0.5f);
             tagShadow.effectDistance = new Vector2(1f, -1f);
 
+            string subtitleStr = unlocked ? $"\"{subtitle}\"" : "LOCKED";
             var subtitleLabel = CreateText(node.transform, "Subtitle",
-                $"\"{subtitle}\"", 14, TextAnchor.MiddleCenter, new Color(0.85f, 0.85f, 0.75f),
+                subtitleStr, 14, TextAnchor.MiddleCenter,
+                unlocked ? new Color(0.85f, 0.85f, 0.75f) : new Color(0.5f, 0.3f, 0.3f),
                 new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, -22f), new Vector2(240f, 22f));
-            subtitleLabel.GetComponent<Text>().fontStyle = FontStyle.Italic;
+            subtitleLabel.GetComponent<Text>().fontStyle = unlocked ? FontStyle.Italic : FontStyle.Bold;
 
-            string teaser = levelTeasers[subtitleIdx];
-            CreateText(node.transform, "Teaser",
-                teaser, 11, TextAnchor.MiddleCenter, new Color(0.5f, 0.5f, 0.48f),
-                new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, -42f), new Vector2(250f, 30f));
+            if (unlocked)
+            {
+                string teaser = levelTeasers[subtitleIdx];
+                CreateText(node.transform, "Teaser",
+                    teaser, 11, TextAnchor.MiddleCenter, new Color(0.5f, 0.5f, 0.48f),
+                    new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, -42f), new Vector2(250f, 30f));
+            }
+            else
+            {
+                CreateText(node.transform, "Teaser",
+                    $"Complete Level {levelNumber - 1} to unlock", 11, TextAnchor.MiddleCenter, new Color(0.4f, 0.4f, 0.38f),
+                    new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, -42f), new Vector2(250f, 30f));
+            }
 
             string diffPips = "";
             for (int i = 0; i < 4; i++)
                 diffPips += i < levelNumber ? "\u25CF " : "\u25CB ";
             Color diffColor = levelNumber <= 2 ? new Color(0.4f, 0.85f, 0.4f)
                 : (levelNumber == 3 ? new Color(0.95f, 0.75f, 0.2f) : new Color(0.95f, 0.3f, 0.3f));
+            if (!unlocked) diffColor = new Color(0.35f, 0.35f, 0.35f);
             CreateText(node.transform, "Difficulty",
                 diffPips.Trim(), 12, TextAnchor.MiddleCenter, diffColor,
                 new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, -60f), new Vector2(120f, 18f));
@@ -1026,8 +1053,8 @@ namespace Deadlight.UI
         {
             if (_purchasedWeapons.Contains(weaponType)) return;
             if (PointsSystem.Instance == null || !PointsSystem.Instance.CanAfford(cost)) return;
-            int night = GameManager.Instance?.CurrentNight ?? 1;
-            if (night < unlockNight) return;
+            int level = GameManager.Instance?.CurrentLevel ?? 1;
+            if (level < unlockNight) return;
             if (!PointsSystem.Instance.SpendPoints(cost, $"Weapon: {weaponType}")) return;
 
             _purchasedWeapons.Add(weaponType);
@@ -1103,7 +1130,11 @@ namespace Deadlight.UI
                 _shopPointsText.text = $"Points: {PointsSystem.Instance.CurrentPoints}";
 
             if (_shopTitleText != null && GameManager.Instance != null)
-                _shopTitleText.text = $"DAWN - Level {GameManager.Instance.CurrentNight} Cleared!";
+            {
+                int sl = GameManager.Instance.CurrentLevel;
+                int sn = GameManager.Instance.NightWithinLevel;
+                _shopTitleText.text = $"DAWN - Level {sl}, Night {sn} Cleared!";
+            }
 
             if (_shopSummaryText != null && PointsSystem.Instance != null)
             {
@@ -1111,7 +1142,7 @@ namespace Deadlight.UI
                 _shopSummaryText.text = $"Kills: {stats.enemiesKilled}  |  Earned: {stats.totalEarned}";
             }
 
-            int night = GameManager.Instance?.CurrentNight ?? 1;
+            int night = GameManager.Instance?.CurrentLevel ?? 1;
 
             UpdateSupplyButton(0, 50);
             UpdateSupplyButton(1, 30);
@@ -1180,6 +1211,69 @@ namespace Deadlight.UI
             _dawnShopPanel?.SetActive(false);
             Time.timeScale = 1f;
             GameManager.Instance?.AdvanceToNextNight();
+        }
+
+        private void BuildLevelCompleteScreen()
+        {
+            _levelCompletePanel = CreatePanel(_canvasRoot.transform, "LevelCompletePanel");
+            var bg = _levelCompletePanel.GetComponent<Image>();
+            bg.color = new Color(0f, 0f, 0f, 0.88f);
+
+            var title = CreateText(_levelCompletePanel.transform, "Title",
+                "LEVEL COMPLETE!", 52, TextAnchor.MiddleCenter, new Color(0.95f, 0.85f, 0.3f),
+                new Vector2(0.5f, 0.72f), new Vector2(0.5f, 0.72f), Vector2.zero, new Vector2(600, 70));
+            title.GetComponent<Text>().fontStyle = FontStyle.Bold;
+            var titleShadow = title.AddComponent<Shadow>();
+            titleShadow.effectColor = new Color(0.7f, 0.5f, 0f, 0.35f);
+            titleShadow.effectDistance = new Vector2(0f, -3f);
+
+            _levelCompleteStatsText = CreateText(_levelCompletePanel.transform, "Stats", "", 22,
+                TextAnchor.MiddleCenter, Color.white,
+                new Vector2(0.5f, 0.48f), new Vector2(0.5f, 0.48f), Vector2.zero, new Vector2(520, 180)).GetComponent<Text>();
+
+            CreateButton(_levelCompletePanel.transform, "NextLevelBtn", "NEXT LEVEL",
+                new Color(0.2f, 0.65f, 0.25f),
+                new Vector2(0.4f, 0.18f), new Vector2(240, 55), OnNextLevel);
+
+            CreateButton(_levelCompletePanel.transform, "LCMainMenuBtn", "MAIN MENU",
+                new Color(0.4f, 0.4f, 0.4f),
+                new Vector2(0.6f, 0.18f), new Vector2(200, 50), GoToMainMenu);
+        }
+
+        private Text _levelCompleteStatsText;
+
+        private void OnNextLevel()
+        {
+            _levelCompletePanel?.SetActive(false);
+            Time.timeScale = 1f;
+            GameManager.Instance?.StartNextLevel();
+        }
+
+        private void ShowLevelComplete()
+        {
+            if (_levelCompleteStatsText != null && GameManager.Instance != null)
+            {
+                int level = GameManager.Instance.CurrentLevel;
+                string map = GameManager.Instance.SelectedMap.ToString();
+                int kills = 0;
+                int earned = 0;
+                if (PointsSystem.Instance != null)
+                {
+                    var stats = PointsSystem.Instance.GetGameStats();
+                    kills = stats.enemiesKilled;
+                    earned = stats.totalEarned;
+                }
+                int nextLevel = Mathf.Min(level + 1, GameManager.TotalLevels);
+                string nextMap = levelMapNames[Mathf.Clamp(nextLevel - 1, 0, levelMapNames.Length - 1)];
+
+                _levelCompleteStatsText.text =
+                    $"Level {level} - {map} cleared!\n\n" +
+                    $"Enemies Killed: {kills}\n" +
+                    $"Points Earned: {earned}\n\n" +
+                    $"Next: Level {nextLevel} - {nextMap}";
+            }
+            _levelCompletePanel?.SetActive(true);
+            Time.timeScale = 0f;
         }
 
         private void BuildGameOverScreen()
@@ -1265,6 +1359,9 @@ namespace Deadlight.UI
                     _dawnShopPanel?.SetActive(true);
                     Time.timeScale = 0f;
                     UpdateShopDisplay();
+                    break;
+                case GameState.LevelComplete:
+                    ShowLevelComplete();
                     break;
                 case GameState.GameOver:
                     HandleEndingState(false);
@@ -1354,6 +1451,7 @@ namespace Deadlight.UI
             if (_pausePanel != null) _pausePanel.SetActive(false);
             if (_guidePanel != null) _guidePanel.SetActive(false);
             if (_dawnShopPanel != null) _dawnShopPanel.SetActive(false);
+            if (_levelCompletePanel != null) _levelCompletePanel.SetActive(false);
             if (_gameOverPanel != null) _gameOverPanel.SetActive(false);
             if (_victoryPanel != null) _victoryPanel.SetActive(false);
             if (_leaderboardPanel != null) _leaderboardPanel.SetActive(false);
@@ -1580,7 +1678,8 @@ namespace Deadlight.UI
         {
             if (_statsText == null) return;
 
-            int levelReached = Core.GameManager.Instance != null ? Core.GameManager.Instance.CurrentNight : 1;
+            int level = Core.GameManager.Instance != null ? Core.GameManager.Instance.CurrentLevel : 1;
+            int nightInLevel = Core.GameManager.Instance != null ? Core.GameManager.Instance.NightWithinLevel : 1;
             string map = Core.GameManager.Instance != null ? Core.GameManager.Instance.SelectedMap.ToString() : "TownCenter";
             int kills = 0;
             int totalEarned = 0;
@@ -1600,7 +1699,7 @@ namespace Deadlight.UI
                 rank = 1;
                 foreach (var entry in LeaderboardManager.Instance.Entries)
                 {
-                    if (entry.nightsReached == levelReached && entry.kills == kills)
+                    if (entry.nightsReached == level && entry.kills == kills)
                     {
                         finalScore = entry.score;
                         rank = LeaderboardManager.Instance.GetRank(entry.score);
@@ -1609,7 +1708,7 @@ namespace Deadlight.UI
                 }
             }
 
-            _statsText.text = $"Level Reached: {levelReached}\n" +
+            _statsText.text = $"Level: {level}, Night: {nightInLevel}\n" +
                 $"Enemies Killed: {kills}\n" +
                 $"Points Earned: {totalEarned}\n" +
                 $"Map: {map}\n" +

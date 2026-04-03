@@ -15,28 +15,64 @@ namespace Deadlight.Core
         private AudioClip radioBeepClip;
 
         private static readonly string[][] nightTransmissions = {
-            // Level 1 — Town Center: "First Light"
+            // Level 1, Night 1
             new[] {
                 "[Radio] EVAC Command. Welcome to the zone, medic. Scavenge during daylight — they're slow in the sun.",
-                "When the sun sets, they change. Find a defensible position.",
-                "Signals from a research facility to the north. 'Project Lazarus.' Reach it in four days. EVAC out."
+                "When the sun sets, they change. Find a defensible position."
             },
-            // Level 2 — Suburban: "No One Left Behind"
+            // Level 1, Night 2
+            new[] {
+                "[Radio] Flight 7 wreckage confirmed. The crash wasn't accidental — something hit it from inside the zone.",
+                "Scavenge what you can. The military left supplies when they pulled out."
+            },
+            // Level 1, Night 3
+            new[] {
+                "[Radio] Checkpoint logs recovered. Command sealed the district on purpose.",
+                "Signals from a research facility. 'Project Lazarus.' We need to keep moving. EVAC out."
+            },
+            // Level 2, Night 1
             new[] {
                 "[Radio] Good work, medic. Suburbs ahead — the military sealed the quarantine before buses cleared out.",
-                "Dr. Chen's files mention cellular regeneration. Making soldiers that couldn't die.",
-                "Watch for runners. They hunt, not shamble. Stay sharp. EVAC out."
+                "Dr. Chen's files mention cellular regeneration. Making soldiers that couldn't die."
             },
-            // Level 3 — Industrial: "The Source"
+            // Level 2, Night 2
+            new[] {
+                "[Radio] Shelter roster recovered. Families were queued for extraction and then abandoned.",
+                "Watch for runners. They hunt, not shamble. Stay sharp."
+            },
+            // Level 2, Night 3
+            new[] {
+                "[Radio] Clinic notes confirm Lazarus patients were hidden among regular evac transfers.",
+                "The infection is spreading faster than expected. Prepare for the worst tonight. EVAC out."
+            },
+            // Level 3, Night 1
             new[] {
                 "[Radio] Urgent. Lazarus files decoded — a black project. Subject 23 was patient zero.",
-                "Mutation is accelerating. Exploders and spitters. Keep your distance.",
+                "Mutation is accelerating. Exploders and spitters. Keep your distance."
+            },
+            // Level 3, Night 2
+            new[] {
+                "[Radio] Command records recovered. The district was quarantined to erase Lazarus, not to save anyone.",
+                "The infected are adapting to your tactics. Mix up your approach tonight."
+            },
+            // Level 3, Night 3
+            new[] {
+                "[Radio] Lab breach confirmed. Subject 23 was the original host of the networked infection.",
                 "The facility is close. One more level after tonight. Don't let them surround you."
             },
-            // Level 4 — Research: "Operation Deadlight"
+            // Level 4, Night 1
             new[] {
                 "[Radio] Final level. Military initiated 'Operation Deadlight' — they'll bury everything.",
-                "Subject 23 is converging. The original host. It gets stronger with each kill.",
+                "Gate logs show the complex was sealed with live personnel still inside."
+            },
+            // Level 4, Night 2
+            new[] {
+                "[Radio] Lazarus archive secured. Subject 23 was weaponized and deployed before the collapse.",
+                "Subject 23 is converging. The original host. It gets stronger with each kill."
+            },
+            // Level 4, Night 3
+            new[] {
+                "[Radio] This is it. Final night. Beacon is armed in the main lab.",
                 "Transmit the data before they destroy it. Helicopter inbound at dawn. Make it count."
             }
         };
@@ -113,8 +149,9 @@ namespace Deadlight.Core
             }
             else if (state == GameState.NightPhase)
             {
-                int night = GameManager.Instance?.CurrentNight ?? 1;
-                ShowMessage($"LEVEL {night} - SURVIVE!", 3f);
+                int level = GameManager.Instance?.CurrentLevel ?? 1;
+                int nwl = GameManager.Instance?.NightWithinLevel ?? 1;
+                ShowMessage($"LEVEL {level}, NIGHT {nwl} - SURVIVE!", 3f);
             }
         }
 
@@ -131,10 +168,6 @@ namespace Deadlight.Core
                     yield return new WaitForSeconds(3f);
                 }
             }
-
-            yield return new WaitForSeconds(8f);
-            string tip = dayTips[Random.Range(0, dayTips.Length)];
-            yield return ShowTransmission(tip, 3.5f);
         }
 
         private IEnumerator ShowTransmission(string text, float duration)
@@ -251,15 +284,24 @@ namespace Deadlight.Core
 
         public void ShowNightWarning(int night)
         {
-            string[] warnings = {
-                "SUNSET. THE INFECTED ARE WAKING.",
-                "DARKNESS APPROACHES. RUNNERS DETECTED.",
-                "NIGHT FALLS. NEW MUTATIONS INBOUND.",
-                "FINAL NIGHT. SUBJECT 23 IS NEAR."
-            };
+            int level = GameManager.GetLevelForNight(night);
+            int nwl = GameManager.GetNightWithinLevel(night);
+            bool isLevelFinal = GameManager.IsLastNightOfLevel(night);
+            bool isGameFinal = night >= GameManager.TotalLevels * GameManager.NightsPerLevel;
 
-            int index = Mathf.Clamp(night - 1, 0, warnings.Length - 1);
-            StartCoroutine(ShowWarningTransmission(warnings[index]));
+            string warning;
+            if (isGameFinal)
+                warning = "FINAL NIGHT. SUBJECT 23 IS NEAR.";
+            else if (isLevelFinal)
+                warning = $"LAST NIGHT OF LEVEL {level}. SURVIVE TO ADVANCE.";
+            else if (level >= 3)
+                warning = "NIGHT FALLS. NEW MUTATIONS INBOUND.";
+            else if (nwl >= 2)
+                warning = "DARKNESS APPROACHES. RUNNERS DETECTED.";
+            else
+                warning = "SUNSET. THE INFECTED ARE WAKING.";
+
+            StartCoroutine(ShowWarningTransmission(warning));
         }
 
         private IEnumerator ShowWarningTransmission(string text)

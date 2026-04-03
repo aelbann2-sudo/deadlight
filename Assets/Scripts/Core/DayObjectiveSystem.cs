@@ -70,11 +70,6 @@ namespace Deadlight.Core
 
         public DayObjective GenerateObjective(int night, int seed)
         {
-            activeObjective = GetFixedObjectiveForNight(night);
-
-            ActiveNightBuffMultiplier = 1f;
-            OnObjectiveGenerated?.Invoke(activeObjective);
-            OnObjectiveUpdated?.Invoke(activeObjective);
             return activeObjective;
         }
 
@@ -209,11 +204,6 @@ namespace Deadlight.Core
 
         private void HandleGameStateChanged(GameState state)
         {
-            if (state == GameState.DayPhase && activeObjective == null)
-            {
-                int night = GameManager.Instance?.CurrentNight ?? 1;
-                GenerateObjective(night, Time.frameCount + (night * 97));
-            }
         }
     }
 }

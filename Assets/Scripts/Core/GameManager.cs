@@ -19,6 +19,7 @@ namespace Deadlight.Core
         Transition,
         NightPhase,
         DawnPhase,
+        LevelComplete,
         GameOver,
         Victory
     }
@@ -52,8 +53,12 @@ namespace Deadlight.Core
         [SerializeField] private Difficulty currentDifficulty = Difficulty.Normal;
         [SerializeField] private MapType selectedMap = MapType.TownCenter;
         [SerializeField] private int currentNight = 1;
-        [SerializeField] private int maxNights = 4;
+        [SerializeField] private int maxNights = 12;
         [SerializeField] private bool isPaused;
+
+        public const int NightsPerLevel = 3;
+        public const int TotalLevels = 4;
+        private const string UnlockedLevelKey = "Deadlight_UnlockedLevel";
 
         [Header("Campaign Progression")]
         [SerializeField] private MapType[] campaignMapOrder =
@@ -68,8 +73,18 @@ namespace Deadlight.Core
         [SerializeField] private bool autoBootstrapGameScene = true;
         [SerializeField] private bool autoStartWhenGameSceneLoads = false;
         [SerializeField] private float dawnAutoAdvanceDelay = 2f;
-        [SerializeField] private float[] dayDurationsByNight = { 100f, 90f, 75f, 65f };
-        [SerializeField] private float[] nightDurationsByNight = { 50f, 70f, 100f, 140f };
+        [SerializeField] private float[] dayDurationsByNight = {
+            90f, 80f, 70f,
+            85f, 75f, 65f,
+            80f, 70f, 60f,
+            75f, 65f, 55f
+        };
+        [SerializeField] private float[] nightDurationsByNight = {
+            45f, 55f, 70f,
+            55f, 70f, 85f,
+            65f, 80f, 100f,
+            80f, 100f, 140f
+        };
 
         private const float DefaultFixedDeltaTime = 0.02f;
 
@@ -78,11 +93,18 @@ namespace Deadlight.Core
         public MapType SelectedMap => selectedMap;
         public int CurrentNight => currentNight;
         public int MaxNights => maxNights;
+        public int CurrentLevel => GetLevelForNight(currentNight);
+        public int NightWithinLevel => GetNightWithinLevel(currentNight);
         public DifficultySettings CurrentSettings => GetDifficultySettings();
         public bool IsPaused => isPaused;
         public bool IsGameplayState => IsGameplayStateValue(currentState);
         public bool ShouldSetupGameplayScene => startNewRunAfterGameSceneLoad || currentState != GameState.MainMenu || autoStartWhenGameSceneLoads;
         public float RunStartTime { get; private set; }
+
+        public static int GetLevelForNight(int night) => Mathf.Clamp((night - 1) / NightsPerLevel + 1, 1, TotalLevels);
+        public static int GetNightWithinLevel(int night) => ((night - 1) % NightsPerLevel) + 1;
+        public static int GetFirstNightOfLevel(int level) => (Mathf.Clamp(level, 1, TotalLevels) - 1) * NightsPerLevel + 1;
+        public static bool IsLastNightOfLevel(int night) => (night % NightsPerLevel) == 0 || night >= TotalLevels * NightsPerLevel;
 
         public event Action<GameState> OnGameStateChanged;
         public event Action<int> OnNightChanged;
@@ -344,7 +366,15 @@ namespace Deadlight.Core
         {
             if (currentNight >= maxNights)
             {
+                UnlockNextLevel();
                 ChangeState(GameState.Victory);
+                return;
+            }
+
+            if (IsLastNightOfLevel(currentNight))
+            {
+                UnlockNextLevel();
+                ChangeState(GameState.LevelComplete);
                 return;
             }
 
@@ -363,8 +393,23 @@ namespace Deadlight.Core
 
         public void AdvanceToNextNight()
         {
-            if (currentState == GameState.Victory || currentState == GameState.GameOver)
+            if (currentState == GameState.Victory || currentState == GameState.GameOver ||
+                currentState == GameState.LevelComplete)
             {
+                return;
+            }
+
+            currentNight = Mathf.Min(currentNight + 1, maxNights);
+            ApplyPhaseDurationsForNight(currentNight);
+            OnNightChanged?.Invoke(currentNight);
+            ChangeState(GameState.DayPhase);
+        }
+
+        public void StartNextLevel()
+        {
+            if (currentNight >= maxNights)
+            {
+                ChangeState(GameState.Victory);
                 return;
             }
 
@@ -435,7 +480,10 @@ namespace Deadlight.Core
         {
             EnsureCampaignMapOrder();
 
-            queuedStartNight = Mathf.Clamp(level, 1, maxNights);
+            int clamped = Mathf.Clamp(level, 1, TotalLevels);
+            if (!IsLevelUnlocked(clamped)) return;
+
+            queuedStartNight = GetFirstNightOfLevel(clamped);
             currentNight = queuedStartNight;
             selectedMap = GetCampaignMapForNight(currentNight);
             startNewRunAfterGameSceneLoad = true;
@@ -449,6 +497,27 @@ namespace Deadlight.Core
             SetPaused(false);
             ChangeState(GameState.MainMenu);
             SceneManager.LoadScene("Game");
+        }
+
+        public bool IsLevelUnlocked(int level)
+        {
+            if (level <= 1) return true;
+            int highest = PlayerPrefs.GetInt(UnlockedLevelKey, 1);
+            return level <= highest;
+        }
+
+        public int HighestUnlockedLevel => PlayerPrefs.GetInt(UnlockedLevelKey, 1);
+
+        private void UnlockNextLevel()
+        {
+            int completedLevel = CurrentLevel;
+            int next = Mathf.Min(completedLevel + 1, TotalLevels);
+            int current = PlayerPrefs.GetInt(UnlockedLevelKey, 1);
+            if (next > current)
+            {
+                PlayerPrefs.SetInt(UnlockedLevelKey, next);
+                PlayerPrefs.Save();
+            }
         }
 
         public void QuitGame()
@@ -501,6 +570,12 @@ namespace Deadlight.Core
             return state == GameState.DayPhase || state == GameState.NightPhase;
         }
 
+        public static bool IsActivePlayState(GameState state)
+        {
+            return state == GameState.DayPhase || state == GameState.NightPhase ||
+                   state == GameState.DawnPhase || state == GameState.LevelComplete;
+        }
+
         private void EnsureDifficultySettings()
         {
             if (easySettings == null)
@@ -521,9 +596,9 @@ namespace Deadlight.Core
 
         private void EnsureCampaignMapOrder()
         {
-            maxNights = 4;
+            maxNights = TotalLevels * NightsPerLevel;
 
-            if (campaignMapOrder != null && campaignMapOrder.Length >= maxNights)
+            if (campaignMapOrder != null && campaignMapOrder.Length >= TotalLevels)
             {
                 return;
             }
@@ -546,7 +621,8 @@ namespace Deadlight.Core
                 return MapType.TownCenter;
             }
 
-            int idx = Mathf.Clamp(night - 1, 0, campaignMapOrder.Length - 1);
+            int level = GetLevelForNight(night);
+            int idx = Mathf.Clamp(level - 1, 0, campaignMapOrder.Length - 1);
             return campaignMapOrder[idx];
         }
 

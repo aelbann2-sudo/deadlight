@@ -19,7 +19,7 @@ namespace Deadlight.Narrative
         
         [Header("Interaction")]
         [SerializeField] private bool requireInteraction = false;
-        [SerializeField] private KeyCode interactionKey = KeyCode.E;
+        [SerializeField] private KeyCode interactionKey = KeyCode.F;
         [SerializeField] private GameObject interactionPrompt;
         
         [Header("Visual")]

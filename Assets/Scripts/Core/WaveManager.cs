@@ -131,15 +131,14 @@ namespace Deadlight.Core
 
         public void EnsureRuntimeDefaults()
         {
-            if (nightConfigs == null || nightConfigs.Length == 0)
+            int totalNights = GameManager.TotalLevels * GameManager.NightsPerLevel;
+            if (nightConfigs == null || nightConfigs.Length < totalNights)
             {
-                nightConfigs = new[]
+                nightConfigs = new NightConfig[totalNights];
+                for (int i = 0; i < totalNights; i++)
                 {
-                    NightConfig.CreateNight1(),
-                    NightConfig.CreateNight2(),
-                    NightConfig.CreateNight3(),
-                    NightConfig.CreateNight4()
-                };
+                    nightConfigs[i] = NightConfig.CreateForNight(i + 1);
+                }
             }
 
             if (basicZombiePrefab == null)
@@ -197,16 +196,7 @@ namespace Deadlight.Core
 
         private NightConfig CreateDefaultNightConfig(int night)
         {
-            var config = ScriptableObject.CreateInstance<NightConfig>();
-            config.nightNumber = night;
-            config.waveCount = Mathf.Clamp(1 + night, 2, 5);
-            config.baseEnemyCount = 3 + (night * 2);
-            config.healthMultiplier = 1f + (night * 0.15f);
-            config.damageMultiplier = 1f + (night * 0.1f);
-            config.speedMultiplier = 1f + (night * 0.05f);
-            config.spawnInterval = Mathf.Max(1f, 2.5f - (night * 0.15f));
-            config.timeBetweenWaves = Mathf.Max(3f, 7f - night);
-            return config;
+            return NightConfig.CreateForNight(night);
         }
 
         public void StartNightWaves()
@@ -312,13 +302,16 @@ namespace Deadlight.Core
         private int GetNightEnemyCap()
         {
             int night = Mathf.Max(1, GameManager.Instance?.CurrentNight ?? 1);
-            return night switch
+            int level = GameManager.GetLevelForNight(night);
+            int nwl = GameManager.GetNightWithinLevel(night);
+            int baseCap = level switch
             {
-                1 => 8,
-                2 => 14,
-                3 => 22,
-                _ => 30
+                1 => 6,
+                2 => 12,
+                3 => 18,
+                _ => 24
             };
+            return baseCap + (nwl - 1) * 3;
         }
 
         private float GetDifficultyWaveMultiplier()
@@ -384,16 +377,18 @@ namespace Deadlight.Core
             }
 
             int nightNum = GameManager.Instance?.CurrentNight ?? 1;
-            int finalLevel = GameManager.Instance?.MaxNights ?? 4;
+            int maxNights = GameManager.Instance?.MaxNights ?? 12;
+            int level = GameManager.GetLevelForNight(nightNum);
+            bool isLastNight = GameManager.IsLastNightOfLevel(nightNum);
             bool isDaySkirmish = GameManager.Instance?.CurrentState == GameState.DayPhase;
             var spawnType = SelectSpawnType(nightNum, isDaySkirmish);
 
-            bool shouldSpawnMiniBoss = nightNum == 3 &&
+            bool shouldSpawnMiniBoss = level >= 2 && isLastNight &&
                                        currentWave >= (currentNightConfig?.waveCount ?? 3) &&
                                        !isDaySkirmish &&
                                        !miniBossSpawned;
 
-            bool shouldSpawnBoss = nightNum >= finalLevel &&
+            bool shouldSpawnBoss = nightNum >= maxNights &&
                                    spawnType == SpawnType.Tank &&
                                    currentWave >= (currentNightConfig?.waveCount ?? 3) &&
                                    !isDaySkirmish &&
@@ -484,37 +479,35 @@ namespace Deadlight.Core
         private SpawnType SelectSpawnType(int night, bool isDaySkirmish)
         {
             float roll = UnityEngine.Random.value;
+            int level = GameManager.GetLevelForNight(night);
 
             if (isDaySkirmish)
             {
-                if (night >= 3 && roll < 0.12f)
+                if (level >= 3 && roll < 0.12f)
                     return SpawnType.Runner;
                 return SpawnType.Basic;
             }
 
-            int finalLevel = GameManager.Instance?.MaxNights ?? 4;
+            int maxNights = GameManager.Instance?.MaxNights ?? 12;
 
-            // Level 4: force boss spawn (Tank) on final wave if not yet spawned
-            if (night >= finalLevel && currentWave >= (currentNightConfig?.waveCount ?? 3) && !bossSpawned)
+            if (night >= maxNights && currentWave >= (currentNightConfig?.waveCount ?? 3) && !bossSpawned)
             {
                 return SpawnType.Tank;
             }
 
-            // Level 1: basic zombies only
-            if (night <= 1)
+            if (level <= 1)
             {
+                if (GameManager.GetNightWithinLevel(night) >= 3 && roll < 0.15f) return SpawnType.Runner;
                 return SpawnType.Basic;
             }
 
-            // Level 2: basics + runners
-            if (night == 2)
+            if (level == 2)
             {
                 if (roll < 0.28f) return SpawnType.Runner;
                 return SpawnType.Basic;
             }
 
-            // Level 3: basics + runners + exploders + spitters
-            if (night == 3)
+            if (level == 3)
             {
                 if (roll < 0.12f) return SpawnType.Spitter;
                 if (roll < 0.28f) return SpawnType.Exploder;
@@ -522,7 +515,6 @@ namespace Deadlight.Core
                 return SpawnType.Basic;
             }
 
-            // Level 4+: all types including tanks
             if (roll < 0.08f) return SpawnType.Tank;
             if (roll < 0.18f) return SpawnType.Spitter;
             if (roll < 0.32f) return SpawnType.Exploder;

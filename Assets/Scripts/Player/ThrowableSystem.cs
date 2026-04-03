@@ -44,7 +44,7 @@ namespace Deadlight.Player
             {
                 ThrowProjectile(ThrowableType.Grenade);
             }
-            else if (Input.GetKeyDown(KeyCode.E) && molotovCount > 0)
+            else if (Input.GetKeyDown(KeyCode.G) && molotovCount > 0)
             {
                 ThrowProjectile(ThrowableType.Molotov);
             }

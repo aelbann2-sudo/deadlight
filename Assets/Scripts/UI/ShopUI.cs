@@ -97,7 +97,7 @@ namespace Deadlight.UI
 
         private void PopulateWeaponsForLevel()
         {
-            int night = GameManager.Instance != null ? GameManager.Instance.CurrentNight : 1;
+            int night = GameManager.Instance != null ? GameManager.Instance.CurrentLevel : 1;
             weaponItems.Clear();
 
             weaponItems.Add(new ShopItem
@@ -191,7 +191,7 @@ namespace Deadlight.UI
         private void UpdateStatistics()
         {
             if (GameManager.Instance != null && nightSurvivedText != null)
-                nightSurvivedText.text = $"Level {GameManager.Instance.CurrentNight} Cleared!";
+                nightSurvivedText.text = $"Level {GameManager.Instance.CurrentLevel}, Night {GameManager.Instance.NightWithinLevel} Cleared!";
 
             if (PointsSystem.Instance != null)
             {
@@ -330,10 +330,15 @@ namespace Deadlight.UI
         {
             if (nextNightPreviewText != null && GameManager.Instance != null)
             {
-                int nextNight = GameManager.Instance.CurrentNight + 1;
-                if (nextNight <= GameManager.Instance.MaxNights)
+                int curLevel = GameManager.Instance.CurrentLevel;
+                int curNwl = GameManager.Instance.NightWithinLevel;
+                bool lastNightOfLevel = GameManager.IsLastNightOfLevel(GameManager.Instance.CurrentNight);
+                if (GameManager.Instance.CurrentNight < GameManager.Instance.MaxNights)
                 {
-                    nextNightPreviewText.text = $"Next: Level {nextNight}\nEnemies will be stronger!";
+                    if (lastNightOfLevel)
+                        nextNightPreviewText.text = $"Level {curLevel} complete!\nNext level awaits.";
+                    else
+                        nextNightPreviewText.text = $"Next: Night {curNwl + 1}\nEnemies will be stronger!";
                 }
                 else
                 {
