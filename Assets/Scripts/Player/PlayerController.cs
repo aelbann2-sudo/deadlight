@@ -68,7 +68,6 @@ namespace Deadlight.Player
             }
 
             InitFootstepAudio();
-            ApplyDifficultyModifiers();
         }
 
         private void InitFootstepAudio()
@@ -85,14 +84,6 @@ namespace Deadlight.Player
                     footstepClips[i] = Audio.ProceduralAudioGenerator.GenerateFootstep(i);
             }
             catch (System.Exception) { footstepClips = null; }
-        }
-
-        private void ApplyDifficultyModifiers()
-        {
-            if (GameManager.Instance?.CurrentSettings != null)
-            {
-                var settings = GameManager.Instance.CurrentSettings;
-            }
         }
 
         private void Update()

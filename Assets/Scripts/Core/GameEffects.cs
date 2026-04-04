@@ -94,42 +94,35 @@ namespace Deadlight.Core
 
         public void SpawnMuzzleFlash(Vector3 position, Quaternion rotation, float scale = 0.4f, Color? tint = null)
         {
-            var flash = new GameObject("MuzzleFlash");
-            flash.transform.position = position;
-            flash.transform.rotation = rotation;
-
-            var sr = flash.AddComponent<SpriteRenderer>();
-            sr.sprite = CreateFlashSprite();
-            sr.sortingOrder = 15;
-            sr.color = tint ?? new Color(1f, 0.9f, 0.5f, 0.9f);
-            flash.transform.localScale = Vector3.one * Mathf.Max(0.15f, scale);
-
-            Destroy(flash, 0.05f);
+            Vector3 direction = rotation * Vector3.up;
+            if (Visuals.VFXManager.Instance != null)
+            {
+                Visuals.VFXManager.Instance.PlayMuzzleFlash(position, direction.normalized);
+            }
         }
 
         public void SpawnHitEffect(Vector3 position, bool heavyHit = false)
         {
-            int particles = heavyHit ? 7 : 4;
-            for (int i = 0; i < particles; i++)
+            SpawnBulletImpact(position, Vector3.up, true, heavyHit);
+        }
+
+        public void SpawnBulletImpact(Vector3 position, Vector3 normal, bool hitEnemy, bool heavyHit = false)
+        {
+            if (Visuals.VFXManager.Instance != null)
             {
-                var particle = new GameObject("HitParticle");
-                particle.transform.position = position;
+                Vector3 safeNormal = normal.sqrMagnitude > 0.001f ? normal.normalized : Vector3.up;
+                Visuals.VFXManager.Instance.PlayBulletImpact(position, safeNormal, hitEnemy);
 
-                var sr = particle.AddComponent<SpriteRenderer>();
-                sr.sprite = CreateSmallSquareSprite();
-                sr.sortingOrder = 14;
-                sr.color = heavyHit ? new Color(0.92f, 0.2f, 0.2f) : new Color(1f, 0.4f, 0.2f);
-                particle.transform.localScale = Vector3.one * (heavyHit ? 0.2f : 0.15f);
-
-                var rb = particle.AddComponent<Rigidbody2D>();
-                rb.gravityScale = 0.5f;
-                Vector2 dir = Random.insideUnitCircle.normalized;
-                rb.linearVelocity = dir * Random.Range(3f, 6f);
-
-                Destroy(particle, 0.3f);
+                if (heavyHit && hitEnemy)
+                {
+                    Visuals.VFXManager.Instance.PlayBloodSplatter(position, safeNormal);
+                }
             }
 
-            OnHitConfirmed?.Invoke();
+            if (hitEnemy)
+            {
+                OnHitConfirmed?.Invoke();
+            }
         }
 
         public void TriggerHitStop(float duration = 0.04f)
@@ -204,29 +197,6 @@ namespace Deadlight.Core
             hitStopRoutine = null;
         }
 
-        private Sprite CreateFlashSprite()
-        {
-            int size = 16;
-            var texture = new Texture2D(size, size);
-            var pixels = new Color[size * size];
-            Vector2 center = new Vector2(size / 2f, size / 2f);
-            float radius = size / 2f;
-
-            for (int y = 0; y < size; y++)
-            {
-                for (int x = 0; x < size; x++)
-                {
-                    float dist = Vector2.Distance(new Vector2(x, y), center) / radius;
-                    float alpha = Mathf.Max(0, 1f - dist * dist);
-                    pixels[y * size + x] = new Color(1f, 1f, 1f, alpha);
-                }
-            }
-
-            texture.SetPixels(pixels);
-            texture.Apply();
-            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
-        }
-
         private Sprite CreateSmallSquareSprite()
         {
             var texture = new Texture2D(4, 4);
@@ -257,7 +227,7 @@ namespace Deadlight.Core
             damageFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             if (damageFont == null)
             {
-                damageFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                damageFont = Font.CreateDynamicFontFromOSFont("Arial", 16);
             }
         }
 

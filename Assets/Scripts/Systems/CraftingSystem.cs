@@ -595,7 +595,7 @@ namespace Deadlight.Systems
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             if (font == null)
             {
-                font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                font = Font.CreateDynamicFontFromOSFont("Arial", 16);
             }
 
             var textObj = new GameObject("PanelText");

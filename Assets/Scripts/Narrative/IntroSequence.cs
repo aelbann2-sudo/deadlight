@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using Deadlight.Core;
+using Deadlight.UI;
 
 namespace Deadlight.Narrative
 {
@@ -123,8 +124,6 @@ namespace Deadlight.Narrative
         private void LoadFont()
         {
             font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (font == null)
-                font = Resources.GetBuiltinResource<Font>("Arial.ttf");
             if (font == null)
                 font = Font.CreateDynamicFontFromOSFont("Arial", 14);
             if (font == null)
@@ -340,6 +339,14 @@ namespace Deadlight.Narrative
                 {
                     GameManager.Instance.ChangeState(GameState.DayPhase);
                 }
+                else
+                {
+                    GameUI.Instance?.RefreshForCurrentState();
+                }
+            }
+            else
+            {
+                GameUI.Instance?.RefreshForCurrentState();
             }
 
             Debug.Log("[IntroSequence] Intro complete, showing main menu.");

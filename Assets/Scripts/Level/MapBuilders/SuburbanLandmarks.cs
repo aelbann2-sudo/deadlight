@@ -29,15 +29,7 @@ namespace Deadlight.Level.MapBuilders
 
             var booth = CreateSpriteObject(checkpoint, "GuardBooth", CreateGuardBoothSprite(), new Vector3(-2.3f, 0.3f, 0f), 5);
             var boothCollider = booth.AddComponent<BoxCollider2D>();
-            MapFootprintCollider.ApplyBaseFootprint(boothCollider, new Vector2(1.4f, 1.7f), 0.88f, 0.42f, 0.03f, 0.36f);
-
-            var baseBarrier = CreateSpriteObject(checkpoint, "BarrierBase", CreateBarrierBaseSprite(), new Vector3(0.2f, 1.1f, 0f), 5);
-            var baseCollider = baseBarrier.AddComponent<BoxCollider2D>();
-            baseCollider.size = new Vector2(2.1f, 0.45f);
-
-            var barricade = CreateSpriteObject(checkpoint, "Barricade", CreateBarricadeSprite(), new Vector3(0.2f, 1.85f, 0f), 6);
-            var barricadeCollider = barricade.AddComponent<BoxCollider2D>();
-            barricadeCollider.size = new Vector2(2f, 0.2f);
+            MapFootprintCollider.ApplySpriteFootprint(boothCollider, booth.GetComponent<SpriteRenderer>().sprite, booth.transform.localScale, 0.9f, 0.88f);
 
             var sign = CreateSpriteObject(checkpoint, "CheckpointPost", CreateCheckpointSignSprite(), new Vector3(2.35f, -0.1f, 0f), 5);
             sign.transform.localScale = new Vector3(0.9f, 0.9f, 1f);
@@ -45,9 +37,7 @@ namespace Deadlight.Level.MapBuilders
             var ammo = CreateSpriteObject(checkpoint, "AmmoCase", ProceduralSpriteGenerator.CreateCrateSprite(), new Vector3(-2.5f, -1.1f, 0f), 4);
             ammo.GetComponent<SpriteRenderer>().color = new Color(0.38f, 0.48f, 0.3f);
 
-            var flood = CreateSpriteObject(checkpoint, "CheckpointLight", CreateStreetlightSprite(), new Vector3(2.6f, 0.7f, 0f), 4);
-            var floodCollider = flood.AddComponent<CircleCollider2D>();
-            floodCollider.radius = 0.15f;
+            CreateSpriteObject(checkpoint, "CheckpointLight", CreateStreetlightSprite(), new Vector3(2.6f, 0.7f, 0f), 4);
         }
 
         private static void CreateGasStation(Transform parent, Vector3 position)
@@ -62,7 +52,7 @@ namespace Deadlight.Level.MapBuilders
 
             var store = CreateSpriteObject(station, "Store", CreateGasStoreSprite(), new Vector3(2f, 0.1f, 0f), 5);
             var storeCollider = store.AddComponent<BoxCollider2D>();
-            MapFootprintCollider.ApplyBaseFootprint(storeCollider, new Vector2(2.3f, 1.7f), 0.9f, 0.42f, 0.03f, 0.45f);
+            MapFootprintCollider.ApplySpriteFootprint(storeCollider, store.GetComponent<SpriteRenderer>().sprite, store.transform.localScale, 0.9f, 0.88f);
 
             var pumpA = CreateSpriteObject(station, "FuelPump", CreateFuelPumpSprite(), new Vector3(-2f, -1f, 0f), 5);
             var pumpACol = pumpA.AddComponent<BoxCollider2D>();
@@ -100,11 +90,9 @@ namespace Deadlight.Level.MapBuilders
 
             var building = CreateSpriteObject(school, "SchoolBuilding", CreateSchoolSprite(), new Vector3(0f, 0f, 0f), 5);
             var buildingCollider = building.AddComponent<BoxCollider2D>();
-            MapFootprintCollider.ApplyBaseFootprint(buildingCollider, new Vector2(4.5f, 2.4f), 0.9f, 0.42f, 0.04f, 0.68f);
+            MapFootprintCollider.ApplySpriteFootprint(buildingCollider, building.GetComponent<SpriteRenderer>().sprite, building.transform.localScale, 0.92f, 0.9f);
 
             var sign = CreateSpriteObject(school, "SchoolSign", CreateSchoolSignSprite(), new Vector3(-2.7f, -1.2f, 0f), 6);
-            var signCollider = sign.AddComponent<BoxCollider2D>();
-            signCollider.size = new Vector2(0.6f, 0.9f);
 
             var court = CreateSpriteObject(school, "BasketballCourt", CreateCourtSprite(), new Vector3(2.2f, -0.9f, 0f), 4);
             court.transform.localScale = new Vector3(0.9f, 0.9f, 1f);
@@ -122,11 +110,9 @@ namespace Deadlight.Level.MapBuilders
 
             var building = CreateSpriteObject(hospital, "ClinicBuilding", CreateHospitalSprite(), new Vector3(0f, 0f, 0f), 5);
             var buildingCollider = building.AddComponent<BoxCollider2D>();
-            MapFootprintCollider.ApplyBaseFootprint(buildingCollider, new Vector2(4.8f, 2.5f), 0.9f, 0.42f, 0.04f, 0.72f);
+            MapFootprintCollider.ApplySpriteFootprint(buildingCollider, building.GetComponent<SpriteRenderer>().sprite, building.transform.localScale, 0.92f, 0.9f);
 
             var sign = CreateSpriteObject(hospital, "HospitalSign", CreateHospitalSignSprite(), new Vector3(2.9f, -1.1f, 0f), 6);
-            var signCollider = sign.AddComponent<BoxCollider2D>();
-            signCollider.size = new Vector2(0.7f, 1f);
 
             var ambulance = CreateSpriteObject(hospital, "Ambulance", CreateAmbulanceSprite(), new Vector3(-2.3f, -1.2f, 0f), 5);
             ambulance.transform.rotation = Quaternion.Euler(0f, 0f, 4f);
@@ -186,9 +172,7 @@ namespace Deadlight.Level.MapBuilders
                 light.SetParent(lights);
                 light.position = pos;
 
-                var pole = CreateSpriteObject(light, "Pole", CreateStreetlightSprite(), Vector3.zero, Mathf.RoundToInt(-pos.y) + 8);
-                var poleCollider = pole.AddComponent<CircleCollider2D>();
-                poleCollider.radius = 0.15f;
+                CreateSpriteObject(light, "Pole", CreateStreetlightSprite(), Vector3.zero, 8);
 
                 var glow = CreateSpriteObject(light, "LightGlow", CreateGlowSprite(new Color(1f, 0.92f, 0.65f, 0.25f)), new Vector3(0f, 1.1f, 0f), -100);
                 glow.transform.localScale = Vector3.one * 2.4f;
@@ -202,7 +186,7 @@ namespace Deadlight.Level.MapBuilders
             go.transform.localPosition = localPosition;
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = sprite;
-            sr.sortingOrder = sortingOrder;
+            sr.sortingOrder = LandmarkSpriteUtility.ResolveSortingOrder(parent, localPosition, sortingOrder);
             return go;
         }
 
@@ -220,35 +204,6 @@ namespace Deadlight.Level.MapBuilders
             FillRect(px, w, 0, 18, 24, 4, roof);
             FillRect(px, w, 5, 7, 6, 6, window);
             FillRect(px, w, 13, 7, 6, 6, window);
-            return CreateSprite(tex, px);
-        }
-
-        private static Sprite CreateBarrierBaseSprite()
-        {
-            const int w = 36;
-            const int h = 12;
-            var tex = new Texture2D(w, h);
-            var px = new Color[w * h];
-            FillRect(px, w, 2, 2, 32, 5, new Color(0.12f, 0.14f, 0.18f));
-            FillRect(px, w, 6, 7, 4, 3, new Color(0.32f, 0.36f, 0.42f));
-            FillRect(px, w, 26, 7, 4, 3, new Color(0.32f, 0.36f, 0.42f));
-            return CreateSprite(tex, px);
-        }
-
-        private static Sprite CreateBarricadeSprite()
-        {
-            const int w = 40;
-            const int h = 12;
-            var tex = new Texture2D(w, h);
-            var px = new Color[w * h];
-            Color orange = new Color(0.92f, 0.42f, 0.16f);
-
-            FillRect(px, w, 3, 4, 34, 4, Color.white);
-            FillRect(px, w, 7, 4, 6, 4, orange);
-            FillRect(px, w, 19, 4, 6, 4, orange);
-            FillRect(px, w, 31, 4, 6, 4, orange);
-            FillRect(px, w, 6, 0, 2, 4, new Color(0.25f, 0.25f, 0.3f));
-            FillRect(px, w, 30, 0, 2, 4, new Color(0.25f, 0.25f, 0.3f));
             return CreateSprite(tex, px);
         }
 

@@ -52,6 +52,13 @@ namespace Deadlight.Level.MapBuilders
             CreateRect(-33f, -14f, 6f, 14f),
             CreateRect(33f, -12f, 6f, 12f),
             CreateRect(31f, -31f, 8f, 8f),
+            CreateRect(-33f, -30f, 6f, 8f),
+            CreateRect(-33f, 10f, 5f, 8f),
+            CreateRect(33f, 10f, 5f, 8f),
+            CreateRect(14f, -31f, 8f, 6f),
+            CreateRect(-14f, -31f, 8f, 6f),
+            CreateRect(-33f, 33f, 6f, 6f),
+            CreateRect(33f, 33f, 6f, 6f),
         };
 
         private const float MainRoadHalfWidth = 2.4f;

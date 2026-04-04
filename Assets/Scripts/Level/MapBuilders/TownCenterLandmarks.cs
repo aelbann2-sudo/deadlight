@@ -81,14 +81,6 @@ namespace Deadlight.Level.MapBuilders
             checkpoint.SetParent(parent);
             checkpoint.position = position;
 
-            var barrierBase = CreateSpriteObject(checkpoint, "BarrierBase", CreateCheckpointBarrierBaseSprite(), new Vector3(0.2f, 1.1f, 0f), 4);
-            var barrierBaseCol = barrierBase.AddComponent<BoxCollider2D>();
-            barrierBaseCol.size = new Vector2(2.2f, 0.45f);
-
-            var barricade = CreateSpriteObject(checkpoint, "Barricade", CreateBarricadeSprite(), new Vector3(0.2f, 1.85f, 0f), 5);
-            var barricadeCol = barricade.AddComponent<BoxCollider2D>();
-            barricadeCol.size = new Vector2(2.1f, 0.25f);
-
             var searchlight = new GameObject("Searchlight");
             searchlight.transform.SetParent(checkpoint);
             searchlight.transform.localPosition = new Vector3(1.8f, 0.7f, 0f);
@@ -124,7 +116,7 @@ namespace Deadlight.Level.MapBuilders
 
             var building = CreateSpriteObject(diner, "Building", CreateDinerSprite(), Vector3.zero, 5);
             var buildingCollider = building.AddComponent<BoxCollider2D>();
-            MapFootprintCollider.ApplyCenteredFootprint(buildingCollider, new Vector2(3f, 2f), 0.9f, 0.42f, 0.03f, 0.55f);
+            MapFootprintCollider.ApplySpriteFootprint(buildingCollider, building.GetComponent<SpriteRenderer>().sprite, building.transform.localScale, 0.92f, 0.9f);
 
             var sign = CreateSpriteObject(diner, "NeonSign", CreateDinerSignSprite(), new Vector3(0f, 1.2f, 0f), 6);
             sign.AddComponent<FlickeringLight>();
@@ -138,7 +130,7 @@ namespace Deadlight.Level.MapBuilders
 
             var building = CreateSpriteObject(school, "Building", CreateSchoolSprite(), Vector3.zero, 5);
             var buildingCollider = building.AddComponent<BoxCollider2D>();
-            MapFootprintCollider.ApplyBaseFootprint(buildingCollider, new Vector2(4.8f, 2.6f), 0.9f, 0.42f, 0.04f, 0.72f);
+            MapFootprintCollider.ApplySpriteFootprint(buildingCollider, building.GetComponent<SpriteRenderer>().sprite, building.transform.localScale, 0.92f, 0.9f);
 
             var bus = CreateSpriteObject(school, "SchoolBus", CreateSchoolBusSprite(), new Vector3(-2.2f, -1.1f, 0f), 4);
             bus.transform.localScale = new Vector3(0.6f, 0.6f, 1f);
@@ -154,7 +146,7 @@ namespace Deadlight.Level.MapBuilders
 
             var building = CreateSpriteObject(hospital, "Building", CreateHospitalSprite(), Vector3.zero, 5);
             var buildingCollider = building.AddComponent<BoxCollider2D>();
-            MapFootprintCollider.ApplyBaseFootprint(buildingCollider, new Vector2(5.2f, 2.7f), 0.9f, 0.42f, 0.04f, 0.76f);
+            MapFootprintCollider.ApplySpriteFootprint(buildingCollider, building.GetComponent<SpriteRenderer>().sprite, building.transform.localScale, 0.92f, 0.9f);
 
             CreateSpriteObject(hospital, "Ambulance", CreateAmbulanceSprite(), new Vector3(-2.2f, -1.1f, 0f), 4);
             CreateSpriteObject(hospital, "EmergencySign", CreateHospitalSignSprite(), new Vector3(2.5f, -1f, 0f), 5);
@@ -171,9 +163,7 @@ namespace Deadlight.Level.MapBuilders
                 light.SetParent(lightsParent);
                 light.position = pos;
 
-                var pole = CreateSpriteObject(light, "Pole", CreateStreetlightSprite(), Vector3.zero, Mathf.RoundToInt(-pos.y) + 10);
-                var poleCollider = pole.AddComponent<CircleCollider2D>();
-                poleCollider.radius = 0.15f;
+                CreateSpriteObject(light, "Pole", CreateStreetlightSprite(), Vector3.zero, 10);
 
                 var glow = CreateSpriteObject(light, "LightGlow", CreateGlowSprite(new Color(1f, 0.9f, 0.6f, 0.25f)), new Vector3(0f, 1.2f, 0f), -100);
                 glow.transform.localScale = Vector3.one * 3f;
@@ -191,7 +181,7 @@ namespace Deadlight.Level.MapBuilders
             go.transform.localPosition = localPosition;
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = sprite;
-            sr.sortingOrder = sortingOrder;
+            sr.sortingOrder = LandmarkSpriteUtility.ResolveSortingOrder(parent, localPosition, sortingOrder);
             return go;
         }
 
@@ -652,66 +642,6 @@ namespace Deadlight.Level.MapBuilders
             tex.Apply();
             tex.filterMode = FilterMode.Point;
             return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 16f);
-        }
-
-        private static Sprite CreateBarricadeSprite()
-        {
-            const int w = 48;
-            const int h = 16;
-            var tex = new Texture2D(w, h);
-            var pixels = new Color[w * h];
-            Color metal = new Color(0.22f, 0.24f, 0.26f);
-            Color stripeA = new Color(0.9f, 0.36f, 0.18f);
-            Color stripeB = new Color(0.92f, 0.92f, 0.9f);
-
-            for (int y = 6; y < 10; y++)
-            {
-                for (int x = 6; x < w - 6; x++)
-                {
-                    pixels[y * w + x] = ((x / 5) % 2 == 0) ? stripeA : stripeB;
-                }
-            }
-
-            for (int y = 0; y < 6; y++)
-            {
-                for (int x = 8; x < 12; x++)
-                {
-                    pixels[y * w + x] = metal;
-                }
-
-                for (int x = w - 12; x < w - 8; x++)
-                {
-                    pixels[y * w + x] = metal;
-                }
-            }
-
-            tex.SetPixels(pixels);
-            tex.Apply();
-            tex.filterMode = FilterMode.Point;
-            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 16f);
-        }
-
-        private static Sprite CreateCheckpointBarrierBaseSprite()
-        {
-            const int w = 40;
-            const int h = 10;
-            var tex = new Texture2D(w, h);
-            var pixels = new Color[w * h];
-            Color baseDark = new Color(0.1f, 0.1f, 0.12f);
-            Color baseLight = new Color(0.2f, 0.2f, 0.24f);
-
-            for (int y = 2; y < h - 1; y++)
-            {
-                for (int x = 2; x < w - 2; x++)
-                {
-                    pixels[y * w + x] = y < h - 3 ? baseDark : baseLight;
-                }
-            }
-
-            tex.SetPixels(pixels);
-            tex.Apply();
-            tex.filterMode = FilterMode.Point;
-            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.4f), 16f);
         }
 
         private static Sprite CreateCheckpointPostSprite()

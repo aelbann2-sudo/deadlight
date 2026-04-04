@@ -139,7 +139,9 @@ namespace Deadlight.Enemy
                     sr != null ? sr.color : Color.gray);
             }
 
-            var waveManager = FindFirstObjectByType<WaveManager>();
+            var waveManager = WaveManager.Instance != null
+                ? WaveManager.Instance
+                : FindFirstObjectByType<WaveManager>();
             if (waveManager != null)
                 waveManager.RegisterEnemyDeath();
 
@@ -222,9 +224,9 @@ namespace Deadlight.Enemy
             float dropRoll = UnityEngine.Random.value;
             float actualDropChance = dropChance;
 
-            if (GameManager.Instance?.CurrentSettings != null)
+            if (GameManager.Instance?.CurrentBalance != null)
             {
-                actualDropChance *= GameManager.Instance.CurrentSettings.resourceSpawnMultiplier;
+                actualDropChance *= GameManager.Instance.CurrentBalance.resourceSpawnMultiplier;
             }
 
             if (RunModifierSystem.Instance != null)

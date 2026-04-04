@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Deadlight.Core;
 
 namespace Deadlight.Systems
@@ -11,7 +12,7 @@ namespace Deadlight.Systems
         public int score;
         public int nightsReached;
         public int kills;
-        public string difficulty;
+        [FormerlySerializedAs("difficulty")] public string runMode;
         public string map;
         public float runTimeSeconds;
         public bool victory;
@@ -76,7 +77,7 @@ namespace Deadlight.Systems
             entry.runTimeSeconds = GameManager.Instance != null
                 ? Time.realtimeSinceStartup - GameManager.Instance.RunStartTime
                 : 0f;
-            entry.difficulty = "Campaign";
+            entry.runMode = "Campaign";
             entry.map = GameManager.Instance != null
                 ? GameManager.Instance.SelectedMap.ToString()
                 : "TownCenter";
@@ -151,13 +152,13 @@ namespace Deadlight.Systems
                     continue;
                 }
 
-                if (!string.Equals(entry.difficulty, "Campaign", StringComparison.Ordinal))
+                if (!string.Equals(entry.runMode, "Campaign", StringComparison.Ordinal))
                 {
-                    entry.difficulty = "Campaign";
+                    entry.runMode = "Campaign";
                     migrated = true;
                 }
 
-                int clamped = Mathf.Clamp(entry.nightsReached, 1, 4);
+                int clamped = Mathf.Clamp(entry.nightsReached, 1, GameManager.TotalLevels * GameManager.NightsPerLevel);
                 if (clamped != entry.nightsReached)
                 {
                     entry.nightsReached = clamped;

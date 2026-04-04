@@ -132,8 +132,6 @@ namespace Deadlight.Systems
 
         public void AddPoints(int amount, string source = "Unknown")
         {
-            // Keep spendable currency consistent across difficulties.
-            // Difficulty affects leaderboard score in GetFinalScore().
             int adjustedAmount = Mathf.Max(0, amount);
 
             currentPoints += adjustedAmount;
@@ -174,9 +172,9 @@ namespace Deadlight.Systems
 
         private float GetScoreMultiplier()
         {
-            if (GameManager.Instance?.CurrentSettings != null)
+            if (GameManager.Instance?.CurrentBalance != null)
             {
-                return GameManager.Instance.CurrentSettings.scoreMultiplier;
+                return GameManager.Instance.CurrentBalance.scoreMultiplier;
             }
             return 1f;
         }
@@ -200,7 +198,7 @@ namespace Deadlight.Systems
                 enemiesKilled = enemiesKilled,
                 nightsSurvived = nightsSurvived,
                 finalScore = GetFinalScore(),
-                difficulty = Difficulty.Normal
+                currentLevel = GameManager.Instance != null ? GameManager.Instance.CurrentLevel : 1
             };
         }
 
@@ -314,6 +312,6 @@ namespace Deadlight.Systems
         public int enemiesKilled;
         public int nightsSurvived;
         public int finalScore;
-        public Difficulty difficulty;
+        public int currentLevel;
     }
 }

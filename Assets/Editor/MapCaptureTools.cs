@@ -77,6 +77,16 @@ namespace Deadlight.Editor
             new CaptureView("crane_yard", new Vector3(24f, -22.5f, -10f), 4f, 1600, 900),
         };
 
+        private static readonly CaptureView[] ResearchViews =
+        {
+            new CaptureView("overview", new Vector3(0f, 0f, -10f), 39f, 2400, 2400),
+            new CaptureView("main_lab", new Vector3(0f, -24f, -10f), 5f, 1600, 900),
+            new CaptureView("quarantine_gate", new Vector3(0f, 26f, -10f), 5f, 1600, 900),
+            new CaptureView("data_vault", new Vector3(24f, 0f, -10f), 5f, 1600, 900),
+            new CaptureView("bio_containment", new Vector3(-24f, 0f, -10f), 5f, 1600, 900),
+            new CaptureView("reactor_yard", new Vector3(0f, 8f, -10f), 5f, 1600, 900),
+        };
+
         [MenuItem("Deadlight/Capture Maps/TownCenter")]
         public static void CaptureTownCenterMenu()
         {
@@ -128,6 +138,26 @@ namespace Deadlight.Editor
             try
             {
                 CaptureIndustrialMenu();
+                EditorApplication.Exit(0);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogException(ex);
+                EditorApplication.Exit(1);
+            }
+        }
+
+        [MenuItem("Deadlight/Capture Maps/Research")]
+        public static void CaptureResearchMenu()
+        {
+            CaptureMap(MapType.Research, "Research", ResearchViews);
+        }
+
+        public static void CaptureResearchBatch()
+        {
+            try
+            {
+                CaptureResearchMenu();
                 EditorApplication.Exit(0);
             }
             catch (System.Exception ex)
@@ -227,6 +257,7 @@ namespace Deadlight.Editor
             return mapType switch
             {
                 MapType.Industrial => new IndustrialBuilder(),
+                MapType.Research => new ResearchBuilder(),
                 MapType.Suburban => new SuburbanBuilder(),
                 _ => new TownCenterBuilder()
             };
@@ -254,6 +285,7 @@ namespace Deadlight.Editor
             {
                 MapType.TownCenter => GetTileTypeTownCenter(config, x, y),
                 MapType.Industrial => GetTileTypeIndustrial(config, x, y),
+                MapType.Research => GetTileTypeResearch(config, x, y),
                 MapType.Suburban => GetTileTypeSuburban(config, x, y),
                 _ => GetTileTypeTownCenter(config, x, y)
             };
@@ -272,6 +304,11 @@ namespace Deadlight.Editor
         private static int GetTileTypeSuburban(MapConfig config, int x, int y)
         {
             return SuburbanLayout.GetTileType(config, x, y);
+        }
+
+        private static int GetTileTypeResearch(MapConfig config, int x, int y)
+        {
+            return ResearchLayout.GetTileType(config, x, y);
         }
 
         private static void CaptureToPng(string outputDir, CaptureView view)

@@ -255,7 +255,7 @@ namespace Deadlight.Level.MapBuilders
             sr.sortingOrder = Mathf.RoundToInt(-pos.y);
 
             var col = house.AddComponent<BoxCollider2D>();
-            MapFootprintCollider.ApplyBaseFootprint(col, new Vector2(2.2f, 1.7f), 0.88f, 0.42f);
+            MapFootprintCollider.ApplySpriteFootprint(col, sr.sprite, house.transform.localScale, 0.9f, 0.92f);
         }
 
         private void SpawnGarage(Transform parent, Vector3 pos, int variant)
@@ -269,7 +269,7 @@ namespace Deadlight.Level.MapBuilders
             sr.sortingOrder = Mathf.RoundToInt(-pos.y);
 
             var col = garage.AddComponent<BoxCollider2D>();
-            MapFootprintCollider.ApplyBaseFootprint(col, new Vector2(1.5f, 1.1f), 0.9f, 0.42f, 0.03f, 0.32f);
+            MapFootprintCollider.ApplySpriteFootprint(col, sr.sprite, garage.transform.localScale, 0.9f, 0.9f);
         }
 
         private void SpawnBackFence(Transform parent, SuburbanLayout.DetachedLot lot)

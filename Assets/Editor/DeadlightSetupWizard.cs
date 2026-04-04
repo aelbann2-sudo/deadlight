@@ -341,7 +341,7 @@ namespace Deadlight.Editor
 
         public static void CreateAllScriptableObjects()
         {
-            CreateDifficultySettings();
+            CreateCampaignBalanceProfile();
             CreateWeaponData();
             CreateEnemyData();
             CreateNightConfigs();
@@ -349,16 +349,11 @@ namespace Deadlight.Editor
             Debug.Log("[DeadlightSetup] ScriptableObjects created!");
         }
 
-        private static void CreateDifficultySettings()
+        private static void CreateCampaignBalanceProfile()
         {
-            EnsureDirectoryExists("Assets/ScriptableObjects/Difficulty");
-
-            CreateAssetIfNotExists("Assets/ScriptableObjects/Difficulty/EasySettings.asset",
-                Core.DifficultySettings.CreateEasySettings);
-            CreateAssetIfNotExists("Assets/ScriptableObjects/Difficulty/NormalSettings.asset",
-                Core.DifficultySettings.CreateNormalSettings);
-            CreateAssetIfNotExists("Assets/ScriptableObjects/Difficulty/HardSettings.asset",
-                Core.DifficultySettings.CreateHardSettings);
+            EnsureDirectoryExists("Assets/ScriptableObjects/Balancing");
+            CreateAssetIfNotExists("Assets/ScriptableObjects/Balancing/CampaignStandard.asset",
+                Core.CampaignBalanceProfile.CreateDefaultProfile);
         }
 
         private static void CreateWeaponData()

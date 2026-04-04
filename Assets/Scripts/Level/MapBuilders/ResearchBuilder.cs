@@ -11,8 +11,12 @@ namespace Deadlight.Level.MapBuilders
         {
             ReserveCoreLots();
             BuildMainStructures();
+            BuildBuildingSurroundings();
             BuildContainmentFences();
             BuildHazardChokepoints();
+            BuildPerimeterGuardPosts();
+            BuildCorridorEquipment();
+            BuildQuadrantFill();
             ScatterLabDebris();
         }
 
@@ -41,21 +45,76 @@ namespace Deadlight.Level.MapBuilders
             SpawnLabDoor(structures, ResearchLayout.MainLabPosition + new Vector3(2f, -2.5f, 0f));
         }
 
+        private void BuildBuildingSurroundings()
+        {
+            var surround = new GameObject("BuildingSurroundings").transform;
+            surround.SetParent(root);
+
+            var mainLab = ResearchLayout.MainLabPosition;
+            SpawnCrate(surround, mainLab + new Vector3(-5f, 0f, 0f));
+            SpawnCrate(surround, mainLab + new Vector3(5f, 0f, 0f));
+            SpawnBarrel(surround, mainLab + new Vector3(-5f, -2f, 0f), explosive: false);
+            SpawnBarrel(surround, mainLab + new Vector3(5f, -2f, 0f), explosive: false);
+            SpawnDumpster(surround, mainLab + new Vector3(-6f, 2f, 0f));
+            SpawnCar(surround, mainLab + new Vector3(6f, 2f, 0f), 0f);
+            SpawnCar(surround, mainLab + new Vector3(-6f, -3f, 0f), 90f);
+
+            var quarantine = ResearchLayout.QuarantineGatePosition;
+            SpawnCrate(surround, quarantine + new Vector3(-4f, -2f, 0f));
+            SpawnCrate(surround, quarantine + new Vector3(4f, -2f, 0f));
+            SpawnBarrel(surround, quarantine + new Vector3(-5f, 3f, 0f), explosive: true);
+            SpawnBarrel(surround, quarantine + new Vector3(5f, 3f, 0f), explosive: false);
+            SpawnDumpster(surround, quarantine + new Vector3(6f, -3f, 0f));
+            SpawnCar(surround, quarantine + new Vector3(-6f, -3f, 0f), 180f);
+
+            var dataVault = ResearchLayout.DataVaultPosition;
+            SpawnCrate(surround, dataVault + new Vector3(0f, 5f, 0f));
+            SpawnCrate(surround, dataVault + new Vector3(0f, -5f, 0f));
+            SpawnBarrel(surround, dataVault + new Vector3(-3f, 5f, 0f), explosive: false);
+            SpawnBarrel(surround, dataVault + new Vector3(3f, -5f, 0f), explosive: false);
+            SpawnDumpster(surround, dataVault + new Vector3(-3f, -5f, 0f));
+            SpawnCar(surround, dataVault + new Vector3(3f, 4f, 0f), 90f);
+
+            var bio = ResearchLayout.BioContainmentPosition;
+            SpawnCrate(surround, bio + new Vector3(0f, 5f, 0f));
+            SpawnCrate(surround, bio + new Vector3(0f, -5f, 0f));
+            SpawnBarrel(surround, bio + new Vector3(3f, 5f, 0f), explosive: true);
+            SpawnBarrel(surround, bio + new Vector3(-3f, -5f, 0f), explosive: false);
+            SpawnDumpster(surround, bio + new Vector3(3f, -5f, 0f));
+            SpawnCar(surround, bio + new Vector3(-3f, 4f, 0f), 90f);
+
+            var reactor = ResearchLayout.ReactorYardPosition;
+            SpawnCrate(surround, reactor + new Vector3(-4f, -3f, 0f));
+            SpawnCrate(surround, reactor + new Vector3(4f, 3f, 0f));
+            SpawnBarrel(surround, reactor + new Vector3(-4f, 3f, 0f), explosive: true);
+            SpawnBarrel(surround, reactor + new Vector3(4f, -3f, 0f), explosive: false);
+            SpawnDumpster(surround, reactor + new Vector3(5f, 0f, 0f));
+        }
+
         private void BuildContainmentFences()
         {
             var fences = new GameObject("ContainmentFences").transform;
             fences.SetParent(root);
             Color fenceColor = new Color(0.55f, 0.63f, 0.7f);
+            Vector3 quarantine = ResearchLayout.QuarantineGatePosition;
+            SpawnFence(fences, quarantine + new Vector3(-8.2f, -1.8f, 0f), quarantine + new Vector3(-5.4f, -1.8f, 0f), fenceColor);
+            SpawnFence(fences, quarantine + new Vector3(5.4f, -1.8f, 0f), quarantine + new Vector3(8.2f, -1.8f, 0f), fenceColor);
+            SpawnFence(fences, quarantine + new Vector3(-8.2f, -1.8f, 0f), quarantine + new Vector3(-8.2f, 4.6f, 0f), fenceColor);
+            SpawnFence(fences, quarantine + new Vector3(8.2f, -1.8f, 0f), quarantine + new Vector3(8.2f, 4.6f, 0f), fenceColor);
+            SpawnFence(fences, quarantine + new Vector3(-8.2f, 4.6f, 0f), quarantine + new Vector3(-5.8f, 4.6f, 0f), fenceColor);
+            SpawnFence(fences, quarantine + new Vector3(5.8f, 4.6f, 0f), quarantine + new Vector3(8.2f, 4.6f, 0f), fenceColor);
 
-            SpawnFence(fences, new Vector3(-30f, 12f, 0f), new Vector3(-9f, 12f, 0f), fenceColor);
-            SpawnFence(fences, new Vector3(9f, 12f, 0f), new Vector3(30f, 12f, 0f), fenceColor);
-            SpawnFence(fences, new Vector3(-30f, -12f, 0f), new Vector3(-9f, -12f, 0f), fenceColor);
-            SpawnFence(fences, new Vector3(9f, -12f, 0f), new Vector3(30f, -12f, 0f), fenceColor);
+            Vector3 reactor = ResearchLayout.ReactorYardPosition;
+            SpawnFence(fences, reactor + new Vector3(-6.5f, 4.4f, 0f), reactor + new Vector3(-2.6f, 4.4f, 0f), fenceColor);
+            SpawnFence(fences, reactor + new Vector3(2.6f, 4.4f, 0f), reactor + new Vector3(6.5f, 4.4f, 0f), fenceColor);
 
-            SpawnFence(fences, new Vector3(-12f, 30f, 0f), new Vector3(-12f, 9f, 0f), fenceColor);
-            SpawnFence(fences, new Vector3(-12f, -9f, 0f), new Vector3(-12f, -30f, 0f), fenceColor);
-            SpawnFence(fences, new Vector3(12f, 30f, 0f), new Vector3(12f, 9f, 0f), fenceColor);
-            SpawnFence(fences, new Vector3(12f, -9f, 0f), new Vector3(12f, -30f, 0f), fenceColor);
+            Vector3 dataVault = ResearchLayout.DataVaultPosition;
+            SpawnFence(fences, dataVault + new Vector3(-6.5f, 7.4f, 0f), dataVault + new Vector3(-2.4f, 7.4f, 0f), fenceColor);
+            SpawnFence(fences, dataVault + new Vector3(-6.5f, -7.4f, 0f), dataVault + new Vector3(-2.4f, -7.4f, 0f), fenceColor);
+
+            Vector3 bioContainment = ResearchLayout.BioContainmentPosition;
+            SpawnFence(fences, bioContainment + new Vector3(2.4f, 7.4f, 0f), bioContainment + new Vector3(6.5f, 7.4f, 0f), fenceColor);
+            SpawnFence(fences, bioContainment + new Vector3(2.4f, -7.4f, 0f), bioContainment + new Vector3(6.5f, -7.4f, 0f), fenceColor);
         }
 
         private void BuildHazardChokepoints()
@@ -86,6 +145,101 @@ namespace Deadlight.Level.MapBuilders
             SpawnCrate(hazards, new Vector3(20f, -4f, 0f));
             SpawnDumpster(hazards, new Vector3(-24f, 12f, 0f));
             SpawnDumpster(hazards, new Vector3(24f, -12f, 0f));
+        }
+
+        private void BuildPerimeterGuardPosts()
+        {
+            var posts = new GameObject("GuardPosts").transform;
+            posts.SetParent(root);
+
+            SpawnGuardBooth(posts, new Vector3(-18f, 12f, 0f));
+            SpawnGuardBooth(posts, new Vector3(18f, 12f, 0f));
+            SpawnGuardBooth(posts, new Vector3(-18f, -12f, 0f));
+            SpawnGuardBooth(posts, new Vector3(18f, -12f, 0f));
+            SpawnGuardBooth(posts, new Vector3(-12f, 18f, 0f));
+            SpawnGuardBooth(posts, new Vector3(12f, -18f, 0f));
+
+            SpawnBarrel(posts, new Vector3(-16f, 12f, 0f), explosive: false);
+            SpawnBarrel(posts, new Vector3(16f, 12f, 0f), explosive: false);
+            SpawnBarrel(posts, new Vector3(-16f, -12f, 0f), explosive: false);
+            SpawnBarrel(posts, new Vector3(16f, -12f, 0f), explosive: false);
+        }
+
+        private void BuildCorridorEquipment()
+        {
+            var equipment = new GameObject("CorridorEquipment").transform;
+            equipment.SetParent(root);
+
+            SpawnCrate(equipment, new Vector3(-6f, 12f, 0f));
+            SpawnCrate(equipment, new Vector3(6f, 12f, 0f));
+            SpawnCrate(equipment, new Vector3(-6f, -12f, 0f));
+            SpawnCrate(equipment, new Vector3(6f, -12f, 0f));
+
+            SpawnCrate(equipment, new Vector3(-12f, 6f, 0f));
+            SpawnCrate(equipment, new Vector3(-12f, -6f, 0f));
+            SpawnCrate(equipment, new Vector3(12f, 6f, 0f));
+            SpawnCrate(equipment, new Vector3(12f, -6f, 0f));
+
+            SpawnDumpster(equipment, new Vector3(-8f, 18f, 0f));
+            SpawnDumpster(equipment, new Vector3(8f, 18f, 0f));
+            SpawnDumpster(equipment, new Vector3(-8f, -18f, 0f));
+            SpawnDumpster(equipment, new Vector3(8f, -18f, 0f));
+
+            SpawnBarrel(equipment, new Vector3(-12f, 15f, 0f), explosive: false);
+            SpawnBarrel(equipment, new Vector3(12f, 15f, 0f), explosive: false);
+            SpawnBarrel(equipment, new Vector3(-12f, -15f, 0f), explosive: false);
+            SpawnBarrel(equipment, new Vector3(12f, -15f, 0f), explosive: false);
+
+            SpawnBarrel(equipment, new Vector3(-15f, 0f, 0f), explosive: false);
+            SpawnBarrel(equipment, new Vector3(15f, 0f, 0f), explosive: false);
+            SpawnBarrel(equipment, new Vector3(0f, 15f, 0f), explosive: false);
+            SpawnBarrel(equipment, new Vector3(0f, -15f, 0f), explosive: false);
+        }
+
+        private void BuildQuadrantFill()
+        {
+            var fill = new GameObject("QuadrantFill").transform;
+            fill.SetParent(root);
+
+            SpawnCar(fill, new Vector3(-16f, 24f, 0f), 0f);
+            SpawnCar(fill, new Vector3(16f, 24f, 0f), 180f);
+            SpawnCar(fill, new Vector3(-16f, -24f, 0f), 0f);
+            SpawnCar(fill, new Vector3(16f, -24f, 0f), 180f);
+            SpawnCar(fill, new Vector3(-24f, 16f, 0f), 90f);
+            SpawnCar(fill, new Vector3(24f, -16f, 0f), 90f);
+
+            SpawnCrate(fill, new Vector3(-22f, 22f, 0f));
+            SpawnCrate(fill, new Vector3(22f, 22f, 0f));
+            SpawnCrate(fill, new Vector3(-22f, -22f, 0f));
+            SpawnCrate(fill, new Vector3(22f, -22f, 0f));
+            SpawnCrate(fill, new Vector3(-15f, 22f, 0f));
+            SpawnCrate(fill, new Vector3(15f, -22f, 0f));
+
+            SpawnDumpster(fill, new Vector3(-20f, 8f, 0f));
+            SpawnDumpster(fill, new Vector3(20f, -8f, 0f));
+            SpawnDumpster(fill, new Vector3(-14f, -20f, 0f));
+            SpawnDumpster(fill, new Vector3(14f, 20f, 0f));
+
+            SpawnBarrel(fill, new Vector3(-26f, 22f, 0f), explosive: true);
+            SpawnBarrel(fill, new Vector3(26f, -22f, 0f), explosive: true);
+            SpawnBarrel(fill, new Vector3(-22f, 8f, 0f), explosive: false);
+            SpawnBarrel(fill, new Vector3(22f, -8f, 0f), explosive: false);
+            SpawnBarrel(fill, new Vector3(-26f, -6f, 0f), explosive: false);
+            SpawnBarrel(fill, new Vector3(26f, 6f, 0f), explosive: false);
+
+            SpawnRock(fill, new Vector3(-26f, 26f, 0f));
+            SpawnRock(fill, new Vector3(26f, 26f, 0f));
+            SpawnRock(fill, new Vector3(-26f, -26f, 0f));
+            SpawnRock(fill, new Vector3(26f, -26f, 0f));
+            SpawnRock(fill, new Vector3(-16f, -8f, 0f));
+            SpawnRock(fill, new Vector3(16f, 8f, 0f));
+
+            SpawnTree(fill, new Vector3(-30f, 24f, 0f));
+            SpawnTree(fill, new Vector3(30f, 24f, 0f));
+            SpawnTree(fill, new Vector3(-30f, -24f, 0f));
+            SpawnTree(fill, new Vector3(30f, -24f, 0f));
+            SpawnTree(fill, new Vector3(-30f, 0f, 0f));
+            SpawnTree(fill, new Vector3(30f, 0f, 0f));
         }
 
         private void ScatterLabDebris()
@@ -123,6 +277,12 @@ namespace Deadlight.Level.MapBuilders
 
             SpawnTree(debris, new Vector3(-33f, 10f, 0f), false);
             SpawnTree(debris, new Vector3(33f, -10f, 0f), false);
+        }
+
+        private void SpawnGuardBooth(Transform parent, Vector3 pos)
+        {
+            SpawnBuilding(parent, pos, new Vector2(1.4f, 1.4f), 0, new Color(0.6f, 0.65f, 0.72f), "GuardBooth");
+            SpawnCrate(parent, pos + new Vector3(1.2f, 0f, 0f));
         }
 
         private void SpawnLabDoor(Transform parent, Vector3 pos)

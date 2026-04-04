@@ -120,8 +120,8 @@ namespace Deadlight.Data
             config.streetGridSpacing = 0f;
             config.mainRoadWidth = 2.4f;
             config.sideRoadWidth = 1.6f;
-            config.groundTint = new Color(0.68f, 0.7f, 0.62f);
-            config.buildingTint = new Color(0.68f, 0.68f, 0.72f);
+            config.groundTint = new Color(0.76f, 0.76f, 0.7f);
+            config.buildingTint = new Color(0.74f, 0.73f, 0.72f);
             config.buildingDensity = 0.95f;
             config.coverDensity = 1.05f;
             config.openAreaSize = 1.35f;
@@ -206,8 +206,8 @@ namespace Deadlight.Data
             config.streetGridSpacing = 0f;
             config.mainRoadWidth = 1.8f;
             config.sideRoadWidth = 1.2f;
-            config.groundTint = new Color(0.72f, 0.78f, 0.82f);
-            config.buildingTint = new Color(0.76f, 0.82f, 0.9f);
+            config.groundTint = new Color(0.76f, 0.8f, 0.84f);
+            config.buildingTint = new Color(0.78f, 0.83f, 0.9f);
             config.buildingDensity = 1.35f;
             config.coverDensity = 1.25f;
             config.openAreaSize = 0.8f;

@@ -56,33 +56,36 @@ namespace Deadlight.Visuals
             var main = muzzleFlashPS.main;
             main.duration = 0.1f;
             main.loop = false;
-            main.startLifetime = 0.08f;
-            main.startSpeed = 0f;
-            main.startSize = 0.5f;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.03f, 0.07f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(1.4f, 2.8f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.15f, 0.3f);
             main.startColor = new Color(1f, 0.9f, 0.4f, 1f);
             main.maxParticles = 10;
             main.playOnAwake = false;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
 
             var emission = muzzleFlashPS.emission;
             emission.rateOverTime = 0;
-            emission.SetBursts(new ParticleSystem.Burst[] { new ParticleSystem.Burst(0f, 3) });
+            emission.SetBursts(new ParticleSystem.Burst[] { new ParticleSystem.Burst(0f, 4, 7) });
 
             var shape = muzzleFlashPS.shape;
             shape.shapeType = ParticleSystemShapeType.Cone;
-            shape.angle = 25f;
-            shape.radius = 0.1f;
+            shape.angle = 10f;
+            shape.radius = 0.02f;
+            shape.arc = 18f;
 
             var sizeOverLifetime = muzzleFlashPS.sizeOverLifetime;
             sizeOverLifetime.enabled = true;
-            sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.EaseInOut(0, 1, 1, 0));
+            sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.EaseInOut(0f, 1f, 1f, 0.05f));
 
             var colorOverLifetime = muzzleFlashPS.colorOverLifetime;
             colorOverLifetime.enabled = true;
             var gradient = new Gradient();
             gradient.SetKeys(
                 new GradientColorKey[] { 
-                    new GradientColorKey(new Color(1f, 1f, 0.8f), 0f),
-                    new GradientColorKey(new Color(1f, 0.6f, 0.2f), 1f)
+                    new GradientColorKey(new Color(1f, 0.98f, 0.9f), 0f),
+                    new GradientColorKey(new Color(1f, 0.7f, 0.25f), 0.35f),
+                    new GradientColorKey(new Color(0.9f, 0.3f, 0.08f), 1f)
                 },
                 new GradientAlphaKey[] { 
                     new GradientAlphaKey(1f, 0f),
@@ -91,9 +94,17 @@ namespace Deadlight.Visuals
             );
             colorOverLifetime.color = gradient;
 
+            var velocityOverLifetime = muzzleFlashPS.velocityOverLifetime;
+            velocityOverLifetime.enabled = true;
+            velocityOverLifetime.space = ParticleSystemSimulationSpace.Local;
+            velocityOverLifetime.y = new ParticleSystem.MinMaxCurve(1.6f, 2.8f);
+
             var renderer = go.GetComponent<ParticleSystemRenderer>();
             renderer.material = CreateParticleMaterial(new Color(1f, 0.9f, 0.4f));
             renderer.sortingOrder = 100;
+            renderer.renderMode = ParticleSystemRenderMode.Stretch;
+            renderer.velocityScale = 0.45f;
+            renderer.lengthScale = 2.2f;
         }
 
         private void CreateBloodSplatterSystem()
@@ -193,6 +204,9 @@ namespace Deadlight.Visuals
             renderer.material = CreateParticleMaterial(new Color(1f, 0.8f, 0.3f));
             renderer.trailMaterial = CreateParticleMaterial(new Color(1f, 0.6f, 0.2f, 0.5f));
             renderer.sortingOrder = 55;
+            renderer.renderMode = ParticleSystemRenderMode.Stretch;
+            renderer.velocityScale = 0.55f;
+            renderer.lengthScale = 3.4f;
         }
 
         private void CreateDustSystem()

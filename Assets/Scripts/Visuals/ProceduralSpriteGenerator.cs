@@ -34,7 +34,7 @@ namespace Deadlight.Visuals
             public static readonly Color GrassDark = new Color(0.22f, 0.38f, 0.18f);
             public static readonly Color DirtBrown = new Color(0.45f, 0.35f, 0.25f);
             public static readonly Color Concrete = new Color(0.5f, 0.5f, 0.52f);
-            public static readonly Color Asphalt = new Color(0.25f, 0.25f, 0.28f);
+            public static readonly Color Asphalt = new Color(0.45f, 0.45f, 0.48f);
             
             public static readonly Color WoodLight = new Color(0.6f, 0.45f, 0.3f);
             public static readonly Color WoodDark = new Color(0.4f, 0.28f, 0.18f);
@@ -317,7 +317,7 @@ namespace Deadlight.Visuals
                 case 0: baseColor = Palette.GrassGreen; detailColor = Palette.GrassDark; break;
                 case 1: baseColor = Palette.DirtBrown; detailColor = new Color(0.35f, 0.28f, 0.2f); break;
                 case 2: baseColor = Palette.Concrete; detailColor = new Color(0.45f, 0.45f, 0.47f); break;
-                case 3: baseColor = Palette.Asphalt; detailColor = new Color(0.2f, 0.2f, 0.22f); break;
+                case 3: baseColor = Palette.Asphalt; detailColor = new Color(0.38f, 0.38f, 0.42f); break;
                 default: baseColor = Palette.GrassGreen; detailColor = Palette.GrassDark; break;
             }
 
@@ -696,38 +696,6 @@ namespace Deadlight.Visuals
 
             texture.Apply();
             var sprite = Sprite.Create(texture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.2f), 32);
-            spriteCache[key] = sprite;
-            return sprite;
-        }
-
-        public static Sprite CreateWallSprite(bool horizontal, int length = 32)
-        {
-            string key = $"wall_{(horizontal ? "h" : "v")}_{length}";
-            if (spriteCache.TryGetValue(key, out Sprite cached)) return cached;
-
-            int width = horizontal ? length : 8;
-            int height = horizontal ? 8 : length;
-            var texture = new Texture2D(width, height);
-            texture.filterMode = FilterMode.Point;
-
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    float noise = Mathf.PerlinNoise(x * 0.2f, y * 0.2f);
-                    Color col = Color.Lerp(Palette.Concrete, new Color(0.4f, 0.4f, 0.42f), noise * 0.3f);
-                    
-                    if ((horizontal && (y == 0 || y == height - 1)) || (!horizontal && (x == 0 || x == width - 1)))
-                    {
-                        col = Color.Lerp(col, Color.black, 0.2f);
-                    }
-                    
-                    texture.SetPixel(x, y, col);
-                }
-            }
-
-            texture.Apply();
-            var sprite = Sprite.Create(texture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 32);
             spriteCache[key] = sprite;
             return sprite;
         }

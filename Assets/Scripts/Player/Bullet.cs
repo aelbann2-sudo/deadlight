@@ -79,13 +79,17 @@ namespace Deadlight.Player
             }
 
             var enemyHealth = other.GetComponent<Enemy.EnemyHealth>();
+            Vector3 impactNormal = rb != null && rb.linearVelocity.sqrMagnitude > 0.01f
+                ? (Vector3)(-rb.linearVelocity.normalized)
+                : -transform.up;
+
             if (enemyHealth != null)
             {
                 enemyHealth.TakeDamage(damage);
                 if (Core.GameEffects.Instance != null)
                 {
                     bool heavyHit = damage >= 24f;
-                    Core.GameEffects.Instance.SpawnHitEffect(transform.position, heavyHit);
+                    Core.GameEffects.Instance.SpawnBulletImpact(transform.position, impactNormal, true, heavyHit);
                     Core.GameEffects.Instance.ScreenShake(0.05f, 0.08f);
                     if (heavyHit)
                     {
@@ -94,6 +98,10 @@ namespace Deadlight.Player
                 }
 
                 ApplyKnockback(other.attachedRigidbody);
+            }
+            else if (Core.GameEffects.Instance != null)
+            {
+                Core.GameEffects.Instance.SpawnBulletImpact(transform.position, impactNormal, false);
             }
 
             SpawnHitEffect();
@@ -133,13 +141,17 @@ namespace Deadlight.Player
             if (collision.gameObject.GetComponent<Player.PlayerHealth>() != null) return;
 
             var enemyHealth = collision.gameObject.GetComponent<Enemy.EnemyHealth>();
+            Vector3 impactNormal = rb != null && rb.linearVelocity.sqrMagnitude > 0.01f
+                ? (Vector3)(-rb.linearVelocity.normalized)
+                : -transform.up;
+
             if (enemyHealth != null)
             {
                 enemyHealth.TakeDamage(damage);
                 if (Core.GameEffects.Instance != null)
                 {
                     bool heavyHit = damage >= 24f;
-                    Core.GameEffects.Instance.SpawnHitEffect(transform.position, heavyHit);
+                    Core.GameEffects.Instance.SpawnBulletImpact(transform.position, impactNormal, true, heavyHit);
                     Core.GameEffects.Instance.ScreenShake(0.05f, 0.08f);
                     if (heavyHit)
                     {
@@ -148,6 +160,10 @@ namespace Deadlight.Player
                 }
 
                 ApplyKnockback(collision.rigidbody);
+            }
+            else if (Core.GameEffects.Instance != null)
+            {
+                Core.GameEffects.Instance.SpawnBulletImpact(transform.position, impactNormal, false);
             }
 
             SpawnHitEffect();
