@@ -6,6 +6,7 @@ using Deadlight.Data;
 using Deadlight.Level;
 using Deadlight.Level.MapBuilders;
 using Deadlight.Narrative;
+using Deadlight.UI;
 using Deadlight.Visuals;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -445,10 +446,6 @@ namespace Deadlight.Core
                 killStreakObj.transform.SetParent(managersParent);
                 killStreakObj.AddComponent<Systems.KillStreakSystem>();
                 
-                var introObj = new GameObject("IntroSequence");
-                introObj.transform.SetParent(managersParent);
-                introObj.AddComponent<Narrative.IntroSequence>();
-                
                 var corruptionObj = new GameObject("CorruptionSystem");
                 corruptionObj.transform.SetParent(managersParent);
                 corruptionObj.AddComponent<Systems.CorruptionSystem>();
@@ -517,15 +514,6 @@ namespace Deadlight.Core
                 if (managersParent != null)
                     journalObj.transform.SetParent(managersParent);
                 journalObj.AddComponent<Narrative.NarrativeJournalUI>();
-            }
-
-            if (FindFirstObjectByType<Narrative.IntroSequence>() == null &&
-                (GameManager.Instance == null || GameManager.Instance.CurrentState == GameState.MainMenu))
-            {
-                var introObj = new GameObject("IntroSequence");
-                if (managersParent != null)
-                    introObj.transform.SetParent(managersParent);
-                introObj.AddComponent<Narrative.IntroSequence>();
             }
 
             if (AtmosphereController.Instance == null)
@@ -723,9 +711,20 @@ namespace Deadlight.Core
 
         private void CreateWall(Transform parent, Vector3 position, Vector2 size)
         {
-            var wall = new GameObject("BoundaryCollider");
+            var wall = new GameObject("BoundaryWall");
             wall.transform.SetParent(parent);
             wall.transform.position = position;
+
+            // Visible concrete barrier — child object so localScale doesn't affect the collider
+            var visualObj = new GameObject("Visual");
+            visualObj.transform.SetParent(wall.transform);
+            visualObj.transform.localPosition = Vector3.zero;
+            visualObj.transform.localScale = new Vector3(size.x, size.y, 1f);
+            var sr = visualObj.AddComponent<SpriteRenderer>();
+            bool isHorizontal = size.x >= size.y;
+            sr.sprite = Visuals.ProceduralSpriteGenerator.CreateWallSprite(isHorizontal, 32);
+            sr.color = new Color(0.22f, 0.19f, 0.17f, 1f);
+            sr.sortingOrder = -8;
 
             var col = wall.AddComponent<BoxCollider2D>();
             col.size = size;
@@ -839,232 +838,282 @@ namespace Deadlight.Core
 
             }
 
-            Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (font == null)
-                font = Font.CreateDynamicFontFromOSFont("Arial", 14);
+            Font font = UIFactory.GetFont();
             if (font == null)
             {
-                string[] fallbacks = Font.GetOSInstalledFontNames();
-                if (fallbacks != null && fallbacks.Length > 0)
-                    font = Font.CreateDynamicFontFromOSFont(fallbacks[0], 14);
+                font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             }
 
-            // Health bar
-            var healthPanel = CreateUIPanel(canvas.transform, "HealthPanel",
-                new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1),
-                new Vector2(20, -20), new Vector2(250, 30));
+            Color cardColor = new Color(0.03f, 0.04f, 0.06f, 0.8f);
+            Color cardSoft = new Color(0.06f, 0.08f, 0.11f, 0.72f);
+            Color titleColor = new Color(0.95f, 0.96f, 0.98f, 1f);
+            Color accentGold = new Color(0.96f, 0.82f, 0.46f, 1f);
+            Color accentBlue = new Color(0.44f, 0.78f, 1f, 1f);
+            Color accentGreen = new Color(0.34f, 0.88f, 0.46f, 1f);
+            Color accentRed = new Color(0.96f, 0.42f, 0.36f, 1f);
+            Color mutedText = new Color(0.70f, 0.76f, 0.84f, 1f);
 
-            var healthBg = CreateUIImage(healthPanel.transform, "HealthBG",
-                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero,
-                new Color(0.15f, 0.15f, 0.15f, 0.85f));
-            healthBg.GetComponent<RectTransform>().offsetMin = Vector2.zero;
-            healthBg.GetComponent<RectTransform>().offsetMax = Vector2.zero;
+            var hudRoot = CreateUIPanel(canvas.transform, "GameplayHUDRoot",
+                Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f),
+                Vector2.zero, Vector2.zero);
+            var hudRootRect = hudRoot.GetComponent<RectTransform>();
+            hudRootRect.offsetMin = Vector2.zero;
+            hudRootRect.offsetMax = Vector2.zero;
 
-            var healthFill = CreateUIImage(healthPanel.transform, "HealthFill",
-                Vector2.zero, new Vector2(1, 1), new Vector2(0, 0.5f), Vector2.zero,
-                new Color(0.2f, 0.8f, 0.2f, 0.9f));
+            // Survivor status card
+            var healthPanel = CreateUIPanel(hudRoot.transform, "HealthPanel",
+                new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
+                new Vector2(24f, -24f), new Vector2(340f, 118f));
+            var healthPanelBg = healthPanel.AddComponent<Image>();
+            healthPanelBg.color = cardColor;
+
+            var healthHeader = CreateUIText(healthPanel.transform, "HealthHeader",
+                new Vector2(0f, 1f), "SURVIVOR STATUS", font, 16, TextAnchor.UpperLeft, mutedText,
+                new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(16f, -10f), new Vector2(220f, 20f));
+            healthHeader.GetComponent<Text>().fontStyle = FontStyle.Bold;
+
+            var healthBar = CreateUIPanel(healthPanel.transform, "HealthBar",
+                new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
+                new Vector2(16f, -38f), new Vector2(308f, 36f));
+            var healthBg = healthBar.AddComponent<Image>();
+            healthBg.color = new Color(0.13f, 0.15f, 0.19f, 0.95f);
+
+            var healthFill = CreateUIImage(healthBar.transform, "HealthFill",
+                Vector2.zero, Vector2.one, new Vector2(0f, 0.5f), Vector2.zero,
+                new Color(0.2f, 0.8f, 0.2f, 0.95f));
             var hfRect = healthFill.GetComponent<RectTransform>();
-            hfRect.offsetMin = new Vector2(2, 2);
-            hfRect.offsetMax = new Vector2(-2, -2);
+            hfRect.offsetMin = new Vector2(2f, 2f);
+            hfRect.offsetMax = new Vector2(-2f, -2f);
             hfRect.pivot = new Vector2(0f, 0.5f);
             var hfImage = healthFill.GetComponent<Image>();
             hfImage.type = Image.Type.Simple;
 
-            var healthLabel = CreateUIText(healthPanel.transform, "HealthText",
-                new Vector2(0, 0.5f), "100 / 100", font, 14, TextAnchor.MiddleCenter, Color.white,
-                Vector2.zero, Vector2.one, new Vector2(0, 0), new Vector2(0, 0));
+            var healthLabel = CreateUIText(healthBar.transform, "HealthText",
+                new Vector2(0.5f, 0.5f), "100 / 100", font, 19, TextAnchor.MiddleCenter, titleColor,
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            healthLabel.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
-            var healthIcon = CreateUIText(healthPanel.transform, "HealthIcon",
-                new Vector2(0, 0.5f), "+", font, 18, TextAnchor.MiddleCenter, new Color(0.9f, 0.3f, 0.3f),
-                new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(-20, 0), new Vector2(20, 30));
+            var healthIcon = CreateUIText(healthBar.transform, "HealthIcon",
+                new Vector2(0f, 0.5f), "+", font, 18, TextAnchor.MiddleCenter, accentRed,
+                new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(18f, 0f), new Vector2(18f, 22f));
+            healthIcon.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
-            // Stamina bar
-            var staminaPanel = CreateUIPanel(canvas.transform, "StaminaPanel",
-                new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1),
-                new Vector2(20, -55), new Vector2(250, 12));
+            var staminaBar = CreateUIPanel(healthPanel.transform, "StaminaBar",
+                new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
+                new Vector2(16f, -82f), new Vector2(308f, 14f));
+            var staminaBg = staminaBar.AddComponent<Image>();
+            staminaBg.color = new Color(0.13f, 0.15f, 0.19f, 0.9f);
 
-            var staminaBg = CreateUIImage(staminaPanel.transform, "StaminaBG",
-                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero,
-                new Color(0.15f, 0.15f, 0.15f, 0.7f));
-            staminaBg.GetComponent<RectTransform>().offsetMin = Vector2.zero;
-            staminaBg.GetComponent<RectTransform>().offsetMax = Vector2.zero;
-
-            var staminaFill = CreateUIImage(staminaPanel.transform, "StaminaFill",
-                Vector2.zero, Vector2.one, new Vector2(0, 0.5f), Vector2.zero,
-                new Color(0.2f, 0.6f, 0.9f, 0.8f));
+            var staminaFill = CreateUIImage(staminaBar.transform, "StaminaFill",
+                Vector2.zero, Vector2.one, new Vector2(0f, 0.5f), Vector2.zero,
+                accentBlue);
             var sfRect = staminaFill.GetComponent<RectTransform>();
-            sfRect.offsetMin = new Vector2(1, 1);
-            sfRect.offsetMax = new Vector2(-1, -1);
+            sfRect.offsetMin = new Vector2(1f, 1f);
+            sfRect.offsetMax = new Vector2(-1f, -1f);
             var sfImage = staminaFill.GetComponent<Image>();
             sfImage.type = Image.Type.Filled;
             sfImage.fillMethod = Image.FillMethod.Horizontal;
 
-            // Ammo display (bottom right, large CoD Zombies style)
-            var ammoText = CreateUIText(canvas.transform, "AmmoText",
-                new Vector2(1, 0), "15 / 60", font, 36, TextAnchor.LowerRight, Color.white,
-                new Vector2(1, 0), new Vector2(1, 0), new Vector2(-20, 50), new Vector2(300, 45));
-            ammoText.GetComponent<Text>().fontStyle = FontStyle.Bold;
-
-            // Weapon info panel (bottom right, above ammo)
-            var weaponPanel = CreateUIPanel(canvas.transform, "WeaponPanel",
-                new Vector2(1, 0), new Vector2(1, 0), new Vector2(1, 0),
-                new Vector2(-20, 100), new Vector2(220, 55));
-            var wpBg = weaponPanel.AddComponent<Image>();
-            wpBg.color = new Color(0.1f, 0.1f, 0.15f, 0.6f);
-
-            var weaponIconObj = new GameObject("WeaponIcon");
-            weaponIconObj.transform.SetParent(weaponPanel.transform, false);
-            var wiRect = weaponIconObj.AddComponent<RectTransform>();
-            wiRect.anchorMin = new Vector2(0, 0.5f);
-            wiRect.anchorMax = new Vector2(0, 0.5f);
-            wiRect.pivot = new Vector2(0, 0.5f);
-            wiRect.anchoredPosition = new Vector2(8, 0);
-            wiRect.sizeDelta = new Vector2(48, 24);
-            var weaponIconImage = weaponIconObj.AddComponent<Image>();
-            weaponIconImage.preserveAspect = true;
-            try { weaponIconImage.sprite = Deadlight.Visuals.ProceduralSpriteGenerator.CreateWeaponIcon(Data.WeaponType.Pistol); }
-            catch { }
-
-            var weaponName = CreateUIText(weaponPanel.transform, "WeaponName",
-                new Vector2(0, 1), "PISTOL", font, 18, TextAnchor.UpperLeft, new Color(1f, 0.95f, 0.7f),
-                new Vector2(0, 1), new Vector2(0, 1), new Vector2(62, -5), new Vector2(150, 25));
-            weaponName.GetComponent<Text>().fontStyle = FontStyle.Bold;
-
-            var weaponStats = CreateUIText(weaponPanel.transform, "WeaponStats",
-                new Vector2(0, 0), "DMG: 15  ROF: 0.3", font, 12, TextAnchor.LowerLeft,
-                new Color(0.7f, 0.7f, 0.8f, 0.8f),
-                new Vector2(0, 0), new Vector2(0, 0), new Vector2(62, 5), new Vector2(150, 18));
-
-            // Armor display (below health bar)
-            var armorPanelObj = CreateUIPanel(canvas.transform, "ArmorPanel",
-                new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1),
-                new Vector2(20, -72), new Vector2(250, 28));
+            // Armor display
+            var armorPanelObj = CreateUIPanel(healthPanel.transform, "ArmorPanel",
+                new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f),
+                new Vector2(16f, 12f), new Vector2(308f, 28f));
 
             var vestBar = CreateUIPanel(armorPanelObj.transform, "VestBar",
-                new Vector2(0, 0), new Vector2(0.48f, 1), new Vector2(0, 0.5f),
+                new Vector2(0f, 0f), new Vector2(0.48f, 1f), new Vector2(0f, 0.5f),
                 Vector2.zero, Vector2.zero);
-            vestBar.GetComponent<RectTransform>().offsetMin = new Vector2(0, 2);
-            vestBar.GetComponent<RectTransform>().offsetMax = new Vector2(0, -2);
+            vestBar.GetComponent<RectTransform>().offsetMin = new Vector2(0f, 2f);
+            vestBar.GetComponent<RectTransform>().offsetMax = new Vector2(0f, -2f);
             var vestBg = vestBar.AddComponent<Image>();
-            vestBg.color = new Color(0.12f, 0.2f, 0.35f, 0.7f);
+            vestBg.color = new Color(0.10f, 0.16f, 0.28f, 0.78f);
 
             var vestFillObj = new GameObject("VestFill");
             vestFillObj.transform.SetParent(vestBar.transform, false);
             var vfRect = vestFillObj.AddComponent<RectTransform>();
             vfRect.anchorMin = Vector2.zero;
             vfRect.anchorMax = Vector2.one;
-            vfRect.offsetMin = new Vector2(1, 1);
-            vfRect.offsetMax = new Vector2(-1, -1);
+            vfRect.offsetMin = new Vector2(1f, 1f);
+            vfRect.offsetMax = new Vector2(-1f, -1f);
             var vestFillImage = vestFillObj.AddComponent<Image>();
-            vestFillImage.color = new Color(0.2f, 0.5f, 0.9f, 0.85f);
+            vestFillImage.color = new Color(0.26f, 0.56f, 0.94f, 0.9f);
             vestFillImage.type = Image.Type.Filled;
             vestFillImage.fillMethod = Image.FillMethod.Horizontal;
-            vestFillImage.fillAmount = 0;
+            vestFillImage.fillAmount = 0f;
 
             var vestLabelObj = CreateUIText(vestBar.transform, "VestLabel",
-                new Vector2(0.5f, 0.5f), "VEST", font, 10, TextAnchor.MiddleCenter, Color.white,
+                new Vector2(0.5f, 0.5f), "VEST", font, 12, TextAnchor.MiddleCenter, titleColor,
                 Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            vestLabelObj.GetComponent<Text>().fontStyle = FontStyle.Bold;
             vestLabelObj.GetComponent<RectTransform>().offsetMin = Vector2.zero;
             vestLabelObj.GetComponent<RectTransform>().offsetMax = Vector2.zero;
 
             var helmBar = CreateUIPanel(armorPanelObj.transform, "HelmBar",
-                new Vector2(0.52f, 0), new Vector2(1, 1), new Vector2(1, 0.5f),
+                new Vector2(0.52f, 0f), new Vector2(1f, 1f), new Vector2(1f, 0.5f),
                 Vector2.zero, Vector2.zero);
-            helmBar.GetComponent<RectTransform>().offsetMin = new Vector2(0, 2);
-            helmBar.GetComponent<RectTransform>().offsetMax = new Vector2(0, -2);
+            helmBar.GetComponent<RectTransform>().offsetMin = new Vector2(0f, 2f);
+            helmBar.GetComponent<RectTransform>().offsetMax = new Vector2(0f, -2f);
             var helmBg = helmBar.AddComponent<Image>();
-            helmBg.color = new Color(0.25f, 0.25f, 0.3f, 0.7f);
+            helmBg.color = new Color(0.22f, 0.22f, 0.28f, 0.78f);
 
             var helmFillObj = new GameObject("HelmFill");
             helmFillObj.transform.SetParent(helmBar.transform, false);
             var hfRect2 = helmFillObj.AddComponent<RectTransform>();
             hfRect2.anchorMin = Vector2.zero;
             hfRect2.anchorMax = Vector2.one;
-            hfRect2.offsetMin = new Vector2(1, 1);
-            hfRect2.offsetMax = new Vector2(-1, -1);
+            hfRect2.offsetMin = new Vector2(1f, 1f);
+            hfRect2.offsetMax = new Vector2(-1f, -1f);
             var helmFillImage = helmFillObj.AddComponent<Image>();
-            helmFillImage.color = new Color(0.7f, 0.7f, 0.8f, 0.85f);
+            helmFillImage.color = new Color(0.78f, 0.80f, 0.90f, 0.9f);
             helmFillImage.type = Image.Type.Filled;
             helmFillImage.fillMethod = Image.FillMethod.Horizontal;
-            helmFillImage.fillAmount = 0;
+            helmFillImage.fillAmount = 0f;
 
             var helmLabelObj = CreateUIText(helmBar.transform, "HelmLabel",
-                new Vector2(0.5f, 0.5f), "HELM", font, 10, TextAnchor.MiddleCenter, Color.white,
+                new Vector2(0.5f, 0.5f), "HELM", font, 12, TextAnchor.MiddleCenter, titleColor,
                 Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            helmLabelObj.GetComponent<Text>().fontStyle = FontStyle.Bold;
             helmLabelObj.GetComponent<RectTransform>().offsetMin = Vector2.zero;
             helmLabelObj.GetComponent<RectTransform>().offsetMax = Vector2.zero;
-
             armorPanelObj.SetActive(false);
 
-            // Level & Round (top center)
-            var nightText = CreateUIText(canvas.transform, "NightText",
-                new Vector2(0.5f, 1), "LEVEL 1", font, 32, TextAnchor.UpperCenter, new Color(0.9f, 0.8f, 0.5f),
-                new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -12), new Vector2(300, 40));
+            // Mission status card
+            var missionPanel = CreateUIPanel(hudRoot.transform, "MissionPanel",
+                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
+                new Vector2(0f, -24f), new Vector2(380f, 112f));
+            var missionBg = missionPanel.AddComponent<Image>();
+            missionBg.color = cardColor;
+
+            var missionLabel = CreateUIText(missionPanel.transform, "MissionLabel",
+                new Vector2(0.5f, 1f), "MISSION STATUS", font, 15, TextAnchor.UpperCenter, mutedText,
+                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -10f), new Vector2(260f, 18f));
+            missionLabel.GetComponent<Text>().fontStyle = FontStyle.Bold;
+
+            var nightText = CreateUIText(missionPanel.transform, "NightText",
+                new Vector2(0.5f, 1f), "LEVEL 1", font, 40, TextAnchor.UpperCenter, accentGold,
+                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -30f), new Vector2(320f, 36f));
             nightText.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
-            var waveText = CreateUIText(canvas.transform, "WaveText",
-                new Vector2(0.5f, 1), "", font, 18, TextAnchor.UpperCenter, new Color(0.8f, 0.6f, 0.5f),
-                new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -52), new Vector2(200, 25));
+            var dayTimerText = CreateUIText(missionPanel.transform, "DayTimer",
+                new Vector2(0.5f, 1f), "", font, 24, TextAnchor.UpperCenter, titleColor,
+                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -72f), new Vector2(280f, 24f));
+            dayTimerText.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
-            // Enemy count (top right)
-            var enemyCount = CreateUIText(canvas.transform, "EnemyCount",
-                new Vector2(1, 1), "0", font, 24, TextAnchor.UpperRight, new Color(0.8f, 0.5f, 0.5f),
-                new Vector2(1, 1), new Vector2(1, 1), new Vector2(-20, -20), new Vector2(100, 30));
+            var waveText = CreateUIText(missionPanel.transform, "WaveText",
+                new Vector2(0.5f, 0f), "", font, 18, TextAnchor.LowerCenter, mutedText,
+                new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 10f), new Vector2(260f, 20f));
+            waveText.GetComponent<Text>().fontStyle = FontStyle.Bold;
+
+            // Hostiles card
+            var enemyPanel = CreateUIPanel(hudRoot.transform, "EnemyPanel",
+                new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(1f, 1f),
+                new Vector2(-24f, -24f), new Vector2(180f, 92f));
+            var enemyBg = enemyPanel.AddComponent<Image>();
+            enemyBg.color = cardColor;
+
+            var enemyLabel = CreateUIText(enemyPanel.transform, "EnemyLabel",
+                new Vector2(1f, 1f), "HOSTILES", font, 15, TextAnchor.UpperRight, mutedText,
+                new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-14f, -10f), new Vector2(120f, 18f));
+            enemyLabel.GetComponent<Text>().fontStyle = FontStyle.Bold;
+
+            var enemyCount = CreateUIText(enemyPanel.transform, "EnemyCount",
+                new Vector2(1f, 0f), "0", font, 34, TextAnchor.LowerRight, accentRed,
+                new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-14f, 10f), new Vector2(100f, 40f));
             enemyCount.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
             // Status text (center)
-            var statusText = CreateUIText(canvas.transform, "StatusText",
-                new Vector2(0.5f, 0.5f), "", font, 32, TextAnchor.MiddleCenter, Color.white,
-                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 50), new Vector2(500, 50));
+            var statusText = CreateUIText(hudRoot.transform, "StatusText",
+                new Vector2(0.5f, 0.5f), "", font, 34, TextAnchor.MiddleCenter, titleColor,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 52f), new Vector2(560f, 60f));
             statusText.GetComponent<Text>().fontStyle = FontStyle.Bold;
             statusText.SetActive(false);
 
             // Reload hint
-            var reloadHint = CreateUIText(canvas.transform, "ReloadHint",
-                new Vector2(0.5f, 0.5f), "RELOADING...", font, 20, TextAnchor.MiddleCenter,
-                new Color(1, 0.8f, 0.4f),
-                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -40), new Vector2(200, 30));
+            var reloadHint = CreateUIText(hudRoot.transform, "ReloadHint",
+                new Vector2(0.5f, 0.5f), "RELOADING...", font, 24, TextAnchor.MiddleCenter,
+                accentGold,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -44f), new Vector2(260f, 34f));
+            reloadHint.GetComponent<Text>().fontStyle = FontStyle.Bold;
             reloadHint.SetActive(false);
 
-            // Day timer
-            var dayTimerText = CreateUIText(canvas.transform, "DayTimer",
-                new Vector2(0.5f, 1), "", font, 20, TextAnchor.UpperCenter, new Color(1f, 0.9f, 0.6f),
-                new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -75), new Vector2(200, 25));
+            // Points card
+            var pointsPanel = CreateUIPanel(hudRoot.transform, "PointsPanel",
+                new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f),
+                new Vector2(24f, 24f), new Vector2(200f, 78f));
+            var pointsBg = pointsPanel.AddComponent<Image>();
+            pointsBg.color = cardSoft;
 
-            // Points display (bottom center, CoD Zombies style)
-            var pointsText = CreateUIText(canvas.transform, "PointsDisplay",
-                new Vector2(0.5f, 0), "0", font, 28, TextAnchor.LowerCenter, new Color(1f, 0.85f, 0.3f),
-                new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 50), new Vector2(200, 35));
+            var pointsLabel = CreateUIText(pointsPanel.transform, "PointsLabel",
+                new Vector2(0f, 1f), "SCORE", font, 14, TextAnchor.UpperLeft, mutedText,
+                new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(14f, -10f), new Vector2(100f, 18f));
+            pointsLabel.GetComponent<Text>().fontStyle = FontStyle.Bold;
+
+            var pointsText = CreateUIText(pointsPanel.transform, "PointsDisplay",
+                new Vector2(0f, 0f), "0", font, 34, TextAnchor.LowerLeft, accentGold,
+                new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(14f, 10f), new Vector2(160f, 38f));
             pointsText.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
-            // Radio transmission panel - compact lower-right comms strip
-            var radioPanel = CreateUIPanel(canvas.transform, "RadioPanel",
+            // Loadout card
+            var weaponPanel = CreateUIPanel(hudRoot.transform, "WeaponPanel",
                 new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(1f, 0f),
-                new Vector2(-24f, 118f), new Vector2(560f, 104f));
-            var radioBg = radioPanel.AddComponent<Image>();
-            radioBg.color = new Color(0.02f, 0.03f, 0.04f, 0.72f);
+                new Vector2(-24f, 24f), new Vector2(320f, 126f));
+            var wpBg = weaponPanel.AddComponent<Image>();
+            wpBg.color = cardColor;
 
-            var radioBorder = new GameObject("RadioBorder");
-            radioBorder.transform.SetParent(radioPanel.transform, false);
-            var borderRect = radioBorder.AddComponent<RectTransform>();
-            borderRect.anchorMin = Vector2.zero;
-            borderRect.anchorMax = Vector2.one;
-            borderRect.offsetMin = new Vector2(-2, -2);
-            borderRect.offsetMax = new Vector2(2, 2);
-            var borderImg = radioBorder.AddComponent<Image>();
-            borderImg.color = new Color(0.95f, 0.74f, 0.32f, 0.45f);
-            radioBorder.transform.SetAsFirstSibling();
+            var weaponLabel = CreateUIText(weaponPanel.transform, "WeaponLabel",
+                new Vector2(0f, 1f), "LOADOUT", font, 14, TextAnchor.UpperLeft, mutedText,
+                new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(14f, -10f), new Vector2(120f, 18f));
+            weaponLabel.GetComponent<Text>().fontStyle = FontStyle.Bold;
+
+            var weaponIconObj = new GameObject("WeaponIcon");
+            weaponIconObj.transform.SetParent(weaponPanel.transform, false);
+            var wiRect = weaponIconObj.AddComponent<RectTransform>();
+            wiRect.anchorMin = new Vector2(0f, 1f);
+            wiRect.anchorMax = new Vector2(0f, 1f);
+            wiRect.pivot = new Vector2(0f, 1f);
+            wiRect.anchoredPosition = new Vector2(16f, -38f);
+            wiRect.sizeDelta = new Vector2(56f, 28f);
+            var weaponIconImage = weaponIconObj.AddComponent<Image>();
+            weaponIconImage.preserveAspect = true;
+            try { weaponIconImage.sprite = ProceduralSpriteGenerator.CreateWeaponIcon(WeaponType.Pistol); }
+            catch { }
+
+            var weaponName = CreateUIText(weaponPanel.transform, "WeaponName",
+                new Vector2(0f, 1f), "PISTOL", font, 22, TextAnchor.UpperLeft, accentGold,
+                new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(84f, -34f), new Vector2(150f, 28f));
+            weaponName.GetComponent<Text>().fontStyle = FontStyle.Bold;
+
+            var weaponStats = CreateUIText(weaponPanel.transform, "WeaponStats",
+                new Vector2(0f, 1f), "DMG 15  ROF 0.3", font, 14, TextAnchor.UpperLeft,
+                mutedText,
+                new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(84f, -62f), new Vector2(170f, 22f));
+
+            var ammoLabel = CreateUIText(weaponPanel.transform, "AmmoLabel",
+                new Vector2(1f, 1f), "AMMO", font, 13, TextAnchor.UpperRight, mutedText,
+                new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-14f, -16f), new Vector2(90f, 18f));
+            ammoLabel.GetComponent<Text>().fontStyle = FontStyle.Bold;
+
+            var ammoText = CreateUIText(weaponPanel.transform, "AmmoText",
+                new Vector2(1f, 0f), "15 / 60", font, 44, TextAnchor.LowerRight, titleColor,
+                new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-14f, 10f), new Vector2(170f, 48f));
+            ammoText.GetComponent<Text>().fontStyle = FontStyle.Bold;
+
+            // Radio transmission panel
+            var radioPanel = CreateUIPanel(hudRoot.transform, "RadioPanel",
+                new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(1f, 0f),
+                new Vector2(-24f, 164f), new Vector2(500f, 100f));
+            var radioBg = radioPanel.AddComponent<Image>();
+            radioBg.color = cardSoft;
 
             var radioLabel = CreateUIText(radioPanel.transform, "RadioLabel",
-                new Vector2(0f, 1f), "COMMS", font, 13, TextAnchor.UpperLeft,
-                new Color(0.95f, 0.8f, 0.45f, 0.8f),
-                new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(14f, -6f), new Vector2(-14f, 18f));
+                new Vector2(0f, 1f), "COMMS", font, 14, TextAnchor.UpperLeft,
+                accentGold,
+                new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(14f, -6f), new Vector2(120f, 18f));
             radioLabel.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
             var radioText = CreateUIText(radioPanel.transform, "RadioText",
-                new Vector2(0f, 0.5f), "", font, 18, TextAnchor.MiddleLeft, new Color(0.95f, 0.95f, 0.9f),
+                new Vector2(0f, 0.5f), "", font, 20, TextAnchor.MiddleLeft, new Color(0.95f, 0.95f, 0.9f),
                 new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(0f, 0f), new Vector2(0f, 0f));
-            radioText.GetComponent<RectTransform>().offsetMin = new Vector2(16f, 14f);
+            radioText.GetComponent<RectTransform>().offsetMin = new Vector2(16f, 16f);
             radioText.GetComponent<RectTransform>().offsetMax = new Vector2(-16f, -24f);
             radioText.GetComponent<Text>().fontStyle = FontStyle.Normal;
             radioText.GetComponent<Text>().horizontalOverflow = HorizontalWrapMode.Wrap;
@@ -1102,37 +1151,34 @@ namespace Deadlight.Core
             fadeOverlay.GetComponent<Image>().raycastTarget = false;
 
             // Objective HUD
-            var objPanel = CreateUIPanel(canvas.transform, "ObjectivePanel",
+            var objPanel = CreateUIPanel(hudRoot.transform, "ObjectivePanel",
                 new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1),
-                new Vector2(10, -105), new Vector2(380, 65));
+                new Vector2(24f, -154f), new Vector2(440f, 112f));
             var objPanelBg = objPanel.AddComponent<Image>();
-            objPanelBg.color = new Color(0, 0, 0, 0.55f);
+            objPanelBg.color = cardSoft;
             objPanel.SetActive(false);
 
             var objTitleText = CreateUIText(objPanel.transform, "ObjTitle",
-                new Vector2(0.5f, 0.7f), "OBJECTIVE", font, 14, TextAnchor.MiddleCenter,
-                new Color(0.4f, 0.85f, 1f, 0.8f),
-                new Vector2(0, 0.5f), new Vector2(1, 1), new Vector2(5, 0), new Vector2(0, 0));
-            var objTitleRect = objTitleText.GetComponent<RectTransform>();
-            objTitleRect.offsetMin = new Vector2(5, 35);
-            objTitleRect.offsetMax = new Vector2(-5, 0);
+                new Vector2(0f, 1f), "OBJECTIVE", font, 15, TextAnchor.UpperLeft,
+                accentBlue,
+                new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(14f, -10f), new Vector2(140f, 18f));
+            objTitleText.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
             var objDescText = CreateUIText(objPanel.transform, "ObjDesc",
-                new Vector2(0.5f, 0.3f), "", font, 16, TextAnchor.MiddleLeft,
-                Color.white,
-                new Vector2(0, 0), new Vector2(1, 0.55f), Vector2.zero, Vector2.zero);
+                new Vector2(0f, 1f), "", font, 19, TextAnchor.UpperLeft,
+                titleColor,
+                new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
             var objDescRect = objDescText.GetComponent<RectTransform>();
-            objDescRect.offsetMin = new Vector2(10, 5);
-            objDescRect.offsetMax = new Vector2(-80, -2);
+            objDescRect.offsetMin = new Vector2(14f, 36f);
+            objDescRect.offsetMax = new Vector2(-14f, -38f);
             objDescText.GetComponent<Text>().fontStyle = FontStyle.Bold;
+            objDescText.GetComponent<Text>().horizontalOverflow = HorizontalWrapMode.Wrap;
+            objDescText.GetComponent<Text>().verticalOverflow = VerticalWrapMode.Overflow;
 
             var objProgressText = CreateUIText(objPanel.transform, "ObjProgress",
-                new Vector2(1, 0.3f), "", font, 18, TextAnchor.MiddleRight,
-                new Color(0.4f, 1f, 0.4f),
-                new Vector2(0.75f, 0), new Vector2(1, 0.55f), Vector2.zero, Vector2.zero);
-            var objProgressRect = objProgressText.GetComponent<RectTransform>();
-            objProgressRect.offsetMin = new Vector2(0, 5);
-            objProgressRect.offsetMax = new Vector2(-10, -2);
+                new Vector2(1f, 0f), "", font, 17, TextAnchor.LowerRight,
+                accentGreen,
+                new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-14f, 10f), new Vector2(180f, 24f));
 
             canvas.gameObject.AddComponent<Deadlight.UI.ObjectiveMarker>();
 
@@ -1181,7 +1227,7 @@ namespace Deadlight.Core
             Vector2 anchoredPos, Vector2 size)
         {
             var obj = new GameObject(name);
-            obj.transform.SetParent(parent);
+            obj.transform.SetParent(parent, false);
             var rect = obj.AddComponent<RectTransform>();
             rect.anchorMin = anchorMin;
             rect.anchorMax = anchorMax;
@@ -1196,7 +1242,7 @@ namespace Deadlight.Core
             Vector2 anchoredPos, Color color)
         {
             var obj = new GameObject(name);
-            obj.transform.SetParent(parent);
+            obj.transform.SetParent(parent, false);
             var rect = obj.AddComponent<RectTransform>();
             rect.anchorMin = anchorMin;
             rect.anchorMax = anchorMax;
@@ -1214,7 +1260,7 @@ namespace Deadlight.Core
             Vector2 anchoredPos, Vector2 size)
         {
             var obj = new GameObject(name);
-            obj.transform.SetParent(parent);
+            obj.transform.SetParent(parent, false);
             var rect = obj.AddComponent<RectTransform>();
             rect.anchorMin = anchorMin;
             rect.anchorMax = anchorMax;
@@ -1227,10 +1273,11 @@ namespace Deadlight.Core
             txt.fontSize = fontSize;
             txt.alignment = alignment;
             txt.color = color;
-            txt.horizontalOverflow = HorizontalWrapMode.Overflow;
+            txt.horizontalOverflow = HorizontalWrapMode.Wrap;
+            txt.verticalOverflow = VerticalWrapMode.Overflow;
             
             var shadow = obj.AddComponent<Shadow>();
-            shadow.effectColor = new Color(0, 0, 0, 0.5f);
+            shadow.effectColor = new Color(0, 0, 0, 0.35f);
             shadow.effectDistance = new Vector2(1, -1);
             
             return obj;
@@ -1315,6 +1362,8 @@ namespace Deadlight.Core
             if (!useProceduralSprites && (sprites == null || sprites.Length == 0)) return;
             UpdateDirection();
             UpdateAnimation();
+            if (spriteRenderer != null)
+                spriteRenderer.sortingOrder = Mathf.RoundToInt(-transform.position.y * 2) + 1;
         }
 
         private void UpdateDirection()

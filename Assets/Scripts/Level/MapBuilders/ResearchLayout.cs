@@ -21,6 +21,20 @@ namespace Deadlight.Level.MapBuilders
         private const float SideCorridorHalfWidth = 1.6f;
         private const float ShoulderWidth = 0.7f;
 
+        private static readonly Rect[] GrassPatches = new[]
+        {
+            CreateRect(-28f, 28f, 10f, 10f),
+            CreateRect(28f, 28f, 10f, 10f),
+            CreateRect(-28f, -28f, 10f, 10f),
+            CreateRect(28f, -28f, 10f, 10f),
+            CreateRect(-34f, 0f, 6f, 12f),
+            CreateRect(34f, 0f, 6f, 12f),
+            CreateRect(0f, 34f, 12f, 6f),
+            CreateRect(0f, -34f, 12f, 6f),
+            CreateRect(-28f, 14f, 8f, 6f),
+            CreateRect(28f, -14f, 8f, 6f),
+        };
+
         public static int GetTileType(MapConfig config, int x, int y)
         {
             var pos = new Vector2(x, y);
@@ -33,6 +47,11 @@ namespace Deadlight.Level.MapBuilders
             if (IsConcrete(pos) || IsRoadShoulder(pos))
             {
                 return 2;
+            }
+
+            if (IsGrass(pos))
+            {
+                return 0;
             }
 
             return 1;
@@ -65,6 +84,18 @@ namespace Deadlight.Level.MapBuilders
                 NearHorizontalRoad(pos, -18f, SideCorridorHalfWidth + ShoulderWidth, -28f, 28f) ||
                 NearVerticalRoad(pos, 18f, SideCorridorHalfWidth + ShoulderWidth, -28f, 28f) ||
                 NearVerticalRoad(pos, -18f, SideCorridorHalfWidth + ShoulderWidth, -28f, 28f);
+        }
+
+        private static bool IsGrass(Vector2 pos)
+        {
+            for (int i = 0; i < GrassPatches.Length; i++)
+            {
+                if (Contains(GrassPatches[i], pos))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private static bool InHorizontalRoad(Vector2 pos, float centerY, float halfWidth, float minX, float maxX)

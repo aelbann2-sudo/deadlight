@@ -98,20 +98,7 @@ namespace Deadlight.Core
             if (Visuals.VFXManager.Instance != null)
             {
                 Visuals.VFXManager.Instance.PlayMuzzleFlash(position, direction.normalized);
-                return;
             }
-
-            var flash = new GameObject("MuzzleFlash");
-            flash.transform.position = position;
-            flash.transform.rotation = rotation;
-
-            var sr = flash.AddComponent<SpriteRenderer>();
-            sr.sprite = CreateFlashSprite();
-            sr.sortingOrder = 15;
-            sr.color = tint ?? new Color(1f, 0.9f, 0.5f, 0.9f);
-            flash.transform.localScale = Vector3.one * Mathf.Max(0.15f, scale);
-
-            Destroy(flash, 0.05f);
         }
 
         public void SpawnHitEffect(Vector3 position, bool heavyHit = false)
@@ -130,33 +117,6 @@ namespace Deadlight.Core
                 {
                     Visuals.VFXManager.Instance.PlayBloodSplatter(position, safeNormal);
                 }
-
-                if (hitEnemy)
-                {
-                    OnHitConfirmed?.Invoke();
-                }
-
-                return;
-            }
-
-            int particles = heavyHit ? 7 : 4;
-            for (int i = 0; i < particles; i++)
-            {
-                var particle = new GameObject("HitParticle");
-                particle.transform.position = position;
-
-                var sr = particle.AddComponent<SpriteRenderer>();
-                sr.sprite = CreateSmallSquareSprite();
-                sr.sortingOrder = 14;
-                sr.color = heavyHit ? new Color(0.92f, 0.2f, 0.2f) : new Color(1f, 0.4f, 0.2f);
-                particle.transform.localScale = Vector3.one * (heavyHit ? 0.2f : 0.15f);
-
-                var rb = particle.AddComponent<Rigidbody2D>();
-                rb.gravityScale = 0.5f;
-                Vector2 dir = Random.insideUnitCircle.normalized;
-                rb.linearVelocity = dir * Random.Range(3f, 6f);
-
-                Destroy(particle, 0.3f);
             }
 
             if (hitEnemy)
@@ -235,29 +195,6 @@ namespace Deadlight.Core
 
             Time.timeScale = originalScale <= 0f ? 1f : originalScale;
             hitStopRoutine = null;
-        }
-
-        private Sprite CreateFlashSprite()
-        {
-            int size = 16;
-            var texture = new Texture2D(size, size);
-            var pixels = new Color[size * size];
-            Vector2 center = new Vector2(size / 2f, size / 2f);
-            float radius = size / 2f;
-
-            for (int y = 0; y < size; y++)
-            {
-                for (int x = 0; x < size; x++)
-                {
-                    float dist = Vector2.Distance(new Vector2(x, y), center) / radius;
-                    float alpha = Mathf.Max(0, 1f - dist * dist);
-                    pixels[y * size + x] = new Color(1f, 1f, 1f, alpha);
-                }
-            }
-
-            texture.SetPixels(pixels);
-            texture.Apply();
-            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
         }
 
         private Sprite CreateSmallSquareSprite()

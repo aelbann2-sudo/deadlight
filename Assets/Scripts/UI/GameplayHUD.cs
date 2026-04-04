@@ -24,7 +24,6 @@ namespace Deadlight.UI
         private Text weaponNameText;
         private Text weaponStatsText;
         private float weaponStatsShowTime = -10f;
-        private const float WeaponStatsDisplayDuration = 2f;
 
         private Image vestFill;
         private Image helmetFill;
@@ -88,8 +87,21 @@ namespace Deadlight.UI
 
         private IEnumerator FindPlayerDelayed()
         {
-            yield return new WaitForSeconds(0.1f);
-            FindPlayer();
+            const float searchDuration = 1.5f;
+            float elapsed = 0f;
+
+            while (elapsed < searchDuration && (playerHealth == null || playerShooting == null || playerController == null))
+            {
+                FindPlayer();
+                if (playerHealth != null && playerShooting != null && playerController != null)
+                {
+                    break;
+                }
+
+                elapsed += 0.1f;
+                yield return new WaitForSeconds(0.1f);
+            }
+
             SubscribeEvents();
         }
 
@@ -121,6 +133,8 @@ namespace Deadlight.UI
 
                 if (playerShooting.CurrentWeapon != null)
                     UpdateWeaponDisplay(playerShooting.CurrentWeapon);
+
+                UpdateAmmo(playerShooting.CurrentAmmo, playerShooting.ReserveAmmo);
             }
 
             if (Player.PlayerArmor.Instance != null)
@@ -153,6 +167,12 @@ namespace Deadlight.UI
             if (Systems.PointsSystem.Instance != null)
             {
                 Systems.PointsSystem.Instance.OnPointsChanged += UpdatePoints;
+                UpdatePoints(Systems.PointsSystem.Instance.CurrentPoints);
+            }
+
+            if (GameManager.Instance != null)
+            {
+                UpdateNight(GameManager.Instance.CurrentNight);
             }
 
             ApplyPhaseVisibility(GameManager.Instance?.CurrentState ?? GameState.DayPhase);
@@ -209,7 +229,6 @@ namespace Deadlight.UI
             bool isNight = state == GameState.NightPhase;
 
             if (waveText != null) waveText.gameObject.SetActive(isNight);
-            if (enemyCountText != null) enemyCountText.gameObject.SetActive(isNight);
             if (reloadHint != null && !isNight) reloadHint.gameObject.SetActive(false);
         }
 
@@ -300,7 +319,7 @@ namespace Deadlight.UI
             if (waveText != null)
             {
                 waveText.gameObject.SetActive(true);
-                waveText.text = $"Wave {wave}";
+                waveText.text = $"WAVE {wave:00}";
             }
 
             ShowStatus($"WAVE {wave} INCOMING!", 2f);
@@ -312,14 +331,19 @@ namespace Deadlight.UI
             {
                 int level = Core.GameManager.GetLevelForNight(night);
                 int nwl = Core.GameManager.GetNightWithinLevel(night);
-                nightText.text = $"Level {level} - Night {nwl}";
+                nightText.text = $"LEVEL {level}";
+
+                if (waveText != null && (GameManager.Instance == null || GameManager.Instance.CurrentState != GameState.NightPhase))
+                {
+                    waveText.text = $"NIGHT {nwl}";
+                }
             }
         }
 
         private void UpdateEnemyCount(int count)
         {
             if (enemyCountText != null)
-                enemyCountText.text = $"Enemies: {count}";
+                enemyCountText.text = count.ToString();
         }
 
         private void UpdateDayTimer(float timeRemaining)
@@ -341,7 +365,7 @@ namespace Deadlight.UI
         private void UpdatePoints(int points)
         {
             if (pointsText != null)
-                pointsText.text = $"Score: {points}";
+                pointsText.text = points.ToString();
         }
 
         private void UpdateWeaponDisplay(WeaponData weapon)
@@ -353,7 +377,7 @@ namespace Deadlight.UI
 
             if (weaponStatsText != null)
             {
-                weaponStatsText.text = $"DMG: {weapon.damage:0}  ROF: {weapon.fireRate:0.0}";
+                weaponStatsText.text = $"DMG {weapon.damage:0}  ROF {weapon.fireRate:0.0}";
                 weaponStatsText.gameObject.SetActive(true);
                 weaponStatsShowTime = Time.time;
             }
@@ -368,13 +392,8 @@ namespace Deadlight.UI
         private void UpdateWeaponStatsFade()
         {
             if (weaponStatsText == null) return;
-            if (!weaponStatsText.gameObject.activeSelf) return;
-
-            float elapsed = Time.time - weaponStatsShowTime;
-            if (elapsed > WeaponStatsDisplayDuration)
-            {
-                weaponStatsText.gameObject.SetActive(false);
-            }
+            if (!weaponStatsText.gameObject.activeSelf && weaponStatsShowTime > -10f)
+                weaponStatsText.gameObject.SetActive(true);
         }
 
         private void UpdateArmorDisplay(float vest, float vestMax, float helmet, float helmetMax)

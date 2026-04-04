@@ -105,6 +105,7 @@ namespace Deadlight.Visuals
             spriteRenderer.sprite = ProceduralSpriteGenerator.CreateZombieSprite(zombieType, direction, currentFrame);
             spriteRenderer.color = tintVariation;
             spriteRenderer.flipX = vel.x < 0;
+            spriteRenderer.sortingOrder = Mathf.RoundToInt(-transform.position.y * 2);
         }
 
         private void SetState(ZombieAnimState newState)

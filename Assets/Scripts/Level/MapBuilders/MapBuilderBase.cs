@@ -277,8 +277,14 @@ namespace Deadlight.Level.MapBuilders
         protected GameObject SpawnFence(Transform parent, Vector3 from, Vector3 to, Color tint, bool hasCollider = true, bool registerPlacement = true)
         {
             float totalLength = Vector3.Distance(from, to);
+            if (totalLength <= 0.05f)
+            {
+                return null;
+            }
+
             float angle = Mathf.Atan2(to.y - from.y, to.x - from.x) * Mathf.Rad2Deg;
             Vector3 dir = (to - from).normalized;
+            const float fenceHeight = 0.25f;
 
             // Break long fences into segments so no single collider exceeds 4 units
             float maxSegment = 4f;
@@ -288,27 +294,41 @@ namespace Deadlight.Level.MapBuilders
             GameObject first = null;
             for (int i = 0; i < segCount; i++)
             {
-                Vector3 segCenter = from + dir * (segLen * (i + 0.5f));
+                Vector3 segCenter = Clamp(from + dir * (segLen * (i + 0.5f)));
+                if (registerPlacement)
+                {
+                    Vector2 footprint = GetFencePlacementSize(dir, segLen, fenceHeight);
+                    if (!TryPlace(segCenter, footprint))
+                    {
+                        continue;
+                    }
+                }
+
                 var fence = new GameObject("Fence");
                 fence.transform.SetParent(parent);
                 fence.transform.position = segCenter;
                 fence.transform.rotation = Quaternion.Euler(0, 0, angle);
                 var sr = fence.AddComponent<SpriteRenderer>();
-                sr.sprite = ProceduralSpriteGenerator.CreateWallSprite(true, Mathf.RoundToInt(segLen * 8));
+                sr.sprite = ProceduralSpriteGenerator.CreateWallSprite(true, Mathf.RoundToInt(segLen * 32));
                 sr.sortingOrder = Mathf.RoundToInt(-segCenter.y);
                 sr.color = tint;
                 if (hasCollider)
                 {
-                    if (registerPlacement)
-                    {
-                        RegisterPlacement(segCenter, new Vector2(segLen, 0.35f));
-                    }
                     var col = fence.AddComponent<BoxCollider2D>();
-                    col.size = new Vector2(segLen, 0.2f);
+                    col.size = new Vector2(segLen, fenceHeight);
                 }
                 if (first == null) first = fence;
             }
             return first;
+        }
+
+        private static Vector2 GetFencePlacementSize(Vector3 dir, float length, float thickness)
+        {
+            dir.Normalize();
+
+            return new Vector2(
+                Mathf.Abs(dir.x) * length + Mathf.Abs(dir.y) * thickness,
+                Mathf.Abs(dir.y) * length + Mathf.Abs(dir.x) * thickness);
         }
 
         protected GameObject SpawnDumpster(Transform parent, Vector3 pos, bool registerPlacement = true)

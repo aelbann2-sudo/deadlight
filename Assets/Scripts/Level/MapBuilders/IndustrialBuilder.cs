@@ -62,6 +62,13 @@ namespace Deadlight.Level.MapBuilders
             new Vector3(-34f, -7f, 0f),
             new Vector3(33f, -14f, 0f),
             new Vector3(30f, -31.5f, 0f),
+            new Vector3(-34f, 18f, 0f),
+            new Vector3(34f, 4f, 0f),
+            new Vector3(-33f, -28f, 0f),
+            new Vector3(14f, -33f, 0f),
+            new Vector3(-14f, -33f, 0f),
+            new Vector3(-33f, 33f, 0f),
+            new Vector3(33f, 33f, 0f),
         };
 
         private static readonly Vector3[] RubblePositions =
@@ -73,6 +80,13 @@ namespace Deadlight.Level.MapBuilders
             new Vector3(-2f, 29f, 0f),
             new Vector3(6f, -31f, 0f),
             new Vector3(-31f, -31f, 0f),
+            new Vector3(15f, 30f, 0f),
+            new Vector3(-15f, -14f, 0f),
+            new Vector3(15f, -14f, 0f),
+            new Vector3(-28f, -10f, 0f),
+            new Vector3(28f, -10f, 0f),
+            new Vector3(-8f, 20f, 0f),
+            new Vector3(8f, 15f, 0f),
         };
 
         protected override string GetMapName() => "IndustrialDistrict";
@@ -94,6 +108,10 @@ namespace Deadlight.Level.MapBuilders
             BuildLabApproach();
             BuildMaintenanceYard();
             BuildCenterRoadDetails();
+            BuildNorthParkingLot();
+            BuildEastServiceArea();
+            BuildSoutheastScrapPile();
+            BuildRoadScatter();
             PlaceVehicles();
             PlaceStreetPosts();
             ScatterEdgeTrees();
@@ -237,8 +255,87 @@ namespace Deadlight.Level.MapBuilders
 
             TrySpawnCrate(center, new Vector3(-4.8f, 2.8f, 0f));
             TrySpawnCrate(center, new Vector3(6.1f, -2.8f, 0f));
+            TrySpawnCrate(center, new Vector3(-7.5f, -1.4f, 0f));
+            TrySpawnCrate(center, new Vector3(8.2f, 1.2f, 0f));
             TrySpawnBarrel(center, new Vector3(-1.2f, 3.1f, 0f), false);
             TrySpawnBarrel(center, new Vector3(2.2f, -2.9f, 0f), false);
+            TrySpawnBarrel(center, new Vector3(-5.6f, -3.5f, 0f), true);
+            TrySpawnBarrel(center, new Vector3(5.8f, 3.7f, 0f), false);
+            TrySpawnDumpster(center, new Vector3(-3f, -4.8f, 0f));
+            TrySpawnDumpster(center, new Vector3(3.5f, 5.2f, 0f));
+        }
+
+        private void BuildNorthParkingLot()
+        {
+            var lot = CreateDistrictRoot("NorthParkingLot");
+
+            TrySpawnCar(lot, new Vector3(-6.4f, 26.5f, 0f), 90f);
+            TrySpawnCar(lot, new Vector3(-3.8f, 26.5f, 0f), 90f);
+            TrySpawnCar(lot, new Vector3(3.8f, 26.2f, 0f), 90f);
+            TrySpawnCar(lot, new Vector3(6.4f, 26.4f, 0f), 90f);
+
+            TrySpawnBarrel(lot, new Vector3(-8.5f, 27.2f, 0f), false);
+            TrySpawnBarrel(lot, new Vector3(8.5f, 27.3f, 0f), false);
+            TrySpawnCrate(lot, new Vector3(0f, 28.3f, 0f));
+            TrySpawnDumpster(lot, new Vector3(-10.5f, 28f, 0f));
+        }
+
+        private void BuildEastServiceArea()
+        {
+            var area = CreateDistrictRoot("EastServiceArea");
+
+            SpawnContainer(area, new Vector3(16.5f, -15f, 0f), false, new Color(0.52f, 0.34f, 0.28f));
+            SpawnContainer(area, new Vector3(16.5f, -17.5f, 0f), false, new Color(0.34f, 0.44f, 0.54f));
+
+            TrySpawnCrate(area, new Vector3(14f, -14f, 0f));
+            TrySpawnCrate(area, new Vector3(14.5f, -17.2f, 0f));
+            TrySpawnBarrel(area, new Vector3(18.8f, -14.5f, 0f), true);
+            TrySpawnBarrel(area, new Vector3(19f, -16.8f, 0f), false);
+            TrySpawnDumpster(area, new Vector3(12.5f, -16f, 0f));
+            TrySpawnCar(area, new Vector3(13f, -20.5f, 0f), 0f);
+        }
+
+        private void BuildSoutheastScrapPile()
+        {
+            var scrap = CreateDistrictRoot("SoutheastScrap");
+            Color fenceColor = new Color(0.54f, 0.55f, 0.5f);
+
+            SpawnFence(scrap, new Vector3(17f, -27.8f, 0f), new Vector3(29f, -27.8f, 0f), fenceColor);
+
+            SpawnContainer(scrap, new Vector3(20f, -25.5f, 0f), true, new Color(0.42f, 0.56f, 0.36f));
+            SpawnContainer(scrap, new Vector3(26f, -25f, 0f), false, new Color(0.56f, 0.38f, 0.3f));
+
+            TrySpawnCrate(scrap, new Vector3(22.5f, -24.8f, 0f));
+            TrySpawnCrate(scrap, new Vector3(24f, -26.5f, 0f));
+            TrySpawnBarrel(scrap, new Vector3(18.5f, -23.5f, 0f), false);
+            TrySpawnBarrel(scrap, new Vector3(28f, -25.8f, 0f), true);
+            TrySpawnDumpster(scrap, new Vector3(23f, -22.8f, 0f));
+        }
+
+        private void BuildRoadScatter()
+        {
+            var scatter = CreateDistrictRoot("RoadScatter");
+
+            TrySpawnCar(scatter, new Vector3(-14f, 0f, 0f), 0f);
+            TrySpawnCar(scatter, new Vector3(14f, 0f, 0f), 180f);
+            TrySpawnCar(scatter, new Vector3(0f, -14f, 0f), 90f);
+            TrySpawnCar(scatter, new Vector3(0f, 18f, 0f), 90f);
+            TrySpawnCar(scatter, new Vector3(-20f, -14f, 0f), 0f);
+            TrySpawnCar(scatter, new Vector3(20f, -14f, 0f), 180f);
+
+            TrySpawnCrate(scatter, new Vector3(-10f, 14f, 0f));
+            TrySpawnCrate(scatter, new Vector3(10f, -14f, 0f));
+            TrySpawnCrate(scatter, new Vector3(-14f, -6f, 0f));
+            TrySpawnCrate(scatter, new Vector3(14f, 6f, 0f));
+
+            TrySpawnBarrel(scatter, new Vector3(-16f, 3f, 0f), false);
+            TrySpawnBarrel(scatter, new Vector3(16f, -3f, 0f), false);
+            TrySpawnBarrel(scatter, new Vector3(-6f, -14f, 0f), true);
+            TrySpawnBarrel(scatter, new Vector3(6f, 14f, 0f), false);
+
+            TrySpawnDumpster(scatter, new Vector3(-22f, 0f, 0f));
+            TrySpawnDumpster(scatter, new Vector3(22f, 0f, 0f));
+            TrySpawnDumpster(scatter, new Vector3(0f, -20f, 0f));
         }
 
         private void PlaceVehicles()

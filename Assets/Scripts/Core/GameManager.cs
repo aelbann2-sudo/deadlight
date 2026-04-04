@@ -7,6 +7,7 @@ using Deadlight.Narrative;
 using Deadlight.Player;
 using Deadlight.Systems;
 using Deadlight.UI;
+using Deadlight.Visuals;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -65,18 +66,6 @@ namespace Deadlight.Core
         [SerializeField] private float dawnAutoAdvanceDelay = 2f;
         [Header("Feature Toggles")]
         [SerializeField] private bool enableCrafting = false;
-        [SerializeField] private float[] dayDurationsByNight = {
-            90f, 80f, 70f,
-            85f, 75f, 65f,
-            80f, 70f, 60f,
-            75f, 65f, 55f
-        };
-        [SerializeField] private float[] nightDurationsByNight = {
-            45f, 55f, 70f,
-            55f, 70f, 85f,
-            65f, 80f, 100f,
-            80f, 100f, 140f
-        };
 
         private const float DefaultFixedDeltaTime = 0.02f;
 
@@ -223,14 +212,6 @@ namespace Deadlight.Core
                 EnsureCameraTargetsPlayer(player);
             }
 
-            if (!startNewRunAfterGameSceneLoad &&
-                !autoStartWhenGameSceneLoads &&
-                currentState == GameState.MainMenu &&
-                FindFirstObjectByType<IntroSequence>() == null)
-            {
-                new GameObject("IntroSequence").AddComponent<IntroSequence>();
-            }
-
             var intro = FindFirstObjectByType<IntroSequence>();
             if (autoStartWhenGameSceneLoads && currentState == GameState.MainMenu && intro == null)
             {
@@ -305,7 +286,6 @@ namespace Deadlight.Core
             }
 
             SetPaused(false);
-            ApplyPhaseDurationsForNight(currentNight);
             ChangeState(GameState.DayPhase);
             OnNightChanged?.Invoke(currentNight);
         }
@@ -375,7 +355,6 @@ namespace Deadlight.Core
             }
 
             currentNight = Mathf.Min(currentNight + 1, maxNights);
-            ApplyPhaseDurationsForNight(currentNight);
             OnNightChanged?.Invoke(currentNight);
             ChangeState(GameState.DayPhase);
         }
@@ -391,7 +370,6 @@ namespace Deadlight.Core
             currentNight = Mathf.Min(currentNight + 1, maxNights);
             selectedMap = GetCampaignMapForNight(currentNight);
             RebuildMapForCurrentLevel();
-            ApplyPhaseDurationsForNight(currentNight);
             OnNightChanged?.Invoke(currentNight);
             ChangeState(GameState.DayPhase);
         }
@@ -847,7 +825,7 @@ namespace Deadlight.Core
 
             if (spriteRenderer.sprite == null && !hasAnySprite)
             {
-                spriteRenderer.sprite = CreateRuntimeCircleSprite(new Color(0.2f, 0.8f, 0.3f), 32, 14f);
+                spriteRenderer.sprite = ProceduralSpriteGenerator.CreatePlayerSprite(0, 0);
                 spriteRenderer.sortingOrder = 10;
             }
 
@@ -1005,8 +983,31 @@ namespace Deadlight.Core
             runtimeBulletPrefab.SetActive(false);
 
             var sr = runtimeBulletPrefab.AddComponent<SpriteRenderer>();
-            sr.sprite = CreateRuntimeCircleSprite(new Color(1f, 0.9f, 0.2f), 16, 6f);
+            sr.sprite = CreateRuntimeBulletSprite();
             sr.sortingOrder = 8;
+
+            var trail = runtimeBulletPrefab.AddComponent<TrailRenderer>();
+            trail.time = 0.055f;
+            trail.startWidth = 0.18f;
+            trail.endWidth = 0f;
+            trail.sortingOrder = 7;
+            trail.generateLightingData = false;
+            var trailMat = new Material(Shader.Find("Sprites/Default"));
+            trail.material = trailMat;
+            var trailGradient = new Gradient();
+            trailGradient.SetKeys(
+                new GradientColorKey[]
+                {
+                    new GradientColorKey(new Color(1f, 0.95f, 0.6f), 0f),
+                    new GradientColorKey(new Color(1f, 0.55f, 0.1f), 1f)
+                },
+                new GradientAlphaKey[]
+                {
+                    new GradientAlphaKey(0.85f, 0f),
+                    new GradientAlphaKey(0f, 1f)
+                }
+            );
+            trail.colorGradient = trailGradient;
 
             var rb = runtimeBulletPrefab.AddComponent<Rigidbody2D>();
             rb.gravityScale = 0f;
@@ -1021,30 +1022,49 @@ namespace Deadlight.Core
             return runtimeBulletPrefab;
         }
 
-        private static Sprite CreateRuntimeCircleSprite(Color color, int size, float radius)
+        private static Sprite CreateRuntimeBulletSprite()
         {
+            // 8x8 pixel, hot-white core fading to yellow-orange edge, PPU=24 → ~0.33 world unit
+            const int size = 8;
+            const float ppu = 24f;
             var texture = new Texture2D(size, size, TextureFormat.RGBA32, false)
             {
-                filterMode = FilterMode.Point,
+                filterMode = FilterMode.Bilinear,
                 wrapMode = TextureWrapMode.Clamp
             };
 
             var pixels = new Color[size * size];
-            var center = new Vector2(size / 2f, size / 2f);
+            var center = new Vector2((size - 1) / 2f, (size - 1) / 2f);
+            float maxRadius = size / 2f;
 
             for (int y = 0; y < size; y++)
             {
                 for (int x = 0; x < size; x++)
                 {
-                    float distance = Vector2.Distance(new Vector2(x, y), center);
-                    pixels[y * size + x] = distance <= radius ? color : Color.clear;
+                    float d = Vector2.Distance(new Vector2(x, y), center);
+                    float t = Mathf.Clamp01(d / maxRadius);
+                    if (t >= 1f)
+                    {
+                        pixels[y * size + x] = Color.clear;
+                    }
+                    else
+                    {
+                        // White-hot core → yellow → orange edge
+                        Color core = Color.white;
+                        Color mid = new Color(1f, 0.9f, 0.25f);
+                        Color edge = new Color(1f, 0.55f, 0.05f, 0f);
+                        float a = 1f - t * t;
+                        Color c = t < 0.4f ? Color.Lerp(core, mid, t / 0.4f) : Color.Lerp(mid, edge, (t - 0.4f) / 0.6f);
+                        c.a = a;
+                        pixels[y * size + x] = c;
+                    }
                 }
             }
 
             texture.SetPixels(pixels);
             texture.Apply();
 
-            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), ppu);
         }
 
         private void ResetRunState()
@@ -1124,7 +1144,7 @@ namespace Deadlight.Core
 
         private bool HasInteractiveDawnUI()
         {
-            return FindFirstObjectByType<ShopUI>() != null || FindFirstObjectByType<GameUI>() != null;
+            return FindFirstObjectByType<GameUI>() != null;
         }
 
         private IEnumerator AutoAdvanceFromDawn()
@@ -1148,23 +1168,6 @@ namespace Deadlight.Core
             }
 
             dawnAdvanceCoroutine = null;
-        }
-
-        private void ApplyPhaseDurationsForNight(int night)
-        {
-            var dayNight = FindFirstObjectByType<DayNightCycle>();
-            if (dayNight == null)
-            {
-                return;
-            }
-
-            int dayIdx = Mathf.Clamp(night - 1, 0, Mathf.Max(0, dayDurationsByNight.Length - 1));
-            float dayDuration = dayDurationsByNight.Length > 0 ? dayDurationsByNight[dayIdx] : 60f;
-            dayNight.SetDayDuration(dayDuration);
-
-            int nightIdx = Mathf.Clamp(night - 1, 0, Mathf.Max(0, nightDurationsByNight.Length - 1));
-            float nightDuration = nightDurationsByNight.Length > 0 ? nightDurationsByNight[nightIdx] : 120f;
-            dayNight.SetNightDuration(nightDuration);
         }
     }
 }

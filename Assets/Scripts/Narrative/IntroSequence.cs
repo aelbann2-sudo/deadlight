@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using Deadlight.Core;
+using Deadlight.UI;
 
 namespace Deadlight.Narrative
 {
@@ -338,6 +339,14 @@ namespace Deadlight.Narrative
                 {
                     GameManager.Instance.ChangeState(GameState.DayPhase);
                 }
+                else
+                {
+                    GameUI.Instance?.RefreshForCurrentState();
+                }
+            }
+            else
+            {
+                GameUI.Instance?.RefreshForCurrentState();
             }
 
             Debug.Log("[IntroSequence] Intro complete, showing main menu.");
