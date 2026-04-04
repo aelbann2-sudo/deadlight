@@ -476,6 +476,14 @@ namespace Deadlight.Core
                 NarrativeManager.Instance.gameObject.AddComponent<EnvironmentalLore>();
             }
 
+            if (FindFirstObjectByType<Narrative.LevelIntroSequence>() == null)
+            {
+                var levelIntroObj = new GameObject("LevelIntroSequence");
+                if (managersParent != null)
+                    levelIntroObj.transform.SetParent(managersParent);
+                levelIntroObj.AddComponent<Narrative.LevelIntroSequence>();
+            }
+
             if (RadioTransmissions.Instance == null)
             {
                 var rtObj = new GameObject("RadioTransmissions");

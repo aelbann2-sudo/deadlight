@@ -67,6 +67,7 @@ namespace Deadlight.UI
         private static readonly string[] levelMapNames = { "Town Center", "Suburban Evacuation", "Industrial District", "Research Facility" };
         private static readonly string[] levelStageLabels = { "3 objective nights", "3 objective nights", "3 objective nights", "3 nights + boss finale" };
         private static readonly string[] levelPreviewKeys = { "TownCenter", "Suburban", "Industrial", "Research" };
+        private const int MaxSelectableLevel = 2;
         private static readonly string[] levelObjectiveSummaries = {
             "Recover Flight 7's black box.",
             "Recover the shelter evacuation records.",
@@ -172,6 +173,12 @@ namespace Deadlight.UI
         {
             if (_mainMenuPanel == null)
             {
+                return;
+            }
+
+            if (GameManager.Instance != null && GameManager.Instance.ShouldSuppressMainMenuPresentation)
+            {
+                HideAllPanelsImmediate();
                 return;
             }
 
@@ -985,6 +992,8 @@ namespace Deadlight.UI
 
         private void StartCampaignAtLevel(int level)
         {
+            if (level > MaxSelectableLevel) return;
+
             Time.timeScale = 1f;
             HideAllPanelsImmediate();
             _purchasedWeapons.Clear();
@@ -1008,13 +1017,11 @@ namespace Deadlight.UI
                 _mainMenuProgressText.text = $"Level {highest:00} ready: {levelObjectiveSummaries[highest - 1]}";
 
             if (_mapSelectProgressText != null)
-                _mapSelectProgressText.text = highest >= levelMapNames.Length
-                    ? "All levels unlocked. Final level contains the Subject 23 boss fight."
-                    : $"Unlocked through Level {highest:00}.";
+                _mapSelectProgressText.text = $"Unlocked through Level {highest:00}. Levels 3 and 4 are locked for now.";
 
             foreach (var row in _campaignRouteRows)
             {
-                bool unlocked = IsLevelUnlocked(row.Level);
+                bool unlocked = row.Level <= MaxSelectableLevel && IsLevelUnlocked(row.Level);
                 bool ready = unlocked && row.Level == highest;
                 row.StatusText.text = ready ? "READY" : unlocked ? "UNLOCKED" : "LOCKED";
                 row.StatusBackground.color = ready
@@ -1024,7 +1031,7 @@ namespace Deadlight.UI
 
             foreach (var card in _campaignCards)
             {
-                bool unlocked = IsLevelUnlocked(card.Level);
+                bool unlocked = card.Level <= MaxSelectableLevel && IsLevelUnlocked(card.Level);
                 bool ready = unlocked && card.Level == highest;
 
                 if (card.Button != null) card.Button.interactable = unlocked;
@@ -1052,7 +1059,7 @@ namespace Deadlight.UI
         private int GetHighestUnlockedLevel()
         {
             int h = 1;
-            for (int i = 1; i <= levelMapNames.Length; i++)
+            for (int i = 1; i <= Mathf.Min(levelMapNames.Length, MaxSelectableLevel); i++)
                 if (IsLevelUnlocked(i)) h = i;
             return h;
         }
@@ -1401,6 +1408,10 @@ namespace Deadlight.UI
             switch (state)
             {
                 case GameState.MainMenu:
+                    if (GameManager.Instance != null && GameManager.Instance.ShouldSuppressMainMenuPresentation)
+                    {
+                        break;
+                    }
                     RefreshCampaignPresentation();
                     ShowPanel(_mainMenuPanel);
                     break;
