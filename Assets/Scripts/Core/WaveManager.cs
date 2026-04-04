@@ -44,7 +44,7 @@ namespace Deadlight.Core
         [SerializeField] private float daySkirmishDamageMultiplier = 0.65f;
         [SerializeField] private float daySkirmishSpeedMultiplier = 0.9f;
         [SerializeField] private float emergencySpawnDelay = 5f;
-        [SerializeField] private float waveEnemyGrowthPerWave = 0.16f;
+        [SerializeField] private float waveEnemyGrowthPerWave = 0.12f;
         [SerializeField] private float waveOverlapThresholdRatio = 0.2f;
 
         public int CurrentWave => currentWave;
@@ -270,7 +270,7 @@ namespace Deadlight.Core
 
                 if (wave < waveCount)
                 {
-                    float interval = Mathf.Clamp((currentNightConfig?.timeBetweenWaves ?? 2f), 1.2f, 4f);
+                    float interval = Mathf.Clamp((currentNightConfig?.timeBetweenWaves ?? 2f), 1.5f, 4.5f);
                     yield return new WaitForSeconds(interval);
                 }
             }
@@ -293,7 +293,7 @@ namespace Deadlight.Core
             isSpawning = true;
 
             int enemyCount = CalculateEnemyCount(waveNumber);
-            float spawnInterval = Mathf.Max(0.55f, (currentNightConfig?.spawnInterval ?? 2f) * GetSpawnIntervalMultiplier() * GetAdaptiveSpawnIntervalMultiplier());
+            float spawnInterval = Mathf.Max(0.7f, (currentNightConfig?.spawnInterval ?? 2f) * GetSpawnIntervalMultiplier() * GetAdaptiveSpawnIntervalMultiplier());
 
             for (int i = 0; i < enemyCount; i++)
             {
@@ -327,11 +327,11 @@ namespace Deadlight.Core
             int baseCap = level switch
             {
                 1 => 6,
-                2 => 12,
-                3 => 18,
-                _ => 24
+                2 => 10,
+                3 => 14,
+                _ => 18
             };
-            return baseCap + (nwl - 1) * 3;
+            return baseCap + (nwl - 1) * 2;
         }
 
         private float GetCampaignWaveMultiplier()
@@ -403,7 +403,7 @@ namespace Deadlight.Core
             bool isDaySkirmish = GameManager.Instance?.CurrentState == GameState.DayPhase;
             var spawnType = SelectSpawnType(nightNum, isDaySkirmish);
 
-            bool shouldSpawnMiniBoss = level >= 2 && isLastNight &&
+            bool shouldSpawnMiniBoss = level >= 3 && isLastNight &&
                                        currentWave >= (currentNightConfig?.waveCount ?? 3) &&
                                        !isDaySkirmish &&
                                        !miniBossSpawned;
@@ -518,28 +518,28 @@ namespace Deadlight.Core
 
             if (level <= 1)
             {
-                if (GameManager.GetNightWithinLevel(night) >= 3 && roll < 0.15f) return SpawnType.Runner;
+                if (GameManager.GetNightWithinLevel(night) >= 3 && roll < 0.10f) return SpawnType.Runner;
                 return SpawnType.Basic;
             }
 
             if (level == 2)
             {
-                if (roll < 0.28f) return SpawnType.Runner;
+                if (roll < 0.20f) return SpawnType.Runner;
                 return SpawnType.Basic;
             }
 
             if (level == 3)
             {
-                if (roll < 0.12f) return SpawnType.Spitter;
-                if (roll < 0.28f) return SpawnType.Exploder;
-                if (roll < 0.50f) return SpawnType.Runner;
+                if (roll < 0.08f) return SpawnType.Spitter;
+                if (roll < 0.20f) return SpawnType.Exploder;
+                if (roll < 0.38f) return SpawnType.Runner;
                 return SpawnType.Basic;
             }
 
-            if (roll < 0.08f) return SpawnType.Tank;
-            if (roll < 0.18f) return SpawnType.Spitter;
-            if (roll < 0.32f) return SpawnType.Exploder;
-            if (roll < 0.52f) return SpawnType.Runner;
+            if (roll < 0.04f) return SpawnType.Tank;
+            if (roll < 0.12f) return SpawnType.Spitter;
+            if (roll < 0.22f) return SpawnType.Exploder;
+            if (roll < 0.40f) return SpawnType.Runner;
             return SpawnType.Basic;
         }
 
@@ -580,13 +580,13 @@ namespace Deadlight.Core
                 case Visuals.ProceduralSpriteGenerator.ZombieType.Runner:
                     health.SetMaxHealth(35f);
                     health.SetPointsOnDeath(15);
-                    ai.ApplySpeedMultiplier(1.65f);
+                    ai.ApplySpeedMultiplier(1.5f);
                     break;
                 case Visuals.ProceduralSpriteGenerator.ZombieType.Tank:
-                    health.SetMaxHealth(200f);
+                    health.SetMaxHealth(180f);
                     health.SetPointsOnDeath(50);
-                    ai.ApplySpeedMultiplier(0.7f);
-                    ai.ApplyDamageMultiplier(2.2f);
+                    ai.ApplySpeedMultiplier(0.75f);
+                    ai.ApplyDamageMultiplier(1.9f);
                     go.transform.localScale = Vector3.one * 1.5f;
                     break;
                 case Visuals.ProceduralSpriteGenerator.ZombieType.Exploder:
@@ -631,12 +631,12 @@ namespace Deadlight.Core
             go.AddComponent<CircleCollider2D>().radius = 0.4f;
 
             var health = go.AddComponent<Enemy.EnemyHealth>();
-            health.SetMaxHealth(400f);
-            health.SetPointsOnDeath(100);
+            health.SetMaxHealth(320f);
+            health.SetPointsOnDeath(90);
 
             var ai = go.AddComponent<Enemy.SimpleEnemyAI>();
-            ai.ApplySpeedMultiplier(0.85f);
-            ai.ApplyDamageMultiplier(1.8f);
+            ai.ApplySpeedMultiplier(0.8f);
+            ai.ApplyDamageMultiplier(1.55f);
 
             go.transform.localScale = Vector3.one * 1.3f;
 

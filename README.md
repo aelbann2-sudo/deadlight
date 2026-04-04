@@ -56,17 +56,16 @@ This update makes daytime preparation directly impact nighttime survival.
 
 ### What was added
 
-- **Day-only crafting system** with 4 recipes and per-day caps:
+- **Day-only crafting system** with 3 recipes and per-day caps:
   - `Ammo Cache`: grants reserve ammo at night start
   - `Field Med`: grants heal at night start
-  - `Shock Beacon`: reduces enemy speed at night
-  - `Weakpoint Intel`: reduces enemy health and damage at night
+  - `Tactical Prep`: reduces enemy speed and health at night
 - **New resource: `BlueprintToken`**
   - Earned from contested supply drops
-  - Required by advanced recipes
+  - Reserved for follow-up progression hooks
 - **Crafting UI**
   - Press `C` to open/close
-  - Press `1-4` to craft recipes
+  - Press `1-3` to craft recipes
   - Shows costs, affordability, caps, and "tonight effect" preview
 - **Pickup meaning feedback**
   - Resource pickups now show purpose hints (what recipes they support)

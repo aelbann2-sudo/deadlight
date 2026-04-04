@@ -194,8 +194,8 @@ namespace Deadlight.Core
 
             if (ResourceManager.Instance != null)
             {
-                ResourceManager.Instance.AddResource(ResourceType.Salvage, 2);
-                ResourceManager.Instance.AddResource(ResourceType.TechParts, 1);
+                ResourceManager.Instance.AddResource(ResourceType.Scrap, 2);
+                ResourceManager.Instance.AddResource(ResourceType.Chemicals, 1);
             }
 
             ActiveNightBuffMultiplier = Mathf.Max(1f, activeObjective.nightBuffMultiplier);

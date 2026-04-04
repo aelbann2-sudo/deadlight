@@ -55,22 +55,22 @@ namespace Deadlight.UI
             [ItemIds.Scrap] = new GameplayHelpEntry(
                 ItemIds.Scrap,
                 "Scrap",
-                "Common salvage used in daytime crafting, especially Ammo Cache and Weakpoint Intel prep.",
+                "Core crafting material used for steady day prep, especially Ammo Cache and Field Med builds.",
                 "Core crafting salvage."),
             [ItemIds.Wood] = new GameplayHelpEntry(
                 ItemIds.Wood,
                 "Wood",
-                "Support material used for early prep and fortification-style crafting during the day.",
+                "Support material used in Ammo Cache prep during the day.",
                 "Basic support material."),
             [ItemIds.Chemicals] = new GameplayHelpEntry(
                 ItemIds.Chemicals,
                 "Chemicals",
-                "Needed for Field Med and Shock Beacon crafting recipes before nightfall.",
+                "Needed for Field Med and Tactical Prep before nightfall.",
                 "Medical and tech crafting."),
             [ItemIds.Electronics] = new GameplayHelpEntry(
                 ItemIds.Electronics,
                 "Electronics",
-                "Advanced parts used in higher-tier recipes like Shock Beacon and Weakpoint Intel.",
+                "Advanced parts used in Tactical Prep to soften the next night.",
                 "Advanced crafting part."),
             [ItemIds.Points] = new GameplayHelpEntry(
                 ItemIds.Points,
@@ -85,8 +85,8 @@ namespace Deadlight.UI
             [ItemIds.BlueprintToken] = new GameplayHelpEntry(
                 ItemIds.BlueprintToken,
                 "Blueprint Token",
-                "Unlocks advanced daytime recipes that improve your odds in the next level.",
-                "Needed for advanced crafting."),
+                "A rare recovery token earned from contested drops during the day.",
+                "Rare contested-drop token."),
             [ItemIds.Armor] = new GameplayHelpEntry(
                 ItemIds.Armor,
                 "Armor",

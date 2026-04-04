@@ -94,8 +94,8 @@ namespace Deadlight.Systems
         [SerializeField] private float weakpointEnemyDamageMultiplier = 0.94f;
 
         [Header("Soft Penalty")]
-        [SerializeField] private float noPrepDamagePenaltyMultiplier = 1.08f;
-        [SerializeField] private float noPrepPenaltyDuration = 60f;
+        [SerializeField] private float noPrepDamagePenaltyMultiplier = 1.05f;
+        [SerializeField] private float noPrepPenaltyDuration = 40f;
 
         [Header("UI")]
         [SerializeField] private KeyCode toggleKey = KeyCode.C;
@@ -410,7 +410,8 @@ namespace Deadlight.Systems
                 2,
                 new List<ResourceAmount>
                 {
-                    new ResourceAmount(ResourceType.Salvage, 3)
+                    new ResourceAmount(ResourceType.Scrap, 2),
+                    new ResourceAmount(ResourceType.Wood, 1)
                 });
 
             recipes[CraftingRecipeId.FieldMed] = new CraftingRecipeDefinition(
@@ -420,8 +421,8 @@ namespace Deadlight.Systems
                 2,
                 new List<ResourceAmount>
                 {
-                    new ResourceAmount(ResourceType.Salvage, 2),
-                    new ResourceAmount(ResourceType.TechParts, 1)
+                    new ResourceAmount(ResourceType.Scrap, 2),
+                    new ResourceAmount(ResourceType.Chemicals, 1)
                 });
 
             recipes[CraftingRecipeId.TacticalPrep] = new CraftingRecipeDefinition(
@@ -431,7 +432,8 @@ namespace Deadlight.Systems
                 1,
                 new List<ResourceAmount>
                 {
-                    new ResourceAmount(ResourceType.TechParts, 3)
+                    new ResourceAmount(ResourceType.Chemicals, 1),
+                    new ResourceAmount(ResourceType.Electronics, 1)
                 });
 
             foreach (var id in recipeOrder)
@@ -489,15 +491,20 @@ namespace Deadlight.Systems
 
         private bool IsHintResource(ResourceType type)
         {
-            return type == ResourceType.Salvage || type == ResourceType.TechParts;
+            return type == ResourceType.Scrap ||
+                   type == ResourceType.Wood ||
+                   type == ResourceType.Chemicals ||
+                   type == ResourceType.Electronics;
         }
 
         private string GetResourceHint(ResourceType type)
         {
             return type switch
             {
-                ResourceType.Salvage => "Ammo Cache / Field Med",
-                ResourceType.TechParts => "Field Med / Tactical Prep",
+                ResourceType.Scrap => "Ammo Cache / Field Med",
+                ResourceType.Wood => "Ammo Cache",
+                ResourceType.Chemicals => "Field Med / Tactical Prep",
+                ResourceType.Electronics => "Tactical Prep",
                 _ => "Crafting"
             };
         }

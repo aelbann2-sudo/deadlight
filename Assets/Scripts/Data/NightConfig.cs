@@ -143,13 +143,139 @@ namespace Deadlight.Core
             int nwl = ((nightNumber - 1) % 3) + 1;
             var config = CreateInstance<NightConfig>();
             config.nightNumber = nightNumber;
-            config.waveCount = Mathf.Clamp(1 + level + (nwl - 1), 2, 6);
-            config.baseEnemyCount = 2 + level * 2 + (nwl - 1);
-            config.healthMultiplier = 0.5f + level * 0.2f + (nwl - 1) * 0.08f;
-            config.damageMultiplier = 0.4f + level * 0.2f + (nwl - 1) * 0.08f;
-            config.speedMultiplier = 0.75f + level * 0.08f + (nwl - 1) * 0.03f;
-            config.spawnInterval = Mathf.Max(0.8f, 2.4f - level * 0.25f - (nwl - 1) * 0.1f);
-            config.timeBetweenWaves = Mathf.Max(3f, 7f - level - (nwl - 1) * 0.5f);
+
+            switch (level)
+            {
+                case 1:
+                    switch (nwl)
+                    {
+                        case 1:
+                            config.waveCount = 2;
+                            config.baseEnemyCount = 3;
+                            config.healthMultiplier = 0.65f;
+                            config.damageMultiplier = 0.55f;
+                            config.speedMultiplier = 0.80f;
+                            config.spawnInterval = 2.25f;
+                            config.timeBetweenWaves = 6f;
+                            break;
+                        case 2:
+                            config.waveCount = 2;
+                            config.baseEnemyCount = 4;
+                            config.healthMultiplier = 0.78f;
+                            config.damageMultiplier = 0.68f;
+                            config.speedMultiplier = 0.86f;
+                            config.spawnInterval = 2f;
+                            config.timeBetweenWaves = 5.5f;
+                            break;
+                        default:
+                            config.waveCount = 3;
+                            config.baseEnemyCount = 5;
+                            config.healthMultiplier = 0.90f;
+                            config.damageMultiplier = 0.80f;
+                            config.speedMultiplier = 0.92f;
+                            config.spawnInterval = 1.75f;
+                            config.timeBetweenWaves = 5f;
+                            break;
+                    }
+                    break;
+                case 2:
+                    switch (nwl)
+                    {
+                        case 1:
+                            config.waveCount = 3;
+                            config.baseEnemyCount = 5;
+                            config.healthMultiplier = 0.95f;
+                            config.damageMultiplier = 0.85f;
+                            config.speedMultiplier = 0.95f;
+                            config.spawnInterval = 1.75f;
+                            config.timeBetweenWaves = 4.75f;
+                            break;
+                        case 2:
+                            config.waveCount = 3;
+                            config.baseEnemyCount = 6;
+                            config.healthMultiplier = 1.02f;
+                            config.damageMultiplier = 0.92f;
+                            config.speedMultiplier = 1.00f;
+                            config.spawnInterval = 1.6f;
+                            config.timeBetweenWaves = 4.3f;
+                            break;
+                        default:
+                            config.waveCount = 4;
+                            config.baseEnemyCount = 7;
+                            config.healthMultiplier = 1.10f;
+                            config.damageMultiplier = 1.00f;
+                            config.speedMultiplier = 1.03f;
+                            config.spawnInterval = 1.45f;
+                            config.timeBetweenWaves = 4f;
+                            break;
+                    }
+                    break;
+                case 3:
+                    switch (nwl)
+                    {
+                        case 1:
+                            config.waveCount = 3;
+                            config.baseEnemyCount = 7;
+                            config.healthMultiplier = 1.08f;
+                            config.damageMultiplier = 0.98f;
+                            config.speedMultiplier = 1.02f;
+                            config.spawnInterval = 1.55f;
+                            config.timeBetweenWaves = 4f;
+                            break;
+                        case 2:
+                            config.waveCount = 4;
+                            config.baseEnemyCount = 8;
+                            config.healthMultiplier = 1.15f;
+                            config.damageMultiplier = 1.05f;
+                            config.speedMultiplier = 1.05f;
+                            config.spawnInterval = 1.4f;
+                            config.timeBetweenWaves = 3.8f;
+                            break;
+                        default:
+                            config.waveCount = 4;
+                            config.baseEnemyCount = 9;
+                            config.healthMultiplier = 1.22f;
+                            config.damageMultiplier = 1.12f;
+                            config.speedMultiplier = 1.09f;
+                            config.spawnInterval = 1.3f;
+                            config.timeBetweenWaves = 3.6f;
+                            break;
+                    }
+                    break;
+                default:
+                    switch (nwl)
+                    {
+                        case 1:
+                            config.waveCount = 4;
+                            config.baseEnemyCount = 9;
+                            config.healthMultiplier = 1.18f;
+                            config.damageMultiplier = 1.05f;
+                            config.speedMultiplier = 1.04f;
+                            config.spawnInterval = 1.45f;
+                            config.timeBetweenWaves = 3.8f;
+                            break;
+                        case 2:
+                            config.waveCount = 5;
+                            config.baseEnemyCount = 10;
+                            config.healthMultiplier = 1.28f;
+                            config.damageMultiplier = 1.14f;
+                            config.speedMultiplier = 1.08f;
+                            config.spawnInterval = 1.3f;
+                            config.timeBetweenWaves = 3.5f;
+                            break;
+                        default:
+                            config.waveCount = 5;
+                            config.baseEnemyCount = 11;
+                            config.healthMultiplier = 1.38f;
+                            config.damageMultiplier = 1.22f;
+                            config.speedMultiplier = 1.12f;
+                            config.spawnInterval = 1.2f;
+                            config.timeBetweenWaves = 3.2f;
+                            break;
+                    }
+                    break;
+            }
+
             config.hasBoss = nightNumber >= 12;
             config.completionBonus = 50 + level * 50 + (nwl - 1) * 30;
             return config;

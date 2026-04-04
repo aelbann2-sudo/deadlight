@@ -39,12 +39,12 @@ namespace Deadlight.Core
             65f, 80f, 100f,
             80f, 100f, 140f
         };
-        [SerializeField] private int[] healthPickupsByNight = { 4, 4, 3, 3 };
-        [SerializeField] private int[] ammoPickupsByNight = { 5, 5, 4, 4 };
-        [SerializeField] private int[] scrapPickupsByNight = { 3, 2, 2, 1 };
-        [SerializeField] private int[] woodPickupsByNight = { 2, 1, 1, 1 };
-        [SerializeField] private int[] chemicalsPickupsByNight = { 1, 1, 1, 0 };
-        [SerializeField] private int[] electronicsPickupsByNight = { 0, 1, 1, 1 };
+        [SerializeField] private int[] healthPickupsByNight = { 4, 4, 4, 4 };
+        [SerializeField] private int[] ammoPickupsByNight = { 5, 5, 5, 5 };
+        [SerializeField] private int[] scrapPickupsByNight = { 3, 3, 3, 2 };
+        [SerializeField] private int[] woodPickupsByNight = { 2, 2, 1, 1 };
+        [SerializeField] private int[] chemicalsPickupsByNight = { 1, 1, 2, 1 };
+        [SerializeField] private int[] electronicsPickupsByNight = { 0, 1, 2, 2 };
         [SerializeField] private float pickupSpawnMinDistanceFromPlayer = 10f;
         [SerializeField] private float pickupMinSpacing = 6f;
 
