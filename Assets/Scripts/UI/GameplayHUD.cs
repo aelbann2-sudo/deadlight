@@ -34,6 +34,8 @@ namespace Deadlight.UI
         private Player.PlayerHealth playerHealth;
         private Player.PlayerShooting playerShooting;
         private Player.PlayerController playerController;
+        private WaveManager waveManager;
+        private WaveSpawner waveSpawner;
         private RectTransform healthFillRect;
         private float targetHealthRatio = 1f;
         private float displayedHealthRatio = 1f;
@@ -153,10 +155,28 @@ namespace Deadlight.UI
                 GameManager.Instance.OnNightChanged += UpdateNight;
             }
 
-            if (WaveSpawner.Instance != null)
+            waveManager = WaveManager.Instance;
+            waveSpawner = WaveSpawner.Instance;
+
+            if (waveManager != null)
             {
-                WaveSpawner.Instance.OnWaveChanged += UpdateWave;
-                WaveSpawner.Instance.OnEnemyCountChanged += UpdateEnemyCount;
+                waveManager.OnWaveStarted += UpdateWave;
+                waveManager.OnEnemyCountChanged += UpdateEnemyCount;
+                UpdateEnemyCount(waveManager.EnemiesRemaining);
+                if (waveManager.CurrentWave > 0)
+                {
+                    UpdateWave(waveManager.CurrentWave);
+                }
+            }
+            else if (waveSpawner != null)
+            {
+                waveSpawner.OnWaveChanged += UpdateWave;
+                waveSpawner.OnEnemyCountChanged += UpdateEnemyCount;
+                UpdateEnemyCount(waveSpawner.EnemiesAlive);
+                if (waveSpawner.CurrentWave > 0)
+                {
+                    UpdateWave(waveSpawner.CurrentWave);
+                }
             }
 
             if (GameFlowController.Instance != null)
@@ -201,10 +221,15 @@ namespace Deadlight.UI
                 GameManager.Instance.OnGameStateChanged -= OnGameStateChanged;
                 GameManager.Instance.OnNightChanged -= UpdateNight;
             }
-            if (WaveSpawner.Instance != null)
+            if (waveManager != null)
             {
-                WaveSpawner.Instance.OnWaveChanged -= UpdateWave;
-                WaveSpawner.Instance.OnEnemyCountChanged -= UpdateEnemyCount;
+                waveManager.OnWaveStarted -= UpdateWave;
+                waveManager.OnEnemyCountChanged -= UpdateEnemyCount;
+            }
+            else if (waveSpawner != null)
+            {
+                waveSpawner.OnWaveChanged -= UpdateWave;
+                waveSpawner.OnEnemyCountChanged -= UpdateEnemyCount;
             }
             if (GameFlowController.Instance != null)
             {

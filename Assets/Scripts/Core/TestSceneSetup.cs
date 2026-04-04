@@ -715,17 +715,6 @@ namespace Deadlight.Core
             wall.transform.SetParent(parent);
             wall.transform.position = position;
 
-            // Visible concrete barrier — child object so localScale doesn't affect the collider
-            var visualObj = new GameObject("Visual");
-            visualObj.transform.SetParent(wall.transform);
-            visualObj.transform.localPosition = Vector3.zero;
-            visualObj.transform.localScale = new Vector3(size.x, size.y, 1f);
-            var sr = visualObj.AddComponent<SpriteRenderer>();
-            bool isHorizontal = size.x >= size.y;
-            sr.sprite = Visuals.ProceduralSpriteGenerator.CreateWallSprite(isHorizontal, 32);
-            sr.color = new Color(0.22f, 0.19f, 0.17f, 1f);
-            sr.sortingOrder = -8;
-
             var col = wall.AddComponent<BoxCollider2D>();
             col.size = size;
         }

@@ -136,12 +136,20 @@ namespace Deadlight.Level.MapBuilders
             var obj = new GameObject(label);
             obj.transform.SetParent(parent);
             obj.transform.position = pos;
-            var sr = obj.AddComponent<SpriteRenderer>();
-            sr.sprite = ProceduralSpriteGenerator.CreateBuildingSprite(variant % 3);
-            sr.sortingOrder = Mathf.RoundToInt(-pos.y);
+            var sprite = ProceduralSpriteGenerator.CreateBuildingSprite(variant % 3);
+            var visual = new GameObject("Visual");
+            visual.transform.SetParent(obj.transform, false);
+            visual.transform.localScale = new Vector3(
+                colliderSize.x / sprite.bounds.size.x,
+                colliderSize.y / sprite.bounds.size.y,
+                1f);
+
+            var sr = visual.AddComponent<SpriteRenderer>();
+            sr.sprite = sprite;
+            sr.sortingOrder = Mathf.RoundToInt(-pos.y * 2f);
             sr.color = tint;
             var col = obj.AddComponent<BoxCollider2D>();
-            MapFootprintCollider.ApplyBaseFootprint(col, colliderSize);
+            MapFootprintCollider.ApplySpriteFootprint(col, sprite, visual.transform.localScale, 0.92f, 0.94f);
             return obj;
         }
 
@@ -223,11 +231,6 @@ namespace Deadlight.Level.MapBuilders
             var sr = obj.AddComponent<SpriteRenderer>();
             sr.sprite = ProceduralSpriteGenerator.CreateCrateSprite();
             sr.sortingOrder = Mathf.RoundToInt(-pos.y);
-            if (registerPlacement)
-            {
-                var col = obj.AddComponent<BoxCollider2D>();
-                col.size = new Vector2(0.8f, 0.8f);
-            }
             return obj;
         }
 
@@ -244,11 +247,6 @@ namespace Deadlight.Level.MapBuilders
             var sr = obj.AddComponent<SpriteRenderer>();
             sr.sprite = ProceduralSpriteGenerator.CreateBarrelSprite(explosive);
             sr.sortingOrder = Mathf.RoundToInt(-pos.y);
-            if (registerPlacement)
-            {
-                var col = obj.AddComponent<CircleCollider2D>();
-                col.radius = 0.25f;
-            }
             return obj;
         }
 
@@ -276,59 +274,7 @@ namespace Deadlight.Level.MapBuilders
 
         protected GameObject SpawnFence(Transform parent, Vector3 from, Vector3 to, Color tint, bool hasCollider = true, bool registerPlacement = true)
         {
-            float totalLength = Vector3.Distance(from, to);
-            if (totalLength <= 0.05f)
-            {
-                return null;
-            }
-
-            float angle = Mathf.Atan2(to.y - from.y, to.x - from.x) * Mathf.Rad2Deg;
-            Vector3 dir = (to - from).normalized;
-            const float fenceHeight = 0.25f;
-
-            // Break long fences into segments so no single collider exceeds 4 units
-            float maxSegment = 4f;
-            int segCount = Mathf.Max(1, Mathf.CeilToInt(totalLength / maxSegment));
-            float segLen = totalLength / segCount;
-
-            GameObject first = null;
-            for (int i = 0; i < segCount; i++)
-            {
-                Vector3 segCenter = Clamp(from + dir * (segLen * (i + 0.5f)));
-                if (registerPlacement)
-                {
-                    Vector2 footprint = GetFencePlacementSize(dir, segLen, fenceHeight);
-                    if (!TryPlace(segCenter, footprint))
-                    {
-                        continue;
-                    }
-                }
-
-                var fence = new GameObject("Fence");
-                fence.transform.SetParent(parent);
-                fence.transform.position = segCenter;
-                fence.transform.rotation = Quaternion.Euler(0, 0, angle);
-                var sr = fence.AddComponent<SpriteRenderer>();
-                sr.sprite = ProceduralSpriteGenerator.CreateWallSprite(true, Mathf.RoundToInt(segLen * 32));
-                sr.sortingOrder = Mathf.RoundToInt(-segCenter.y);
-                sr.color = tint;
-                if (hasCollider)
-                {
-                    var col = fence.AddComponent<BoxCollider2D>();
-                    col.size = new Vector2(segLen, fenceHeight);
-                }
-                if (first == null) first = fence;
-            }
-            return first;
-        }
-
-        private static Vector2 GetFencePlacementSize(Vector3 dir, float length, float thickness)
-        {
-            dir.Normalize();
-
-            return new Vector2(
-                Mathf.Abs(dir.x) * length + Mathf.Abs(dir.y) * thickness,
-                Mathf.Abs(dir.y) * length + Mathf.Abs(dir.x) * thickness);
+            return null;
         }
 
         protected GameObject SpawnDumpster(Transform parent, Vector3 pos, bool registerPlacement = true)
@@ -346,8 +292,6 @@ namespace Deadlight.Level.MapBuilders
             sr.sortingOrder = Mathf.RoundToInt(-pos.y);
             sr.color = new Color(0.25f, 0.35f, 0.25f);
             obj.transform.localScale = new Vector3(1.3f, 0.9f, 1f);
-            var col = obj.AddComponent<BoxCollider2D>();
-            col.size = new Vector2(0.8f, 0.5f);
             return obj;
         }
 

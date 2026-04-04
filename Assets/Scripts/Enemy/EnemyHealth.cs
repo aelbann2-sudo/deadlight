@@ -139,7 +139,9 @@ namespace Deadlight.Enemy
                     sr != null ? sr.color : Color.gray);
             }
 
-            var waveManager = FindFirstObjectByType<WaveManager>();
+            var waveManager = WaveManager.Instance != null
+                ? WaveManager.Instance
+                : FindFirstObjectByType<WaveManager>();
             if (waveManager != null)
                 waveManager.RegisterEnemyDeath();
 

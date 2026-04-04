@@ -25,8 +25,9 @@ namespace Deadlight.UI
         private Image _fillImage;
         private Image _telegraphImage;
 
-        private static readonly Color BarBgColor = new Color(0f, 0f, 0f, 0.65f);
-        private static readonly Color BarFillColor = new Color(0.85f, 0.2f, 0.2f, 0.95f);
+        private static readonly Color BarBgColor = new Color(0.05f, 0.06f, 0.08f, 0.72f);
+        private static readonly Color BarFillLowColor = new Color(0.92f, 0.2f, 0.18f, 0.98f);
+        private static readonly Color BarFillHighColor = new Color(0.24f, 0.84f, 0.34f, 0.98f);
         private static readonly Color TelegraphColor = new Color(1f, 0.85f, 0.15f, 0.95f);
 
         public void Bind(EnemyHealth enemyHealth)
@@ -93,10 +94,9 @@ namespace Deadlight.UI
 
             // Update fill
             float pct = Mathf.Clamp01(health.HealthPercentage);
-            _fillRt.anchorMax = new Vector2(pct, 1f);
-            _fillRt.offsetMax = new Vector2(-1f, -1f);
+            _fillRt.localScale = new Vector3(pct, 1f, 1f);
+            _fillImage.color = Color.Lerp(BarFillLowColor, BarFillHighColor, pct);
 
-            // Telegraph indicator
             bool showTelegraph = Time.time <= telegraphUntil;
             if (_telegraphImage != null)
                 _telegraphImage.gameObject.SetActive(showTelegraph);
@@ -119,11 +119,12 @@ namespace Deadlight.UI
 
             _canvas = _barRoot.AddComponent<Canvas>();
             _canvas.renderMode = RenderMode.WorldSpace;
+            _canvas.overrideSorting = true;
             _canvas.sortingOrder = 50;
 
             var rt = _barRoot.GetComponent<RectTransform>();
-            rt.sizeDelta = new Vector2(0.8f, 0.12f);
-            rt.localScale = Vector3.one;
+            rt.sizeDelta = new Vector2(36f, 6f);
+            rt.localScale = Vector3.one * 0.02f;
 
             // Background
             var bg = new GameObject("Bg");
@@ -143,10 +144,11 @@ namespace Deadlight.UI
             _fillRt = fill.AddComponent<RectTransform>();
             _fillRt.anchorMin = Vector2.zero;
             _fillRt.anchorMax = Vector2.one;
+            _fillRt.pivot = new Vector2(0f, 0.5f);
             _fillRt.offsetMin = new Vector2(1f, 1f);
             _fillRt.offsetMax = new Vector2(-1f, -1f);
             _fillImage = fill.AddComponent<Image>();
-            _fillImage.color = BarFillColor;
+            _fillImage.color = BarFillHighColor;
             _fillImage.raycastTarget = false;
 
             // Telegraph stripe (above bar)

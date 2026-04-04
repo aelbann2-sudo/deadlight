@@ -19,6 +19,8 @@ namespace Deadlight.Core
 
     public class WaveManager : MonoBehaviour
     {
+        public static WaveManager Instance { get; private set; }
+
         [Header("Wave Settings")]
         [SerializeField] private List<Transform> spawnPoints = new List<Transform>();
         [SerializeField] private GameObject basicZombiePrefab;
@@ -54,6 +56,7 @@ namespace Deadlight.Core
         public event Action<int> OnWaveCompleted;
         public event Action OnAllWavesCompleted;
         public event Action<int> OnEnemyKilled;
+        public event Action<int> OnEnemyCountChanged;
 
         private NightConfig currentNightConfig;
         private Coroutine nightSequenceCoroutine;
@@ -63,6 +66,17 @@ namespace Deadlight.Core
         private bool daySkirmishTriggered;
         private bool bossSpawned;
         private bool miniBossSpawned;
+
+        private void Awake()
+        {
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            Instance = this;
+        }
 
         private void Start()
         {
@@ -118,6 +132,11 @@ namespace Deadlight.Core
 
         private void OnDestroy()
         {
+            if (Instance == this)
+            {
+                Instance = null;
+            }
+
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.OnGameStateChanged -= HandleGameStateChanged;
@@ -176,6 +195,7 @@ namespace Deadlight.Core
             enemiesRemaining = 0;
             isSpawning = false;
             miniBossSpawned = false;
+            OnEnemyCountChanged?.Invoke(enemiesRemaining);
 
             LoadNightConfig();
         }
@@ -472,6 +492,7 @@ namespace Deadlight.Core
 
             totalEnemiesSpawned++;
             enemiesRemaining++;
+            OnEnemyCountChanged?.Invoke(enemiesRemaining);
         }
 
         private enum SpawnType { Basic, Runner, Exploder, Tank, Spitter }
@@ -818,6 +839,7 @@ namespace Deadlight.Core
             enemiesRemaining = Mathf.Max(0, enemiesRemaining - 1);
             totalEnemiesKilled++;
             OnEnemyKilled?.Invoke(totalEnemiesKilled);
+            OnEnemyCountChanged?.Invoke(enemiesRemaining);
 
             if (GameManager.Instance != null &&
                 GameManager.Instance.CurrentState == GameState.DayPhase &&

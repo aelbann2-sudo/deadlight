@@ -700,38 +700,6 @@ namespace Deadlight.Visuals
             return sprite;
         }
 
-        public static Sprite CreateWallSprite(bool horizontal, int length = 32)
-        {
-            string key = $"wall_{(horizontal ? "h" : "v")}_{length}";
-            if (spriteCache.TryGetValue(key, out Sprite cached)) return cached;
-
-            int width = horizontal ? length : 8;
-            int height = horizontal ? 8 : length;
-            var texture = new Texture2D(width, height);
-            texture.filterMode = FilterMode.Point;
-
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    float noise = Mathf.PerlinNoise(x * 0.2f, y * 0.2f);
-                    Color col = Color.Lerp(Palette.Concrete, new Color(0.4f, 0.4f, 0.42f), noise * 0.3f);
-                    
-                    if ((horizontal && (y == 0 || y == height - 1)) || (!horizontal && (x == 0 || x == width - 1)))
-                    {
-                        col = Color.Lerp(col, Color.black, 0.2f);
-                    }
-                    
-                    texture.SetPixel(x, y, col);
-                }
-            }
-
-            texture.Apply();
-            var sprite = Sprite.Create(texture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 32);
-            spriteCache[key] = sprite;
-            return sprite;
-        }
-
         #endregion
 
         #region Weapon and Pickup Sprites

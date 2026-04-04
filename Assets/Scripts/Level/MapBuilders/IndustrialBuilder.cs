@@ -407,7 +407,7 @@ namespace Deadlight.Level.MapBuilders
             warehouse.transform.localScale = new Vector3(lot.Size.x / 4.6f, lot.Size.y / 2.8f, 1f);
 
             var col = warehouse.AddComponent<BoxCollider2D>();
-            MapFootprintCollider.ApplyBaseFootprint(col, lot.Size, 0.9f, 0.42f, 0.04f, 0.8f);
+            MapFootprintCollider.ApplySpriteFootprint(col, sr.sprite, warehouse.transform.localScale, 0.92f, 0.92f);
 
             Vector3 doorBase = lot.DockFacesSouth ? new Vector3(0f, -lot.Size.y * 0.42f, 0f) : new Vector3(0f, lot.Size.y * 0.42f, 0f);
             CreateDoor(warehouse.transform, doorBase + new Vector3(-1.4f, 0f, 0f), 1.0f);
@@ -445,7 +445,7 @@ namespace Deadlight.Level.MapBuilders
             shed.transform.localScale = new Vector3(size.x / 4.6f, size.y / 2.8f, 1f);
 
             var col = shed.AddComponent<BoxCollider2D>();
-            MapFootprintCollider.ApplyBaseFootprint(col, size, 0.9f, 0.44f, 0.03f, 0.65f);
+            MapFootprintCollider.ApplySpriteFootprint(col, sr.sprite, shed.transform.localScale, 0.92f, 0.9f);
 
             CreateDoor(shed.transform, new Vector3(0f, -size.y * 0.4f, 0f), 0.8f);
         }
@@ -473,7 +473,7 @@ namespace Deadlight.Level.MapBuilders
             container.transform.localScale = new Vector3(1.45f, 1.05f, 1f);
 
             var col = container.AddComponent<BoxCollider2D>();
-            col.size = new Vector2(2f, 0.9f);
+            MapFootprintCollider.ApplySpriteFootprint(col, sr.sprite, container.transform.localScale, 0.92f, 0.84f);
         }
 
         private void SpawnFuelTank(Transform parent, Vector3 pos)
@@ -492,7 +492,7 @@ namespace Deadlight.Level.MapBuilders
             sr.sortingOrder = Mathf.RoundToInt(-pos.y);
 
             var col = tank.gameObject.AddComponent<BoxCollider2D>();
-            col.size = new Vector2(2.2f, 1.4f);
+            MapFootprintCollider.ApplySpriteFootprint(col, sr.sprite, tank.localScale, 0.9f, 0.84f);
         }
 
         private void SpawnDockPlatform(Transform parent, Vector3 pos, Vector2 size)
@@ -512,7 +512,7 @@ namespace Deadlight.Level.MapBuilders
             dock.transform.localScale = new Vector3(size.x / 4.5f, size.y / 1.1f, 1f);
 
             var col = dock.AddComponent<BoxCollider2D>();
-            col.size = size;
+            MapFootprintCollider.ApplySpriteFootprint(col, sr.sprite, dock.transform.localScale, 0.94f, 0.9f);
         }
 
         private void SpawnPipeRack(Transform parent, Vector3 pos, float length, bool vertical)
