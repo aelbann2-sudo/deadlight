@@ -8,6 +8,8 @@ namespace Deadlight.Narrative
 {
     public class IntroSequence : MonoBehaviour
     {
+        public static IntroSequence Instance { get; private set; }
+
         [Header("Timing")]
         [SerializeField] private float charRevealInterval = 0.03f;
         [SerializeField] private float skipHoldDuration = 1f;
@@ -22,6 +24,8 @@ namespace Deadlight.Narrative
         private bool isPlaying;
         private bool skipRequested;
         private float escapeHeldTime;
+
+        public bool IsPlaying => isPlaying;
 
         private AudioSource introAudioSource;
         private AudioClip typeClickClip;
@@ -59,9 +63,24 @@ namespace Deadlight.Narrative
 
         private void Awake()
         {
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            Instance = this;
             LoadFont();
             BuildCanvas();
             InitAudio();
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                Instance = null;
+            }
         }
 
         private void InitAudio()
@@ -333,6 +352,8 @@ namespace Deadlight.Narrative
                 Destroy(canvasRoot);
             }
 
+            GameManager.Instance?.NotifyStartupIntroFinished();
+
             if (GameManager.Instance != null)
             {
                 if (GameManager.Instance.CurrentState != GameState.MainMenu)
@@ -350,6 +371,7 @@ namespace Deadlight.Narrative
             }
 
             Debug.Log("[IntroSequence] Intro complete, showing main menu.");
+            Destroy(gameObject);
         }
     }
 }

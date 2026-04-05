@@ -79,6 +79,11 @@ namespace Deadlight.Core
         public bool IsPaused => isPaused;
         public bool IsGameplayState => IsGameplayStateValue(currentState);
         public bool ShouldSetupGameplayScene => startNewRunAfterGameSceneLoad || currentState != GameState.MainMenu || autoStartWhenGameSceneLoads;
+        public bool ShouldSuppressMainMenuPresentation =>
+            currentState == GameState.MainMenu &&
+            !startNewRunAfterGameSceneLoad &&
+            !autoStartWhenGameSceneLoads &&
+            (!startupIntroShown || startupIntroInProgress);
         public bool CraftingEnabled => enableCrafting;
         public float RunStartTime { get; private set; }
 
@@ -97,6 +102,8 @@ namespace Deadlight.Core
         private Coroutine deferredRestartCoroutine;
         private bool isBootstrappingScene;
         private bool startNewRunAfterGameSceneLoad;
+        private bool startupIntroShown;
+        private bool startupIntroInProgress;
         private int queuedStartNight = 1;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -146,6 +153,7 @@ namespace Deadlight.Core
         {
             if (SceneManager.GetActiveScene().name == "Game")
             {
+                TryBeginStartupIntro();
                 StartCoroutine(BootstrapGameSceneNextFrame());
             }
         }
@@ -163,6 +171,7 @@ namespace Deadlight.Core
         {
             if (scene.name == "Game")
             {
+                TryBeginStartupIntro();
                 StartCoroutine(BootstrapGameSceneNextFrame());
 
                 if (startNewRunAfterGameSceneLoad)
@@ -219,6 +228,35 @@ namespace Deadlight.Core
             }
 
             isBootstrappingScene = false;
+        }
+
+        private void TryBeginStartupIntro()
+        {
+            if (startupIntroShown || startupIntroInProgress || startNewRunAfterGameSceneLoad || autoStartWhenGameSceneLoads)
+            {
+                return;
+            }
+
+            if (SceneManager.GetActiveScene().name != "Game" || currentState != GameState.MainMenu)
+            {
+                return;
+            }
+
+            if (FindFirstObjectByType<IntroSequence>() != null)
+            {
+                startupIntroInProgress = true;
+                return;
+            }
+
+            var introObject = new GameObject("IntroSequence");
+            introObject.AddComponent<IntroSequence>();
+            startupIntroInProgress = true;
+        }
+
+        public void NotifyStartupIntroFinished()
+        {
+            startupIntroInProgress = false;
+            startupIntroShown = true;
         }
 
         public void SetMap(MapType map)
@@ -669,6 +707,11 @@ namespace Deadlight.Core
             else if (FindFirstObjectByType<EnvironmentalLore>() == null)
             {
                 narrativeManager.gameObject.AddComponent<EnvironmentalLore>();
+            }
+
+            if (FindFirstObjectByType<LevelIntroSequence>() == null)
+            {
+                new GameObject("LevelIntroSequence").AddComponent<LevelIntroSequence>();
             }
 
             if (FindFirstObjectByType<AudioManager>() == null)
