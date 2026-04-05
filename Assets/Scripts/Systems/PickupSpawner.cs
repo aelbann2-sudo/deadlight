@@ -69,6 +69,8 @@ namespace Deadlight.Systems
 
         public void SpawnPickup(Vector3 position, PickupType type)
         {
+            type = SanitizePickupType(type);
+
             var pickupObj = new GameObject($"Pickup_{type}");
             pickupObj.transform.position = position;
 
@@ -91,6 +93,19 @@ namespace Deadlight.Systems
             Destroy(pickupObj, 10f);
         }
 
+        public static PickupType SanitizePickupType(PickupType type)
+        {
+            return IsCraftingPickup(type) ? PickupType.Points : type;
+        }
+
+        public static bool IsCraftingPickup(PickupType type)
+        {
+            return type == PickupType.Scrap ||
+                   type == PickupType.Wood ||
+                   type == PickupType.Chemicals ||
+                   type == PickupType.Electronics;
+        }
+
         private Color GetPickupColor(PickupType type)
         {
             return type switch
@@ -105,14 +120,11 @@ namespace Deadlight.Systems
 
         private float GetPickupValue(PickupType type)
         {
+            type = SanitizePickupType(type);
             return type switch
             {
                 PickupType.Ammo => ammoAmount,
                 PickupType.Health => healthAmount,
-                PickupType.Scrap => scrapAmount,
-                PickupType.Wood => woodAmount,
-                PickupType.Chemicals => chemicalsAmount,
-                PickupType.Electronics => electronicsAmount,
                 PickupType.Points => pointsAmount,
                 PickupType.Powerup => 1f,
                 _ => 0f
@@ -170,7 +182,7 @@ namespace Deadlight.Systems
 
         public void Initialize(PickupType pickupType, float pickupValue)
         {
-            type = pickupType;
+            type = PickupSpawner.SanitizePickupType(pickupType);
             value = pickupValue;
         }
 
@@ -292,20 +304,6 @@ namespace Deadlight.Systems
                         didCollect = true;
                     }
                     break;
-
-                case PickupType.Scrap:
-                case PickupType.Wood:
-                case PickupType.Chemicals:
-                case PickupType.Electronics:
-                    if (ResourceManager.Instance != null)
-                    {
-                        ResourceType resourceType = ConvertToResourceType(type);
-                        int amount = Mathf.Max(1, Mathf.RoundToInt(value));
-                        ResourceManager.Instance.AddResource(resourceType, amount);
-                        CraftingSystem.Instance?.NotifyResourceCollected(resourceType, amount, transform.position);
-                        didCollect = true;
-                    }
-                    break;
             }
 
             if (!didCollect)
@@ -323,18 +321,6 @@ namespace Deadlight.Systems
             }
 
             Destroy(gameObject);
-        }
-
-        private ResourceType ConvertToResourceType(PickupType pickupType)
-        {
-            return pickupType switch
-            {
-                PickupType.Scrap => ResourceType.Scrap,
-                PickupType.Wood => ResourceType.Wood,
-                PickupType.Chemicals => ResourceType.Chemicals,
-                PickupType.Electronics => ResourceType.Electronics,
-                _ => ResourceType.Scrap
-            };
         }
     }
 
