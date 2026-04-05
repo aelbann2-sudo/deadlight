@@ -359,110 +359,46 @@ namespace Deadlight.Systems
 
         private string GrantContestedRewards()
         {
-            bool craftingEnabled = GameManager.Instance != null && GameManager.Instance.CraftingEnabled;
-
-            if (!craftingEnabled)
-            {
-                int bonusPoints;
-                int ammo;
-                float heal;
-
-                switch (tier)
-                {
-                    case CrateTier.Legendary:
-                        bonusPoints = 260;
-                        ammo = 90;
-                        heal = 45f;
-                        break;
-                    case CrateTier.Rare:
-                        bonusPoints = 170;
-                        ammo = 60;
-                        heal = 30f;
-                        break;
-                    default:
-                        bonusPoints = 110;
-                        ammo = 35;
-                        heal = 18f;
-                        break;
-                }
-
-                PointsSystem.Instance?.AddPoints(bonusPoints, "Contested Drop");
-
-                var playerObj = GameObject.Find("Player");
-                var shooting = playerObj != null ? playerObj.GetComponent<PlayerShooting>() : null;
-                var health = playerObj != null ? playerObj.GetComponent<PlayerHealth>() : null;
-
-                shooting?.AddAmmo(ammo);
-                health?.Heal(heal);
-
-                var help = Deadlight.UI.GameplayHelpSystem.Instance;
-                help?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Points, bonusPoints);
-                help?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Ammo, ammo);
-                help?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Health, Mathf.RoundToInt(heal));
-
-                var directSummary = new StringBuilder("DROP SECURED: ");
-                directSummary.Append($"+{bonusPoints} Points, +{ammo} Ammo, +{Mathf.RoundToInt(heal)} HP");
-                return directSummary.ToString();
-            }
-
-            int scrap;
-            int wood;
-            int chemicals;
-            int electronics;
-            int blueprintTokens;
-            int points;
+            int bonusPoints;
+            int ammo;
+            float heal;
 
             switch (tier)
             {
                 case CrateTier.Legendary:
-                    scrap = 5;
-                    wood = 4;
-                    chemicals = 3;
-                    electronics = 2;
-                    blueprintTokens = 2;
-                    points = 220;
+                    bonusPoints = 260;
+                    ammo = 90;
+                    heal = 45f;
                     break;
                 case CrateTier.Rare:
-                    scrap = 4;
-                    wood = 3;
-                    chemicals = 2;
-                    electronics = 1;
-                    blueprintTokens = 1;
-                    points = 140;
+                    bonusPoints = 170;
+                    ammo = 60;
+                    heal = 30f;
                     break;
                 default:
-                    scrap = 3;
-                    wood = 2;
-                    chemicals = 1;
-                    electronics = 0;
-                    blueprintTokens = 0;
-                    points = 90;
+                    bonusPoints = 110;
+                    ammo = 35;
+                    heal = 18f;
                     break;
             }
 
-            if (ResourceManager.Instance != null)
-            {
-                ResourceManager.Instance.AddResource(ResourceType.Scrap, scrap);
-                ResourceManager.Instance.AddResource(ResourceType.Wood, wood);
-                ResourceManager.Instance.AddResource(ResourceType.Chemicals, chemicals);
-                if (electronics > 0) ResourceManager.Instance.AddResource(ResourceType.Electronics, electronics);
-                if (blueprintTokens > 0) ResourceManager.Instance.AddResource(ResourceType.BlueprintToken, blueprintTokens);
-            }
+            PointsSystem.Instance?.AddPoints(bonusPoints, "Contested Drop");
 
-            PointsSystem.Instance?.AddPoints(points, "Contested Drop");
-            if (blueprintTokens > 0)
-            {
-                Deadlight.UI.GameplayHelpSystem.Instance?.ShowItem(
-                    Deadlight.UI.GameplayGuideContent.ItemIds.BlueprintToken,
-                    blueprintTokens);
-            }
+            var playerObj = GameObject.Find("Player");
+            var shooting = playerObj != null ? playerObj.GetComponent<PlayerShooting>() : null;
+            var health = playerObj != null ? playerObj.GetComponent<PlayerHealth>() : null;
 
-            var sb = new StringBuilder("DROP SECURED: ");
-            sb.Append($"+{scrap} Scrap, +{wood} Wood");
-            if (chemicals > 0) sb.Append($", +{chemicals} Chem");
-            if (electronics > 0) sb.Append($", +{electronics} Elec");
-            if (blueprintTokens > 0) sb.Append($", +{blueprintTokens} Blueprint");
-            return sb.ToString();
+            shooting?.AddAmmo(ammo);
+            health?.Heal(heal);
+
+            var help = Deadlight.UI.GameplayHelpSystem.Instance;
+            help?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Points, bonusPoints);
+            help?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Ammo, ammo);
+            help?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Health, Mathf.RoundToInt(heal));
+
+            var directSummary = new StringBuilder("DROP SECURED: ");
+            directSummary.Append($"+{bonusPoints} Points, +{ammo} Ammo, +{Mathf.RoundToInt(heal)} HP");
+            return directSummary.ToString();
         }
 
         private void ExpireContestedDrop()

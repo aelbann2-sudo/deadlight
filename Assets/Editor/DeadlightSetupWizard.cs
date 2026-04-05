@@ -268,7 +268,7 @@ namespace Deadlight.Editor
         {
             CreatePickupPrefab("HealthPickup", Color.red, Systems.PickupType.Health, 25);
             CreatePickupPrefab("AmmoPickup", Color.yellow, Systems.PickupType.Ammo, 30);
-            CreatePickupPrefab("ScrapPickup", Color.gray, Systems.PickupType.Scrap, 5);
+            CreatePickupPrefab("PointsPickup", Color.green, Systems.PickupType.Points, 50);
         }
 
         private static void CreatePickupPrefab(string name, Color color, Systems.PickupType type, int amount)

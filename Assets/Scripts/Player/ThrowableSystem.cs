@@ -33,6 +33,8 @@ namespace Deadlight.Player
 
         public int GrenadeCount => grenadeCount;
         public int MolotovCount => molotovCount;
+        public int MaxGrenades => maxGrenades;
+        public int MaxMolotovs => maxMolotovs;
 
         public System.Action<int, int> OnInventoryChanged;
 
@@ -74,6 +76,12 @@ namespace Deadlight.Player
             rb.gravityScale = 0;
             rb.linearVelocity = dir * speed;
             rb.angularVelocity = 360f;
+
+            var projectileCollider = projectile.AddComponent<CircleCollider2D>();
+            projectileCollider.radius = 0.18f;
+            projectileCollider.isTrigger = true;
+
+            Destroy(projectile, 12f);
 
             if (type == ThrowableType.Grenade)
             {
@@ -203,6 +211,8 @@ namespace Deadlight.Player
         private float burnDuration;
         private float radius;
         private bool shattered;
+        private float airborneTimer;
+        private const float MaxAirTime = 1.35f;
 
         public void Initialize(float dps, float dur, float rad)
         {
@@ -219,8 +229,21 @@ namespace Deadlight.Player
 
         void Update()
         {
+            if (shattered) return;
+
+            airborneTimer += Time.deltaTime;
             var rb = GetComponent<Rigidbody2D>();
-            if (rb != null && rb.linearVelocity.magnitude < 1f && !shattered)
+            if (rb != null)
+            {
+                rb.linearVelocity *= 0.965f;
+                if (rb.linearVelocity.magnitude < 1f)
+                {
+                    Shatter();
+                    return;
+                }
+            }
+
+            if (airborneTimer >= MaxAirTime)
             {
                 Shatter();
             }
@@ -228,7 +251,10 @@ namespace Deadlight.Player
 
         void Shatter()
         {
+            if (shattered) return;
             shattered = true;
+            var col = GetComponent<Collider2D>();
+            if (col != null) col.enabled = false;
             StartCoroutine(FireZone());
         }
 
@@ -260,7 +286,7 @@ namespace Deadlight.Player
             tex.Apply();
             tex.filterMode = FilterMode.Bilinear;
             fireSr.sprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size / (radius * 2f));
-            fireSr.sortingOrder = -2;
+            fireSr.sortingOrder = Mathf.RoundToInt(-fireObj.transform.position.y) + 2;
 
             float elapsed = 0f;
             while (elapsed < burnDuration)

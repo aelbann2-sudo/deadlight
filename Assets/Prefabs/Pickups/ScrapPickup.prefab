@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 6230490424520275216}
   - component: {fileID: 6161198032479275795}
   m_Layer: 0
-  m_Name: ScrapPickup
+  m_Name: PointsPickup
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -141,8 +141,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 789acb48c25dc4024b51a94cb4c52596, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Deadlight::Deadlight.Systems.Pickup
-  pickupType: 2
-  amount: 5
+  pickupType: 6
+  amount: 50
   spriteRenderer: {fileID: 0}
   bobSpeed: 2
   bobAmount: 0.1

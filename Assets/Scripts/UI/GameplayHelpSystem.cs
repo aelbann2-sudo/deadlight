@@ -100,10 +100,10 @@ namespace Deadlight.UI
             {
                 PickupType.Health => ItemIds.Health,
                 PickupType.Ammo => ItemIds.Ammo,
-                PickupType.Scrap => ItemIds.Scrap,
-                PickupType.Wood => ItemIds.Wood,
-                PickupType.Chemicals => ItemIds.Chemicals,
-                PickupType.Electronics => ItemIds.Electronics,
+                PickupType.Scrap => ItemIds.Points,
+                PickupType.Wood => ItemIds.Points,
+                PickupType.Chemicals => ItemIds.Points,
+                PickupType.Electronics => ItemIds.Points,
                 PickupType.Points => ItemIds.Points,
                 PickupType.Powerup => ItemIds.Powerup,
                 _ => string.Empty

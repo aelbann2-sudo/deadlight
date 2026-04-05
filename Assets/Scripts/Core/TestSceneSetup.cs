@@ -1052,7 +1052,7 @@ namespace Deadlight.Core
             // Loadout card
             var weaponPanel = CreateUIPanel(hudRoot.transform, "WeaponPanel",
                 new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(1f, 0f),
-                new Vector2(-24f, 24f), new Vector2(320f, 126f));
+                new Vector2(-24f, 24f), new Vector2(360f, 156f));
             var wpBg = weaponPanel.AddComponent<Image>();
             wpBg.color = cardColor;
 
@@ -1083,6 +1083,16 @@ namespace Deadlight.Core
                 new Vector2(0f, 1f), "DMG 15  ROF 0.3", font, 14, TextAnchor.UpperLeft,
                 mutedText,
                 new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(84f, -62f), new Vector2(170f, 22f));
+
+            var throwableLabel = CreateUIText(weaponPanel.transform, "ThrowableLabel",
+                new Vector2(0f, 1f), "THROWABLES", font, 12, TextAnchor.UpperLeft, mutedText,
+                new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(14f, -90f), new Vector2(130f, 16f));
+            throwableLabel.GetComponent<Text>().fontStyle = FontStyle.Bold;
+
+            var throwablesText = CreateUIText(weaponPanel.transform, "ThrowablesText",
+                new Vector2(0f, 0f), "Q GRENADE 0/0\nG MOLOTOV 0/0", font, 13, TextAnchor.LowerLeft, titleColor,
+                new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(14f, 10f), new Vector2(210f, 42f));
+            throwablesText.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
             var ammoLabel = CreateUIText(weaponPanel.transform, "AmmoLabel",
                 new Vector2(1f, 1f), "AMMO", font, 13, TextAnchor.UpperRight, mutedText,
@@ -1199,7 +1209,8 @@ namespace Deadlight.Core
                 statusText.GetComponent<Text>(),
                 reloadHint.GetComponent<Text>(),
                 dayTimerText.GetComponent<Text>(),
-                pointsText.GetComponent<Text>()
+                pointsText.GetComponent<Text>(),
+                throwablesText.GetComponent<Text>()
             );
             hudComp.SetWeaponHUD(weaponIconImage, weaponName.GetComponent<Text>(), weaponStats.GetComponent<Text>());
             hudComp.SetArmorHUD(vestFillImage, helmFillImage,

@@ -51,6 +51,11 @@ namespace Deadlight.UI
         private readonly HashSet<WeaponType> _purchasedWeapons = new HashSet<WeaponType>();
         private readonly List<Text> _upgradeLabels = new List<Text>();
         private readonly List<Button> _upgradeBuyButtons = new List<Button>();
+        private const int SupplyButtonCount = 4;
+        private const int HealCost = 50;
+        private const int AmmoRefillCost = 30;
+        private const int GrenadeRefillCost = 35;
+        private const int MolotovRefillCost = 45;
 
         // ── Campaign state ────────────────────────────────────
         private Text _mainMenuProgressText;
@@ -648,7 +653,7 @@ namespace Deadlight.UI
 
             // Header
             var header = UIFactory.CreateRegion(_dawnShopPanel.transform, "Header",
-                new Vector2(0f, 0.88f), new Vector2(1f, 1f),
+                new Vector2(0f, 0.89f), new Vector2(1f, 1f),
                 UITheme.Darken(UITheme.BgDark, 0.2f));
 
             _shopTitleText = UIFactory.CreateTextAt(header.transform, "Title",
@@ -664,35 +669,50 @@ namespace Deadlight.UI
             // Points display
             _shopPointsText = UIFactory.CreateTextAt(_dawnShopPanel.transform, "Points",
                 "Points: 0", UITheme.FontHeading - 2, UITheme.AccentGreen,
-                new Vector2(0.5f, 0.86f), new Vector2(-110f, -4f), new Vector2(220f, 28f),
+                new Vector2(0.5f, 0.84f), new Vector2(-110f, -4f), new Vector2(220f, 28f),
                 TextAnchor.MiddleCenter, FontStyle.Bold);
 
             // Supply row
             var supplyRow = new GameObject("SupplyRow");
             supplyRow.transform.SetParent(_dawnShopPanel.transform, false);
             var srRt = supplyRow.AddComponent<RectTransform>();
-            UIFactory.SetAnchored(srRt, new Vector2(0.5f, 0.82f), Vector2.zero, new Vector2(460f, 36f));
+            UIFactory.SetAnchored(srRt, new Vector2(0.5f, 0.78f), Vector2.zero, new Vector2(900f, 36f));
 
             var healBtn = UIFactory.CreateCenteredButton(supplyRow.transform, "HealBtn",
-                "Full Heal (50)", UITheme.AccentRed,
-                new Vector2(0.25f, 0.5f), new Vector2(190f, 32f), BuyHealthKit);
+                $"Full Heal ({HealCost})", UITheme.AccentRed,
+                new Vector2(0.125f, 0.5f), new Vector2(200f, 32f), BuyHealthKit);
             _shopBuyButtons.Add(healBtn);
 
             var ammoBtn = UIFactory.CreateCenteredButton(supplyRow.transform, "AmmoBtn",
-                "Ammo Refill (30)", UITheme.AccentOrange,
-                new Vector2(0.75f, 0.5f), new Vector2(190f, 32f), BuyAmmoRefill);
+                $"Ammo Refill ({AmmoRefillCost})", UITheme.AccentOrange,
+                new Vector2(0.375f, 0.5f), new Vector2(200f, 32f), BuyAmmoRefill);
             _shopBuyButtons.Add(ammoBtn);
 
+            var grenadeBtn = UIFactory.CreateCenteredButton(supplyRow.transform, "GrenadeBtn",
+                $"Grenade +1 ({GrenadeRefillCost})", UITheme.AccentGreen,
+                new Vector2(0.625f, 0.5f), new Vector2(200f, 32f), BuyGrenadeRefill);
+            _shopBuyButtons.Add(grenadeBtn);
+
+            var molotovBtn = UIFactory.CreateCenteredButton(supplyRow.transform, "MolotovBtn",
+                $"Molotov +1 ({MolotovRefillCost})", UITheme.Darken(UITheme.AccentOrange, 0.18f),
+                new Vector2(0.875f, 0.5f), new Vector2(200f, 32f), BuyMolotovRefill);
+            _shopBuyButtons.Add(molotovBtn);
+
             // Tabs
-            _weaponsTabBtn = UIFactory.CreateCenteredButton(_dawnShopPanel.transform, "WeaponsTab",
+            var tabRow = new GameObject("TabRow");
+            tabRow.transform.SetParent(_dawnShopPanel.transform, false);
+            var trRt = tabRow.AddComponent<RectTransform>();
+            UIFactory.SetAnchored(trRt, new Vector2(0.5f, 0.72f), Vector2.zero, new Vector2(560f, 34f));
+
+            _weaponsTabBtn = UIFactory.CreateCenteredButton(tabRow.transform, "WeaponsTab",
                 "WEAPONS", UITheme.AccentBlue,
-                new Vector2(0.28f, 0.77f), new Vector2(160f, 32f), () => ShowShopTab(0));
-            _upgradesTabBtn = UIFactory.CreateCenteredButton(_dawnShopPanel.transform, "UpgradesTab",
+                new Vector2(0.18f, 0.5f), new Vector2(160f, 32f), () => ShowShopTab(0));
+            _upgradesTabBtn = UIFactory.CreateCenteredButton(tabRow.transform, "UpgradesTab",
                 "UPGRADES", UITheme.AccentPurple,
-                new Vector2(0.50f, 0.77f), new Vector2(160f, 32f), () => ShowShopTab(1));
-            _armorTabBtn = UIFactory.CreateCenteredButton(_dawnShopPanel.transform, "ArmorTab",
+                new Vector2(0.5f, 0.5f), new Vector2(160f, 32f), () => ShowShopTab(1));
+            _armorTabBtn = UIFactory.CreateCenteredButton(tabRow.transform, "ArmorTab",
                 "ARMOR", UITheme.Darken(UITheme.AccentBlue, 0.15f),
-                new Vector2(0.72f, 0.77f), new Vector2(160f, 32f), () => ShowShopTab(2));
+                new Vector2(0.82f, 0.5f), new Vector2(160f, 32f), () => ShowShopTab(2));
 
             // Tab content containers
             _weaponsTabContent = CreateTabContainer("WeaponsContent");
@@ -718,7 +738,7 @@ namespace Deadlight.UI
             go.transform.SetParent(_dawnShopPanel.transform, false);
             var rt = go.AddComponent<RectTransform>();
             rt.anchorMin = new Vector2(0.5f, 0.14f);
-            rt.anchorMax = new Vector2(0.5f, 0.74f);
+            rt.anchorMax = new Vector2(0.5f, 0.66f);
             rt.pivot = new Vector2(0.5f, 0.5f);
             rt.anchoredPosition = Vector2.zero;
             rt.sizeDelta = new Vector2(580f, 0f);
@@ -1173,16 +1193,32 @@ namespace Deadlight.UI
         private void BuyHealthKit()
         {
             if (!CanPurchaseHealthKit(out var health)) return;
-            if (!PointsSystem.Instance.SpendPoints(50, "Health Kit")) return;
+            if (!PointsSystem.Instance.SpendPoints(HealCost, "Health Kit")) return;
             health.FullHeal();
             RefreshShop();
         }
 
         private void BuyAmmoRefill()
         {
-            if (PointsSystem.Instance == null || !PointsSystem.Instance.CanAfford(30)) return;
-            if (!PointsSystem.Instance.SpendPoints(30, "Ammo Refill")) return;
+            if (PointsSystem.Instance == null || !PointsSystem.Instance.CanAfford(AmmoRefillCost)) return;
+            if (!PointsSystem.Instance.SpendPoints(AmmoRefillCost, "Ammo Refill")) return;
             GameObject.Find("Player")?.GetComponent<PlayerShooting>()?.AddAmmo(60);
+            RefreshShop();
+        }
+
+        private void BuyGrenadeRefill()
+        {
+            if (!CanPurchaseGrenadeRefill(out var throwable)) return;
+            if (!PointsSystem.Instance.SpendPoints(GrenadeRefillCost, "Grenade Refill")) return;
+            throwable.AddGrenades(1);
+            RefreshShop();
+        }
+
+        private void BuyMolotovRefill()
+        {
+            if (!CanPurchaseMolotovRefill(out var throwable)) return;
+            if (!PointsSystem.Instance.SpendPoints(MolotovRefillCost, "Molotov Refill")) return;
+            throwable.AddMolotovs(1);
             RefreshShop();
         }
 
@@ -1222,14 +1258,30 @@ namespace Deadlight.UI
 
             int night = GameManager.Instance?.CurrentLevel ?? 1;
             bool needsHeal = NeedsHealing(out _);
-            bool canHeal = needsHeal && PointsSystem.Instance != null && PointsSystem.Instance.CanAfford(50);
-            UpdateSupplyButton(0, 50, canHeal);
-            UpdateSupplyButton(1, 30);
+            bool needsGrenade = NeedsGrenades(out _);
+            bool needsMolotov = NeedsMolotovs(out _);
+            bool canHeal = needsHeal && PointsSystem.Instance != null && PointsSystem.Instance.CanAfford(HealCost);
+            UpdateSupplyButton(0, HealCost, canHeal);
+            UpdateSupplyButton(1, AmmoRefillCost);
+            UpdateSupplyButton(2, GrenadeRefillCost, needsGrenade);
+            UpdateSupplyButton(3, MolotovRefillCost, needsMolotov);
 
             if (_shopBuyButtons.Count > 0)
             {
                 var lbl = _shopBuyButtons[0].GetComponentInChildren<Text>();
-                if (lbl != null) lbl.text = needsHeal ? "Full Heal (50)" : "Health Full";
+                if (lbl != null) lbl.text = needsHeal ? $"Full Heal ({HealCost})" : "Health Full";
+            }
+
+            if (_shopBuyButtons.Count > 2)
+            {
+                var lbl = _shopBuyButtons[2].GetComponentInChildren<Text>();
+                if (lbl != null) lbl.text = needsGrenade ? $"Grenade +1 ({GrenadeRefillCost})" : "Grenades Full";
+            }
+
+            if (_shopBuyButtons.Count > 3)
+            {
+                var lbl = _shopBuyButtons[3].GetComponentInChildren<Text>();
+                if (lbl != null) lbl.text = needsMolotov ? $"Molotov +1 ({MolotovRefillCost})" : "Molotovs Full";
             }
 
             WeaponType[] wts = { WeaponType.Shotgun, WeaponType.SMG, WeaponType.SniperRifle, WeaponType.AssaultRifle, WeaponType.GrenadeLauncher, WeaponType.Flamethrower };
@@ -1237,7 +1289,7 @@ namespace Deadlight.UI
             int[] nights = { 1, 2, 2, 3, 3, 4 };
             for (int i = 0; i < wts.Length; i++)
             {
-                int idx = 2 + i;
+                int idx = SupplyButtonCount + i;
                 if (idx >= _shopBuyButtons.Count) break;
                 var b = _shopBuyButtons[idx];
                 bool sold = _purchasedWeapons.Contains(wts[i]);
@@ -1262,7 +1314,7 @@ namespace Deadlight.UI
         private bool CanPurchaseHealthKit(out PlayerHealth health)
         {
             if (!NeedsHealing(out health)) return false;
-            return PointsSystem.Instance != null && PointsSystem.Instance.CanAfford(50);
+            return PointsSystem.Instance != null && PointsSystem.Instance.CanAfford(HealCost);
         }
 
         private bool NeedsHealing(out PlayerHealth health)
@@ -1270,6 +1322,32 @@ namespace Deadlight.UI
             var player = GameObject.Find("Player");
             health = player != null ? player.GetComponent<PlayerHealth>() : null;
             return health != null && health.CurrentHealth < health.MaxHealth - 0.01f;
+        }
+
+        private bool CanPurchaseGrenadeRefill(out ThrowableSystem throwable)
+        {
+            if (!NeedsGrenades(out throwable)) return false;
+            return PointsSystem.Instance != null && PointsSystem.Instance.CanAfford(GrenadeRefillCost);
+        }
+
+        private bool NeedsGrenades(out ThrowableSystem throwable)
+        {
+            var player = GameObject.Find("Player");
+            throwable = player != null ? player.GetComponent<ThrowableSystem>() : null;
+            return throwable != null && throwable.GrenadeCount < throwable.MaxGrenades;
+        }
+
+        private bool CanPurchaseMolotovRefill(out ThrowableSystem throwable)
+        {
+            if (!NeedsMolotovs(out throwable)) return false;
+            return PointsSystem.Instance != null && PointsSystem.Instance.CanAfford(MolotovRefillCost);
+        }
+
+        private bool NeedsMolotovs(out ThrowableSystem throwable)
+        {
+            var player = GameObject.Find("Player");
+            throwable = player != null ? player.GetComponent<ThrowableSystem>() : null;
+            return throwable != null && throwable.MolotovCount < throwable.MaxMolotovs;
         }
 
         private void UpdateSupplyButton(int index, int cost, bool extra = true)
@@ -1281,10 +1359,8 @@ namespace Deadlight.UI
         private void UpdateUpgradeRow(int index, int tier, int maxTier, int cost, string desc, string name)
         {
             if (index >= _upgradeLabels.Count || index >= _upgradeBuyButtons.Count) return;
-            string pips = "";
-            for (int i = 0; i < maxTier; i++) pips += i < tier ? "\u25A0 " : "\u25A1 ";
             bool maxed = tier >= maxTier;
-            _upgradeLabels[index].text = $"{name}  {pips.Trim()}  {desc}{(maxed ? "" : $"  ({cost} pts)")}";
+            _upgradeLabels[index].text = $"{name}  T{tier}/{maxTier}  {desc}{(maxed ? "" : $"  ({cost} pts)")}";
             _upgradeBuyButtons[index].interactable = !maxed && cost > 0 && PointsSystem.Instance != null && PointsSystem.Instance.CanAfford(cost);
             var lt = _upgradeBuyButtons[index].GetComponentInChildren<Text>();
             if (lt != null) lt.text = maxed ? "MAX" : "UPGRADE";

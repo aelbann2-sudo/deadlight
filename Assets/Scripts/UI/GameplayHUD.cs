@@ -19,6 +19,7 @@ namespace Deadlight.UI
         private Text reloadHint;
         private Text dayTimerText;
         private Text pointsText;
+        private Text throwablesText;
 
         private Image weaponIcon;
         private Text weaponNameText;
@@ -34,6 +35,7 @@ namespace Deadlight.UI
         private Player.PlayerHealth playerHealth;
         private Player.PlayerShooting playerShooting;
         private Player.PlayerController playerController;
+        private Player.ThrowableSystem throwableSystem;
         private WaveManager waveManager;
         private WaveSpawner waveSpawner;
         private RectTransform healthFillRect;
@@ -44,7 +46,7 @@ namespace Deadlight.UI
         public void Initialize(
             Text health, Image hFill, Text ammo, Image sFill,
             Text wave, Text night, Text enemyCount, Text status, Text reload,
-            Text dayTimer = null, Text points = null)
+            Text dayTimer = null, Text points = null, Text throwables = null)
         {
             healthText = health;
             healthFill = hFill;
@@ -58,6 +60,7 @@ namespace Deadlight.UI
             reloadHint = reload;
             dayTimerText = dayTimer;
             pointsText = points;
+            throwablesText = throwables;
 
             ConfigureHealthBar();
             ApplyHealthBar(displayedHealthRatio);
@@ -115,6 +118,7 @@ namespace Deadlight.UI
             playerHealth = player.GetComponent<Player.PlayerHealth>();
             playerShooting = player.GetComponent<Player.PlayerShooting>();
             playerController = player.GetComponent<Player.PlayerController>();
+            throwableSystem = player.GetComponent<Player.ThrowableSystem>();
         }
 
         private void SubscribeEvents()
@@ -137,6 +141,16 @@ namespace Deadlight.UI
                     UpdateWeaponDisplay(playerShooting.CurrentWeapon);
 
                 UpdateAmmo(playerShooting.CurrentAmmo, playerShooting.ReserveAmmo);
+            }
+
+            if (throwableSystem != null)
+            {
+                throwableSystem.OnInventoryChanged += UpdateThrowables;
+                UpdateThrowables(throwableSystem.GrenadeCount, throwableSystem.MolotovCount);
+            }
+            else if (throwablesText != null)
+            {
+                throwablesText.gameObject.SetActive(false);
             }
 
             if (Player.PlayerArmor.Instance != null)
@@ -212,6 +226,10 @@ namespace Deadlight.UI
                 playerShooting.OnReloadCompleted -= HideReloading;
                 playerShooting.OnWeaponChanged -= UpdateWeaponDisplay;
             }
+            if (throwableSystem != null)
+            {
+                throwableSystem.OnInventoryChanged -= UpdateThrowables;
+            }
             if (Player.PlayerArmor.Instance != null)
             {
                 Player.PlayerArmor.Instance.OnArmorChanged -= UpdateArmorDisplay;
@@ -246,6 +264,7 @@ namespace Deadlight.UI
             AnimateHealthBar();
             UpdateStamina();
             UpdateAmmoFromState();
+            UpdateThrowablesFromState();
             UpdateWeaponStatsFade();
         }
 
@@ -329,6 +348,33 @@ namespace Deadlight.UI
         {
             if (playerShooting == null || ammoText == null) return;
             ammoText.text = $"{playerShooting.CurrentAmmo} / {playerShooting.ReserveAmmo}";
+        }
+
+        private void UpdateThrowables(int grenades, int molotovs)
+        {
+            if (throwablesText == null)
+            {
+                return;
+            }
+
+            if (throwableSystem == null)
+            {
+                throwablesText.gameObject.SetActive(false);
+                return;
+            }
+
+            throwablesText.gameObject.SetActive(true);
+            throwablesText.text = $"Q GRENADE {grenades}/{throwableSystem.MaxGrenades}\nG MOLOTOV {molotovs}/{throwableSystem.MaxMolotovs}";
+        }
+
+        private void UpdateThrowablesFromState()
+        {
+            if (throwableSystem == null || throwablesText == null)
+            {
+                return;
+            }
+
+            UpdateThrowables(throwableSystem.GrenadeCount, throwableSystem.MolotovCount);
         }
 
         private void UpdateStamina()

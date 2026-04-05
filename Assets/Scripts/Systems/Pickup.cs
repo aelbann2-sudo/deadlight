@@ -40,12 +40,19 @@ namespace Deadlight.Systems
 
         private void Awake()
         {
+            NormalizePickupType();
+
             if (spriteRenderer == null)
             {
                 spriteRenderer = GetComponent<SpriteRenderer>();
             }
 
             pickupCollider = GetComponent<Collider2D>();
+        }
+
+        private void OnValidate()
+        {
+            NormalizePickupType();
         }
 
         private void Start()
@@ -201,6 +208,7 @@ namespace Deadlight.Systems
         public void SetPickupType(PickupType type)
         {
             pickupType = type;
+            NormalizePickupType();
         }
 
         public void SetAmount(int newAmount)
@@ -217,6 +225,11 @@ namespace Deadlight.Systems
             {
                 Destroy(gameObject, lifetime);
             }
+        }
+
+        private void NormalizePickupType()
+        {
+            pickupType = PickupSpawner.SanitizePickupType(pickupType);
         }
     }
 }
