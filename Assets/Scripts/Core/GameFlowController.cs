@@ -185,13 +185,6 @@ namespace Deadlight.Core
 
             SpawnTypeScattered(PickupType.Health, GetPickupCount(healthPickupsByNight, nightIdx), playerPos, usedPositions);
             SpawnTypeScattered(PickupType.Ammo, GetPickupCount(ammoPickupsByNight, nightIdx), playerPos, usedPositions);
-            if (IsCraftingEnabled())
-            {
-                SpawnTypeScattered(PickupType.Scrap, GetPickupCount(scrapPickupsByNight, nightIdx), playerPos, usedPositions);
-                SpawnTypeScattered(PickupType.Wood, GetPickupCount(woodPickupsByNight, nightIdx), playerPos, usedPositions);
-                SpawnTypeScattered(PickupType.Chemicals, GetPickupCount(chemicalsPickupsByNight, nightIdx), playerPos, usedPositions);
-                SpawnTypeScattered(PickupType.Electronics, GetPickupCount(electronicsPickupsByNight, nightIdx), playerPos, usedPositions);
-            }
         }
 
         private int GetPickupCount(int[] perNight, int nightIdx)

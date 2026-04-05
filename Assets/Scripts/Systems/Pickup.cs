@@ -129,6 +129,8 @@ namespace Deadlight.Systems
         private void ApplyPickup(GameObject player)
         {
             bool consumed = false;
+            PickupType displayType = pickupType;
+            int displayAmount = amount;
 
             switch (pickupType)
             {
@@ -154,11 +156,12 @@ namespace Deadlight.Systems
                 case PickupType.Wood:
                 case PickupType.Chemicals:
                 case PickupType.Electronics:
-                    if (ResourceManager.Instance != null)
+                    if (PointsSystem.Instance != null)
                     {
-                        ResourceType resourceType = ConvertToResourceType(pickupType);
-                        ResourceManager.Instance.AddResource(resourceType, amount);
-                        CraftingSystem.Instance?.NotifyResourceCollected(resourceType, amount, transform.position);
+                        int bonusPoints = Mathf.Max(1, amount);
+                        PointsSystem.Instance.AddPoints(bonusPoints, "Converted Pickup");
+                        displayType = PickupType.Points;
+                        displayAmount = bonusPoints;
                         consumed = true;
                     }
                     break;
@@ -181,22 +184,10 @@ namespace Deadlight.Systems
                     Core.DayObjectiveSystem.Instance.AddProgress(1);
                 }
 
-                UI.GameplayHelpSystem.Instance?.ShowPickup(pickupType, amount);
+                UI.GameplayHelpSystem.Instance?.ShowPickup(displayType, displayAmount);
                 PlayPickupSound();
                 Destroy(gameObject);
             }
-        }
-
-        private ResourceType ConvertToResourceType(PickupType type)
-        {
-            return type switch
-            {
-                PickupType.Scrap => ResourceType.Scrap,
-                PickupType.Wood => ResourceType.Wood,
-                PickupType.Chemicals => ResourceType.Chemicals,
-                PickupType.Electronics => ResourceType.Electronics,
-                _ => ResourceType.Scrap
-            };
         }
 
         private void PlayPickupSound()
