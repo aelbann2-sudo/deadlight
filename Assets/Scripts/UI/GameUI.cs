@@ -710,141 +710,145 @@ namespace Deadlight.UI
             var go = new GameObject(name);
             go.transform.SetParent(_dawnShopPanel.transform, false);
             var rt = go.AddComponent<RectTransform>();
-            rt.anchorMin = new Vector2(0.5f, 0.14f);
+            rt.anchorMin = new Vector2(0.5f, 0.16f);
             rt.anchorMax = new Vector2(0.5f, 0.74f);
             rt.pivot = new Vector2(0.5f, 0.5f);
             rt.anchoredPosition = Vector2.zero;
-            rt.sizeDelta = new Vector2(580f, 0f);
+            rt.sizeDelta = new Vector2(620f, 0f);
+            UIFactory.AddVerticalLayout(go, 8f, new RectOffset(0, 0, 0, 0), TextAnchor.UpperCenter);
             return go;
         }
 
         private void BuildWeaponItems()
         {
-            float y = 0f;
             const int h = 56;
-            AddWeaponShopItem("Shotgun", "Close-range spread", 100, 1, WeaponType.Shotgun, ref y, h);
-            AddWeaponShopItem("SMG", "Fast fire rate", 150, 2, WeaponType.SMG, ref y, h);
-            AddWeaponShopItem("Sniper Rifle", "High damage, long range", 250, 2, WeaponType.SniperRifle, ref y, h);
-            AddWeaponShopItem("Assault Rifle", "Balanced auto", 200, 3, WeaponType.AssaultRifle, ref y, h);
-            AddWeaponShopItem("Grenade Launcher", "Area damage", 350, 3, WeaponType.GrenadeLauncher, ref y, h);
-            AddWeaponShopItem("Flamethrower", "Burn DoT", 400, 4, WeaponType.Flamethrower, ref y, h);
+            AddWeaponShopItem("Shotgun", "Close-range spread", 100, 1, WeaponType.Shotgun, h);
+            AddWeaponShopItem("SMG", "Fast fire rate", 150, 2, WeaponType.SMG, h);
+            AddWeaponShopItem("Sniper Rifle", "High damage, long range", 250, 2, WeaponType.SniperRifle, h);
+            AddWeaponShopItem("Assault Rifle", "Balanced auto", 200, 3, WeaponType.AssaultRifle, h);
+            AddWeaponShopItem("Grenade Launcher", "Area damage", 350, 3, WeaponType.GrenadeLauncher, h);
+            AddWeaponShopItem("Flamethrower", "Burn DoT", 400, 4, WeaponType.Flamethrower, h);
         }
 
         private void AddWeaponShopItem(string name, string desc, int cost, int unlockNight,
-            WeaponType wt, ref float y, int height)
+            WeaponType wt, int height)
         {
-            var root = new GameObject($"Weapon_{name}");
-            root.transform.SetParent(_weaponsTabContent.transform, false);
-            var rt = root.AddComponent<RectTransform>();
-            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
-            rt.pivot = new Vector2(0.5f, 1f);
-            rt.anchoredPosition = new Vector2(0f, y);
-            rt.sizeDelta = new Vector2(560f, height - 4);
+            var root = CreateShopRow(_weaponsTabContent.transform, $"Weapon_{name}", height - 4, UITheme.BgMedium);
 
-            root.AddComponent<Image>().color = UITheme.BgMedium;
-
-            UIFactory.CreateTextAt(root.transform, "Name", name,
+            CreateShopRowText(root.transform, "Name", name,
                 UITheme.FontBody, UITheme.TextPrimary,
-                new Vector2(0f, 0.5f), new Vector2(14f, 8f), new Vector2(260f, 24f),
+                new Vector2(0f, 0.64f), new Vector2(16f, 0f), new Vector2(340f, 24f),
                 TextAnchor.MiddleLeft, FontStyle.Bold);
 
-            UIFactory.CreateTextAt(root.transform, "Desc", $"{desc}  ·  {cost} pts",
+            CreateShopRowText(root.transform, "Desc", $"{desc}  ·  {cost} pts",
                 UITheme.FontSmall + 1, UITheme.TextMuted,
-                new Vector2(0f, 0.5f), new Vector2(14f, -12f), new Vector2(320f, 16f),
+                new Vector2(0f, 0.28f), new Vector2(16f, 0f), new Vector2(380f, 18f),
                 TextAnchor.MiddleLeft);
 
             var weaponType = wt;
             var buyBtn = UIFactory.CreateCenteredButton(root.transform, "Buy", "BUY",
-                UITheme.AccentGreen, new Vector2(1f, 0.5f), new Vector2(76f, 30f),
+                UITheme.AccentGreen, new Vector2(1f, 0.5f), new Vector2(92f, 32f),
                 () => BuyWeapon(weaponType, cost, unlockNight));
-            buyBtn.GetComponent<RectTransform>().anchoredPosition = new Vector2(-48f, 0f);
+            UIFactory.SetAnchored(buyBtn.GetComponent<RectTransform>(),
+                new Vector2(1f, 0.5f), new Vector2(-58f, 0f), new Vector2(92f, 32f));
 
             _shopBuyButtons.Add(buyBtn);
-            y -= height;
         }
 
         private void BuildUpgradeItems()
         {
-            float y = 0f;
-            const int h = 52;
-            AddUpgradeItem("Damage", ref y, h, () => { if (PlayerUpgrades.Instance?.TryUpgradeDamage() == true) RefreshShop(); });
-            AddUpgradeItem("Fire Rate", ref y, h, () => { if (PlayerUpgrades.Instance?.TryUpgradeFireRate() == true) RefreshShop(); });
-            AddUpgradeItem("Magazine", ref y, h, () => { if (PlayerUpgrades.Instance?.TryUpgradeMagazine() == true) RefreshShop(); });
-            AddUpgradeItem("Max Health", ref y, h, () => { if (PlayerUpgrades.Instance?.TryUpgradeHealth() == true) RefreshShop(); });
-            AddUpgradeItem("Sprint Speed", ref y, h, () => { if (PlayerUpgrades.Instance?.TryUpgradeSprint() == true) RefreshShop(); });
+            const int h = 56;
+            AddUpgradeItem("Damage", h, () => { if (PlayerUpgrades.Instance?.TryUpgradeDamage() == true) RefreshShop(); });
+            AddUpgradeItem("Fire Rate", h, () => { if (PlayerUpgrades.Instance?.TryUpgradeFireRate() == true) RefreshShop(); });
+            AddUpgradeItem("Magazine", h, () => { if (PlayerUpgrades.Instance?.TryUpgradeMagazine() == true) RefreshShop(); });
+            AddUpgradeItem("Max Health", h, () => { if (PlayerUpgrades.Instance?.TryUpgradeHealth() == true) RefreshShop(); });
+            AddUpgradeItem("Sprint Speed", h, () => { if (PlayerUpgrades.Instance?.TryUpgradeSprint() == true) RefreshShop(); });
         }
 
-        private void AddUpgradeItem(string name, ref float y, int height, System.Action onBuy)
+        private void AddUpgradeItem(string name, int height, System.Action onBuy)
         {
-            var root = new GameObject($"Upgrade_{name}");
-            root.transform.SetParent(_upgradesTabContent.transform, false);
-            var rt = root.AddComponent<RectTransform>();
-            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
-            rt.pivot = new Vector2(0.5f, 1f);
-            rt.anchoredPosition = new Vector2(0f, y);
-            rt.sizeDelta = new Vector2(560f, height - 4);
+            var root = CreateShopRow(_upgradesTabContent.transform, $"Upgrade_{name}", height - 4,
+                new Color(UITheme.BgMedium.r + 0.02f, UITheme.BgMedium.g, UITheme.BgMedium.b + 0.04f, 0.9f));
 
-            root.AddComponent<Image>().color = new Color(UITheme.BgMedium.r + 0.02f,
-                UITheme.BgMedium.g, UITheme.BgMedium.b + 0.04f, 0.9f);
-
-            var label = UIFactory.CreateTextAt(root.transform, "Label", name,
-                UITheme.FontBody, UITheme.TextPrimary,
-                new Vector2(0f, 0.5f), new Vector2(14f, 0f), new Vector2(380f, height),
+            var label = CreateShopRowText(root.transform, "Label", name,
+                UITheme.FontBody - 1, UITheme.TextPrimary,
+                new Vector2(0f, 0.5f), new Vector2(16f, 0f), new Vector2(432f, 24f),
                 TextAnchor.MiddleLeft);
+            label.resizeTextForBestFit = true;
+            label.resizeTextMinSize = UITheme.FontSmall;
+            label.resizeTextMaxSize = UITheme.FontBody - 1;
             _upgradeLabels.Add(label);
 
             var buyBtn = UIFactory.CreateCenteredButton(root.transform, "Buy", "UPGRADE",
-                UITheme.AccentPurple, new Vector2(1f, 0.5f), new Vector2(90f, 30f), onBuy);
-            buyBtn.GetComponent<RectTransform>().anchoredPosition = new Vector2(-56f, 0f);
+                UITheme.AccentPurple, new Vector2(1f, 0.5f), new Vector2(118f, 34f), onBuy);
+            UIFactory.SetAnchored(buyBtn.GetComponent<RectTransform>(),
+                new Vector2(1f, 0.5f), new Vector2(-70f, 0f), new Vector2(118f, 34f));
+
+            var buyLabel = buyBtn.GetComponentInChildren<Text>();
+            if (buyLabel != null)
+            {
+                buyLabel.resizeTextForBestFit = true;
+                buyLabel.resizeTextMinSize = UITheme.FontSmall;
+                buyLabel.resizeTextMaxSize = UITheme.FontBody - 1;
+            }
 
             _upgradeBuyButtons.Add(buyBtn);
-            y -= height;
         }
 
         private void BuildArmorItems()
         {
-            float y = 0f;
             const int h = 56;
-            AddArmorItem("Vest Lv1", "Light body armor", 80, ArmorTier.Level1, false, ref y, h);
-            AddArmorItem("Vest Lv2", "Heavy body armor", 180, ArmorTier.Level2, false, ref y, h);
-            AddArmorItem("Helmet Lv1", "Basic protection", 60, ArmorTier.Level1, true, ref y, h);
-            AddArmorItem("Helmet Lv2", "Reinforced helmet", 140, ArmorTier.Level2, true, ref y, h);
+            AddArmorItem("Vest Lv1", "Light body armor", 80, ArmorTier.Level1, false, h);
+            AddArmorItem("Vest Lv2", "Heavy body armor", 180, ArmorTier.Level2, false, h);
+            AddArmorItem("Helmet Lv1", "Basic protection", 60, ArmorTier.Level1, true, h);
+            AddArmorItem("Helmet Lv2", "Reinforced helmet", 140, ArmorTier.Level2, true, h);
         }
 
         private void AddArmorItem(string name, string desc, int cost,
-            ArmorTier tier, bool isHelmet, ref float y, int height)
+            ArmorTier tier, bool isHelmet, int height)
         {
-            var root = new GameObject($"Armor_{name}");
-            root.transform.SetParent(_armorTabContent.transform, false);
-            var rt = root.AddComponent<RectTransform>();
-            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
-            rt.pivot = new Vector2(0.5f, 1f);
-            rt.anchoredPosition = new Vector2(0f, y);
-            rt.sizeDelta = new Vector2(560f, height - 4);
+            var root = CreateShopRow(_armorTabContent.transform, $"Armor_{name}", height - 4,
+                new Color(UITheme.BgMedium.r, UITheme.BgMedium.g + 0.02f, UITheme.BgMedium.b + 0.04f, 0.9f));
 
-            root.AddComponent<Image>().color = new Color(UITheme.BgMedium.r,
-                UITheme.BgMedium.g + 0.02f, UITheme.BgMedium.b + 0.04f, 0.9f);
-
-            UIFactory.CreateTextAt(root.transform, "Name", name,
+            CreateShopRowText(root.transform, "Name", name,
                 UITheme.FontBody, UITheme.TextPrimary,
-                new Vector2(0f, 0.5f), new Vector2(14f, 8f), new Vector2(260f, 24f),
+                new Vector2(0f, 0.64f), new Vector2(16f, 0f), new Vector2(340f, 24f),
                 TextAnchor.MiddleLeft, FontStyle.Bold);
 
-            UIFactory.CreateTextAt(root.transform, "Desc", $"{desc}  ·  {cost} pts",
+            CreateShopRowText(root.transform, "Desc", $"{desc}  ·  {cost} pts",
                 UITheme.FontSmall + 1, UITheme.TextMuted,
-                new Vector2(0f, 0.5f), new Vector2(14f, -12f), new Vector2(320f, 16f),
+                new Vector2(0f, 0.28f), new Vector2(16f, 0f), new Vector2(380f, 18f),
                 TextAnchor.MiddleLeft);
 
             var t = tier;
             var h = isHelmet;
             var c = cost;
             var buyBtn = UIFactory.CreateCenteredButton(root.transform, "Buy", "BUY",
-                UITheme.AccentBlue, new Vector2(1f, 0.5f), new Vector2(76f, 30f),
+                UITheme.AccentBlue, new Vector2(1f, 0.5f), new Vector2(92f, 32f),
                 () => BuyArmor(t, h, c));
-            buyBtn.GetComponent<RectTransform>().anchoredPosition = new Vector2(-48f, 0f);
+            UIFactory.SetAnchored(buyBtn.GetComponent<RectTransform>(),
+                new Vector2(1f, 0.5f), new Vector2(-58f, 0f), new Vector2(92f, 32f));
 
             _shopBuyButtons.Add(buyBtn);
-            y -= height;
+        }
+
+        private static GameObject CreateShopRow(Transform parent, string name, int preferredHeight, Color background)
+        {
+            var root = new GameObject(name);
+            root.transform.SetParent(parent, false);
+            root.AddComponent<RectTransform>();
+            root.AddComponent<Image>().color = background;
+            UIFactory.AddLayoutElement(root, preferredHeight: preferredHeight);
+            return root;
+        }
+
+        private static Text CreateShopRowText(Transform parent, string name, string content,
+            int fontSize, Color color, Vector2 anchor, Vector2 anchoredPosition, Vector2 size,
+            TextAnchor alignment, FontStyle style = FontStyle.Normal)
+        {
+            var text = UIFactory.CreateText(parent, name, content, fontSize, color, alignment, style);
+            UIFactory.SetAnchored(text.rectTransform, anchor, anchoredPosition, size, new Vector2(0f, 0.5f));
+            return text;
         }
 
         // =====================================================================
