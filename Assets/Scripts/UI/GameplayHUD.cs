@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic;
 using Deadlight.Core;
 using Deadlight.Data;
 
@@ -43,6 +44,9 @@ namespace Deadlight.UI
         private float targetHealthRatio = 1f;
         private float displayedHealthRatio = 1f;
         private const float HealthBarLerpSpeed = 6f;
+        private readonly List<float> molotovZoneEndTimes = new List<float>();
+        private float molotovInFlightUntil = -1f;
+        private const float MolotovFlightHintSeconds = 1.25f;
 
         public void Initialize(
             Text health, Image hFill, Text ammo, Image sFill,
@@ -148,6 +152,9 @@ namespace Deadlight.UI
             if (throwableSystem != null)
             {
                 throwableSystem.OnInventoryChanged += OnThrowableInventoryChanged;
+                throwableSystem.OnThrowableUsed += OnThrowableUsed;
+                throwableSystem.OnMolotovFireZoneStarted += OnMolotovFireZoneStarted;
+                throwableSystem.OnMolotovFireZoneEnded += OnMolotovFireZoneEnded;
             }
 
             if (playerMedkitSystem != null)
@@ -240,6 +247,9 @@ namespace Deadlight.UI
             if (throwableSystem != null)
             {
                 throwableSystem.OnInventoryChanged -= OnThrowableInventoryChanged;
+                throwableSystem.OnThrowableUsed -= OnThrowableUsed;
+                throwableSystem.OnMolotovFireZoneStarted -= OnMolotovFireZoneStarted;
+                throwableSystem.OnMolotovFireZoneEnded -= OnMolotovFireZoneEnded;
             }
             if (playerMedkitSystem != null)
             {
@@ -370,6 +380,45 @@ namespace Deadlight.UI
             UpdateUtilityInventoryDisplay();
         }
 
+        private void OnThrowableUsed(Player.ThrowableType type)
+        {
+            if (type == Player.ThrowableType.Molotov)
+            {
+                molotovInFlightUntil = Mathf.Max(molotovInFlightUntil, Time.time + MolotovFlightHintSeconds);
+            }
+
+            UpdateUtilityInventoryDisplay();
+        }
+
+        private void OnMolotovFireZoneStarted(float duration)
+        {
+            float safeDuration = Mathf.Max(0.1f, duration);
+            molotovZoneEndTimes.Add(Time.time + safeDuration);
+            UpdateUtilityInventoryDisplay();
+        }
+
+        private void OnMolotovFireZoneEnded()
+        {
+            PruneExpiredMolotovZones();
+            if (molotovZoneEndTimes.Count > 0)
+            {
+                int earliestIndex = 0;
+                float earliestEnd = molotovZoneEndTimes[0];
+                for (int i = 1; i < molotovZoneEndTimes.Count; i++)
+                {
+                    if (molotovZoneEndTimes[i] < earliestEnd)
+                    {
+                        earliestEnd = molotovZoneEndTimes[i];
+                        earliestIndex = i;
+                    }
+                }
+
+                molotovZoneEndTimes.RemoveAt(earliestIndex);
+            }
+
+            UpdateUtilityInventoryDisplay();
+        }
+
         private void OnMedkitInventoryChanged(int medkits, int maxMedkits)
         {
             UpdateUtilityInventoryDisplay();
@@ -411,6 +460,27 @@ namespace Deadlight.UI
                 }
             }
 
+            int activeFireZones = GetActiveMolotovZoneCount();
+            if (activeFireZones > 0)
+            {
+                float maxRemaining = GetMaxMolotovZoneRemainingSeconds();
+                if (utilityText.Length > 0)
+                {
+                    utilityText += "\n";
+                }
+
+                utilityText += $"<color=#FF6A33>G FIRE BURNING {maxRemaining:0.0}s x{activeFireZones}</color>";
+            }
+            else if (molotovInFlightUntil > Time.time)
+            {
+                if (utilityText.Length > 0)
+                {
+                    utilityText += "\n";
+                }
+
+                utilityText += "<color=#FFB347>G MOLOTOV IN FLIGHT</color>";
+            }
+
             throwablesText.text = utilityText;
         }
 
@@ -428,6 +498,41 @@ namespace Deadlight.UI
             }
 
             UpdateUtilityInventoryDisplay();
+        }
+
+        private int GetActiveMolotovZoneCount()
+        {
+            PruneExpiredMolotovZones();
+            return molotovZoneEndTimes.Count;
+        }
+
+        private float GetMaxMolotovZoneRemainingSeconds()
+        {
+            PruneExpiredMolotovZones();
+            float now = Time.time;
+            float maxRemaining = 0f;
+            for (int i = 0; i < molotovZoneEndTimes.Count; i++)
+            {
+                float remaining = molotovZoneEndTimes[i] - now;
+                if (remaining > maxRemaining)
+                {
+                    maxRemaining = remaining;
+                }
+            }
+
+            return Mathf.Max(0f, maxRemaining);
+        }
+
+        private void PruneExpiredMolotovZones()
+        {
+            float now = Time.time;
+            for (int i = molotovZoneEndTimes.Count - 1; i >= 0; i--)
+            {
+                if (molotovZoneEndTimes[i] <= now)
+                {
+                    molotovZoneEndTimes.RemoveAt(i);
+                }
+            }
         }
 
         private void UpdateStamina()
