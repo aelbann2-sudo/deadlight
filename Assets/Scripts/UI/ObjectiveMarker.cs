@@ -1,9 +1,11 @@
-using UnityEngine;
-using UnityEngine.UI;
-using Deadlight.Core;
-using Deadlight.Narrative;
 using System.Collections;
 using System.Collections.Generic;
+using Deadlight.Core;
+using Deadlight.Enemy;
+using Deadlight.Narrative;
+using Deadlight.Systems;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace Deadlight.UI
 {
@@ -12,8 +14,23 @@ namespace Deadlight.UI
         private Canvas markerCanvas;
         private readonly List<MarkerData> markers = new List<MarkerData>();
         private Font font;
+        private Transform player;
+        private float nextSupportRefreshTime;
 
-        private const float ContestedDropPingDuration = 7f;
+        private const float MarkerHideDistance = 4f;
+        private const float SupportRefreshInterval = 0.35f;
+        private const float EnemyMarkerMinDistance = 6f;
+
+        private static readonly Color MissionMarkerColor = new Color(1f, 0.78f, 0.25f);
+        private static readonly Color DropMarkerColor = new Color(0.35f, 0.85f, 1f);
+        private static readonly Color EnemyMarkerColor = new Color(1f, 0.38f, 0.32f);
+
+        private enum MarkerKind
+        {
+            Mission,
+            Drop,
+            EnemyHint
+        }
 
         private class MarkerData
         {
@@ -21,25 +38,38 @@ namespace Deadlight.UI
             public RectTransform uiRoot;
             public Image arrow;
             public Text distText;
-            public bool isTemporary;
-            public float expireTime;
+            public MarkerKind kind;
+            public string prefix;
         }
 
         private void Start()
         {
             font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (font == null) font = Font.CreateDynamicFontFromOSFont("Arial", 16);
+            if (font == null)
+            {
+                font = Font.CreateDynamicFontFromOSFont("Arial", 16);
+            }
 
             CreateCanvas();
+            CachePlayerTransform();
 
             if (GameManager.Instance != null)
+            {
                 GameManager.Instance.OnGameStateChanged += OnGameStateChanged;
+            }
+
+            RefreshTargets();
+            RefreshSupportMarkers();
         }
 
         private void OnDestroy()
         {
             if (GameManager.Instance != null)
+            {
                 GameManager.Instance.OnGameStateChanged -= OnGameStateChanged;
+            }
+
+            ClearMarkers();
         }
 
         private void OnGameStateChanged(GameState state)
@@ -47,47 +77,71 @@ namespace Deadlight.UI
             if (state == GameState.DayPhase)
             {
                 StartCoroutine(FindTargetsDelayed());
+                return;
             }
-            else
+
+            if (state == GameState.NightPhase)
             {
-                ClearMarkers();
+                ClearMarkers(MarkerKind.Mission);
+                RefreshSupportMarkers();
+                return;
             }
+
+            ClearMarkers();
         }
 
         private IEnumerator FindTargetsDelayed()
         {
             yield return new WaitForSeconds(0.5f);
             RefreshTargets();
+            RefreshSupportMarkers();
         }
 
         public void RefreshTargets()
         {
-            ClearMarkers();
+            ClearMarkers(MarkerKind.Mission);
 
             var storyTargets = FindObjectsByType<StoryObjectiveTarget>(FindObjectsSortMode.None);
             foreach (var target in storyTargets)
-                AddMarker(target.transform, new Color(1f, 0.78f, 0.25f));
+            {
+                AddMarker(target.transform, MissionMarkerColor, MarkerKind.Mission, "OBJ ");
+            }
         }
 
         public void PingContestedDrop(Transform dropTransform)
         {
-            if (dropTransform == null) return;
-            AddMarker(dropTransform, new Color(0.9f, 0.55f, 0.15f), true, Time.time + ContestedDropPingDuration);
+            if (dropTransform == null)
+            {
+                return;
+            }
+
+            AddMarker(dropTransform, DropMarkerColor, MarkerKind.Drop, "DROP ");
         }
 
-        private void AddMarker(Transform target, Color color, bool temporary = false, float expire = 0f)
+        private MarkerData AddMarker(Transform target, Color color, MarkerKind kind, string prefix)
         {
-            if (markerCanvas == null) return;
+            if (markerCanvas == null || target == null)
+            {
+                return null;
+            }
+
+            var existing = FindMarker(target, kind);
+            if (existing != null)
+            {
+                ApplyMarkerColor(existing, color);
+                existing.prefix = prefix;
+                return existing;
+            }
 
             var root = new GameObject("Marker");
             root.transform.SetParent(markerCanvas.transform, false);
             var rootRect = root.AddComponent<RectTransform>();
-            rootRect.sizeDelta = new Vector2(30, 30);
+            rootRect.sizeDelta = new Vector2(34f, 34f);
 
             var arrowObj = new GameObject("Arrow");
             arrowObj.transform.SetParent(root.transform, false);
             var arrowRect = arrowObj.AddComponent<RectTransform>();
-            arrowRect.sizeDelta = new Vector2(20, 20);
+            arrowRect.sizeDelta = new Vector2(22f, 22f);
             var arrowImg = arrowObj.AddComponent<Image>();
             arrowImg.color = color;
             arrowImg.sprite = CreateDiamondSprite(color);
@@ -95,29 +149,73 @@ namespace Deadlight.UI
             var distObj = new GameObject("Dist");
             distObj.transform.SetParent(root.transform, false);
             var distRect = distObj.AddComponent<RectTransform>();
-            distRect.anchoredPosition = new Vector2(0, -18);
-            distRect.sizeDelta = new Vector2(60, 16);
+            distRect.anchoredPosition = new Vector2(0f, -19f);
+            distRect.sizeDelta = new Vector2(96f, 16f);
             var distText = distObj.AddComponent<Text>();
             distText.font = font;
             distText.fontSize = 12;
             distText.alignment = TextAnchor.MiddleCenter;
             distText.color = color;
 
-            markers.Add(new MarkerData
+            var marker = new MarkerData
             {
                 target = target,
                 uiRoot = rootRect,
                 arrow = arrowImg,
                 distText = distText,
-                isTemporary = temporary,
-                expireTime = expire
-            });
+                kind = kind,
+                prefix = prefix
+            };
+
+            markers.Add(marker);
+            return marker;
+        }
+
+        private void ApplyMarkerColor(MarkerData marker, Color color)
+        {
+            if (marker == null)
+            {
+                return;
+            }
+
+            if (marker.arrow != null)
+            {
+                marker.arrow.color = color;
+            }
+
+            if (marker.distText != null)
+            {
+                marker.distText.color = color;
+            }
+        }
+
+        private MarkerData FindMarker(Transform target, MarkerKind kind)
+        {
+            for (int i = 0; i < markers.Count; i++)
+            {
+                var marker = markers[i];
+                if (marker.kind == kind && marker.target == target)
+                {
+                    return marker;
+                }
+            }
+
+            return null;
         }
 
         private void LateUpdate()
         {
             Camera cam = Camera.main;
-            if (cam == null) return;
+            if (cam == null)
+            {
+                return;
+            }
+
+            if (Time.time >= nextSupportRefreshTime)
+            {
+                nextSupportRefreshTime = Time.time + SupportRefreshInterval;
+                RefreshSupportMarkers();
+            }
 
             float margin = 40f;
             float screenW = Screen.width;
@@ -125,32 +223,31 @@ namespace Deadlight.UI
 
             for (int i = markers.Count - 1; i >= 0; i--)
             {
-                var m = markers[i];
-                if (m.target == null || (m.isTemporary && Time.time >= m.expireTime))
+                var marker = markers[i];
+                if (marker.target == null)
                 {
-                    if (m.uiRoot != null) Destroy(m.uiRoot.gameObject);
-                    markers.RemoveAt(i);
+                    RemoveMarkerAt(i);
                     continue;
                 }
 
-                Vector3 screenPos = cam.WorldToScreenPoint(m.target.position);
-                float dist = Vector2.Distance(cam.transform.position, m.target.position);
+                Vector3 screenPos = cam.WorldToScreenPoint(marker.target.position);
+                float dist = Vector2.Distance(cam.transform.position, marker.target.position);
 
-                bool onScreen = screenPos.z > 0 &&
-                    screenPos.x > margin && screenPos.x < screenW - margin &&
-                    screenPos.y > margin && screenPos.y < screenH - margin;
+                bool onScreen = screenPos.z > 0f &&
+                                screenPos.x > margin && screenPos.x < screenW - margin &&
+                                screenPos.y > margin && screenPos.y < screenH - margin;
 
                 if (onScreen)
                 {
-                    m.uiRoot.gameObject.SetActive(dist > 4f);
-                    m.uiRoot.position = screenPos;
-                    m.arrow.transform.rotation = Quaternion.identity;
+                    marker.uiRoot.gameObject.SetActive(dist > MarkerHideDistance);
+                    marker.uiRoot.position = screenPos;
+                    marker.arrow.transform.rotation = Quaternion.identity;
                 }
                 else
                 {
-                    m.uiRoot.gameObject.SetActive(true);
+                    marker.uiRoot.gameObject.SetActive(true);
 
-                    if (screenPos.z < 0)
+                    if (screenPos.z < 0f)
                     {
                         screenPos.x = screenW - screenPos.x;
                         screenPos.y = screenH - screenPos.y;
@@ -158,29 +255,208 @@ namespace Deadlight.UI
 
                     screenPos.x = Mathf.Clamp(screenPos.x, margin, screenW - margin);
                     screenPos.y = Mathf.Clamp(screenPos.y, margin, screenH - margin);
-                    m.uiRoot.position = screenPos;
+                    marker.uiRoot.position = screenPos;
 
-                    Vector2 dir = ((Vector2)cam.WorldToScreenPoint(m.target.position) - new Vector2(screenW / 2, screenH / 2)).normalized;
+                    Vector2 dir = ((Vector2)cam.WorldToScreenPoint(marker.target.position) -
+                                   new Vector2(screenW * 0.5f, screenH * 0.5f)).normalized;
                     float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-                    m.arrow.transform.rotation = Quaternion.Euler(0, 0, angle - 45f);
+                    marker.arrow.transform.rotation = Quaternion.Euler(0f, 0f, angle - 45f);
                 }
 
-                m.distText.text = $"{dist:F0}m";
+                string prefix = string.IsNullOrEmpty(marker.prefix) ? string.Empty : marker.prefix;
+                marker.distText.text = $"{prefix}{dist:F0}m";
             }
+        }
+
+        private void RefreshSupportMarkers()
+        {
+            var gameManager = GameManager.Instance;
+            if (gameManager == null)
+            {
+                ClearMarkers(MarkerKind.Drop);
+                ClearMarkers(MarkerKind.EnemyHint);
+                return;
+            }
+
+            bool isDay = gameManager.CurrentState == GameState.DayPhase;
+            bool isNight = gameManager.CurrentState == GameState.NightPhase;
+
+            if (!isDay && !isNight)
+            {
+                ClearMarkers(MarkerKind.Drop);
+                ClearMarkers(MarkerKind.EnemyHint);
+                return;
+            }
+
+            SyncDropMarkers();
+
+            if (isNight)
+            {
+                SyncNearestEnemyMarker();
+            }
+            else
+            {
+                ClearMarkers(MarkerKind.EnemyHint);
+            }
+        }
+
+        private void SyncDropMarkers()
+        {
+            var crates = FindObjectsByType<SupplyCrate>(FindObjectsSortMode.None);
+            var activeCrates = new HashSet<Transform>();
+
+            for (int i = 0; i < crates.Length; i++)
+            {
+                var crate = crates[i];
+                if (crate == null || !crate.gameObject.activeInHierarchy)
+                {
+                    continue;
+                }
+
+                activeCrates.Add(crate.transform);
+            }
+
+            for (int i = markers.Count - 1; i >= 0; i--)
+            {
+                var marker = markers[i];
+                if (marker.kind != MarkerKind.Drop)
+                {
+                    continue;
+                }
+
+                if (marker.target == null || !activeCrates.Contains(marker.target))
+                {
+                    RemoveMarkerAt(i);
+                }
+            }
+
+            foreach (var crateTransform in activeCrates)
+            {
+                AddMarker(crateTransform, DropMarkerColor, MarkerKind.Drop, "DROP ");
+            }
+        }
+
+        private void SyncNearestEnemyMarker()
+        {
+            CachePlayerTransform();
+            if (player == null)
+            {
+                ClearMarkers(MarkerKind.EnemyHint);
+                return;
+            }
+
+            var enemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
+            Transform nearest = null;
+            float nearestSqrDist = float.MaxValue;
+
+            for (int i = 0; i < enemies.Length; i++)
+            {
+                var enemy = enemies[i];
+                if (enemy == null || !enemy.IsAlive || !enemy.gameObject.activeInHierarchy)
+                {
+                    continue;
+                }
+
+                Vector3 offset = enemy.transform.position - player.position;
+                float sqrDist = offset.sqrMagnitude;
+                if (sqrDist < nearestSqrDist)
+                {
+                    nearestSqrDist = sqrDist;
+                    nearest = enemy.transform;
+                }
+            }
+
+            if (nearest == null || nearestSqrDist < EnemyMarkerMinDistance * EnemyMarkerMinDistance)
+            {
+                ClearMarkers(MarkerKind.EnemyHint);
+                return;
+            }
+
+            RemoveDuplicateEnemyMarkers(nearest);
+            AddMarker(nearest, EnemyMarkerColor, MarkerKind.EnemyHint, "ENEMY ");
+        }
+
+        private void RemoveDuplicateEnemyMarkers(Transform keepTarget)
+        {
+            bool keptOne = false;
+
+            for (int i = markers.Count - 1; i >= 0; i--)
+            {
+                var marker = markers[i];
+                if (marker.kind != MarkerKind.EnemyHint)
+                {
+                    continue;
+                }
+
+                if (!keptOne && marker.target == keepTarget)
+                {
+                    keptOne = true;
+                    continue;
+                }
+
+                RemoveMarkerAt(i);
+            }
+        }
+
+        private void CachePlayerTransform()
+        {
+            if (player != null && player.gameObject.activeInHierarchy)
+            {
+                return;
+            }
+
+            var playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj == null)
+            {
+                playerObj = GameObject.Find("Player");
+            }
+
+            player = playerObj != null ? playerObj.transform : null;
         }
 
         private void ClearMarkers()
         {
-            foreach (var m in markers)
+            for (int i = markers.Count - 1; i >= 0; i--)
             {
-                if (m.arrow != null && m.arrow.sprite != null)
-                {
-                    if (m.arrow.sprite.texture != null) Destroy(m.arrow.sprite.texture);
-                    Destroy(m.arrow.sprite);
-                }
-                if (m.uiRoot != null) Destroy(m.uiRoot.gameObject);
+                RemoveMarkerAt(i);
             }
-            markers.Clear();
+        }
+
+        private void ClearMarkers(MarkerKind kind)
+        {
+            for (int i = markers.Count - 1; i >= 0; i--)
+            {
+                if (markers[i].kind == kind)
+                {
+                    RemoveMarkerAt(i);
+                }
+            }
+        }
+
+        private void RemoveMarkerAt(int index)
+        {
+            if (index < 0 || index >= markers.Count)
+            {
+                return;
+            }
+
+            var marker = markers[index];
+            if (marker.arrow != null && marker.arrow.sprite != null)
+            {
+                if (marker.arrow.sprite.texture != null)
+                {
+                    Destroy(marker.arrow.sprite.texture);
+                }
+
+                Destroy(marker.arrow.sprite);
+            }
+
+            if (marker.uiRoot != null)
+            {
+                Destroy(marker.uiRoot.gameObject);
+            }
+
+            markers.RemoveAt(index);
         }
 
         private void CreateCanvas()
@@ -195,20 +471,24 @@ namespace Deadlight.UI
 
         private static Sprite CreateDiamondSprite(Color color)
         {
-            int s = 16;
-            var tex = new Texture2D(s, s);
-            var px = new Color[s * s];
-            Vector2 center = new Vector2(s / 2f, s / 2f);
-            for (int y = 0; y < s; y++)
-                for (int x = 0; x < s; x++)
+            int size = 16;
+            var texture = new Texture2D(size, size);
+            var pixels = new Color[size * size];
+            Vector2 center = new Vector2(size * 0.5f, size * 0.5f);
+
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
                 {
                     float dx = Mathf.Abs(x - center.x);
                     float dy = Mathf.Abs(y - center.y);
-                    px[y * s + x] = (dx + dy <= s / 2f) ? color : Color.clear;
+                    pixels[y * size + x] = (dx + dy <= size * 0.5f) ? color : Color.clear;
                 }
-            tex.SetPixels(px);
-            tex.Apply();
-            return Sprite.Create(tex, new Rect(0, 0, s, s), new Vector2(0.5f, 0.5f), s);
+            }
+
+            texture.SetPixels(pixels);
+            texture.Apply();
+            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
         }
     }
 }

@@ -128,7 +128,7 @@ namespace Deadlight.UI
                    "Mouse Aim\n" +
                    "Left Click Fire\n" +
                    "R Reload\n" +
-                   "1 / 2 / Wheel Swap weapon\n" +
+                   "1 / 2 / 3 / 4 / Wheel Swap weapon\n" +
                    "Left Shift Sprint\n" +
                    "Space Dodge\n\n" +
                    "<b>Utility</b>\n" +

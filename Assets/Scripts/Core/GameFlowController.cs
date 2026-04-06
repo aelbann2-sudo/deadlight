@@ -496,8 +496,7 @@ namespace Deadlight.Core
 
             var player = GameObject.Find("Player");
             Vector3 basePos = player != null ? player.transform.position : Vector3.zero;
-            Vector2 offset = UnityEngine.Random.insideUnitCircle * Mathf.Max(3f, contestedDropRadius);
-            Vector3 dropPos = basePos + new Vector3(offset.x, offset.y, 0f);
+            Vector3 dropPos = GetRandomPickupSpawnPosition(basePos);
 
             if (GameManager.Instance != null)
             {
@@ -632,9 +631,7 @@ namespace Deadlight.Core
             if (player == null) return;
 
             Vector3 playerPos = player.transform.position;
-            float offsetX = UnityEngine.Random.Range(-5f, 5f);
-            float offsetY = UnityEngine.Random.Range(-5f, 5f);
-            Vector3 dropPos = playerPos + new Vector3(offsetX, offsetY, 0);
+            Vector3 dropPos = GetRandomPickupSpawnPosition(playerPos);
 
             if (GameManager.Instance != null)
             {

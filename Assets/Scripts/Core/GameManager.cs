@@ -442,11 +442,7 @@ namespace Deadlight.Core
                 return;
             }
 
-            float carryRatio = ConsumeProjectedCarryoverRatio();
-            if (PointsSystem.Instance != null && carryRatio < 0.999f)
-            {
-                PointsSystem.Instance.ApplyLevelCarryover(carryRatio);
-            }
+            ResetInterLevelProgressionState();
 
             repeatCurrentNightOnAdvance = false;
             currentNight = Mathf.Min(currentNight + 1, maxNights);
@@ -455,6 +451,45 @@ namespace Deadlight.Core
             RebuildMapForCurrentLevel();
             OnNightChanged?.Invoke(currentNight);
             ChangeState(GameState.DayPhase);
+        }
+
+        private void ResetInterLevelProgressionState()
+        {
+            // Starting a new level should be a clean slate.
+            ClearObjectiveMissState();
+            PointsSystem.Instance?.ResetSession();
+            ResourceManager.Instance?.ResetInventory();
+            ProgressionManager.Instance?.ResetProgress();
+
+            var player = GameObject.FindGameObjectWithTag("Player");
+            if (player == null)
+            {
+                player = GameObject.Find("Player");
+            }
+
+            if (player == null)
+            {
+                return;
+            }
+
+            player.GetComponent<PlayerUpgrades>()?.ResetUpgrades();
+
+            float baseHealth = 100f;
+            if (CurrentBalance != null)
+            {
+                baseHealth *= CurrentBalance.playerHealthMultiplier;
+            }
+            player.GetComponent<PlayerHealth>()?.SetMaxHealth(baseHealth, true);
+
+            var shooting = player.GetComponent<PlayerShooting>();
+            if (shooting != null)
+            {
+                shooting.ResetLoadout(WeaponData.CreatePistol());
+            }
+
+            player.GetComponent<PlayerMedkitSystem>()?.ResetMedkits();
+            player.GetComponent<PlayerArmor>()?.ResetArmor();
+            player.GetComponent<ThrowableSystem>()?.ResetInventory();
         }
 
         public float GetProjectedCarryoverRatio()
