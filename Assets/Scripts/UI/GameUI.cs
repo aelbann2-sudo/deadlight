@@ -1280,7 +1280,7 @@ namespace Deadlight.UI
 
         private void BuyWeapon(WeaponType wt, int cost, int unlockNight)
         {
-            if (_purchasedWeapons.Contains(wt)) return;
+            if (_purchasedWeapons.Contains(wt) || PlayerAlreadyHasWeapon(wt)) return;
             if (PointsSystem.Instance == null || !PointsSystem.Instance.CanAfford(cost)) return;
             int progressionNight = GameManager.Instance?.CurrentNight ?? 1;
             if (progressionNight < unlockNight) return;
@@ -1307,6 +1307,15 @@ namespace Deadlight.UI
             }
 
             RefreshShop();
+        }
+
+        private static bool PlayerAlreadyHasWeapon(WeaponType weaponType)
+        {
+            var player = GameObject.Find("Player");
+            if (player == null) return false;
+
+            var shooting = player.GetComponent<PlayerShooting>();
+            return shooting != null && shooting.HasWeaponType(weaponType);
         }
 
         private void BuyHealthKit()
@@ -1427,12 +1436,12 @@ namespace Deadlight.UI
                 int idx = SupplyButtonCount + i;
                 if (idx >= _shopBuyButtons.Count) break;
                 var b = _shopBuyButtons[idx];
-                bool sold = _purchasedWeapons.Contains(wts[i]);
+                bool sold = _purchasedWeapons.Contains(wts[i]) || PlayerAlreadyHasWeapon(wts[i]);
                 bool afford = PointsSystem.Instance != null && PointsSystem.Instance.CanAfford(costs[i]);
                 bool unlocked = progressionNight >= requiredNights[i];
                 b.interactable = !sold && afford && unlocked;
                 var lt = b.GetComponentInChildren<Text>();
-                if (lt != null) lt.text = sold ? "SOLD" : (unlocked ? "BUY" : $"N{requiredNights[i]}+");
+                if (lt != null) lt.text = sold ? "OWNED" : (unlocked ? "BUY" : $"N{requiredNights[i]}+");
             }
 
             var upgrades = PlayerUpgrades.Instance;

@@ -166,6 +166,24 @@ namespace Deadlight.Player
             }
         }
 
+        public bool HasWeaponType(WeaponType weaponType)
+        {
+            if (currentWeapon != null && currentWeapon.weaponType == weaponType)
+            {
+                return true;
+            }
+
+            for (int i = 0; i < weaponSlots.Length; i++)
+            {
+                if (weaponSlots[i] != null && weaponSlots[i].weaponType == weaponType)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private void TryFire()
         {
             if (isReloading) return;

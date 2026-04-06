@@ -384,8 +384,6 @@ namespace Deadlight.Core
                     nextHelicopterDropTime = float.PositiveInfinity;
                     dayContestedDropState = DayContestedDropState.Inactive;
                     CleanupDayObjects();
-                    int completedLevel = GameManager.Instance?.CurrentLevel ?? 1;
-                    OnStatusMessage?.Invoke($"Level {completedLevel} complete. Review your results and choose the next deployment.");
                     break;
                 case GameState.Victory:
                     nextHelicopterDropTime = float.PositiveInfinity;

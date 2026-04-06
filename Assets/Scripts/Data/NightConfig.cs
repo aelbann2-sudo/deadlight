@@ -147,7 +147,13 @@ namespace Deadlight.Core
             config.baseEnemyCount = 2 + level * 2 + (nwl - 1);
             config.healthMultiplier = 0.5f + level * 0.2f + (nwl - 1) * 0.08f;
             config.damageMultiplier = 0.4f + level * 0.2f + (nwl - 1) * 0.08f;
-            config.speedMultiplier = 0.75f + level * 0.08f + (nwl - 1) * 0.03f;
+            float baseSpeedMultiplier = 0.75f + level * 0.08f + (nwl - 1) * 0.03f;
+            if (level == 1)
+            {
+                // Keep Level 1 pressure readable for onboarding.
+                baseSpeedMultiplier *= 0.88f;
+            }
+            config.speedMultiplier = baseSpeedMultiplier;
             config.spawnInterval = Mathf.Max(0.8f, 2.4f - level * 0.25f - (nwl - 1) * 0.1f);
             config.timeBetweenWaves = Mathf.Max(3f, 7f - level - (nwl - 1) * 0.5f);
             config.hasBoss = nightNumber >= 12;

@@ -90,7 +90,7 @@ namespace Deadlight.Narrative
                 4,
                 new string[]
                 {
-                    "*static* Level 1 secured. You are now deploying into the suburban corridor.",
+                    "*static* You are now deploying into the suburban corridor.",
                     "Good work recovering the town evidence. Command has verified your uplink.",
                     "New objective chain is live. Civilian shelter and clinic logs are still missing.",
                     "Expect tighter streets, longer sight lines, and faster contact waves tonight.",

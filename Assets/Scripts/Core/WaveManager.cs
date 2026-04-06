@@ -518,7 +518,7 @@ namespace Deadlight.Core
 
             if (level <= 1)
             {
-                if (GameManager.GetNightWithinLevel(night) >= 3 && roll < 0.15f) return SpawnType.Runner;
+                if (GameManager.GetNightWithinLevel(night) >= 3 && roll < 0.08f) return SpawnType.Runner;
                 return SpawnType.Basic;
             }
 
@@ -580,7 +580,8 @@ namespace Deadlight.Core
                 case Visuals.ProceduralSpriteGenerator.ZombieType.Runner:
                     health.SetMaxHealth(35f);
                     health.SetPointsOnDeath(15);
-                    ai.ApplySpeedMultiplier(1.65f);
+                    int currentLevel = GameManager.Instance != null ? GameManager.Instance.CurrentLevel : 1;
+                    ai.ApplySpeedMultiplier(currentLevel <= 1 ? 1.35f : 1.65f);
                     break;
                 case Visuals.ProceduralSpriteGenerator.ZombieType.Tank:
                     health.SetMaxHealth(200f);

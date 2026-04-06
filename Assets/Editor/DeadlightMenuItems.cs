@@ -11,6 +11,9 @@ namespace Deadlight.Editor
 {
     public static class DeadlightMenuItems
     {
+        private const string UnlockedLevelKey = "Deadlight_UnlockedLevel";
+        private const string HighestCompletedLevelKey = "Deadlight_HighestCompletedLevel";
+
         [MenuItem("Deadlight/Create/Weapon Data")]
         public static void CreateWeaponData()
         {
@@ -279,6 +282,57 @@ namespace Deadlight.Editor
             if (System.IO.File.Exists(readmePath))
             {
                 Application.OpenURL("file://" + readmePath);
+            }
+        }
+
+        [MenuItem("Deadlight/Debug/Unlock Level 2 (Deliverable 2)")]
+        public static void UnlockLevel2ForDebug()
+        {
+            PlayerPrefs.SetInt(HighestCompletedLevelKey, 1);
+            PlayerPrefs.SetInt(UnlockedLevelKey, 2);
+            PlayerPrefs.Save();
+
+            RefreshGameUIIfPresent();
+            Debug.Log("[DeadlightMenuItems] Debug unlock applied: Level 2 is now selectable.");
+        }
+
+        [MenuItem("Deadlight/Debug/Reset Campaign Unlocks")]
+        public static void ResetCampaignUnlocksForDebug()
+        {
+            PlayerPrefs.SetInt(HighestCompletedLevelKey, 0);
+            PlayerPrefs.SetInt(UnlockedLevelKey, 1);
+            PlayerPrefs.Save();
+
+            RefreshGameUIIfPresent();
+            Debug.Log("[DeadlightMenuItems] Debug unlocks reset: campaign returned to Level 1 only.");
+        }
+
+        [MenuItem("Deadlight/Debug/Force Level Complete Screen (Play Mode)")]
+        public static void ForceLevelCompleteScreen()
+        {
+            if (!EditorApplication.isPlaying)
+            {
+                EditorUtility.DisplayDialog("Play Mode Required", "Enter Play Mode first, then run this command.", "OK");
+                return;
+            }
+
+            var gameManager = UnityEngine.Object.FindFirstObjectByType<Core.GameManager>();
+            if (gameManager == null)
+            {
+                EditorUtility.DisplayDialog("GameManager Missing", "Could not find GameManager in the active scene.", "OK");
+                return;
+            }
+
+            gameManager.ChangeState(Core.GameState.LevelComplete);
+            Debug.Log("[DeadlightMenuItems] Forced GameState.LevelComplete for UI verification.");
+        }
+
+        private static void RefreshGameUIIfPresent()
+        {
+            var gameUi = UnityEngine.Object.FindFirstObjectByType<UI.GameUI>();
+            if (gameUi != null)
+            {
+                gameUi.RefreshForCurrentState();
             }
         }
 

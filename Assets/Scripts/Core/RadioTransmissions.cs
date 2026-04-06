@@ -34,7 +34,7 @@ namespace Deadlight.Core
             },
             // Level 2, Night 1
             new[] {
-                "[Radio] EVAC Command: Level 1 secured. Suburban corridor is now your active sector.",
+                "[Radio] EVAC Command: Suburban corridor is now your active sector.",
                 "Shelter and clinic logs here can verify who authorized Lazarus transfers."
             },
             // Level 2, Night 2
@@ -335,24 +335,8 @@ namespace Deadlight.Core
             }
             else if (state == GameState.LevelComplete)
             {
-                int completedLevel = GameManager.Instance?.CurrentLevel ?? 1;
-                int nextLevel = completedLevel + 1;
-                int levelCap = GameManager.Instance?.PlayableLevelCap ?? GameManager.TotalLevels;
-
-                if (nextLevel <= levelCap)
-                {
-                    TryShowUnifiedMessage(
-                        $"EVAC Command: Level {completedLevel} secure. Good work. Review your report, then proceed to Level {nextLevel} when ready.",
-                        3.8f,
-                        interrupt: true);
-                }
-                else
-                {
-                    TryShowUnifiedMessage(
-                        $"EVAC Command: Level {completedLevel} secure. Operation objectives satisfied. Hold position for extraction.",
-                        3.8f,
-                        interrupt: true);
-                }
+                // Level completion details are presented in the dedicated summary panel.
+                // Skip transient radio overlays here to avoid fast, redundant congratulation text.
             }
         }
 
