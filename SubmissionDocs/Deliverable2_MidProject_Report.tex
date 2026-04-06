@@ -446,27 +446,18 @@ Several Unity systems supported this iteration:
 \paragraph{Build verification and known limitations.}
 The team smoke-tested phase transitions and campaign unlock flow in the Unity Editor (Play Mode) and through standalone player builds on the primary development platform. Crafting hooks remain disabled (\texttt{enableCrafting = false}) to keep Deliverable~2 scope readable. Levels~3--4 assets exist as menu previews only and are \textbf{not} part of this deliverable's playable route. Any submission screenshots should be captured from the same build revision as the uploaded executable.
 
-\section{Upcoming Deliverable 3 Plan (Course Specification)}
+\section{Upcoming Development (Deliverable 3)}
 
-Deliverable 3, as defined in the course handout \textit{Deliverable 3: Final Game Prototype and Showcase Presentation}, is the final integrated submission: a \textbf{polished Unity prototype}, \textbf{PDF documentation} (5--10 pages) covering design evolution and the topics below, a \textbf{recorded showcase video} (3--5 minutes) submitted via the course Dropbox in place of a live presentation, and a single \textbf{labeled team archive} (e.g., \texttt{GroupName\_Deliverable3.zip}) containing the Unity project (only \texttt{Assets}, \texttt{Packages}, and \texttt{ProjectSettings}), a \textbf{functional Windows build} (\texttt{.exe} plus its \texttt{Data} folder), the PDF, and the video or a working link. The following plan maps \textit{Deadlight}'s next development steps to that brief and to the Deliverable~3 rubric.
+Next work extends the Deliverable~2 baseline into a full four-level campaign:
 
-\paragraph{Unity implementation and polish.}
-Ship a stable, complete build: regression passes on day/night/dawn transitions, level completion, death/victory, and campaign unlock flow; remove or gate unfinished systems; address blocking bugs and obvious performance issues so reviewers can play without the Editor. Extend content on top of the Deliverable~2 baseline by \textbf{unlocking and integrating Levels~3 and~4} (Industrial and Research districts), \textbf{tuning late-campaign and final-encounter pressure}, and broadening validation around level transitions, balance, and ending flows.
-
-\paragraph{Art, aesthetics, and sound design.}
-Align with the requirement for a clear aesthetic direction and consistent \textbf{feedback}: refine UI layout and HUD clarity, environment and character readability, cohesive palette and landmark silhouettes where assets allow, and audio that reinforces success, danger, and discovery (music, SFX, and critical diegetic cues with non-audio fallbacks where needed).
-
-\paragraph{Narrative and systems integration.}
-Align story and mechanics: level-specific transmissions and objective chains for Levels~3--4 so the Lazarus arc reads end-to-end; keep radio beats, objectives, lore, and the \textbf{resource economy} \textbf{mutually reinforcing}, with reward tuning that matches narrative stakes (\textbf{risk--reward} and preparation consequences stay legible). Optionally revisit advanced preparation (e.g., crafting) only if it stays readable and does not clutter the loop.
-
-\paragraph{Playtesting and iteration.}
-Document structured feedback (peers, testers, observations): what confused players, where difficulty spiked, and how changes improved \textbf{fairness}, \textbf{tension}, and \textbf{sense of accomplishment} on demanding segments (e.g., late nights or high-pressure objectives). Summarize iterations in the final PDF as required.
-
-\paragraph{Presentation and documentation.}
-Produce the \textbf{3--5 minute video}: premise, guided walkthrough of core loops (exploration, objectives, combat/survival, shop/progression), visual and audio highlights, and polished differentiators. Write the \textbf{final PDF} to cover art/audio choices, narrative--systems cohesion, progression and balance, playtesting outcomes, and notable technical implementation (Unity features, key scripts, patterns), per the handout.
-
-\paragraph{Quality-of-life and player clarity.}
-Within the polish pass, improve run-state communication (resume vs.\ restart intent), end-of-level and run-summary feedback, and scoreboard clarity so the full four-level campaign remains understandable without external explanation.
+\begin{itemize}
+    \item \textbf{Content:} make \textbf{Levels~3 and~4} (Industrial and Research) playable end-to-end; tune late-campaign waves and the \textbf{final encounter}.
+    \item \textbf{Narrative:} add level-specific radio and objectives for Levels~3--4 so the Lazarus arc finishes coherently.
+    \item \textbf{Presentation:} pass on HUD/UI clarity, environment readability, palette cohesion, and SFX/music where time allows.
+    \item \textbf{Systems:} rebalance economy and progression across all four levels; consider re-enabling \textbf{crafting} only if it stays legible.
+    \item \textbf{Stability:} fix blocking bugs, tighten phase transitions and unlock flow, and smoke-test the Windows build across the full route.
+    \item \textbf{Player clarity:} clearer resume/restart messaging, stronger end-of-run summaries, and scoreboard polish for the longer campaign.
+\end{itemize}
 
 \section{Conclusion}
 
