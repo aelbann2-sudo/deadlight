@@ -123,7 +123,7 @@ The main design goal for this deliverable was to make preparation matter. In ear
 \begin{table}[H]
     \centering
     \small
-    \begin{tabularx}{\textwidth}{>{\bfseries}p{0.26\textwidth} Y Y}
+    \begin{tabularx}{\textwidth}{>{\raggedright\bfseries\arraybackslash}p{0.26\textwidth} Y Y}
         \toprule
         Rubric Point & What Is Implemented in the Prototype & How It Is Demonstrated In-Game \\
         \midrule
@@ -201,7 +201,21 @@ This layered approach supports \textbf{immersion} because the main story remains
     \item \textbf{Optional depth:} lore collection is additive and does not block core progression, preserving readability for first-time players.
 \end{itemize}
 
-\section{Systems Design and Game Balance}
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{>{\bfseries}p{0.14\textwidth} Y}
+        \toprule
+        Segment & Narrative / mission thrust (Deliverable 2 slice) \\
+        \midrule
+        L1 N1--N3 & Establish failed evacuation and EVAC Command as the voice of order; introduce Project Lazarus through early radio beats and objectives tied to the crash site, checkpoint, and clinic chain. \\
+        L2 N1--N3 & Escalate quarantine and Lazarus evidence in the suburban district; reinforce that scavenging and night survival directly support the extraction fantasy. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{High-level narrative coverage by campaign segment. Beats are delivered primarily through radio, story objectives, and optional lore rather than long cutscenes.}
+\end{table}
+
+\section{Systems Design and Game Balance}\label{sec:systems}
 
 Systems design in Deliverable 2 focuses on the relationship between daytime preparation and nighttime survival. The prototype uses a \textbf{resource economy} built around points, health, armor, ammunition, utility items, and weapon access---resources that should stay \textbf{meaningfully scarce} enough to force tradeoffs, with \textbf{visible feedback} when the player gains or spends them. Each part of this economy is meant to support a simple question for the player: what is worth spending now, and what should be saved for the next phase?
 
@@ -222,56 +236,79 @@ Balancing in this prototype is not based only on enemy strength. It is also base
 \begin{itemize}
     \item \textbf{Economy readability:} pickup callouts and HUD utility counts are tuned so players can see what changed immediately after looting or spending.
     \item \textbf{Combat readiness loop:} day objective success, scavenging quality, and shop decisions affect night survivability in visible ways.
-    \item \textbf{Penalty signaling:} failed daytime execution creates explicit pressure at night rather than \textbf{invisible} difficulty adjustments, so consequences stay attributable to preparation and readable threats (\textbf{trust} in the rules).
+    \item \textbf{Penalty signaling:} missed day objectives increase night pressure (enemy scaling) and can reduce the fraction of points carried into the next level; the build surfaces carryover as an on-screen message and dusk/shop feedback so the rule stays \textbf{attributable}, not a hidden slider.
     \item \textbf{Clutter control:} normal pickup flow prioritizes combat resources (ammo, health, utility, and points) to reduce inventory noise.
 \end{itemize}
 
 \begin{figure}[H]
     \centering
-    \resizebox{0.96\textwidth}{!}{
     \begin{tikzpicture}[
-        node distance=1.1cm and 1.05cm,
+        node distance=0.55cm and 0.5cm,
         box/.style={
             rectangle,
             rounded corners=5pt,
             draw=deadink,
-            line width=0.7pt,
+            line width=0.65pt,
             fill=deadlight,
             align=center,
-            minimum width=3.1cm,
-            minimum height=1.05cm
+            font=\footnotesize,
+            minimum width=1.85cm,
+            minimum height=0.72cm,
+            inner sep=3pt
         },
         accent/.style={
             rectangle,
             rounded corners=5pt,
             draw=deadred,
-            line width=0.9pt,
+            line width=0.75pt,
             fill=deadred!6,
             align=center,
-            minimum width=3.1cm,
-            minimum height=1.05cm
+            font=\footnotesize\bfseries,
+            minimum width=1.85cm,
+            minimum height=0.72cm,
+            inner sep=3pt
         },
-        arrow/.style={-{Latex[length=2.3mm]}, thick, draw=deadgray}
+        arrow/.style={-{Latex[length=1.8mm]}, semithick, draw=deadgray}
     ]
-        \node[box] (day) {Day exploration\\loot, objectives, scouting};
-        \node[accent, right=of day] (prep) {Preparation choices\\loot, objectives, contested drops};
-        \node[box, right=of prep] (dusk) {Dusk summary\\visible payoff preview};
-        \node[accent, below=of prep] (night) {Night survival\\enemy pressure shaped by preparation};
-        \node[box, left=of night] (reward) {Reward layer\\points, armor, weapons, upgrades};
-        \node[box, right=of night] (dawn) {Dawn shop\\reinvest in the next cycle};
+        \node[box] (day) {Day};
+        \node[box, right=of day] (dusk) {Dusk};
+        \node[accent, right=of dusk] (night) {Night};
+        \node[box, right=of night] (rw) {Rewards};
+        \node[box, right=of rw] (shop) {Shop};
 
-        \draw[arrow] (day) -- (prep);
-        \draw[arrow] (prep) -- (dusk);
+        \draw[arrow] (day) -- (dusk);
         \draw[arrow] (dusk) -- (night);
-        \draw[arrow] (night) -- (reward);
-        \draw[arrow] (reward) -- (dawn);
-        \draw[arrow] (dawn) |- (day);
+        \draw[arrow] (night) -- (rw);
+        \draw[arrow] (rw) -- (shop);
+        \draw[arrow] (shop.east) -- ++(0.35,0) |- (day.north);
     \end{tikzpicture}
-    }
-    \caption{Core Deliverable 2 risk-reward loop. Daytime choices are designed to produce visible nighttime consequences, which then feed into rewards and future preparation.}
+
+    \vspace{0.45em}
+    {\footnotesize Day: objectives, scavenging, contested drops \textbullet{} Night: wave pressure tied to prep \textbullet{} Rewards: points, gear, grades \textbullet{} Shop: spend before the next day.}
+    \caption{Core Deliverable 2 loop: a single readable chain; elaboration stays in \S\ref{sec:systems} and \S\ref{sec:progression}.}
 \end{figure}
 
-\section{Progression Systems and Rewards}
+\paragraph{Documented tuning anchors (implementation defaults).}
+The following values are authored in code and ScriptableObjects and serve as the concrete anchors for balance discussion (they can be tuned per build):
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{>{\bfseries}p{0.28\textwidth} Y}
+        \toprule
+        Parameter & Role in the prototype \\
+        \midrule
+        Night survived payout & Base \texttt{pointsPerNightSurvived} $= 100$ plus scaling \texttt{bonusPointsPerNight} $\times$ nights survived (default $50$ per stack in \texttt{PointsSystem}). \\
+        Dawn milestones & Clearing nights 1--3 on a level grants milestone stipends of $+100$, $+150$, and $+200$ points (\texttt{ProgressionManager}). \\
+        Contested drops & Timed pickups grant tiered point bundles ($+110$ / $+170$ / $+260$) plus ammo and healing (\texttt{SupplyCrate}). \\
+        Objective miss penalty & Missed day objectives can flag stronger enemies for the upcoming night (serialized multiplier default $1.2\times$) and stack carryover that reduces the fraction of points retained into the next level (default factor $0.75$ per stack), with radio messaging when active (\texttt{GameManager}). \\
+        Weapon unlock nights & Pistol and shotgun become available from night~$1$; SMG and assault rifle from night~$2$; later tiers gate heavier weapons (per-weapon night gate on ScriptableObjects). \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Representative balance anchors as implemented in the Deliverable 2 codebase. Exact shop prices are set per-weapon in the Unity inspector rather than duplicated here.}
+\end{table}
+
+\section{Progression Systems and Rewards}\label{sec:progression}
 
 Progression in the Deliverable 2 prototype works at two levels. The short-term loop is the day-night-dawn cycle within a single mission segment. The long-term loop is the full six-night run across Levels 1 and 2. Together, these systems give the player both immediate rewards and a broader sense of forward movement.
 
@@ -290,37 +327,52 @@ Keeping Level 2 in the prototype is important for this reason. It demonstrates u
 \begin{figure}[H]
     \centering
     \begin{tikzpicture}[
-        milestone/.style={
+        line/.style={line width=1pt, draw=deadgray},
+        bracket/.style={draw=deadink, line width=0.55pt, rounded corners=2pt},
+        dot/.style={
             circle,
             draw=deadred,
-            fill=deadred!8,
-            minimum size=8mm,
+            fill=deadred!10,
+            minimum size=7mm,
             inner sep=0pt,
-            font=\small\bfseries
+            font=\footnotesize\bfseries
         },
-        label/.style={align=center, font=\scriptsize},
-        line/.style={line width=1.1pt, draw=deadgray}
+        tag/.style={font=\footnotesize, text=deadgray}
     ]
+        % Level bands
+        \draw[bracket] (-0.35,0.55) rectangle (5.35,1.15);
+        \node[tag, anchor=west] at (-0.25,0.85) {\textbf{Level 1} (Town Center)};
+        \draw[bracket] (5.65,0.55) rectangle (12.35,1.15);
+        \node[tag, anchor=west] at (5.75,0.85) {\textbf{Level 2} (Suburban)};
+
+        % Axis
         \draw[line] (0,0) -- (12,0);
-        \node[milestone] at (0,0) {};
-        \node[label] at (0,-1.2) {L1 N1\\Shotgun access\\first dawn stipend};
 
-        \node[milestone] at (2.4,0) {};
-        \node[label] at (2.4,-1.2) {L1 N2\\SMG and Sniper\\higher night pressure};
-
-        \node[milestone] at (4.8,0) {};
-        \node[label] at (4.8,-1.2) {L1 N3\\Level 1 secured\\Level 2 unlocked};
-
-        \node[milestone] at (7.2,0) {};
-        \node[label] at (7.2,-1.2) {L2 N1\\new district\\story escalation};
-
-        \node[milestone] at (9.6,0) {};
-        \node[label] at (9.6,-1.2) {L2 N2\\runners and tighter routes\\larger risk-reward};
-
-        \node[milestone] at (12,0) {};
-        \node[label] at (12,-1.2) {L2 N3\\prototype victory\\final Deliverable 2 payoff};
+        % Six steps: one digit + short code only
+        \foreach \x/\n in {0/1, 2.4/2, 4.8/3, 7.2/4, 9.6/5, 12/6} {
+            \node[dot] at (\x,0) {\n};
+        }
     \end{tikzpicture}
-    \caption{Six-night progression arc used in the Deliverable 2 build. The second level is important because it gives the prototype a visible campaign structure rather than a single-level slice.}
+
+    \vspace{0.5em}
+    \begin{minipage}{\textwidth}
+        \centering
+        \footnotesize
+        \begin{tabular}{@{}c l p{0.72\textwidth}@{}}
+            \toprule
+            \textbf{\#} & \textbf{Beat} & \textbf{What changes for the player} \\
+            \midrule
+            1 & L1 Night 1 & Pistol/shotgun shop tier; first milestone stipend; learn day--night rhythm. \\
+            2 & L1 Night 2 & SMG and assault rifle tier; noticeably higher night pressure. \\
+            3 & L1 Night 3 & Level~1 clear; \textbf{Level~2} unlocks from the deployment menu. \\
+            4 & L2 Night 1 & New district layout; story and objective context escalate. \\
+            5 & L2 Night 2 & Faster threats, tighter routes, larger risk--reward on mistakes. \\
+            6 & L2 Night 3 & Deliverable~2 campaign endpoint; strongest payoff beat. \\
+            \bottomrule
+        \end{tabular}
+    \end{minipage}
+
+    \caption{Six-night progression arc: the timeline shows phase order only; the table carries detail without crowding the graphic.}
 \end{figure}
 
 \textbf{Implementation detail by point.}
@@ -364,6 +416,20 @@ Systems iteration focused on \textbf{clarity} and \textbf{fairness}: mechanics s
     \item \textbf{Prototype reliability:} high-risk transitions (day to night, night to dawn, level completion, and death/victory) were repeatedly rechecked after each UI/system revision.
 \end{itemize}
 
+\paragraph{Playtesting protocol (structured).}
+Sessions followed a lightweight, repeatable structure so observations could be tied to UI and flow changes rather than vague impressions:
+
+\begin{itemize}
+    \item \textbf{Participants:} mixed classmates and informal testers (primarily action--survival players); total session count tracked ad hoc across the iteration window (annotate final count before submission if the rubric asks for a number).
+    \item \textbf{Task prompt:} ``Play from a fresh Level~1 deployment through at least one full day--night--dawn cycle; attempt a story objective; open the shop at dawn; then continue until you are stuck or 20~minutes elapse.''
+    \item \textbf{Think-aloud encouraged} for the first cycle; facilitator noted hesitation points, mis-clicks, and misread HUD text without coaching mid-task.
+    \item \textbf{Logged signals:} time-to-first objective comprehension, whether the world marker was noticed, confusion after contested drops, and whether dusk summaries answered ``what did I earn?''
+    \item \textbf{Change rule:} each pass prioritized one fix class (e.g.\ COMMS legibility vs.\ marker overlap) before re-testing to preserve attribution.
+\end{itemize}
+
+\paragraph{Supplemental stills for the submission PDF.}
+The written report currently emphasizes map overview art from \texttt{MenuPreviews}. Before final submission, add \textbf{four in-engine captures} with captions: (1)~objective HUD + world marker in play, (2)~daytime scavenging or contested drop, (3)~night combat readability, (4)~dawn shop or summary. Place files under \texttt{SubmissionDocs/} and reference them with \texttt{\textbackslash includegraphics} so markers can verify UI claims without running the build.
+
 \section{Technical Notes}
 
 Several Unity systems supported this iteration:
@@ -376,6 +442,9 @@ Several Unity systems supported this iteration:
     \item \textbf{Current feature gating:} crafting hooks exist in code but are disabled in this Deliverable 2 build (\texttt{enableCrafting = false}) to keep the prototype loop clean and readable.
     \item \textbf{Submission structure:} the Deliverable 2 package is organized around the Unity project, the standalone build output, and this written PDF report.
 \end{itemize}
+
+\paragraph{Build verification and known limitations.}
+The team smoke-tested phase transitions and campaign unlock flow in the Unity Editor (Play Mode) and through standalone player builds on the primary development platform. Crafting hooks remain disabled (\texttt{enableCrafting = false}) to keep Deliverable~2 scope readable. Levels~3--4 assets exist as menu previews only and are \textbf{not} part of this deliverable's playable route. Any submission screenshots should be captured from the same build revision as the uploaded executable.
 
 \section{Upcoming Deliverable 3 Plan (Course Specification)}
 
