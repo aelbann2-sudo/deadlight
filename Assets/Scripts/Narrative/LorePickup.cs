@@ -1,5 +1,6 @@
 using UnityEngine;
 using Deadlight.Systems;
+using Deadlight.UI;
 
 namespace Deadlight.Narrative
 {
@@ -103,6 +104,8 @@ namespace Deadlight.Narrative
             {
                 EnvironmentalLore.Instance.DiscoverLore(loreId);
             }
+
+            GameplayHelpSystem.Instance?.ShowItem(GameplayGuideContent.ItemIds.LoreIntel, 1);
 
             if (pickupSound != null)
             {

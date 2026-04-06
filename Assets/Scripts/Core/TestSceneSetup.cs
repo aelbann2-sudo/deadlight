@@ -264,6 +264,7 @@ namespace Deadlight.Core
             playerObj.AddComponent<Player.PlayerController>();
             playerObj.AddComponent<Player.PlayerShooting>();
             playerObj.AddComponent<Player.PlayerHealth>();
+            playerObj.AddComponent<Player.PlayerMedkitSystem>();
             playerObj.AddComponent<Player.PlayerUpgrades>();
             playerObj.AddComponent<Player.PlayerArmor>();
             playerObj.AddComponent<AudioSource>();
@@ -1090,8 +1091,8 @@ namespace Deadlight.Core
             throwableLabel.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
             var throwablesText = CreateUIText(weaponPanel.transform, "ThrowablesText",
-                new Vector2(0f, 0f), "Q GRENADE 0/0\nG MOLOTOV 0/0", font, 13, TextAnchor.LowerLeft, titleColor,
-                new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(14f, 10f), new Vector2(210f, 42f));
+                new Vector2(0f, 0f), "Q GRENADE 0/0\nG MOLOTOV 0/0\nC MEDKIT 0/0", font, 13, TextAnchor.LowerLeft, titleColor,
+                new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(14f, 8f), new Vector2(228f, 64f));
             throwablesText.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
             var ammoLabel = CreateUIText(weaponPanel.transform, "AmmoLabel",

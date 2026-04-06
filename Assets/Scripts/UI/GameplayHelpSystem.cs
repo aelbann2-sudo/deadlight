@@ -38,6 +38,7 @@ namespace Deadlight.UI
             public const string Powerup = "powerup";
             public const string BlueprintToken = "blueprint_token";
             public const string Armor = "armor";
+            public const string LoreIntel = "lore_intel";
         }
 
         private static readonly Dictionary<string, GameplayHelpEntry> Entries = new Dictionary<string, GameplayHelpEntry>
@@ -91,7 +92,12 @@ namespace Deadlight.UI
                 ItemIds.Armor,
                 "Armor",
                 "Vests and helmets absorb incoming damage before your health does.",
-                "Absorbs incoming damage.")
+                "Absorbs incoming damage."),
+            [ItemIds.LoreIntel] = new GameplayHelpEntry(
+                ItemIds.LoreIntel,
+                "Intel Document",
+                "Recovered narrative intel. Open the Journal with J to review it anytime.",
+                "Journal updated.")
         };
 
         public static string GetItemId(PickupType pickupType)
@@ -126,6 +132,7 @@ namespace Deadlight.UI
                    "Space  Dodge\n" +
                    "Q  Throw grenade\n" +
                    "G  Throw molotov\n" +
+                   "C  Use stored medkit (2.5s apply)\n" +
                    "F  Interact\n" +
                    "J  Open journal\n" +
                    "[ and ]  Cycle journal pages\n" +
@@ -150,10 +157,12 @@ namespace Deadlight.UI
         {
             var builder = new StringBuilder();
             builder.AppendLine("Health Packs: restore lost HP.");
+            builder.AppendLine("Medkits: buy at dawn, store up to capacity, press C to apply over time.");
             builder.AppendLine("Ammo: refills reserve ammo.");
             builder.AppendLine("Points: currency for the dawn shop and upgrades.");
             builder.AppendLine("Powerups: temporary combat boosts.");
-            builder.Append("Armor: helmets and vests soak damage before health.");
+            builder.AppendLine("Armor: helmets and vests soak damage before health.");
+            builder.Append("Intel Documents: collectible lore entries added to the journal.");
             return builder.ToString();
         }
 
@@ -252,11 +261,6 @@ namespace Deadlight.UI
             }
 
             if (GameManager.Instance != null && !GameManager.Instance.IsGameplayState)
-            {
-                return;
-            }
-
-            if (easyModeExplainedItems.Contains(itemId))
             {
                 return;
             }

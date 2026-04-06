@@ -170,6 +170,26 @@ namespace Deadlight.Systems
             return currentPoints >= amount;
         }
 
+        public int ApplyLevelCarryover(float carryRatio, string source = "Inter-Level Carryover")
+        {
+            float ratio = Mathf.Clamp01(carryRatio);
+            int previous = currentPoints;
+            int retained = Mathf.RoundToInt(previous * ratio);
+            int deducted = Mathf.Max(0, previous - retained);
+
+            if (deducted <= 0)
+            {
+                return 0;
+            }
+
+            currentPoints = retained;
+            pointsHistory.Add(new PointsEntry($"-{source}", -deducted));
+            OnPointsChanged?.Invoke(currentPoints);
+
+            Debug.Log($"[PointsSystem] Carryover applied ({ratio:P0}). Retained {retained}, deducted {deducted}.");
+            return deducted;
+        }
+
         private float GetScoreMultiplier()
         {
             if (GameManager.Instance?.CurrentBalance != null)

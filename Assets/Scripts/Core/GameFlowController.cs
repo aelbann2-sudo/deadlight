@@ -367,7 +367,18 @@ namespace Deadlight.Core
                     nextHelicopterDropTime = float.PositiveInfinity;
                     dayContestedDropState = DayContestedDropState.Inactive;
                     OnDawnPhaseStarted?.Invoke();
-                    OnStatusMessage?.Invoke("Dawn - Visit the shop and prepare for the next level.");
+                    if (GameManager.Instance != null && GameManager.Instance.WillRetryCurrentStepOnAdvance)
+                    {
+                        OnStatusMessage?.Invoke("Dawn - Objective missed. Next deploy retries this step.");
+                    }
+                    else if (GameManager.Instance != null && GameManager.Instance.PendingObjectiveCarryoverPenaltyStacks > 0)
+                    {
+                        OnStatusMessage?.Invoke("Dawn - Penalty queued: stronger next-night enemies and reduced level carryover.");
+                    }
+                    else
+                    {
+                        OnStatusMessage?.Invoke("Dawn - Visit the shop and prepare for the next level.");
+                    }
                     break;
                 case GameState.LevelComplete:
                     nextHelicopterDropTime = float.PositiveInfinity;
