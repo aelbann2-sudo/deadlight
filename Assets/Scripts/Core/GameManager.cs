@@ -47,6 +47,8 @@ namespace Deadlight.Core
         [SerializeField] private int currentNight = 1;
         [SerializeField] private int maxNights = 12;
         [SerializeField] private bool isPaused;
+        [Header("Playable Scope")]
+        [SerializeField, Range(1, TotalLevels)] private int playableLevelCap = 2;
 
         public const int NightsPerLevel = 3;
         public const int TotalLevels = 4;
@@ -82,6 +84,7 @@ namespace Deadlight.Core
         public int MaxNights => maxNights;
         public int CurrentLevel => GetLevelForNight(currentNight);
         public int NightWithinLevel => GetNightWithinLevel(currentNight);
+        public int PlayableLevelCap => Mathf.Clamp(playableLevelCap, 1, TotalLevels);
         public CampaignBalanceProfile CurrentBalance => campaignBalanceProfile;
         public bool IsPaused => isPaused;
         public bool IsGameplayState => IsGameplayStateValue(currentState);
@@ -525,7 +528,7 @@ namespace Deadlight.Core
         {
             EnsureCampaignMapOrder();
 
-            int clamped = Mathf.Clamp(level, 1, TotalLevels);
+            int clamped = Mathf.Clamp(level, 1, GetPlayableLevelCap());
             if (!IsLevelUnlocked(clamped)) return;
 
             queuedStartNight = GetFirstNightOfLevel(clamped);
@@ -547,17 +550,18 @@ namespace Deadlight.Core
 
         public bool IsLevelUnlocked(int level)
         {
+            if (level > GetPlayableLevelCap()) return false;
             if (level <= 1) return true;
             int highest = PlayerPrefs.GetInt(UnlockedLevelKey, 1);
             return level <= highest;
         }
 
-        public int HighestUnlockedLevel => PlayerPrefs.GetInt(UnlockedLevelKey, 1);
+        public int HighestUnlockedLevel => Mathf.Clamp(PlayerPrefs.GetInt(UnlockedLevelKey, 1), 1, GetPlayableLevelCap());
 
         private void UnlockNextLevel()
         {
             int completedLevel = CurrentLevel;
-            int next = Mathf.Min(completedLevel + 1, TotalLevels);
+            int next = Mathf.Min(completedLevel + 1, GetPlayableLevelCap());
             int current = PlayerPrefs.GetInt(UnlockedLevelKey, 1);
             if (next > current)
             {
@@ -632,7 +636,7 @@ namespace Deadlight.Core
 
         private void EnsureCampaignMapOrder()
         {
-            maxNights = TotalLevels * NightsPerLevel;
+            maxNights = GetPlayableLevelCap() * NightsPerLevel;
 
             if (campaignMapOrder != null && campaignMapOrder.Length >= TotalLevels)
             {
@@ -660,6 +664,11 @@ namespace Deadlight.Core
             int level = GetLevelForNight(night);
             int idx = Mathf.Clamp(level - 1, 0, campaignMapOrder.Length - 1);
             return campaignMapOrder[idx];
+        }
+
+        private int GetPlayableLevelCap()
+        {
+            return Mathf.Clamp(playableLevelCap, 1, TotalLevels);
         }
 
         private void RebuildMapForCurrentLevel()
