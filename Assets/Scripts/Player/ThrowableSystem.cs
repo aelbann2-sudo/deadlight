@@ -37,6 +37,9 @@ namespace Deadlight.Player
         public int MaxMolotovs => maxMolotovs;
 
         public System.Action<int, int> OnInventoryChanged;
+        public System.Action<ThrowableType> OnThrowableUsed;
+        public System.Action<float> OnMolotovFireZoneStarted;
+        public System.Action OnMolotovFireZoneEnded;
 
         private void Update()
         {
@@ -91,10 +94,26 @@ namespace Deadlight.Player
             else
             {
                 molotovCount--;
-                projectile.AddComponent<MolotovProjectile>().Initialize(molotovBurnDamage, molotovBurnDuration, molotovRadius);
+                projectile.AddComponent<MolotovProjectile>().Initialize(
+                    molotovBurnDamage,
+                    molotovBurnDuration,
+                    molotovRadius,
+                    HandleMolotovFireZoneStarted,
+                    HandleMolotovFireZoneEnded);
             }
 
+            OnThrowableUsed?.Invoke(type);
             OnInventoryChanged?.Invoke(grenadeCount, molotovCount);
+        }
+
+        private void HandleMolotovFireZoneStarted(float duration)
+        {
+            OnMolotovFireZoneStarted?.Invoke(duration);
+        }
+
+        private void HandleMolotovFireZoneEnded()
+        {
+            OnMolotovFireZoneEnded?.Invoke();
         }
 
         private Sprite CreateThrowableSprite(ThrowableType type)
@@ -210,15 +229,23 @@ namespace Deadlight.Player
         private float burnDps;
         private float burnDuration;
         private float radius;
+        private System.Action<float> onFireZoneStarted;
+        private System.Action onFireZoneEnded;
         private bool shattered;
         private float airborneTimer;
         private const float MaxAirTime = 1.35f;
+        private bool fireZoneStartedNotified;
+        private bool fireZoneEndedNotified;
 
-        public void Initialize(float dps, float dur, float rad)
+        public void Initialize(float dps, float dur, float rad,
+            System.Action<float> fireZoneStarted = null,
+            System.Action fireZoneEnded = null)
         {
             burnDps = dps;
             burnDuration = dur;
             radius = rad;
+            onFireZoneStarted = fireZoneStarted;
+            onFireZoneEnded = fireZoneEnded;
         }
 
         void OnTriggerEnter2D(Collider2D other)
@@ -287,6 +314,7 @@ namespace Deadlight.Player
             tex.filterMode = FilterMode.Bilinear;
             fireSr.sprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size / (radius * 2f));
             fireSr.sortingOrder = Mathf.RoundToInt(-fireObj.transform.position.y) + 2;
+            NotifyFireZoneStarted();
 
             float elapsed = 0f;
             while (elapsed < burnDuration)
@@ -311,8 +339,36 @@ namespace Deadlight.Player
                 yield return null;
             }
 
+            NotifyFireZoneEnded();
             Destroy(fireObj);
             Destroy(gameObject);
+        }
+
+        private void OnDestroy()
+        {
+            NotifyFireZoneEnded();
+        }
+
+        private void NotifyFireZoneStarted()
+        {
+            if (fireZoneStartedNotified)
+            {
+                return;
+            }
+
+            fireZoneStartedNotified = true;
+            onFireZoneStarted?.Invoke(burnDuration);
+        }
+
+        private void NotifyFireZoneEnded()
+        {
+            if (fireZoneEndedNotified || !fireZoneStartedNotified)
+            {
+                return;
+            }
+
+            fireZoneEndedNotified = true;
+            onFireZoneEnded?.Invoke();
         }
     }
 }
