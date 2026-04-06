@@ -13,6 +13,8 @@ namespace Deadlight.Narrative
             dialogues.Add(CreateNight2StartDialogue());
             dialogues.Add(CreateNight3StartDialogue());
             dialogues.Add(CreateNight4StartDialogue());
+            dialogues.Add(CreateNight5StartDialogue());
+            dialogues.Add(CreateNight6StartDialogue());
             dialogues.Add(CreateVictoryDialogue());
             dialogues.Add(CreateGameOverDialogue());
             dialogues.Add(CreateGameStartDialogue());
@@ -88,13 +90,49 @@ namespace Deadlight.Narrative
                 4,
                 new string[]
                 {
-                    "*static* This is it, medic. Final night.",
-                    "The extraction beacon is armed. Helicopter is en route.",
-                    "But we're reading a massive biological signature converging on your position.",
-                    "It's Subject 23. The original. The source of everything.",
-                    "It's been hunting survivors. Growing stronger with every one it takes.",
-                    "You end it tonight, or no one leaves this zone. Ever.",
-                    "Helicopter touches down at dawn. Hold the line. *static*"
+                    "*static* Level 1 secured. You are now deploying into the suburban corridor.",
+                    "Good work recovering the town evidence. Command has verified your uplink.",
+                    "New objective chain is live. Civilian shelter and clinic logs are still missing.",
+                    "Expect tighter streets, longer sight lines, and faster contact waves tonight.",
+                    "Hold this sector and we keep the extraction window open. EVAC Command out. *static*"
+                });
+            return dialogue;
+        }
+
+        private static DialogueData CreateNight5StartDialogue()
+        {
+            var dialogue = ScriptableObject.CreateInstance<DialogueData>();
+            SetDialogueValues(dialogue,
+                "night_5_start",
+                "EVAC Command",
+                DialogueTriggerType.NightStart,
+                5,
+                new string[]
+                {
+                    "*static* Suburban sweep update: your checkpoint and shelter records are confirmed.",
+                    "The quarantine order was deliberate. Civilians were held to delay spread.",
+                    "Runners are coordinating in packs now. Keep lanes narrow and rotate positions.",
+                    "One more push after tonight and we can close this operation cleanly.",
+                    "Stay alive, medic. EVAC Command out. *static*"
+                });
+            return dialogue;
+        }
+
+        private static DialogueData CreateNight6StartDialogue()
+        {
+            var dialogue = ScriptableObject.CreateInstance<DialogueData>();
+            SetDialogueValues(dialogue,
+                "night_6_start",
+                "EVAC Command",
+                DialogueTriggerType.NightStart,
+                6,
+                new string[]
+                {
+                    "*static* Final night of this deployment. Complete the last suburban objective and hold to dawn.",
+                    "Clinic transmissions confirm Lazarus patient transfers ran through this district.",
+                    "No rescue attempts until this package is fully secured and transmitted.",
+                    "Clear this night and Command marks the operation as successful.",
+                    "Hold your ground. EVAC Command out. *static*"
                 });
             return dialogue;
         }

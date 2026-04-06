@@ -62,12 +62,25 @@ namespace Deadlight.Core
             float duration = 0.3f;
             while (elapsed < duration)
             {
-                elapsed += Time.deltaTime;
+                elapsed += Time.unscaledDeltaTime;
                 float alpha = Mathf.Lerp(0.35f, 0f, elapsed / duration);
                 damageOverlay.color = new Color(0.8f, 0, 0, alpha);
                 yield return null;
             }
             damageOverlay.color = Color.clear;
+        }
+
+        public void ClearScreenOverlays()
+        {
+            if (damageOverlay != null)
+            {
+                damageOverlay.color = Color.clear;
+            }
+
+            if (fadeOverlay != null)
+            {
+                fadeOverlay.color = Color.clear;
+            }
         }
         
         public void FlashScreen(Color color, float duration)

@@ -177,8 +177,7 @@ namespace Deadlight.Narrative
                 new Color(0.6f, 0.15f, 0.15f), 5f);
 
             yield return new WaitForSecondsRealtime(1f);
-            ShowEndButtons(true);
-            OnEndingComplete?.Invoke();
+            CompleteEndingFlow(true);
         }
 
         private IEnumerator DeathSequence()
@@ -213,8 +212,21 @@ namespace Deadlight.Narrative
             yield return ShowLine(statsLine, new Color(0.8f, 0.3f, 0.3f), 4f);
 
             yield return new WaitForSecondsRealtime(0.5f);
-            ShowEndButtons(false);
-            OnEndingComplete?.Invoke();
+            CompleteEndingFlow(false);
+        }
+
+        private void CompleteEndingFlow(bool isVictory)
+        {
+            if (OnEndingComplete != null)
+            {
+                // A UI controller (GameUI) is handling the post-ending screen.
+                // Cleanup this overlay first so we don't stack two end screens.
+                Cleanup();
+                OnEndingComplete?.Invoke();
+                return;
+            }
+
+            ShowEndButtons(isVictory);
         }
 
         private IEnumerator ShowLine(string text, Color textColor, float holdDuration)

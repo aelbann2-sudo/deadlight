@@ -2,7 +2,7 @@
 
 ## Narrative Premise
 
-The player is the only known survivor of a failed extraction attempt inside a quarantined urban district. EVAC Command promises rescue in five nights, but each transmission reveals that the outbreak is tied to a military research program called Project Lazarus. As the nights progress, the player learns that Dr. Chen's regenerative experiments produced Subject 23, a learning and adaptive infected organism that became the source of the collapse.
+The player is the only known survivor of a failed extraction attempt inside a quarantined urban district. EVAC Command promises rescue across the current Deliverable 2 six-night operation (Levels 1-2), but each transmission reveals that the outbreak is tied to a military research program called Project Lazarus. As the nights progress, the player learns that Dr. Chen's regenerative experiments produced Subject 23, a learning and adaptive infected organism that became the source of the collapse.
 
 ## What Happened Before the Player Arrived
 
@@ -10,7 +10,7 @@ Before gameplay begins, the district was part of an emergency evacuation corrido
 
 ## Key Figures and Forces
 
-- **EVAC Command:** the player's main contact and the source of tactical and narrative updates during the five-night holdout.
+- **EVAC Command:** the player's main contact and the source of tactical and narrative updates during the current six-night holdout.
 - **Dr. Chen:** lead researcher on Project Lazarus whose personal logs reveal both scientific ambition and moral collapse.
 - **Subject 23:** the original infected source, framed as a learning biological threat rather than a generic zombie.
 - **Military response units:** present through orders, reports, and evidence of cover-up behavior.

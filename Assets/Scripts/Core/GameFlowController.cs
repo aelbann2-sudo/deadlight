@@ -19,7 +19,7 @@ namespace Deadlight.Core
     }
 
     /// <summary>
-    /// Manages the full game flow: Main Menu -> Day Phase -> Night Phase -> Dawn Phase -> repeat for 4 levels -> Victory or Game Over.
+    /// Manages the full game flow: Main Menu -> Day Phase -> Night Phase -> Dawn Phase -> repeat by campaign scope -> Victory or Game Over.
     /// Works with GameManager, WaveSpawner, and DayNightCycle.
     /// </summary>
     public class GameFlowController : MonoBehaviour
@@ -34,7 +34,7 @@ namespace Deadlight.Core
             75f, 65f, 55f
         };
         [SerializeField] private float[] nightDurationsByNight = {
-            45f, 55f, 70f,
+            55f, 65f, 80f,
             55f, 70f, 85f,
             65f, 80f, 100f,
             80f, 100f, 140f
@@ -390,7 +390,8 @@ namespace Deadlight.Core
                 case GameState.Victory:
                     nextHelicopterDropTime = float.PositiveInfinity;
                     dayContestedDropState = DayContestedDropState.Inactive;
-                    OnStatusMessage?.Invoke("Victory! Subject 23 contained. All 4 levels cleared.");
+                    int clearedLevels = GameManager.Instance != null ? GameManager.Instance.PlayableLevelCap : 2;
+                    OnStatusMessage?.Invoke($"Victory! Subject 23 contained. All {clearedLevels} playable levels cleared.");
                     break;
                 case GameState.GameOver:
                     nextHelicopterDropTime = float.PositiveInfinity;

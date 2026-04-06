@@ -41,12 +41,12 @@ A 2D top-down zombie survival game built in Unity for CS4483B - Game Design.
 ---
 
 ### Core Gameplay Loop
-Survive 5 nights against increasingly difficult zombie waves:
+Survive a 2-level Deliverable 2 campaign (6 nights total) with increasing difficulty:
 
 1. **Day Phase** - Explore, loot supply crates, complete objectives, prepare for night
 2. **Night Phase** - Survive waves of zombies, earn points from kills
 3. **Dawn Phase** - Visit the shop to buy weapons, upgrades, and supplies
-4. Repeat until Night 5 is survived (Victory) or you die (Game Over)
+4. Repeat until Level 2, Night 3 is survived (Victory) or you die (Game Over)
 
 ---
 

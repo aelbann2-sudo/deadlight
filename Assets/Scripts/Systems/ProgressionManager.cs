@@ -86,29 +86,22 @@ namespace Deadlight.Systems
                 new NightMilestone
                 {
                     night = 1,
-                    description = "Clear Level 1 - Shotgun and barricades unlocked",
+                    description = "Night 1 cleared - First Dawn supply stipend",
                     bonusPoints = 100,
                     isCompleted = false
                 },
                 new NightMilestone
                 {
                     night = 2,
-                    description = "Clear Level 2 - Automatic rifle and traps unlocked",
+                    description = "Night 2 cleared - Escalation supply stipend",
                     bonusPoints = 150,
                     isCompleted = false
                 },
                 new NightMilestone
                 {
                     night = 3,
-                    description = "Clear Level 3 - Grenade launcher unlocked",
+                    description = "Level 1 secured - Extraction bonus awarded",
                     bonusPoints = 200,
-                    isCompleted = false
-                },
-                new NightMilestone
-                {
-                    night = 4,
-                    description = "Clear Level 4 - Final stand complete",
-                    bonusPoints = 500,
                     isCompleted = false
                 }
             };
@@ -133,8 +126,9 @@ namespace Deadlight.Systems
             }
             else if (newState == GameState.Victory)
             {
-                CompleteMilestone(4);
-                highestNightReached = 4;
+                int finalNight = GameManager.Instance != null ? GameManager.Instance.CurrentNight : highestNightReached;
+                CompleteMilestone(finalNight);
+                highestNightReached = Mathf.Max(highestNightReached, finalNight);
             }
         }
 

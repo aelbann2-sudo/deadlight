@@ -21,6 +21,7 @@ namespace Deadlight.Narrative
         [Header("Settings")]
         [SerializeField] private bool autoPlayNightDialogues = true;
         [SerializeField] private float dialogueDelay = 1f;
+        [SerializeField] private bool playEndingStateDialogues = false;
 
         private HashSet<string> playedDialogues = new HashSet<string>();
         private Queue<DialogueData> dialogueQueue = new Queue<DialogueData>();
@@ -122,10 +123,18 @@ namespace Deadlight.Narrative
                     TriggerDialogue(DialogueTriggerType.NightStart, currentNight);
                     break;
                 case Core.GameState.GameOver:
-                    TriggerDialogue(DialogueTriggerType.GameOver, currentNight);
+                    CancelAllDialoguePlayback(immediateHide: true);
+                    if (playEndingStateDialogues)
+                    {
+                        TriggerDialogue(DialogueTriggerType.GameOver, currentNight);
+                    }
                     break;
                 case Core.GameState.Victory:
-                    TriggerDialogue(DialogueTriggerType.Victory, currentNight);
+                    CancelAllDialoguePlayback(immediateHide: true);
+                    if (playEndingStateDialogues)
+                    {
+                        TriggerDialogue(DialogueTriggerType.Victory, currentNight);
+                    }
                     break;
             }
         }
@@ -169,6 +178,29 @@ namespace Deadlight.Narrative
             dialogueQueue.Clear();
             
             StartCoroutine(PlayDialogueCoroutine(dialogue));
+        }
+
+        public void QueueSystemMessage(
+            string speaker,
+            string message,
+            float duration = 3f,
+            bool interrupt = false,
+            bool playRadioStatic = false)
+        {
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                return;
+            }
+
+            var runtimeDialogue = DialogueData.CreateRuntimeMessage(speaker, message, duration, playRadioStatic);
+            if (interrupt)
+            {
+                PlayDialogueImmediate(runtimeDialogue);
+            }
+            else
+            {
+                QueueDialogue(runtimeDialogue);
+            }
         }
 
         private System.Collections.IEnumerator ProcessDialogueQueue()
@@ -251,6 +283,11 @@ namespace Deadlight.Narrative
 
             OnDialogueEnded?.Invoke(dialogue);
 
+            if (dialogue != null && dialogue.IsRuntimeTransient)
+            {
+                Destroy(dialogue);
+            }
+
             currentDialogue = null;
             isPlaying = false;
         }
@@ -277,10 +314,15 @@ namespace Deadlight.Narrative
             if (!isPlaying) return;
 
             StopAllCoroutines();
-            
+
             if (dialogueUI != null)
             {
-                dialogueUI.HideDialogue();
+                dialogueUI.HideDialogue(true);
+            }
+
+            if (currentDialogue != null && currentDialogue.IsRuntimeTransient)
+            {
+                Destroy(currentDialogue);
             }
 
             OnDialogueEnded?.Invoke(currentDialogue);
@@ -296,6 +338,30 @@ namespace Deadlight.Narrative
         public void ClearQueue()
         {
             dialogueQueue.Clear();
+        }
+
+        private void CancelAllDialoguePlayback(bool immediateHide)
+        {
+            StopAllCoroutines();
+            dialogueQueue.Clear();
+
+            if (dialogueUI != null)
+            {
+                dialogueUI.HideDialogue(immediateHide);
+            }
+
+            if (currentDialogue != null && currentDialogue.IsRuntimeTransient)
+            {
+                Destroy(currentDialogue);
+            }
+
+            if (isPlaying)
+            {
+                OnDialogueEnded?.Invoke(currentDialogue);
+            }
+
+            currentDialogue = null;
+            isPlaying = false;
         }
 
         public void ResetPlayedDialogues()

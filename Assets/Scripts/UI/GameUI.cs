@@ -72,7 +72,7 @@ namespace Deadlight.UI
         private static readonly string[] levelMapNames = { "Town Center", "Suburban Evacuation", "Industrial District", "Research Facility" };
         private static readonly string[] levelStageLabels = { "3 objective nights", "3 objective nights", "3 objective nights", "3 nights + boss finale" };
         private static readonly string[] levelPreviewKeys = { "TownCenter", "Suburban", "Industrial", "Research" };
-        private const int MaxSelectableLevel = 1;
+        private const int MaxSelectableLevel = 2;
         private static readonly string[] levelObjectiveSummaries = {
             "Recover Flight 7's black box.",
             "Recover the shelter evacuation records.",
@@ -295,7 +295,7 @@ namespace Deadlight.UI
                 TextAnchor.UpperLeft);
 
             UIFactory.CreateTextAt(left.transform, "Body",
-                "Deliverable 2 prototype focuses on Level 1 (three objective nights). Levels 2 to 4 are marked COMING SOON for next deliverables.",
+                "Deliverable 2 build includes playable Levels 1-2 (six objective nights total). Levels 3-4 are marked COMING SOON for next deliverables.",
                 UITheme.FontBody, UITheme.TextSecondary,
                 new Vector2(0f, 1f), new Vector2(26f, -148f), new Vector2(480f, 80f),
                 TextAnchor.UpperLeft);
@@ -317,7 +317,7 @@ namespace Deadlight.UI
                 new Vector2(500f, 86f), StartCampaign);
 
             UIFactory.CreateActionButton(left.transform, "MapBtn", "Level Select",
-                "Play Level 1 now, preview upcoming levels.",
+                "Play Levels 1-2 now, preview upcoming levels.",
                 UITheme.AccentGold, new Vector2(0f, 1f), new Vector2(24f, -442f),
                 new Vector2(500f, 86f), ShowCampaignMap);
 
@@ -347,7 +347,7 @@ namespace Deadlight.UI
                 TextAnchor.UpperLeft, FontStyle.Bold);
 
             UIFactory.CreateTextAt(right.transform, "RouteDesc",
-                "Level 1 is playable now with three objective nights. Levels 2 to 4 are upcoming for the next deliverables.",
+                "Levels 1-2 are playable now with six objective nights total. Levels 3-4 are upcoming for the next deliverables.",
                 UITheme.FontBody, UITheme.TextSecondary,
                 new Vector2(0f, 1f), new Vector2(24f, -72f), new Vector2(900f, 48f),
                 TextAnchor.UpperLeft);
@@ -436,7 +436,7 @@ namespace Deadlight.UI
                 TextAnchor.UpperLeft, FontStyle.Bold);
 
             UIFactory.CreateTextAt(_mapSelectPanel.transform, "Desc",
-                "Level 1 is playable in this prototype. Levels 2 to 4 are marked COMING SOON for next deliverables.",
+                "Levels 1-2 are playable in this prototype. Levels 3-4 are marked COMING SOON for next deliverables.",
                 UITheme.FontBody, UITheme.TextSecondary,
                 new Vector2(0f, 1f), new Vector2(54f, -158f), new Vector2(720f, 48f),
                 TextAnchor.UpperLeft);
@@ -645,15 +645,112 @@ namespace Deadlight.UI
             titleRt.offsetMin = new Vector2(16f, -56f);
             titleRt.offsetMax = new Vector2(-16f, -12f);
 
-            var bodyTxt = UIFactory.CreateText(section.transform, "Body", body,
+            // Scrollable body to prevent clipping on lower resolutions.
+            var scrollObj = new GameObject("BodyScroll");
+            scrollObj.transform.SetParent(section.transform, false);
+            var scrollRt = scrollObj.AddComponent<RectTransform>();
+            scrollRt.anchorMin = Vector2.zero;
+            scrollRt.anchorMax = Vector2.one;
+            scrollRt.offsetMin = new Vector2(16f, 16f);
+            scrollRt.offsetMax = new Vector2(-16f, -68f);
+            var scrollRect = scrollObj.AddComponent<ScrollRect>();
+            scrollRect.horizontal = false;
+            scrollRect.vertical = true;
+            scrollRect.movementType = ScrollRect.MovementType.Clamped;
+            scrollRect.scrollSensitivity = 26f;
+            scrollRect.inertia = true;
+
+            var viewportObj = new GameObject("Viewport");
+            viewportObj.transform.SetParent(scrollObj.transform, false);
+            var viewportRt = viewportObj.AddComponent<RectTransform>();
+            viewportRt.anchorMin = Vector2.zero;
+            viewportRt.anchorMax = Vector2.one;
+            viewportRt.offsetMin = new Vector2(0f, 0f);
+            viewportRt.offsetMax = new Vector2(-12f, 0f);
+            var viewportImage = viewportObj.AddComponent<Image>();
+            viewportImage.color = new Color(0f, 0f, 0f, 0.01f); // invisible hit-target for scroll input
+            viewportImage.raycastTarget = true;
+            var viewportMask = viewportObj.AddComponent<Mask>();
+            viewportMask.showMaskGraphic = false;
+            scrollRect.viewport = viewportRt;
+
+            var contentObj = new GameObject("Content");
+            contentObj.transform.SetParent(viewportObj.transform, false);
+            var contentRt = contentObj.AddComponent<RectTransform>();
+            contentRt.anchorMin = new Vector2(0f, 1f);
+            contentRt.anchorMax = new Vector2(1f, 1f);
+            contentRt.pivot = new Vector2(0.5f, 1f);
+            contentRt.anchoredPosition = Vector2.zero;
+            contentRt.sizeDelta = Vector2.zero;
+
+            var contentLayout = contentObj.AddComponent<VerticalLayoutGroup>();
+            contentLayout.spacing = 0f;
+            contentLayout.childAlignment = TextAnchor.UpperLeft;
+            contentLayout.childControlWidth = true;
+            contentLayout.childControlHeight = true;
+            contentLayout.childForceExpandWidth = true;
+            contentLayout.childForceExpandHeight = false;
+
+            var contentFitter = contentObj.AddComponent<ContentSizeFitter>();
+            contentFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+            contentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            var bodyTxt = UIFactory.CreateText(contentObj.transform, "Body", body,
                 UITheme.FontBody + 1, UITheme.WithAlpha(UITheme.TextPrimary, 0.98f), TextAnchor.UpperLeft);
             var bodyRt = bodyTxt.GetComponent<RectTransform>();
-            bodyRt.anchorMin = Vector2.zero;
-            bodyRt.anchorMax = Vector2.one;
-            bodyRt.offsetMin = new Vector2(18f, 18f);
-            bodyRt.offsetMax = new Vector2(-18f, -68f);
+            bodyRt.anchorMin = new Vector2(0f, 1f);
+            bodyRt.anchorMax = new Vector2(1f, 1f);
+            bodyRt.pivot = new Vector2(0.5f, 1f);
+            bodyRt.anchoredPosition = Vector2.zero;
+            bodyRt.sizeDelta = Vector2.zero;
             bodyTxt.lineSpacing = 1.2f;
             bodyTxt.supportRichText = true;
+            bodyTxt.horizontalOverflow = HorizontalWrapMode.Wrap;
+            bodyTxt.verticalOverflow = VerticalWrapMode.Overflow;
+            bodyTxt.raycastTarget = true;
+            scrollRect.content = contentRt;
+
+            var scrollbarObj = new GameObject("Scrollbar");
+            scrollbarObj.transform.SetParent(scrollObj.transform, false);
+            var scrollbarRt = scrollbarObj.AddComponent<RectTransform>();
+            scrollbarRt.anchorMin = new Vector2(1f, 0f);
+            scrollbarRt.anchorMax = new Vector2(1f, 1f);
+            scrollbarRt.pivot = new Vector2(1f, 0.5f);
+            scrollbarRt.offsetMin = new Vector2(-10f, 0f);
+            scrollbarRt.offsetMax = Vector2.zero;
+            var scrollbarBg = scrollbarObj.AddComponent<Image>();
+            scrollbarBg.color = UITheme.WithAlpha(UITheme.BgLight, 0.45f);
+
+            var slidingArea = new GameObject("SlidingArea");
+            slidingArea.transform.SetParent(scrollbarObj.transform, false);
+            var slidingRt = slidingArea.AddComponent<RectTransform>();
+            slidingRt.anchorMin = Vector2.zero;
+            slidingRt.anchorMax = Vector2.one;
+            slidingRt.offsetMin = Vector2.zero;
+            slidingRt.offsetMax = Vector2.zero;
+
+            var handleObj = new GameObject("Handle");
+            handleObj.transform.SetParent(slidingArea.transform, false);
+            var handleRt = handleObj.AddComponent<RectTransform>();
+            handleRt.anchorMin = new Vector2(0f, 1f);
+            handleRt.anchorMax = new Vector2(1f, 1f);
+            handleRt.pivot = new Vector2(0.5f, 1f);
+            handleRt.sizeDelta = new Vector2(0f, 72f);
+            var handleImage = handleObj.AddComponent<Image>();
+            handleImage.color = UITheme.WithAlpha(accentColor, 0.95f);
+
+            var scrollbar = scrollbarObj.AddComponent<Scrollbar>();
+            scrollbar.direction = Scrollbar.Direction.BottomToTop;
+            scrollbar.handleRect = handleRt;
+            scrollbar.targetGraphic = handleImage;
+            scrollbar.size = 0.35f;
+            scrollbar.value = 1f;
+            scrollRect.verticalScrollbar = scrollbar;
+            scrollRect.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHideAndExpandViewport;
+            scrollRect.verticalScrollbarSpacing = 4f;
+
+            Canvas.ForceUpdateCanvases();
+            scrollRect.verticalNormalizedPosition = 1f;
         }
 
         // =====================================================================
@@ -1032,6 +1129,7 @@ namespace Deadlight.UI
         private void StartCampaignAtLevel(int level)
         {
             if (level > MaxSelectableLevel) return;
+            if (!IsLevelUnlocked(level)) return;
 
             Time.timeScale = 1f;
             HideAllPanelsImmediate();
@@ -1056,14 +1154,14 @@ namespace Deadlight.UI
                 _mainMenuProgressText.text = $"Level {highest:00} ready: {levelObjectiveSummaries[highest - 1]}";
 
             if (_mapSelectProgressText != null)
-                _mapSelectProgressText.text = $"Unlocked through Level {highest:00}. Levels 2 to 4 are COMING SOON (next deliverables).";
+                _mapSelectProgressText.text = $"Unlocked through Level {highest:00}. Levels 3 to 4 are COMING SOON (next deliverables).";
 
             foreach (var row in _campaignRouteRows)
             {
                 bool upcoming = row.Level > MaxSelectableLevel;
                 bool unlocked = !upcoming && IsLevelUnlocked(row.Level);
                 bool ready = unlocked && row.Level == highest;
-                row.StatusText.text = ready ? "READY" : unlocked ? "UNLOCKED" : upcoming ? "UPCOMING" : "LOCKED";
+                row.StatusText.text = ready ? "READY" : unlocked ? "UNLOCKED" : upcoming ? "COMING SOON" : "LOCKED";
                 row.StatusBackground.color = ready
                     ? UITheme.Darken(UITheme.AccentGreen, 0.35f)
                     : unlocked ? UITheme.BgLight : upcoming ? UITheme.Darken(UITheme.AccentBlue, 0.55f) : UITheme.Darken(UITheme.AccentRed, 0.5f);
@@ -1078,12 +1176,12 @@ namespace Deadlight.UI
                 if (card.Button != null) card.Button.interactable = unlocked;
                 if (card.StatusText != null)
                 {
-                    card.StatusText.text = ready ? "READY" : unlocked ? "UNLOCKED" : upcoming ? "UPCOMING" : "LOCKED";
+                    card.StatusText.text = ready ? "READY" : unlocked ? "UNLOCKED" : upcoming ? "COMING SOON" : "LOCKED";
                     card.StatusText.color = unlocked ? UITheme.TextPrimary : UITheme.TextMuted;
                 }
                 if (card.ActionText != null)
                 {
-                    card.ActionText.text = unlocked ? "DEPLOY" : upcoming ? "COMING SOON" : "LOCKED";
+                    card.ActionText.text = unlocked ? "DEPLOY" : upcoming ? "COMING SOON" : $"COMPLETE L{Mathf.Max(1, card.Level - 1)}";
                     card.ActionText.color = unlocked ? UITheme.TextPrimary : UITheme.TextMuted;
                 }
                 if (card.PreviewImage != null)
@@ -1184,8 +1282,8 @@ namespace Deadlight.UI
         {
             if (_purchasedWeapons.Contains(wt)) return;
             if (PointsSystem.Instance == null || !PointsSystem.Instance.CanAfford(cost)) return;
-            int level = GameManager.Instance?.CurrentLevel ?? 1;
-            if (level < unlockNight) return;
+            int progressionNight = GameManager.Instance?.CurrentNight ?? 1;
+            if (progressionNight < unlockNight) return;
             if (!PointsSystem.Instance.SpendPoints(cost, $"Weapon: {wt}")) return;
 
             _purchasedWeapons.Add(wt);
@@ -1288,7 +1386,7 @@ namespace Deadlight.UI
                 _shopSummaryText.text = summary;
             }
 
-            int night = GameManager.Instance?.CurrentLevel ?? 1;
+            int progressionNight = GameManager.Instance?.CurrentNight ?? 1;
             bool needsHeal = NeedsMedkits(out var medkits);
             bool needsGrenade = NeedsGrenades(out _);
             bool needsMolotov = NeedsMolotovs(out _);
@@ -1323,7 +1421,7 @@ namespace Deadlight.UI
 
             WeaponType[] wts = { WeaponType.Shotgun, WeaponType.SMG, WeaponType.SniperRifle, WeaponType.AssaultRifle, WeaponType.GrenadeLauncher, WeaponType.Flamethrower };
             int[] costs = { 100, 150, 250, 200, 350, 400 };
-            int[] nights = { 1, 2, 2, 3, 3, 4 };
+            int[] requiredNights = { 1, 2, 2, 3, 3, 4 };
             for (int i = 0; i < wts.Length; i++)
             {
                 int idx = SupplyButtonCount + i;
@@ -1331,10 +1429,10 @@ namespace Deadlight.UI
                 var b = _shopBuyButtons[idx];
                 bool sold = _purchasedWeapons.Contains(wts[i]);
                 bool afford = PointsSystem.Instance != null && PointsSystem.Instance.CanAfford(costs[i]);
-                bool unlocked = night >= nights[i];
+                bool unlocked = progressionNight >= requiredNights[i];
                 b.interactable = !sold && afford && unlocked;
                 var lt = b.GetComponentInChildren<Text>();
-                if (lt != null) lt.text = sold ? "SOLD" : (unlocked ? "BUY" : $"Lv{nights[i]}+");
+                if (lt != null) lt.text = sold ? "SOLD" : (unlocked ? "BUY" : $"N{requiredNights[i]}+");
             }
 
             var upgrades = PlayerUpgrades.Instance;
@@ -1549,9 +1647,11 @@ namespace Deadlight.UI
                     ShowLevelComplete();
                     break;
                 case GameState.GameOver:
+                    GameEffects.Instance?.ClearScreenOverlays();
                     HandleEndingState(false);
                     break;
                 case GameState.Victory:
+                    GameEffects.Instance?.ClearScreenOverlays();
                     HandleEndingState(true);
                     break;
             }
@@ -1656,14 +1756,15 @@ namespace Deadlight.UI
             string map = GameManager.Instance != null
                 ? GameUI.GetMapDisplayName(GameManager.Instance.SelectedMap) : "Town Center";
 
-            int kills = 0, earned = 0, cleared = GameManager.TotalLevels;
+            int kills = 0, earned = 0;
             if (PointsSystem.Instance != null)
             {
                 var stats = PointsSystem.Instance.GetGameStats();
                 kills = stats.enemiesKilled;
                 earned = stats.totalEarned;
-                cleared = stats.nightsSurvived;
             }
+
+            int cleared = GameManager.Instance != null ? GameManager.Instance.PlayableLevelCap : 2;
 
             int rank = -1, score = 0;
             if (LeaderboardManager.Instance != null && LeaderboardManager.Instance.Entries.Count > 0)
@@ -1676,7 +1777,7 @@ namespace Deadlight.UI
             }
 
             _statsText.text =
-                $"ALL {cleared} LEVELS CLEARED!\n" +
+                $"ALL {cleared} PLAYABLE LEVELS CLEARED!\n" +
                 "Subject 23 defeated. Extraction signal is live.\n" +
                 $"Enemies Killed: {kills}\nPoints Earned: {earned}\n" +
                 $"Map: {map}" +

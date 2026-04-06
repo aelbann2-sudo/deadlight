@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections;
 using Deadlight.UI;
+using Deadlight.Core;
 
 namespace Deadlight.Narrative
 {
@@ -32,17 +33,36 @@ namespace Deadlight.Narrative
         [Header("Visual Theme")]
         [SerializeField] private Vector2 panelSize = new Vector2(1480f, 220f);
         [SerializeField] private Vector2 panelOffset = new Vector2(0f, 36f);
+        [SerializeField] private bool useCompactGameplayLayout = true;
+        [SerializeField] private Vector2 compactGameplayPanelSize = new Vector2(520f, 112f);
+        [SerializeField] private Vector2 compactGameplayPanelOffset = new Vector2(-24f, 212f);
+        [SerializeField] private bool forceCommsSpeaker = false;
         [SerializeField] private Color panelColor = new Color(0.03f, 0.05f, 0.09f, 0.90f);
         [SerializeField] private Color innerPanelColor = new Color(0.08f, 0.11f, 0.17f, 0.92f);
         [SerializeField] private Color dialogueTextColor = new Color(0.94f, 0.96f, 0.99f, 1f);
         [SerializeField] private Color hintColor = new Color(0.72f, 0.78f, 0.88f, 0.82f);
+        [SerializeField] private Color compactPanelColor = new Color(0.03f, 0.04f, 0.06f, 0.84f);
+        [SerializeField] private Color compactInnerPanelColor = new Color(0.06f, 0.08f, 0.11f, 0.76f);
+        [SerializeField] private Color compactDialogueTextColor = new Color(0.95f, 0.95f, 0.90f, 1f);
+        [SerializeField] private Color compactHintColor = new Color(0.70f, 0.76f, 0.84f, 0.92f);
 
         private CanvasGroup canvasGroup;
         private Coroutine typewriterCoroutine;
         private bool isTyping = false;
         private string currentFullText = "";
 
+        private RectTransform panelRect;
+        private RectTransform channelTagRect;
+        private RectTransform speakerTagRect;
+        private RectTransform dialogueBodyRect;
+        private RectTransform skipRect;
+        private bool compactLayoutActive;
+
+        private Image innerPanelBackground;
+        private Image topAccentImage;
+        private Image channelTagBackground;
         private Image speakerTagBackground;
+        private TextMeshProUGUI channelText;
         private bool builtRuntimePanel;
 
         private void Awake()
@@ -60,6 +80,19 @@ namespace Deadlight.Narrative
 
             ApplyVisualTheme();
             HideDialogue(true);
+
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.OnGameStateChanged += OnGameStateChanged;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.OnGameStateChanged -= OnGameStateChanged;
+            }
         }
 
         private void Update()
@@ -75,19 +108,26 @@ namespace Deadlight.Narrative
             if (dialoguePanel == null) return;
 
             EnsureRuntimeUI();
+            ApplyLayoutForState();
             ApplyVisualTheme();
 
             dialoguePanel.SetActive(true);
 
+            string rawSpeaker = forceCommsSpeaker ? "COMMS" : dialogue.SpeakerName;
+            string speaker = FormatSpeakerName(rawSpeaker);
+            string channel = ResolveChannelLabel(speaker);
+            Color speakerAccent = ResolveSpeakerAccent(speaker);
+            Color channelAccent = ResolveChannelAccent(channel, speakerAccent);
+
             if (speakerNameText != null)
             {
-                speakerNameText.text = dialogue.SpeakerName;
-                speakerNameText.color = ResolveSpeakerAccent(dialogue.SpeakerName);
+                speakerNameText.text = speaker;
+                speakerNameText.color = speakerAccent;
             }
 
             if (speakerPortrait != null)
             {
-                if (dialogue.SpeakerPortrait != null)
+                if (!forceCommsSpeaker && !compactLayoutActive && dialogue.SpeakerPortrait != null)
                 {
                     speakerPortrait.sprite = dialogue.SpeakerPortrait;
                     speakerPortrait.gameObject.SetActive(true);
@@ -98,9 +138,27 @@ namespace Deadlight.Narrative
                 }
             }
 
+            if (channelText != null)
+            {
+                channelText.text = channel;
+                channelText.color = channelAccent;
+            }
+
+            if (channelTagBackground != null)
+            {
+                float alpha = compactLayoutActive ? 0.26f : 0.22f;
+                channelTagBackground.color = UITheme.WithAlpha(channelAccent, alpha);
+            }
+
             if (speakerTagBackground != null && speakerNameText != null)
             {
-                speakerTagBackground.color = UITheme.WithAlpha(speakerNameText.color, 0.22f);
+                float alpha = compactLayoutActive ? 0.22f : 0.18f;
+                speakerTagBackground.color = UITheme.WithAlpha(speakerNameText.color, alpha);
+            }
+
+            if (topAccentImage != null)
+            {
+                topAccentImage.color = UITheme.WithAlpha(channelAccent, 0.95f);
             }
 
             if (skipIndicator != null)
@@ -239,6 +297,7 @@ namespace Deadlight.Narrative
             var innerImage = inner.AddComponent<Image>();
             innerImage.color = innerPanelColor;
             innerImage.raycastTarget = false;
+            innerPanelBackground = innerImage;
 
             var topLine = new GameObject("TopAccent");
             topLine.transform.SetParent(inner.transform, false);
@@ -248,9 +307,37 @@ namespace Deadlight.Narrative
             topLineRt.pivot = new Vector2(0.5f, 1f);
             topLineRt.anchoredPosition = Vector2.zero;
             topLineRt.sizeDelta = new Vector2(0f, 3f);
-            var topLineImage = topLine.AddComponent<Image>();
-            topLineImage.color = UITheme.WithAlpha(UITheme.AccentBlue, 0.95f);
-            topLineImage.raycastTarget = false;
+            topAccentImage = topLine.AddComponent<Image>();
+            topAccentImage.color = UITheme.WithAlpha(UITheme.AccentBlue, 0.95f);
+            topAccentImage.raycastTarget = false;
+
+            var channelTag = new GameObject("ChannelTag");
+            channelTag.transform.SetParent(inner.transform, false);
+            var channelTagRt = channelTag.AddComponent<RectTransform>();
+            channelTagRt.anchorMin = new Vector2(0f, 1f);
+            channelTagRt.anchorMax = new Vector2(0f, 1f);
+            channelTagRt.pivot = new Vector2(0f, 1f);
+            channelTagRt.anchoredPosition = new Vector2(14f, -8f);
+            channelTagRt.sizeDelta = new Vector2(86f, 20f);
+            channelTagBackground = channelTag.AddComponent<Image>();
+            channelTagBackground.color = UITheme.WithAlpha(UITheme.AccentGold, 0.25f);
+            channelTagBackground.raycastTarget = false;
+
+            var channelObj = new GameObject("ChannelLabel");
+            channelObj.transform.SetParent(channelTag.transform, false);
+            var channelRt = channelObj.AddComponent<RectTransform>();
+            channelRt.anchorMin = Vector2.zero;
+            channelRt.anchorMax = Vector2.one;
+            channelRt.offsetMin = new Vector2(4f, 1f);
+            channelRt.offsetMax = new Vector2(-4f, -1f);
+            channelText = channelObj.AddComponent<TextMeshProUGUI>();
+            channelText.text = "COMMS";
+            channelText.fontSize = 11f;
+            channelText.fontStyle = FontStyles.Bold;
+            channelText.color = UITheme.AccentGold;
+            channelText.alignment = TextAlignmentOptions.Center;
+            channelText.enableWordWrapping = false;
+            channelText.raycastTarget = false;
 
             var speakerTag = new GameObject("SpeakerTag");
             speakerTag.transform.SetParent(inner.transform, false);
@@ -258,8 +345,8 @@ namespace Deadlight.Narrative
             speakerTagRt.anchorMin = new Vector2(0f, 1f);
             speakerTagRt.anchorMax = new Vector2(0f, 1f);
             speakerTagRt.pivot = new Vector2(0f, 1f);
-            speakerTagRt.anchoredPosition = new Vector2(18f, -14f);
-            speakerTagRt.sizeDelta = new Vector2(380f, 40f);
+            speakerTagRt.anchoredPosition = new Vector2(106f, -8f);
+            speakerTagRt.sizeDelta = new Vector2(320f, 20f);
             speakerTagBackground = speakerTag.AddComponent<Image>();
             speakerTagBackground.color = UITheme.WithAlpha(UITheme.AccentBlue, 0.22f);
             speakerTagBackground.raycastTarget = false;
@@ -269,11 +356,11 @@ namespace Deadlight.Narrative
             var speakerRt = speakerObj.AddComponent<RectTransform>();
             speakerRt.anchorMin = Vector2.zero;
             speakerRt.anchorMax = Vector2.one;
-            speakerRt.offsetMin = new Vector2(12f, 2f);
-            speakerRt.offsetMax = new Vector2(-10f, -2f);
+            speakerRt.offsetMin = new Vector2(8f, 1f);
+            speakerRt.offsetMax = new Vector2(-8f, -1f);
             speakerNameText = speakerObj.AddComponent<TextMeshProUGUI>();
             speakerNameText.text = "EVAC COMMAND";
-            speakerNameText.fontSize = 26f;
+            speakerNameText.fontSize = 18f;
             speakerNameText.fontStyle = FontStyles.Bold;
             speakerNameText.color = UITheme.AccentBlue;
             speakerNameText.alignment = TextAlignmentOptions.Left;
@@ -329,35 +416,261 @@ namespace Deadlight.Narrative
             }
 
             builtRuntimePanel = true;
+            CacheRuntimeLayoutReferences();
+            ApplyLayoutForState();
         }
 
         private void ApplyVisualTheme()
         {
+            ApplyLayoutForState();
+
+            Color appliedPanelColor = compactLayoutActive ? compactPanelColor : panelColor;
+            Color appliedInnerColor = compactLayoutActive ? compactInnerPanelColor : innerPanelColor;
+            Color appliedBodyColor = compactLayoutActive ? compactDialogueTextColor : dialogueTextColor;
+            Color appliedHintColor = compactLayoutActive ? compactHintColor : hintColor;
+
             if (backgroundImage != null)
             {
-                backgroundImage.color = panelColor;
+                backgroundImage.color = appliedPanelColor;
+            }
+
+            if (innerPanelBackground != null)
+            {
+                innerPanelBackground.color = appliedInnerColor;
+            }
+
+            if (topAccentImage != null)
+            {
+                Color accent = compactLayoutActive ? UITheme.AccentGold : UITheme.AccentBlue;
+                topAccentImage.color = UITheme.WithAlpha(accent, 0.95f);
             }
 
             if (dialogueText != null)
             {
-                dialogueText.color = dialogueTextColor;
-                dialogueText.fontSize = Mathf.Max(30f, dialogueText.fontSize);
-                dialogueText.lineSpacing = Mathf.Max(4f, dialogueText.lineSpacing);
+                dialogueText.color = appliedBodyColor;
+                dialogueText.fontSize = compactLayoutActive ? 20f : 36f;
+                dialogueText.lineSpacing = compactLayoutActive ? 1f : 6f;
                 dialogueText.enableWordWrapping = true;
+            }
+
+            if (channelText != null)
+            {
+                channelText.fontSize = compactLayoutActive ? 11f : 14f;
+                channelText.fontStyle = FontStyles.Bold;
             }
 
             if (speakerNameText != null)
             {
-                speakerNameText.fontSize = Mathf.Max(22f, speakerNameText.fontSize);
+                speakerNameText.fontSize = compactLayoutActive ? 14f : 24f;
                 speakerNameText.fontStyle = FontStyles.Bold;
             }
 
             if (skipText != null)
             {
-                skipText.color = hintColor;
-                skipText.fontSize = Mathf.Max(16f, skipText.fontSize);
+                skipText.color = appliedHintColor;
+                skipText.fontSize = compactLayoutActive ? 10f : 20f;
                 skipText.fontStyle = FontStyles.Bold;
+                skipText.text = compactLayoutActive ? "SPACE / CLICK" : "SPACE / CLICK: REVEAL OR ADVANCE";
             }
+        }
+
+        private void OnGameStateChanged(GameState _)
+        {
+            ApplyLayoutForState();
+        }
+
+        private void CacheRuntimeLayoutReferences()
+        {
+            if (panelRect == null && dialoguePanel != null)
+            {
+                panelRect = dialoguePanel.GetComponent<RectTransform>();
+            }
+
+            if (channelTagRect == null && channelText != null && channelText.transform.parent != null)
+            {
+                channelTagRect = channelText.transform.parent.GetComponent<RectTransform>();
+            }
+
+            if (speakerTagRect == null && speakerNameText != null && speakerNameText.transform.parent != null)
+            {
+                speakerTagRect = speakerNameText.transform.parent.GetComponent<RectTransform>();
+            }
+
+            if (dialogueBodyRect == null && dialogueText != null)
+            {
+                dialogueBodyRect = dialogueText.rectTransform;
+            }
+
+            if (skipRect == null && skipIndicator != null)
+            {
+                skipRect = skipIndicator.GetComponent<RectTransform>();
+            }
+        }
+
+        private void ApplyLayoutForState()
+        {
+            CacheRuntimeLayoutReferences();
+
+            if (panelRect == null)
+            {
+                return;
+            }
+
+            bool shouldUseCompact = useCompactGameplayLayout &&
+                                    GameManager.Instance != null &&
+                                    GameManager.Instance.IsGameplayState;
+            compactLayoutActive = shouldUseCompact;
+
+            if (shouldUseCompact)
+            {
+                panelRect.anchorMin = new Vector2(1f, 0f);
+                panelRect.anchorMax = new Vector2(1f, 0f);
+                panelRect.pivot = new Vector2(1f, 0f);
+                panelRect.anchoredPosition = compactGameplayPanelOffset;
+                panelRect.sizeDelta = compactGameplayPanelSize;
+
+                if (channelTagRect != null)
+                {
+                    channelTagRect.anchoredPosition = new Vector2(14f, -8f);
+                    channelTagRect.sizeDelta = new Vector2(86f, 20f);
+                }
+
+                if (speakerTagRect != null)
+                {
+                    speakerTagRect.anchoredPosition = new Vector2(106f, -8f);
+                    speakerTagRect.sizeDelta = new Vector2(300f, 20f);
+                }
+
+                if (dialogueBodyRect != null)
+                {
+                    dialogueBodyRect.offsetMin = new Vector2(16f, 16f);
+                    dialogueBodyRect.offsetMax = new Vector2(-16f, -24f);
+                }
+
+                if (skipRect != null)
+                {
+                    skipRect.anchoredPosition = new Vector2(-12f, 6f);
+                    skipRect.sizeDelta = new Vector2(210f, 14f);
+                }
+            }
+            else
+            {
+                panelRect.anchorMin = new Vector2(0.5f, 0f);
+                panelRect.anchorMax = new Vector2(0.5f, 0f);
+                panelRect.pivot = new Vector2(0.5f, 0f);
+                panelRect.anchoredPosition = panelOffset;
+                panelRect.sizeDelta = panelSize;
+
+                if (channelTagRect != null)
+                {
+                    channelTagRect.anchoredPosition = new Vector2(18f, -14f);
+                    channelTagRect.sizeDelta = new Vector2(140f, 30f);
+                }
+
+                if (speakerTagRect != null)
+                {
+                    speakerTagRect.anchoredPosition = new Vector2(166f, -14f);
+                    speakerTagRect.sizeDelta = new Vector2(540f, 40f);
+                }
+
+                if (dialogueBodyRect != null)
+                {
+                    dialogueBodyRect.offsetMin = new Vector2(22f, 24f);
+                    dialogueBodyRect.offsetMax = new Vector2(-22f, -62f);
+                }
+
+                if (skipRect != null)
+                {
+                    skipRect.anchoredPosition = new Vector2(-16f, 10f);
+                    skipRect.sizeDelta = new Vector2(430f, 24f);
+                }
+            }
+        }
+
+        private static string FormatSpeakerName(string speakerName)
+        {
+            if (string.IsNullOrWhiteSpace(speakerName))
+            {
+                return "COMMS";
+            }
+
+            string normalized = speakerName.Trim();
+            string key = normalized.ToLowerInvariant();
+
+            if (key.Contains("evac") && key.Contains("command"))
+            {
+                return "EVAC COMMAND";
+            }
+
+            if (key.Contains("comms") || key.Contains("radio"))
+            {
+                return "COMMS";
+            }
+
+            if (key.Contains("intercept"))
+            {
+                return "INTERCEPT";
+            }
+
+            if (key.Contains("alert") || key.Contains("warning"))
+            {
+                return "ALERT";
+            }
+
+            if (key.Contains("guide") || key.Contains("tip"))
+            {
+                return "GUIDE";
+            }
+
+            return normalized.ToUpperInvariant();
+        }
+
+        private static string ResolveChannelLabel(string speakerName)
+        {
+            if (string.IsNullOrWhiteSpace(speakerName))
+            {
+                return "COMMS";
+            }
+
+            string key = speakerName.ToLowerInvariant();
+            if (key.Contains("alert") || key.Contains("warning"))
+            {
+                return "ALERT";
+            }
+
+            if (key.Contains("intercept"))
+            {
+                return "INTERCEPT";
+            }
+
+            if (key.Contains("medic") || key.Contains("pilot") || key.Contains("survivor"))
+            {
+                return "FIELD";
+            }
+
+            if (key.Contains("guide") || key.Contains("tip"))
+            {
+                return "GUIDE";
+            }
+
+            return "COMMS";
+        }
+
+        private static Color ResolveChannelAccent(string channel, Color fallback)
+        {
+            if (string.IsNullOrWhiteSpace(channel))
+            {
+                return fallback;
+            }
+
+            return channel.ToUpperInvariant() switch
+            {
+                "ALERT" => UITheme.AccentRed,
+                "INTERCEPT" => UITheme.AccentPurple,
+                "FIELD" => UITheme.AccentGreen,
+                "GUIDE" => UITheme.AccentBlue,
+                _ => UITheme.AccentGold
+            };
         }
 
         private static Color ResolveSpeakerAccent(string speakerName)
@@ -368,6 +681,16 @@ namespace Deadlight.Narrative
             }
 
             string key = speakerName.ToLowerInvariant();
+            if (key.Contains("alert") || key.Contains("warning"))
+            {
+                return UITheme.AccentRed;
+            }
+
+            if (key.Contains("intercept"))
+            {
+                return UITheme.AccentPurple;
+            }
+
             if (key.Contains("pilot"))
             {
                 return UITheme.AccentOrange;
@@ -379,6 +702,11 @@ namespace Deadlight.Narrative
             }
 
             if (key.Contains("command") || key.Contains("radio"))
+            {
+                return UITheme.AccentGold;
+            }
+
+            if (key.Contains("comms"))
             {
                 return UITheme.AccentGold;
             }
@@ -395,7 +723,7 @@ namespace Deadlight.Narrative
 
             while (elapsed < fadeInDuration)
             {
-                elapsed += Time.deltaTime;
+                elapsed += Time.unscaledDeltaTime;
                 canvasGroup.alpha = Mathf.Lerp(0f, 1f, elapsed / fadeInDuration);
                 yield return null;
             }
@@ -416,7 +744,7 @@ namespace Deadlight.Narrative
 
             while (elapsed < fadeOutDuration)
             {
-                elapsed += Time.deltaTime;
+                elapsed += Time.unscaledDeltaTime;
                 canvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, elapsed / fadeOutDuration);
                 yield return null;
             }

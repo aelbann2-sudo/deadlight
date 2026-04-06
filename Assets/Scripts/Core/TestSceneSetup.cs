@@ -1108,7 +1108,7 @@ namespace Deadlight.Core
             // Radio transmission panel
             var radioPanel = CreateUIPanel(hudRoot.transform, "RadioPanel",
                 new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(1f, 0f),
-                new Vector2(-24f, 164f), new Vector2(500f, 100f));
+                new Vector2(-24f, 212f), new Vector2(500f, 100f));
             var radioBg = radioPanel.AddComponent<Image>();
             radioBg.color = cardSoft;
 
@@ -1119,7 +1119,7 @@ namespace Deadlight.Core
             radioLabel.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
             var radioText = CreateUIText(radioPanel.transform, "RadioText",
-                new Vector2(0f, 0.5f), "", font, 20, TextAnchor.MiddleLeft, new Color(0.95f, 0.95f, 0.9f),
+                new Vector2(0f, 0.5f), "", font, 20, TextAnchor.MiddleLeft, new Color(0.95f, 0.95f, 0.90f),
                 new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(0f, 0f), new Vector2(0f, 0f));
             radioText.GetComponent<RectTransform>().offsetMin = new Vector2(16f, 16f);
             radioText.GetComponent<RectTransform>().offsetMax = new Vector2(-16f, -24f);

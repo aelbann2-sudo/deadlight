@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System;
+using Deadlight.Narrative;
 
 namespace Deadlight.Core
 {
@@ -32,18 +34,18 @@ namespace Deadlight.Core
             },
             // Level 2, Night 1
             new[] {
-                "[Radio] Good work, medic. Suburbs ahead — the military sealed the quarantine before buses cleared out.",
-                "Dr. Chen's files mention cellular regeneration. Making soldiers that couldn't die."
+                "[Radio] EVAC Command: Level 1 secured. Suburban corridor is now your active sector.",
+                "Shelter and clinic logs here can verify who authorized Lazarus transfers."
             },
             // Level 2, Night 2
             new[] {
-                "[Radio] Shelter roster recovered. Families were queued for extraction and then abandoned.",
-                "Watch for runners. They hunt, not shamble. Stay sharp."
+                "[Radio] Shelter roster recovered. Families were queued for extraction, then abandoned at the line.",
+                "Runner packs are coordinating. Force chokepoints and do not get flanked."
             },
             // Level 2, Night 3
             new[] {
-                "[Radio] Clinic notes confirm Lazarus patients were hidden among regular evac transfers.",
-                "The infection is spreading faster than expected. Prepare for the worst tonight. EVAC out."
+                "[Radio] Final night in the suburbs. Secure the last objective and transmit everything by dawn.",
+                "Clinic notes confirm Lazarus patients were hidden in regular evac flow. Finish the upload. EVAC out."
             },
             // Level 3, Night 1
             new[] {
@@ -140,6 +142,184 @@ namespace Deadlight.Core
             if (transmissionPanel != null) transmissionPanel.SetActive(false);
         }
 
+        private bool TryShowUnifiedMessage(string rawText, float duration, bool interrupt = false, bool playRadioStatic = false)
+        {
+            var narrative = NarrativeManager.Instance;
+            if (narrative == null)
+            {
+                return false;
+            }
+
+            string normalized = NormalizeTransmissionText(rawText);
+            if (string.IsNullOrWhiteSpace(normalized))
+            {
+                return true;
+            }
+
+            ExtractSpeakerAndMessage(normalized, out string speaker, out string message);
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                message = normalized;
+            }
+
+            narrative.QueueSystemMessage(speaker, message, duration, interrupt, playRadioStatic);
+            if (transmissionPanel != null)
+            {
+                transmissionPanel.SetActive(false);
+            }
+
+            return true;
+        }
+
+        private static void ExtractSpeakerAndMessage(string normalized, out string speaker, out string message)
+        {
+            speaker = "COMMS";
+            message = normalized?.Trim() ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                return;
+            }
+
+            if (message.StartsWith("[Intercepted]", StringComparison.OrdinalIgnoreCase))
+            {
+                speaker = "INTERCEPT";
+                message = message.Substring("[Intercepted]".Length).TrimStart(' ', ':', '-').Trim();
+            }
+
+            if (message.StartsWith("[PROXIMITY ALERT]", StringComparison.OrdinalIgnoreCase))
+            {
+                speaker = "ALERT";
+                message = message.Substring("[PROXIMITY ALERT]".Length).TrimStart(' ', ':', '-').Trim();
+            }
+
+            if (TryStripNamedPrefix(ref message, "EVAC Command"))
+            {
+                speaker = "EVAC COMMAND";
+            }
+            else if (TryStripNamedPrefix(ref message, "Command"))
+            {
+                speaker = "EVAC COMMAND";
+            }
+            else if (TryStripNamedPrefix(ref message, "Medic"))
+            {
+                speaker = "MEDIC";
+            }
+            else if (TryStripNamedPrefix(ref message, "Pilot"))
+            {
+                speaker = "PILOT";
+            }
+            else if (message.StartsWith("TIP:", StringComparison.OrdinalIgnoreCase))
+            {
+                speaker = "GUIDE";
+                message = message.Substring(4).Trim();
+            }
+
+            if (speaker == "COMMS" && LooksLikeAlert(message))
+            {
+                speaker = "ALERT";
+            }
+        }
+
+        private static bool TryStripNamedPrefix(ref string message, string prefix)
+        {
+            if (string.IsNullOrWhiteSpace(message) || string.IsNullOrWhiteSpace(prefix))
+            {
+                return false;
+            }
+
+            if (!message.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (message.Length == prefix.Length)
+            {
+                message = string.Empty;
+                return true;
+            }
+
+            char marker = message[prefix.Length];
+            if (marker != ':' && marker != '.' && marker != '-')
+            {
+                return false;
+            }
+
+            int idx = prefix.Length + 1;
+            while (idx < message.Length && char.IsWhiteSpace(message[idx]))
+            {
+                idx++;
+            }
+
+            message = idx < message.Length ? message.Substring(idx).Trim() : string.Empty;
+            return true;
+        }
+
+        private static bool LooksLikeAlert(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return false;
+            }
+
+            if (text.IndexOf("SUBJECT 23", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return true;
+            }
+
+            int letters = 0;
+            int uppercaseLetters = 0;
+            foreach (char c in text)
+            {
+                if (!char.IsLetter(c))
+                {
+                    continue;
+                }
+
+                letters++;
+                if (char.IsUpper(c))
+                {
+                    uppercaseLetters++;
+                }
+            }
+
+            if (letters < 8)
+            {
+                return false;
+            }
+
+            return uppercaseLetters >= letters * 0.8f;
+        }
+
+        private static string NormalizeTransmissionText(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return string.Empty;
+            }
+
+            string normalized = text.Trim();
+
+            if (normalized.StartsWith("[Radio]", StringComparison.OrdinalIgnoreCase))
+            {
+                normalized = normalized.Substring(7).Trim();
+            }
+
+            if (normalized.StartsWith("RADIO:", StringComparison.OrdinalIgnoreCase))
+            {
+                normalized = normalized.Substring(6).Trim();
+            }
+
+            if (normalized.StartsWith("\"", StringComparison.Ordinal) &&
+                normalized.EndsWith("\"", StringComparison.Ordinal) &&
+                normalized.Length > 1)
+            {
+                normalized = normalized.Substring(1, normalized.Length - 2).Trim();
+            }
+
+            return normalized;
+        }
+
         private void OnGameStateChanged(GameState state)
         {
             if (state == GameState.DayPhase)
@@ -152,6 +332,27 @@ namespace Deadlight.Core
                 int level = GameManager.Instance?.CurrentLevel ?? 1;
                 int nwl = GameManager.Instance?.NightWithinLevel ?? 1;
                 ShowMessage($"LEVEL {level}, NIGHT {nwl} - SURVIVE!", 3f);
+            }
+            else if (state == GameState.LevelComplete)
+            {
+                int completedLevel = GameManager.Instance?.CurrentLevel ?? 1;
+                int nextLevel = completedLevel + 1;
+                int levelCap = GameManager.Instance?.PlayableLevelCap ?? GameManager.TotalLevels;
+
+                if (nextLevel <= levelCap)
+                {
+                    TryShowUnifiedMessage(
+                        $"EVAC Command: Level {completedLevel} complete. Dawn transfer to Level {nextLevel} is authorized.",
+                        3.8f,
+                        interrupt: true);
+                }
+                else
+                {
+                    TryShowUnifiedMessage(
+                        $"EVAC Command: Level {completedLevel} complete. Operation objectives satisfied. Hold for extraction.",
+                        3.8f,
+                        interrupt: true);
+                }
             }
         }
 
@@ -172,6 +373,11 @@ namespace Deadlight.Core
 
         private IEnumerator ShowTransmission(string text, float duration)
         {
+            if (TryShowUnifiedMessage(text, duration))
+            {
+                yield break;
+            }
+
             if (transmissionPanel == null || transmissionText == null) yield break;
 
             try
@@ -233,17 +439,28 @@ namespace Deadlight.Core
             if (Time.unscaledTime - lastMessageTime < MessageCooldown)
                 return;
             lastMessageTime = Time.unscaledTime;
+
+            if (TryShowUnifiedMessage(text, duration))
+            {
+                return;
+            }
+
             StartCoroutine(ShowTransmission(text, duration));
         }
 
         public void ShowRandomLore()
         {
-            string lore = loreMessages[Random.Range(0, loreMessages.Length)];
+            string lore = loreMessages[UnityEngine.Random.Range(0, loreMessages.Length)];
             StartCoroutine(ShowLoreTransmission(lore));
         }
 
         private IEnumerator ShowLoreTransmission(string text)
         {
+            if (TryShowUnifiedMessage(text, 5f, interrupt: false, playRadioStatic: true))
+            {
+                yield break;
+            }
+
             if (transmissionPanel == null || transmissionText == null) yield break;
 
             transmissionText.text = text;
@@ -306,6 +523,11 @@ namespace Deadlight.Core
 
         private IEnumerator ShowWarningTransmission(string text)
         {
+            if (TryShowUnifiedMessage(text, 3.5f))
+            {
+                yield break;
+            }
+
             if (transmissionPanel == null || transmissionText == null) yield break;
 
             try
@@ -415,6 +637,11 @@ namespace Deadlight.Core
 
         private IEnumerator ShowBossWarning()
         {
+            if (TryShowUnifiedMessage("SUBJECT 23 APPROACHES. PREPARE FOR COMBAT.", 4.2f, interrupt: true))
+            {
+                yield break;
+            }
+
             if (transmissionPanel == null || transmissionText == null) yield break;
 
             try

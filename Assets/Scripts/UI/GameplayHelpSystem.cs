@@ -146,9 +146,9 @@ namespace Deadlight.UI
         public static string GetRulesText()
         {
             return "<b>Campaign Scope</b>\n" +
-                   "- Deliverable 2: playable Levels 1-2 only.\n" +
+                   "- Deliverable 2: playable Levels 1-2.\n" +
                    "- Route: Town Center -> Suburban.\n" +
-                   "- Levels 3-4 are intentionally locked.\n\n" +
+                   "- Levels 3-4 are marked COMING SOON for next deliverables.\n\n" +
                    "<b>Core Loop</b>\n" +
                    "- Each level has 3 day/night steps.\n" +
                    "- Day: complete objective + loot.\n" +
@@ -161,7 +161,13 @@ namespace Deadlight.UI
 
         public static string GetSystemsText()
         {
-            return "<b>Objective Miss Rule</b>\n" +
+            return "<b>Prototype Coverage</b>\n" +
+                   "- Level Design: handcrafted Town Center and Suburban lanes, flanks, and objective routes.\n" +
+                   "- Player Guidance: intro briefing, objective tracker, guide, and pickup callouts.\n" +
+                   "- System Balance: pressure escalates from Level 1, Night 1 to Level 2, Night 3.\n" +
+                   "- Progression: dawn upgrades and weapon access progress through the run.\n" +
+                   "- Rewards: kills, objective clears, and crates grant spendable points.\n\n" +
+                   "<b>Objective Miss Rule</b>\n" +
                    "- Miss once: 1 retry on the same step.\n" +
                    "- Miss twice: forced advance.\n\n" +
                    "<b>Penalty Rule</b>\n" +

@@ -48,11 +48,12 @@ namespace Deadlight.Core
         [SerializeField] private int maxNights = 12;
         [SerializeField] private bool isPaused;
         [Header("Playable Scope")]
-        [SerializeField, Range(1, TotalLevels)] private int playableLevelCap = 1;
+        [SerializeField, Range(1, TotalLevels)] private int playableLevelCap = 2;
 
         public const int NightsPerLevel = 3;
         public const int TotalLevels = 4;
         private const string UnlockedLevelKey = "Deadlight_UnlockedLevel";
+        private const string HighestCompletedLevelKey = "Deadlight_HighestCompletedLevel";
 
         [Header("Campaign Progression")]
         [SerializeField] private MapType[] campaignMapOrder =
@@ -157,6 +158,7 @@ namespace Deadlight.Core
             DontDestroyOnLoad(gameObject);
             EnsureCampaignMapOrder();
             EnsureCampaignBalanceProfile();
+            NormalizeCampaignUnlockProgress();
         }
 
         private void OnEnable()
@@ -552,20 +554,85 @@ namespace Deadlight.Core
         {
             if (level > GetPlayableLevelCap()) return false;
             if (level <= 1) return true;
-            int highest = PlayerPrefs.GetInt(UnlockedLevelKey, 1);
-            return level <= highest;
+
+            int highestCompleted = GetHighestCompletedLevel();
+            int storedUnlocked = GetStoredHighestUnlockedLevel();
+            int effectiveHighestUnlocked = Mathf.Min(storedUnlocked, highestCompleted + 1);
+            return level <= effectiveHighestUnlocked;
         }
 
-        public int HighestUnlockedLevel => Mathf.Clamp(PlayerPrefs.GetInt(UnlockedLevelKey, 1), 1, GetPlayableLevelCap());
+        public int HighestUnlockedLevel
+        {
+            get
+            {
+                int highestCompleted = GetHighestCompletedLevel();
+                int storedUnlocked = GetStoredHighestUnlockedLevel();
+                return Mathf.Clamp(Mathf.Min(storedUnlocked, highestCompleted + 1), 1, GetPlayableLevelCap());
+            }
+        }
 
         private void UnlockNextLevel()
         {
             int completedLevel = CurrentLevel;
-            int next = Mathf.Min(completedLevel + 1, GetPlayableLevelCap());
-            int current = PlayerPrefs.GetInt(UnlockedLevelKey, 1);
-            if (next > current)
+            int highestCompleted = GetHighestCompletedLevel();
+            bool changed = false;
+
+            if (completedLevel > highestCompleted)
             {
-                PlayerPrefs.SetInt(UnlockedLevelKey, next);
+                PlayerPrefs.SetInt(HighestCompletedLevelKey, completedLevel);
+                highestCompleted = completedLevel;
+                changed = true;
+            }
+
+            int next = Mathf.Min(completedLevel + 1, GetPlayableLevelCap());
+            int current = GetStoredHighestUnlockedLevel();
+            int maxAllowedUnlocked = Mathf.Clamp(highestCompleted + 1, 1, GetPlayableLevelCap());
+            int targetUnlocked = Mathf.Min(next, maxAllowedUnlocked);
+            if (targetUnlocked > current)
+            {
+                PlayerPrefs.SetInt(UnlockedLevelKey, targetUnlocked);
+                changed = true;
+            }
+
+            if (changed)
+            {
+                PlayerPrefs.Save();
+            }
+        }
+
+        private int GetStoredHighestUnlockedLevel()
+        {
+            return Mathf.Clamp(PlayerPrefs.GetInt(UnlockedLevelKey, 1), 1, GetPlayableLevelCap());
+        }
+
+        private int GetHighestCompletedLevel()
+        {
+            return Mathf.Clamp(PlayerPrefs.GetInt(HighestCompletedLevelKey, 0), 0, GetPlayableLevelCap());
+        }
+
+        private void NormalizeCampaignUnlockProgress()
+        {
+            int playableCap = GetPlayableLevelCap();
+            int highestCompleted = GetHighestCompletedLevel();
+            int storedUnlocked = GetStoredHighestUnlockedLevel();
+            int maxAllowedUnlocked = Mathf.Clamp(highestCompleted + 1, 1, playableCap);
+            int normalizedUnlocked = Mathf.Min(storedUnlocked, maxAllowedUnlocked);
+
+            bool changed = false;
+            if (!PlayerPrefs.HasKey(UnlockedLevelKey) || storedUnlocked != normalizedUnlocked)
+            {
+                PlayerPrefs.SetInt(UnlockedLevelKey, normalizedUnlocked);
+                changed = true;
+            }
+
+            if (!PlayerPrefs.HasKey(HighestCompletedLevelKey))
+            {
+                PlayerPrefs.SetInt(HighestCompletedLevelKey, highestCompleted);
+                changed = true;
+            }
+
+            if (changed)
+            {
                 PlayerPrefs.Save();
             }
         }

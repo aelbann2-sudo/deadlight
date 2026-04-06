@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Deadlight.Narrative
@@ -48,6 +49,7 @@ namespace Deadlight.Narrative
         
         [Header("Priority")]
         [SerializeField] private int priority = 0;
+        [NonSerialized] private bool runtimeTransient;
 
         public string DialogueId => string.IsNullOrEmpty(dialogueId) ? name : dialogueId;
         public string SpeakerName => speakerName;
@@ -60,6 +62,36 @@ namespace Deadlight.Narrative
         public AudioClip RadioStaticSound => radioStaticSound;
         public bool PlayRadioStatic => playRadioStatic;
         public int Priority => priority;
+        public bool IsRuntimeTransient => runtimeTransient;
+
+        public static DialogueData CreateRuntimeMessage(
+            string speaker,
+            string text,
+            float duration = 3f,
+            bool playStatic = false)
+        {
+            var dialogue = CreateInstance<DialogueData>();
+            dialogue.dialogueId = $"runtime_{Guid.NewGuid():N}";
+            dialogue.speakerName = string.IsNullOrWhiteSpace(speaker) ? "COMMS" : speaker;
+            dialogue.triggerType = DialogueTriggerType.Custom;
+            dialogue.triggerNight = 1;
+            dialogue.triggerZoneId = string.Empty;
+            dialogue.playOnce = false;
+            dialogue.playRadioStatic = playStatic;
+            dialogue.priority = 1000;
+            dialogue.lines = new[]
+            {
+                new DialogueLine
+                {
+                    text = text ?? string.Empty,
+                    displayDuration = Mathf.Max(0.6f, duration),
+                    voiceClip = null,
+                    autoAdvance = true
+                }
+            };
+            dialogue.runtimeTransient = true;
+            return dialogue;
+        }
 
         public bool ShouldTrigger(DialogueTriggerType type, int currentNight, string zoneId = "")
         {
