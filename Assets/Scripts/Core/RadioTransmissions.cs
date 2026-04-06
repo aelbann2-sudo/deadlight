@@ -342,14 +342,14 @@ namespace Deadlight.Core
                 if (nextLevel <= levelCap)
                 {
                     TryShowUnifiedMessage(
-                        $"EVAC Command: Level {completedLevel} complete. Dawn transfer to Level {nextLevel} is authorized.",
+                        $"EVAC Command: Level {completedLevel} secure. Good work. Review your report, then proceed to Level {nextLevel} when ready.",
                         3.8f,
                         interrupt: true);
                 }
                 else
                 {
                     TryShowUnifiedMessage(
-                        $"EVAC Command: Level {completedLevel} complete. Operation objectives satisfied. Hold for extraction.",
+                        $"EVAC Command: Level {completedLevel} secure. Operation objectives satisfied. Hold position for extraction.",
                         3.8f,
                         interrupt: true);
                 }

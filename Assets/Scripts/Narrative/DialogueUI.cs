@@ -34,15 +34,15 @@ namespace Deadlight.Narrative
         [SerializeField] private Vector2 panelSize = new Vector2(1480f, 220f);
         [SerializeField] private Vector2 panelOffset = new Vector2(0f, 36f);
         [SerializeField] private bool useCompactGameplayLayout = true;
-        [SerializeField] private Vector2 compactGameplayPanelSize = new Vector2(520f, 112f);
-        [SerializeField] private Vector2 compactGameplayPanelOffset = new Vector2(-24f, 212f);
+        [SerializeField] private Vector2 compactGameplayPanelSize = new Vector2(740f, 108f);
+        [SerializeField] private Vector2 compactGameplayPanelOffset = new Vector2(0f, 84f);
         [SerializeField] private bool forceCommsSpeaker = false;
         [SerializeField] private Color panelColor = new Color(0.03f, 0.05f, 0.09f, 0.90f);
         [SerializeField] private Color innerPanelColor = new Color(0.08f, 0.11f, 0.17f, 0.92f);
         [SerializeField] private Color dialogueTextColor = new Color(0.94f, 0.96f, 0.99f, 1f);
         [SerializeField] private Color hintColor = new Color(0.72f, 0.78f, 0.88f, 0.82f);
-        [SerializeField] private Color compactPanelColor = new Color(0.03f, 0.04f, 0.06f, 0.84f);
-        [SerializeField] private Color compactInnerPanelColor = new Color(0.06f, 0.08f, 0.11f, 0.76f);
+        [SerializeField] private Color compactPanelColor = new Color(0.03f, 0.04f, 0.06f, 0.45f);
+        [SerializeField] private Color compactInnerPanelColor = new Color(0.06f, 0.08f, 0.11f, 0.32f);
         [SerializeField] private Color compactDialogueTextColor = new Color(0.95f, 0.95f, 0.90f, 1f);
         [SerializeField] private Color compactHintColor = new Color(0.70f, 0.76f, 0.84f, 0.92f);
 
@@ -163,7 +163,8 @@ namespace Deadlight.Narrative
 
             if (skipIndicator != null)
             {
-                skipIndicator.SetActive(true);
+                // In compact gameplay mode the prompt adds clutter; input still works without the text hint.
+                skipIndicator.SetActive(!compactLayoutActive);
             }
 
             StartCoroutine(FadeIn());
@@ -442,7 +443,7 @@ namespace Deadlight.Narrative
             if (topAccentImage != null)
             {
                 Color accent = compactLayoutActive ? UITheme.AccentGold : UITheme.AccentBlue;
-                topAccentImage.color = UITheme.WithAlpha(accent, 0.95f);
+                topAccentImage.color = UITheme.WithAlpha(accent, compactLayoutActive ? 0.68f : 0.95f);
             }
 
             if (dialogueText != null)
@@ -523,28 +524,29 @@ namespace Deadlight.Narrative
 
             if (shouldUseCompact)
             {
-                panelRect.anchorMin = new Vector2(1f, 0f);
-                panelRect.anchorMax = new Vector2(1f, 0f);
-                panelRect.pivot = new Vector2(1f, 0f);
+                // Keep COMMS centered above the bottom HUD so it never fights with loadout/ammo panel.
+                panelRect.anchorMin = new Vector2(0.5f, 0f);
+                panelRect.anchorMax = new Vector2(0.5f, 0f);
+                panelRect.pivot = new Vector2(0.5f, 0f);
                 panelRect.anchoredPosition = compactGameplayPanelOffset;
                 panelRect.sizeDelta = compactGameplayPanelSize;
 
                 if (channelTagRect != null)
                 {
-                    channelTagRect.anchoredPosition = new Vector2(14f, -8f);
+                    channelTagRect.anchoredPosition = new Vector2(14f, -11f);
                     channelTagRect.sizeDelta = new Vector2(86f, 20f);
                 }
 
                 if (speakerTagRect != null)
                 {
-                    speakerTagRect.anchoredPosition = new Vector2(106f, -8f);
-                    speakerTagRect.sizeDelta = new Vector2(300f, 20f);
+                    speakerTagRect.anchoredPosition = new Vector2(106f, -11f);
+                    speakerTagRect.sizeDelta = new Vector2(360f, 20f);
                 }
 
                 if (dialogueBodyRect != null)
                 {
                     dialogueBodyRect.offsetMin = new Vector2(16f, 16f);
-                    dialogueBodyRect.offsetMax = new Vector2(-16f, -24f);
+                    dialogueBodyRect.offsetMax = new Vector2(-16f, -36f);
                 }
 
                 if (skipRect != null)

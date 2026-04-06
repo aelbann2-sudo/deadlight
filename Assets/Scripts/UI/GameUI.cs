@@ -311,10 +311,10 @@ namespace Deadlight.UI
                 TextAnchor.UpperLeft, FontStyle.Bold);
 
             // Action buttons
-            UIFactory.CreateActionButton(left.transform, "StartBtn", "Continue Campaign",
-                "Deploy from the highest unlocked level.",
+            UIFactory.CreateActionButton(left.transform, "StartBtn", "Select Level",
+                "Choose your unlocked level and deploy manually.",
                 UITheme.AccentGreen, new Vector2(0f, 1f), new Vector2(24f, -344f),
-                new Vector2(500f, 86f), StartCampaign);
+                new Vector2(500f, 86f), ShowCampaignMap);
 
             UIFactory.CreateActionButton(left.transform, "MapBtn", "Level Select",
                 "Play Levels 1-2 now, preview upcoming levels.",
@@ -1006,14 +1006,14 @@ namespace Deadlight.UI
 
             _levelCompleteStatsText = UIFactory.CreateTextAt(_levelCompletePanel.transform, "Stats", "",
                 UITheme.FontBody + 2, UITheme.TextPrimary,
-                new Vector2(0.5f, 0.48f), new Vector2(-240f, 80f), new Vector2(480f, 180f),
+                new Vector2(0.5f, 0.48f), new Vector2(-280f, 88f), new Vector2(560f, 240f),
                 TextAnchor.MiddleCenter);
 
-            UIFactory.CreateCenteredButton(_levelCompletePanel.transform, "NextBtn", "NEXT LEVEL",
+            UIFactory.CreateCenteredButton(_levelCompletePanel.transform, "NextBtn", "DEPLOY NEXT LEVEL",
                 UITheme.AccentGreen, new Vector2(0.4f, 0.18f), new Vector2(220f, 50f), OnNextLevel);
 
-            UIFactory.CreateCenteredButton(_levelCompletePanel.transform, "MenuBtn", "MAIN MENU",
-                UITheme.BgLight, new Vector2(0.6f, 0.18f), new Vector2(180f, 46f), GoToMainMenu);
+            UIFactory.CreateCenteredButton(_levelCompletePanel.transform, "MenuBtn", "RETURN TO MAIN MENU",
+                UITheme.BgLight, new Vector2(0.6f, 0.18f), new Vector2(220f, 46f), GoToMainMenu);
         }
 
         private void BuildGameOverScreen()
@@ -1532,24 +1532,51 @@ namespace Deadlight.UI
                     kills = stats.enemiesKilled;
                     earned = stats.totalEarned;
                 }
+
+                int loreFound = 0;
+                int loreTotal = 0;
+                if (EnvironmentalLore.Instance != null)
+                {
+                    loreFound = EnvironmentalLore.Instance.DiscoveredLoreCount;
+                    loreTotal = EnvironmentalLore.Instance.TotalLoreCount;
+                }
+
+                float runTime = Mathf.Max(0f, Time.realtimeSinceStartup - GameManager.Instance.RunStartTime);
+                int minutes = Mathf.FloorToInt(runTime / 60f);
+                int seconds = Mathf.FloorToInt(runTime % 60f);
+
+                int levelCap = GameManager.Instance.PlayableLevelCap;
                 int next = Mathf.Min(level + 1, GameManager.TotalLevels);
-                string nextMap = levelMapNames[Mathf.Clamp(next - 1, 0, levelMapNames.Length - 1)];
-                string nextObj = next > level
+                bool hasNextPlayableLevel = next > level && next <= levelCap;
+                string nextMap = hasNextPlayableLevel
+                    ? levelMapNames[Mathf.Clamp(next - 1, 0, levelMapNames.Length - 1)]
+                    : "No further playable levels in this build";
+                string nextObj = hasNextPlayableLevel
                     ? levelObjectiveSummaries[Mathf.Clamp(next - 1, 0, levelObjectiveSummaries.Length - 1)]
-                    : "Final containment cleared.";
+                    : "This prototype currently ends after the completed playable route.";
+                string nextDeploymentText = hasNextPlayableLevel
+                    ? $"Level {next} - {nextMap}"
+                    : nextMap;
                 float carryRatio = Mathf.Clamp01(GameManager.Instance.GetProjectedCarryoverRatio());
                 string carryText = carryRatio >= 0.999f
-                    ? "Points carryover: 100%"
-                    : $"Points carryover: {Mathf.RoundToInt(carryRatio * 100f)}%";
+                    ? "Point carryover on direct deploy: 100%"
+                    : $"Point carryover on direct deploy: {Mathf.RoundToInt(carryRatio * 100f)}%";
                 if (GameManager.Instance.PendingObjectiveCarryoverPenaltyStacks > 0)
                 {
                     carryText += " (objective penalty)";
                 }
 
                 _levelCompleteStatsText.text =
-                    $"Level {level} - {map} cleared!\n\n" +
-                    $"Enemies Killed: {kills}\nPoints Earned: {earned}\n\n" +
-                    $"Next: Level {next} - {nextMap}\n{nextObj}\n{carryText}";
+                    $"Congratulations. Level {level} - {map} is complete.\n" +
+                    "EVAC Command has confirmed the sector handoff.\n\n" +
+                    $"Enemies Killed: {kills}\n" +
+                    $"Points Earned: {earned}\n" +
+                    $"Lore Found: {loreFound}/{loreTotal}\n" +
+                    $"Run Time: {minutes}:{seconds:D2}\n\n" +
+                    $"Next Deployment: {nextDeploymentText}\n" +
+                    $"{nextObj}\n" +
+                    $"{carryText}\n\n" +
+                    "You can deploy immediately or return to the main menu and select the next level.";
             }
             ShowPanel(_levelCompletePanel);
             Time.timeScale = 0f;

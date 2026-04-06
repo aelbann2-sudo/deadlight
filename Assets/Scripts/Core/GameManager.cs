@@ -1274,6 +1274,13 @@ namespace Deadlight.Core
                 progressionManager.ResetProgress();
             }
 
+            // Always reset run-scoped upgrades on fresh run start, regardless of which UI path triggered restart.
+            var playerUpgrades = FindFirstObjectByType<PlayerUpgrades>();
+            if (playerUpgrades != null)
+            {
+                playerUpgrades.ResetUpgrades();
+            }
+
             var objectiveSystem = FindFirstObjectByType<DayObjectiveSystem>();
             objectiveSystem?.ResetObjective();
 

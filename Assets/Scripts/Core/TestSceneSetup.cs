@@ -1107,22 +1107,22 @@ namespace Deadlight.Core
 
             // Radio transmission panel
             var radioPanel = CreateUIPanel(hudRoot.transform, "RadioPanel",
-                new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(1f, 0f),
-                new Vector2(-24f, 212f), new Vector2(500f, 100f));
+                new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
+                new Vector2(0f, 84f), new Vector2(740f, 108f));
             var radioBg = radioPanel.AddComponent<Image>();
-            radioBg.color = cardSoft;
+            radioBg.color = new Color(cardSoft.r, cardSoft.g, cardSoft.b, 0.45f);
 
             var radioLabel = CreateUIText(radioPanel.transform, "RadioLabel",
                 new Vector2(0f, 1f), "COMMS", font, 14, TextAnchor.UpperLeft,
                 accentGold,
-                new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(14f, -6f), new Vector2(120f, 18f));
+                new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(14f, -10f), new Vector2(120f, 18f));
             radioLabel.GetComponent<Text>().fontStyle = FontStyle.Bold;
 
             var radioText = CreateUIText(radioPanel.transform, "RadioText",
                 new Vector2(0f, 0.5f), "", font, 20, TextAnchor.MiddleLeft, new Color(0.95f, 0.95f, 0.90f),
                 new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(0f, 0f), new Vector2(0f, 0f));
             radioText.GetComponent<RectTransform>().offsetMin = new Vector2(16f, 16f);
-            radioText.GetComponent<RectTransform>().offsetMax = new Vector2(-16f, -24f);
+            radioText.GetComponent<RectTransform>().offsetMax = new Vector2(-16f, -36f);
             radioText.GetComponent<Text>().fontStyle = FontStyle.Normal;
             radioText.GetComponent<Text>().horizontalOverflow = HorizontalWrapMode.Wrap;
             radioText.GetComponent<Text>().verticalOverflow = VerticalWrapMode.Overflow;
@@ -1161,7 +1161,7 @@ namespace Deadlight.Core
             // Objective HUD
             var objPanel = CreateUIPanel(hudRoot.transform, "ObjectivePanel",
                 new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1),
-                new Vector2(24f, -154f), new Vector2(440f, 112f));
+                new Vector2(24f, -154f), new Vector2(440f, 122f));
             var objPanelBg = objPanel.AddComponent<Image>();
             objPanelBg.color = cardSoft;
             objPanel.SetActive(false);
@@ -1177,16 +1177,23 @@ namespace Deadlight.Core
                 titleColor,
                 new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
             var objDescRect = objDescText.GetComponent<RectTransform>();
-            objDescRect.offsetMin = new Vector2(14f, 36f);
+            objDescRect.offsetMin = new Vector2(14f, 42f);
             objDescRect.offsetMax = new Vector2(-14f, -38f);
-            objDescText.GetComponent<Text>().fontStyle = FontStyle.Bold;
-            objDescText.GetComponent<Text>().horizontalOverflow = HorizontalWrapMode.Wrap;
-            objDescText.GetComponent<Text>().verticalOverflow = VerticalWrapMode.Overflow;
+            var objDescTextComponent = objDescText.GetComponent<Text>();
+            objDescTextComponent.fontStyle = FontStyle.Bold;
+            objDescTextComponent.horizontalOverflow = HorizontalWrapMode.Wrap;
+            objDescTextComponent.verticalOverflow = VerticalWrapMode.Truncate;
 
             var objProgressText = CreateUIText(objPanel.transform, "ObjProgress",
-                new Vector2(1f, 0f), "", font, 17, TextAnchor.LowerRight,
+                new Vector2(0f, 0f), "", font, 15, TextAnchor.LowerLeft,
                 accentGreen,
-                new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-14f, 10f), new Vector2(180f, 24f));
+                new Vector2(0f, 0f), new Vector2(1f, 0f), Vector2.zero, Vector2.zero);
+            var objProgressRect = objProgressText.GetComponent<RectTransform>();
+            objProgressRect.offsetMin = new Vector2(14f, 8f);
+            objProgressRect.offsetMax = new Vector2(-14f, 34f);
+            var objProgressTextComponent = objProgressText.GetComponent<Text>();
+            objProgressTextComponent.horizontalOverflow = HorizontalWrapMode.Wrap;
+            objProgressTextComponent.verticalOverflow = VerticalWrapMode.Truncate;
 
             canvas.gameObject.AddComponent<Deadlight.UI.ObjectiveMarker>();
 
