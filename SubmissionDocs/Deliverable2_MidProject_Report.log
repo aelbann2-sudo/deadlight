@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.12.11)  5 APR 2026 23:22
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.12.11)  5 APR 2026 23:44
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -565,27 +565,27 @@ Underfull \hbox (badness 7081) in paragraph at lines 146--146
 
 [1
 
- <../Assets/Resources/MenuPreviews/Suburban.png>] [2] [3] [4] [5] [6] [7] [8] (./Deliverable2_MidProject_Report.aux)
+ <../Assets/Resources/MenuPreviews/Suburban.png>] [2] [3] [4] [5] [6] [7] [8] [9] (./Deliverable2_MidProject_Report.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2025-11-14>
  ***********
 Package rerunfilecheck Info: File `Deliverable2_MidProject_Report.out' has not changed.
-(rerunfilecheck)             Checksum: 4CB0A6A2ED990776CF8F4C0586702BEB;1898.
+(rerunfilecheck)             Checksum: 23AAD0F2004E0BC81901BC4C09AAFFB5;1970.
  ) 
 Here is how much of TeX's memory you used:
- 22485 strings out of 469519
- 432162 string characters out of 5469170
- 838739 words of memory out of 5000000
- 50781 multiletter control sequences out of 15000+600000
+ 22493 strings out of 469519
+ 432249 string characters out of 5469170
+ 837739 words of memory out of 5000000
+ 50782 multiletter control sequences out of 15000+600000
  634346 words of font info for 62 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 84i,11n,94p,616b,891s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 84i,11n,94p,988b,891s stack positions out of 10000i,1000n,20000p,200000b,200000s
  </Users/simar/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1095.600pk></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on Deliverable2_MidProject_Report.pdf (10 pages, 6182456 bytes).
+Output written on Deliverable2_MidProject_Report.pdf (11 pages, 6194058 bytes).
 PDF statistics:
- 165 PDF objects out of 1000 (max. 8388607)
- 126 compressed objects within 2 object streams
- 25 named destinations out of 1000 (max. 500000)
+ 176 PDF objects out of 1000 (max. 8388607)
+ 136 compressed objects within 2 object streams
+ 32 named destinations out of 1000 (max. 500000)
  103 words of extra memory for PDF output out of 10000 (max. 10000000)
 

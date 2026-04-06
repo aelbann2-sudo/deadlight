@@ -100,7 +100,7 @@ Deliverable 2 presents a playable prototype of \textit{Deadlight} in a more comp
 
 The core gameplay loop is organized into three phases. During the day, the player explores the environment, follows objectives, and prepares for the next attack. At night, the player must survive waves of zombies under increasing pressure. At dawn, the player receives points and rewards, then uses the shop to purchase weapons, armor, ammunition, healing items, and upgrades before continuing the run. This structure gives the prototype a clear rhythm and helps connect exploration, combat, and progression into one consistent experience.
 
-The main design goal for this deliverable was to make preparation matter. In earlier versions, the daytime phase risked feeling like a simple break between combat segments. In the current build, player choices during the day have more visible consequences at night through objective rewards, contested drops, and resource management. At the same time, the project places greater emphasis on narrative context through radio transmissions, environmental storytelling, and mission-based progression tied to EVAC Command, Project Lazarus, Dr. Chen, and Subject 23.
+The main design goal for this deliverable was to make preparation matter. In earlier versions, the daytime phase risked feeling like a simple break between combat segments. In the current build, player choices during the day have more visible consequences at night through objective rewards, contested drops, and resource management, so the \textbf{economic} link between scavenging, spending, and survival stays legible rather than collapsing into opaque difficulty. Day and night also sit on different \textbf{decision horizons}: daytime emphasizes \textbf{strategic} tradeoffs (what to secure before the lock-in of night), while nighttime emphasizes \textbf{tactical} reactions under pressure. At the same time, the project places greater emphasis on narrative context through radio transmissions, environmental storytelling, and mission-based progression tied to EVAC Command, Project Lazarus, Dr. Chen, and Subject 23.
 
 \begin{figure}[H]
     \centering
@@ -149,11 +149,11 @@ The main design goal for this deliverable was to make preparation matter. In ear
 
 \section{Level Design and Player Guidance}
 
-The level design for Deliverable 2 aims to guide the player clearly while still allowing exploration. Rather than relying only on direct tutorial text, the prototype uses route structure, landmarks, mission prompts, and pacing changes to communicate where the player should go and what they should do next.
+The level design for Deliverable 2 treats each district as \textbf{behavioral architecture} (space shaping where players move and how fast tension rises), not only as backdrop. The prototype aims to guide the player clearly while still allowing exploration. Rather than relying only on direct tutorial text, it uses route structure, landmarks, mission prompts, and \textbf{pacing} shifts---\textbf{wayfinding} cues plus alternating day exploration and night pressure---to communicate where the player should go and what they should do next.
 
 Level 1 serves as the introduction to the playable campaign. Its route moves the player through major landmarks such as the crash site, the military checkpoint, and the hospital. These locations are intentionally distinct so that the player can build a mental map of the area and understand the mission flow without becoming lost. Level 2 continues the same design approach, but the spaces are broader and more exposed. This creates a stronger sense of danger and makes navigation, scavenging, and defensive planning more demanding.
 
-The two levels also support the learning curve of the prototype. Level 1 teaches the structure of exploration, preparation, and survival. Level 2 then asks the player to apply that understanding under greater pressure. This progression is important because it lets the prototype demonstrate not only basic functionality, but also how the game scales over time.
+The two levels also \textbf{scaffold} challenge: Level 1 introduces exploration, preparation, and survival as a repeated structure; Level 2 asks the player to reuse that mental model under wider exposure and sharper risk. This progression is important because it demonstrates how difficulty scales through \textbf{spatial} pressure and encounter spacing, not only through enemy stats.
 
 Player guidance is delivered through several overlapping cues:
 
@@ -165,7 +165,7 @@ Player guidance is delivered through several overlapping cues:
     \item pacing shifts between day exploration and night defense.
 \end{itemize}
 
-This combination supports a balance between freedom and clarity. The player can search for resources, optional lore, and useful routes, but the game still signals the next critical task. This is especially important in a survival project, because difficulty should come from decision-making and pressure rather than uncertainty about the objective.
+This combination targets the tension between \textbf{guidance} and \textbf{agency}: the player can search for resources, optional lore, and useful routes, while redundant cues keep the next critical task legible. Difficulty is meant to come from \textbf{decision-making and pressure}, not from confusion about what the game expects---so failure should read as a readable consequence of preparation and positioning, not as an unclear objective.
 
 \textbf{Implementation detail by point.}
 \begin{itemize}
@@ -177,7 +177,7 @@ This combination supports a balance between freedom and clarity. The player can 
 
 \section{Narrative Design and World-Building}
 
-The narrative design follows a play-first approach. Story information is delivered during movement, scavenging, defense, and mission completion instead of being placed mainly in long cutscenes. This helps the prototype maintain pacing while still giving the player a clear sense of setting, purpose, and escalation.
+The narrative design follows a play-first approach. Story information is delivered during movement, scavenging, defense, and mission completion instead of being placed mainly in long cutscenes. \textbf{Granularity} is tuned so story beats arrive alongside play rather than displacing it, which supports \textbf{flow} for players who only follow critical objectives while still rewarding optional readers.
 
 In the Deliverable 2 build, the player is presented as the survivor of a failed evacuation attempt. Across six nights, the player receives instructions and updates from EVAC Command while moving through two unsafe districts in search of supplies, answers, and a path to extraction. As the campaign progresses, the radio dialogue and mission structure reveal more about Project Lazarus, Dr. Chen, and Subject 23. This gives the run a stronger narrative arc than a simple wave-based survival mode.
 
@@ -191,7 +191,7 @@ We use several layers of narrative delivery:
     \item \textbf{Intro and ending sequences} give the playable run a stronger beginning and end-state.
 \end{itemize}
 
-This layered approach improves immersion because the main story remains understandable even if the player only follows core objectives, while optional exploration still provides additional depth. It also helps the prototype feel more unified. The player's goals, the spaces they move through, and the systems they interact with all support the same survival narrative.
+This layered approach supports \textbf{immersion} because the main story remains understandable even if the player only follows core objectives, while optional exploration still provides additional depth. It also keeps \textbf{fiction, incentives, and mechanics} pointed the same direction: scavenging, defense, and mission payoffs all reinforce the survival fantasy rather than pulling against it.
 
 \textbf{Implementation detail by point.}
 \begin{itemize}
@@ -203,7 +203,7 @@ This layered approach improves immersion because the main story remains understa
 
 \section{Systems Design and Game Balance}
 
-Systems design in Deliverable 2 focuses on the relationship between daytime preparation and nighttime survival. The prototype uses a resource economy built around points, health, armor, ammunition, utility items, and weapon access. Each part of this economy is meant to support a simple question for the player: what is worth spending now, and what should be saved for the next phase?
+Systems design in Deliverable 2 focuses on the relationship between daytime preparation and nighttime survival. The prototype uses a \textbf{resource economy} built around points, health, armor, ammunition, utility items, and weapon access---resources that should stay \textbf{meaningfully scarce} enough to force tradeoffs, with \textbf{visible feedback} when the player gains or spends them. Each part of this economy is meant to support a simple question for the player: what is worth spending now, and what should be saved for the next phase?
 
 The daytime preparation layer is built around four visible goals:
 
@@ -216,13 +216,13 @@ The daytime preparation layer is built around four visible goals:
 
 These daytime systems directly affect the night phase. Strong preparation can give the player better weapons, more healing, stronger positioning, and a more stable start to the defense. Poor preparation can leave the player under-equipped and force riskier decisions once enemy pressure increases. This cause-and-effect relationship makes the balancing model easier to understand because the player can see how earlier choices influence later survival.
 
-Balancing in this prototype is not based only on enemy strength. It is also based on how much information and opportunity the player receives before the attack begins. By connecting rewards, mission flow, resource access, and danger, the game encourages planning rather than random trial and error.
+Balancing in this prototype is not based only on enemy strength. It is also based on how much \textbf{information} and \textbf{opportunity} the player receives before the attack begins---a deliberate link between \textbf{feedback mechanics} (what the player can see and predict) and night outcomes. By connecting rewards, mission flow, resource access, and danger, the design encourages \textbf{planning} rather than opaque trial and error.
 
 \textbf{Implementation detail by point.}
 \begin{itemize}
     \item \textbf{Economy readability:} pickup callouts and HUD utility counts are tuned so players can see what changed immediately after looting or spending.
     \item \textbf{Combat readiness loop:} day objective success, scavenging quality, and shop decisions affect night survivability in visible ways.
-    \item \textbf{Penalty signaling:} failed daytime execution creates explicit pressure consequences rather than hidden difficulty changes.
+    \item \textbf{Penalty signaling:} failed daytime execution creates explicit pressure at night rather than \textbf{invisible} difficulty adjustments, so consequences stay attributable to preparation and readable threats (\textbf{trust} in the rules).
     \item \textbf{Clutter control:} normal pickup flow prioritizes combat resources (ammo, health, utility, and points) to reduce inventory noise.
 \end{itemize}
 
@@ -277,12 +277,12 @@ Progression in the Deliverable 2 prototype works at two levels. The short-term l
 
 Short-term progression is visible every day. The player gathers resources, earns points, completes objectives, and reaches the dawn shop with a new set of choices. Long-term progression appears across the full prototype route through level unlocks, challenge escalation, and narrative advancement from the Town Center to the Suburban district.
 
-Visible rewards are intentionally mixed:
+Visible rewards are intentionally mixed so progression is not only \textbf{accumulative} (bigger numbers and gear):
 
 \begin{itemize}
-    \item \textbf{Intrinsic rewards:} better routing, stronger survival discipline, and improved mastery of the game's systems.
-    \item \textbf{Extrinsic rewards:} points, weapon access, armor, mission rewards, contested drop bundles, and upgrade purchases.
-    \item \textbf{Narrative rewards:} logs, mission context, and story discoveries that make exploration feel worthwhile even when no direct combat reward is attached.
+    \item \textbf{Competence and mastery:} better routing, stronger survival discipline, and a clearer mental model of how day choices shape night outcomes.
+    \item \textbf{Accumulative rewards:} points, weapon access, armor, mission rewards, contested drop bundles, and upgrade purchases---the visible \textbf{economy} layer that closes the day-night loop.
+    \item \textbf{Interpretive progression:} logs, mission context, and environmental detail that deepen understanding of the world even when the immediate combat payoff is small.
 \end{itemize}
 
 Keeping Level 2 in the prototype is important for this reason. It demonstrates unlock-based campaign continuity rather than a single isolated map. After Level 1 is cleared, Level 2 becomes available for manual selection from the menu. Each level begins as a clean deployment state, which keeps difficulty comparisons fair and readable in a prototype context.
@@ -333,11 +333,11 @@ Keeping Level 2 in the prototype is important for this reason. It demonstrates u
 
 \section{Testing and Iteration}
 
-The prototype was improved through both observation-based feedback and automated runtime validation. Earlier testing suggested that the overall premise was understandable, but that some of the specific story details and system links were not always clear to players on first contact. In response, the design was revised to make communication more direct.
+The prototype was improved through \textbf{behavior-first} observation (what players did, where they hesitated, what they tried next) and automated runtime validation---treating confusion as a \textbf{legibility} problem to diagnose, not only as opinion. Earlier testing suggested that the overall premise was understandable, but that some story details and system links were not always clear on first contact. In response, communication was made more direct and \textbf{multichannel} (HUD, markers, radio) so the same intent is reinforced through overlapping \textbf{signifiers}.
 
 Several changes came from this process. Radio dialogue was strengthened so that the player received more direct context about the situation and the current objective. Mission framing was improved so that important tasks were easier to read. On the systems side, pickup hints, objective panel readability, reward messaging, and dusk summaries were refined so that the player could better understand what had been gained during the day and why it mattered at night.
 
-Systems iteration focused on clarity and fairness. The goal was not only to make mechanics functional, but also to ensure that players could understand them quickly and respond to them with informed decisions. This is especially important in a prototype, where the player must be able to recognize the intended design value of each system without needing extensive explanation outside the game.
+Systems iteration focused on \textbf{clarity} and \textbf{fairness}: mechanics should be functional, but players should also form a correct \textbf{mental model} quickly enough to decide deliberately. Iteration therefore targeted \textbf{feedback} timing and salience (what changed, when, and why it matters for the next phase). That matters in a prototype because the value of each system must be recognizable from in-game \textbf{affordances} and UI, not from external explanation.
 
 \begin{table}[H]
     \centering
@@ -377,18 +377,27 @@ Several Unity systems supported this iteration:
     \item \textbf{Submission structure:} the Deliverable 2 package is organized around the Unity project, the standalone build output, and this written PDF report.
 \end{itemize}
 
-\section{Upcoming Deliverable 3 Implementations}
+\section{Upcoming Deliverable 3 Plan (Course Specification)}
 
-The next milestone is planned as an expansion pass rather than a redesign. The current Deliverable 2 prototype establishes a stable baseline (Levels 1-2, manual level selection, and per-level fresh starts). Deliverable 3 will extend this baseline in the following areas:
+Deliverable 3, as defined in the course handout \textit{Deliverable 3: Final Game Prototype and Showcase Presentation}, is the final integrated submission: a \textbf{polished Unity prototype}, \textbf{PDF documentation} (5--10 pages) covering design evolution and the topics below, a \textbf{recorded showcase video} (3--5 minutes) submitted via the course Dropbox in place of a live presentation, and a single \textbf{labeled team archive} (e.g., \texttt{GroupName\_Deliverable3.zip}) containing the Unity project (only \texttt{Assets}, \texttt{Packages}, and \texttt{ProjectSettings}), a \textbf{functional Windows build} (\texttt{.exe} plus its \texttt{Data} folder), the PDF, and the video or a working link. The following plan maps \textit{Deadlight}'s next development steps to that brief and to the Deliverable~3 rubric.
 
-\begin{itemize}
-    \item \textbf{Playable scope expansion:} unlock and ship Levels 3 and 4, with Industrial and Research spaces fully integrated into the campaign route.
-    \item \textbf{Final-stage encounters:} add late-campaign pressure patterns and final-encounter tuning for the Level 4 end-state.
-    \item \textbf{Narrative continuity upgrade:} add level-specific transmissions and objective chains for Levels 3-4 so progression feels authored end-to-end.
-    \item \textbf{System depth pass:} revisit optional advanced preparation systems (including potential crafting return) only if readability and clutter targets remain satisfied.
-    \item \textbf{Progression quality-of-life:} add clearer run-state communication (resume vs restart intent), additional end-of-level feedback, and stronger scoreboard/run-summary clarity.
-    \item \textbf{Validation scope increase:} broaden regression coverage around level transitions, late-game balance, and ending flows after the full four-level route is enabled.
-\end{itemize}
+\paragraph{Unity implementation and polish.}
+Ship a stable, complete build: regression passes on day/night/dawn transitions, level completion, death/victory, and campaign unlock flow; remove or gate unfinished systems; address blocking bugs and obvious performance issues so reviewers can play without the Editor. Extend content on top of the Deliverable~2 baseline by \textbf{unlocking and integrating Levels~3 and~4} (Industrial and Research districts), \textbf{tuning late-campaign and final-encounter pressure}, and broadening validation around level transitions, balance, and ending flows.
+
+\paragraph{Art, aesthetics, and sound design.}
+Align with the requirement for a clear aesthetic direction and consistent \textbf{feedback}: refine UI layout and HUD clarity, environment and character readability, cohesive palette and landmark silhouettes where assets allow, and audio that reinforces success, danger, and discovery (music, SFX, and critical diegetic cues with non-audio fallbacks where needed).
+
+\paragraph{Narrative and systems integration.}
+Align story and mechanics: level-specific transmissions and objective chains for Levels~3--4 so the Lazarus arc reads end-to-end; keep radio beats, objectives, lore, and the \textbf{resource economy} \textbf{mutually reinforcing}, with reward tuning that matches narrative stakes (\textbf{risk--reward} and preparation consequences stay legible). Optionally revisit advanced preparation (e.g., crafting) only if it stays readable and does not clutter the loop.
+
+\paragraph{Playtesting and iteration.}
+Document structured feedback (peers, testers, observations): what confused players, where difficulty spiked, and how changes improved \textbf{fairness}, \textbf{tension}, and \textbf{sense of accomplishment} on demanding segments (e.g., late nights or high-pressure objectives). Summarize iterations in the final PDF as required.
+
+\paragraph{Presentation and documentation.}
+Produce the \textbf{3--5 minute video}: premise, guided walkthrough of core loops (exploration, objectives, combat/survival, shop/progression), visual and audio highlights, and polished differentiators. Write the \textbf{final PDF} to cover art/audio choices, narrative--systems cohesion, progression and balance, playtesting outcomes, and notable technical implementation (Unity features, key scripts, patterns), per the handout.
+
+\paragraph{Quality-of-life and player clarity.}
+Within the polish pass, improve run-state communication (resume vs.\ restart intent), end-of-level and run-summary feedback, and scoreboard clarity so the full four-level campaign remains understandable without external explanation.
 
 \section{Conclusion}
 
