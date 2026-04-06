@@ -146,10 +146,10 @@ namespace Deadlight.Narrative
                 1,
                 new string[]
                 {
-                    "Flight 7 is gone. I'm the only one who walked away.",
-                    "Four levels to the research facility. Four days of daylight to scavenge.",
-                    "Four nights of... whatever these things become after dark.",
-                    "I'm a medic, not a soldier. But right now that doesn't matter."
+                    "Flight 7 is gone. I'm the only one still breathing.",
+                    "Command wants Lazarus proof before they risk another extraction.",
+                    "Daylight is for intel and supplies. Night is for survival.",
+                    "I'm a medic, not a soldier. Doesn't matter anymore."
                 });
             return dialogue;
         }

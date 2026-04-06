@@ -14,7 +14,7 @@ namespace Deadlight.Narrative
         [SerializeField] private float cardEnterDuration = 0.45f;
         [SerializeField] private float accentLineDuration = 0.28f;
         [SerializeField] private float bodyTypeInterval = 0.012f;
-        [SerializeField] private float holdDuration = 2.5f;
+        [SerializeField] private float holdDuration = 3.1f;
 
         private Canvas introCanvas;
         private GameObject canvasRoot;
@@ -49,7 +49,7 @@ namespace Deadlight.Narrative
         private Color currentAccent = UITheme.AccentGold;
 
         private const float DefaultFixedDeltaTime = 0.02f;
-        private const float CardWidth = 860f;
+        private const float CardWidth = 930f;
 
         private readonly struct LevelBriefing
         {
@@ -77,28 +77,28 @@ namespace Deadlight.Narrative
                 1,
                 "TOWN CENTER",
                 "Crash Evidence",
-                "Flight 7 came down inside the quarantine grid. Sweep the streets, reach the wreckage, and find out who turned an evac run into a kill box.",
+                "Flight 7 went down inside the quarantine grid. Sweep the streets, reach the wreckage, and identify who turned an evac corridor into an ambush.",
                 "Recover the black box and secure the first Lazarus lead before nightfall.",
                 UITheme.LevelAccents[0]),
             new LevelBriefing(
                 2,
                 "SUBURBAN EVACUATION",
                 "Shelter Records",
-                "The suburb was sealed before the buses cleared out. Move house to house, track the shelter route, and prove who abandoned the families still trapped here.",
-                "Recover the shelter roster and expose where the convoy failed.",
+                "The suburb was sealed before evacuation completed. Move block to block, track the shelter route, and expose who abandoned the families still trapped here.",
+                "Recover the shelter roster and expose where the convoy was cut.",
                 UITheme.LevelAccents[1]),
             new LevelBriefing(
                 3,
                 "INDUSTRIAL DISTRICT",
                 "Lazarus Breach",
-                "The industrial lanes are where Lazarus stopped pretending to be a rescue project. Push through the blackout yards and tear the Subject 23 data out of the lab chain.",
+                "The industrial lanes are where Lazarus stopped pretending to be medicine. Push through blackout yards and extract the Subject 23 chain-of-command data.",
                 "Extract control records, breach the lab, and confirm the origin host.",
                 UITheme.LevelAccents[2]),
             new LevelBriefing(
                 4,
                 "RESEARCH FACILITY",
                 "Containment Finale",
-                "Research Station Omega is the last locked door in the zone. Arm the beacon, strip the archive, and be ready for Subject 23 to answer the signal in person.",
+                "Research Station Omega is the final locked door in the zone. Arm the beacon, strip the archive, and prepare for Subject 23 to answer the signal in person.",
                 "Secure the final evidence, trigger extraction, and survive the containment core.",
                 UITheme.LevelAccents[3])
         };
@@ -275,7 +275,7 @@ namespace Deadlight.Narrative
                 canvasRoot.transform,
                 "CardGlow",
                 new Vector2(0.5f, 0.5f),
-                new Vector2(980f, 520f),
+                new Vector2(1080f, 560f),
                 new Color(0.4f, 0.7f, 1f, 0.06f));
             glowImage = cardGlow.GetComponent<Image>();
 
@@ -283,7 +283,7 @@ namespace Deadlight.Narrative
                 canvasRoot.transform,
                 "CardOuter",
                 new Vector2(0.5f, 0.5f),
-                new Vector2(860f, 430f),
+                new Vector2(930f, 470f),
                 new Color(0.09f, 0.11f, 0.15f, 0.96f));
             cardRect = cardOuter.GetComponent<RectTransform>();
 
@@ -360,11 +360,11 @@ namespace Deadlight.Narrative
                 cardOuter.transform,
                 "Title",
                 "",
-                UITheme.FontHero,
+                UITheme.FontHero - 4,
                 UITheme.TextPrimary,
                 new Vector2(0f, 1f),
                 new Vector2(26f, -96f),
-                new Vector2(580f, 72f),
+                new Vector2(640f, 72f),
                 TextAnchor.UpperLeft,
                 FontStyle.Bold);
 
@@ -372,11 +372,11 @@ namespace Deadlight.Narrative
                 cardOuter.transform,
                 "Subtitle",
                 "",
-                UITheme.FontHeading,
+                UITheme.FontHeading - 1,
                 UITheme.TextSecondary,
                 new Vector2(0f, 1f),
                 new Vector2(30f, -164f),
-                new Vector2(520f, 34f),
+                new Vector2(620f, 34f),
                 TextAnchor.UpperLeft,
                 FontStyle.Bold);
 
@@ -384,12 +384,14 @@ namespace Deadlight.Narrative
                 cardOuter.transform,
                 "Body",
                 "",
-                UITheme.FontBody,
+                UITheme.FontBody + 2,
                 UITheme.TextPrimary,
                 new Vector2(0f, 1f),
                 new Vector2(30f, -230f),
-                new Vector2(640f, 130f),
+                new Vector2(700f, 180f),
                 TextAnchor.UpperLeft);
+            bodyText.supportRichText = true;
+            bodyText.lineSpacing = 1.15f;
 
             skipText = UIFactory.CreateTextAt(
                 cardOuter.transform,
@@ -399,7 +401,7 @@ namespace Deadlight.Narrative
                 UITheme.TextMuted,
                 new Vector2(0f, 0f),
                 new Vector2(30f, 34f),
-                new Vector2(320f, 18f),
+                new Vector2(420f, 20f),
                 TextAnchor.UpperLeft,
                 FontStyle.Bold);
 
@@ -554,7 +556,7 @@ namespace Deadlight.Narrative
 
         private string BuildBodyCopy(LevelBriefing briefing)
         {
-            return $"{briefing.Narrative}\n\nPRIMARY OBJECTIVE: {briefing.Objective}";
+            return $"<b>SITUATION</b>\n{briefing.Narrative}\n\n<b>PRIMARY OBJECTIVE</b>\n{briefing.Objective}\n\n<b>NIGHT DIRECTIVE</b>\nHold the line until dawn.";
         }
 
         private void FreezeGameplay()

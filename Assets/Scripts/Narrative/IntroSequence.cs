@@ -16,8 +16,12 @@ namespace Deadlight.Narrative
 
         private Canvas introCanvas;
         private GameObject canvasRoot;
+        private CanvasGroup introGroup;
         private Image blackBackground;
+        private Image narrativeCard;
         private Text narrativeText;
+        private Text headerText;
+        private Text locationText;
         private Text skipHintText;
         private Font font;
 
@@ -30,23 +34,26 @@ namespace Deadlight.Narrative
         private AudioSource introAudioSource;
         private AudioClip typeClickClip;
         private AudioClip staticClip;
+        private const int ExplosionLineIndex = 6;
+        private static readonly Color IntroTextColor = new Color(0.92f, 0.95f, 1f, 1f);
+        private static readonly Color IntroMutedColor = new Color(0.62f, 0.68f, 0.76f, 1f);
+        private static readonly Color IntroAccentColor = new Color(0.97f, 0.81f, 0.38f, 1f);
 
         private static readonly IntroLine[] introLines =
         {
             new IntroLine("", 1.5f),
-            new IntroLine("EVAC FLIGHT 7 — QUARANTINE ZONE EXTRACTION", 3f),
-            new IntroLine("PILOT: \"Approaching the quarantine perimeter. Medic, get the stretchers ready.\"", 3.5f),
-            new IntroLine("YOU: \"Copy. How many survivors are we pulling out?\"", 3f),
-            new IntroLine("PILOT: \"As many as we— wait. Proximity alert. Something big on therm—\"", 2.5f),
-            new IntroLine("[EXPLOSION — Screen shakes]", 2f),
-            new IntroLine("PILOT: \"MAYDAY! Flight 7 is hit! Brace for impact!\"", 2.5f),
-            new IntroLine("[Impact. Silence. Then static.]", 3f),
-            new IntroLine("RADIO: \"...survivor, do you copy? This is EVAC Command.\"", 4f),
-            new IntroLine("RADIO: \"Flight 7 is down. You're the only signal we're reading.\"", 3.5f),
-            new IntroLine("RADIO: \"A rescue bird can reach you in four days — but we need something first.\"", 3.5f),
-            new IntroLine("RADIO: \"There's a research facility on the far side of the zone. Project Lazarus.\"", 3.5f),
-            new IntroLine("RADIO: \"Reach it. Transmit the proof. Then we come get you.\"", 3f),
-            new IntroLine("RADIO: \"Scavenge during the day. Survive the night. Four levels, medic. That's all.\"", 4f),
+            new IntroLine("EVAC FLIGHT 7 // QUARANTINE AIR CORRIDOR", 2.7f),
+            new IntroLine("PILOT: \"Crossing perimeter now. Medic, keep those trauma kits ready.\"", 3.1f),
+            new IntroLine("YOU: \"Copy. We pull survivors and we leave fast.\"", 2.7f),
+            new IntroLine("PILOT: \"Thermals just spiked... that's not a crowd, that's one large target--\"", 2.7f),
+            new IntroLine("[IMPACT ALERT // AIRFRAME BREACH]", 1.9f),
+            new IntroLine("PILOT: \"MAYDAY! Flight 7 hit! Brace! Brace!\"", 2.3f),
+            new IntroLine("[Crash. Smoke. Static. One channel survives.]", 2.7f),
+            new IntroLine("RADIO: \"...Medic, this is EVAC Command. Confirm status.\"", 3.2f),
+            new IntroLine("RADIO: \"Good. You're alive. Listen carefully.\"", 2.3f),
+            new IntroLine("RADIO: \"Someone weaponized this zone under Project Lazarus.\"", 2.7f),
+            new IntroLine("RADIO: \"Move through the sectors. Gather proof. Stay alive until extraction window opens.\"", 3.2f),
+            new IntroLine("RADIO: \"Scavenge by day. Survive by night. We'll keep the channel open.\"", 3.4f),
         };
 
         private struct IntroLine
@@ -127,7 +134,7 @@ namespace Deadlight.Narrative
                 if (skipHintText != null)
                 {
                     float progress = Mathf.Clamp01(escapeHeldTime / skipHoldDuration);
-                    skipHintText.text = $"Hold ESC to skip [{new string('|', Mathf.RoundToInt(progress * 10))}{new string('.', 10 - Mathf.RoundToInt(progress * 10))}]";
+                    skipHintText.text = $"Hold ESC to skip  [{new string('|', Mathf.RoundToInt(progress * 10))}{new string('.', 10 - Mathf.RoundToInt(progress * 10))}]";
                 }
             }
             else
@@ -166,6 +173,8 @@ namespace Deadlight.Narrative
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920, 1080);
             canvasRoot.AddComponent<GraphicRaycaster>();
+            introGroup = canvasRoot.AddComponent<CanvasGroup>();
+            introGroup.alpha = 0f;
 
             var bgObj = new GameObject("Background");
             bgObj.transform.SetParent(canvasRoot.transform);
@@ -175,25 +184,93 @@ namespace Deadlight.Narrative
             bgRect.offsetMin = Vector2.zero;
             bgRect.offsetMax = Vector2.zero;
             blackBackground = bgObj.AddComponent<Image>();
-            blackBackground.color = Color.black;
+            blackBackground.color = new Color(0.01f, 0.02f, 0.04f, 1f);
+
+            var topVignette = UIFactory.CreateRegion(
+                canvasRoot.transform,
+                "TopVignette",
+                new Vector2(0f, 0.56f),
+                new Vector2(1f, 1f),
+                new Color(0f, 0f, 0f, 0.32f));
+            topVignette.GetComponent<Image>().raycastTarget = false;
+
+            var bottomVignette = UIFactory.CreateRegion(
+                canvasRoot.transform,
+                "BottomVignette",
+                new Vector2(0f, 0f),
+                new Vector2(1f, 0.44f),
+                new Color(0f, 0f, 0f, 0.44f));
+            bottomVignette.GetComponent<Image>().raycastTarget = false;
+
+            var cardObj = UIFactory.CreateCard(
+                canvasRoot.transform,
+                "NarrativeCard",
+                new Vector2(0.5f, 0.5f),
+                new Vector2(1340f, 390f),
+                new Color(0.07f, 0.10f, 0.15f, 0.88f));
+            narrativeCard = cardObj.GetComponent<Image>();
+            narrativeCard.raycastTarget = false;
+
+            var cardInner = UIFactory.CreateRegion(
+                cardObj.transform,
+                "NarrativeCardInner",
+                Vector2.zero,
+                Vector2.one,
+                new Color(0.03f, 0.05f, 0.08f, 0.86f),
+                new Vector2(12f, 12f));
+            cardInner.GetComponent<Image>().raycastTarget = false;
+
+            var headerObj = new GameObject("HeaderText");
+            headerObj.transform.SetParent(cardObj.transform, false);
+            var headerRect = headerObj.AddComponent<RectTransform>();
+            headerRect.anchorMin = new Vector2(0f, 1f);
+            headerRect.anchorMax = new Vector2(1f, 1f);
+            headerRect.offsetMin = new Vector2(36f, -46f);
+            headerRect.offsetMax = new Vector2(-36f, -16f);
+            headerText = headerObj.AddComponent<Text>();
+            headerText.font = font;
+            headerText.fontSize = 24;
+            headerText.fontStyle = FontStyle.Bold;
+            headerText.alignment = TextAnchor.UpperLeft;
+            headerText.color = IntroAccentColor;
+            headerText.text = "DEADLIGHT // INCIDENT REPORT";
+            headerText.raycastTarget = false;
+
+            var locationObj = new GameObject("LocationText");
+            locationObj.transform.SetParent(cardObj.transform, false);
+            var locationRect = locationObj.AddComponent<RectTransform>();
+            locationRect.anchorMin = new Vector2(0f, 1f);
+            locationRect.anchorMax = new Vector2(1f, 1f);
+            locationRect.offsetMin = new Vector2(38f, -78f);
+            locationRect.offsetMax = new Vector2(-36f, -48f);
+            locationText = locationObj.AddComponent<Text>();
+            locationText.font = font;
+            locationText.fontSize = 16;
+            locationText.fontStyle = FontStyle.Bold;
+            locationText.alignment = TextAnchor.UpperLeft;
+            locationText.color = IntroMutedColor;
+            locationText.text = "QUARANTINE ZONE // CHANNEL 07";
+            locationText.raycastTarget = false;
 
             var textObj = new GameObject("NarrativeText");
-            textObj.transform.SetParent(canvasRoot.transform);
+            textObj.transform.SetParent(cardObj.transform, false);
             var textRect = textObj.AddComponent<RectTransform>();
-            textRect.anchorMin = new Vector2(0.1f, 0.3f);
-            textRect.anchorMax = new Vector2(0.9f, 0.7f);
-            textRect.offsetMin = Vector2.zero;
-            textRect.offsetMax = Vector2.zero;
+            textRect.anchorMin = new Vector2(0f, 0f);
+            textRect.anchorMax = new Vector2(1f, 1f);
+            textRect.offsetMin = new Vector2(38f, 36f);
+            textRect.offsetMax = new Vector2(-38f, -92f);
             narrativeText = textObj.AddComponent<Text>();
             narrativeText.font = font;
-            narrativeText.fontSize = 32;
-            narrativeText.alignment = TextAnchor.MiddleCenter;
-            narrativeText.color = new Color(0.3f, 1f, 0.3f, 0f);
+            narrativeText.fontSize = 36;
+            narrativeText.alignment = TextAnchor.UpperLeft;
+            narrativeText.color = UITheme.WithAlpha(IntroTextColor, 0f);
             narrativeText.horizontalOverflow = HorizontalWrapMode.Wrap;
             narrativeText.verticalOverflow = VerticalWrapMode.Overflow;
+            narrativeText.supportRichText = true;
+            narrativeText.lineSpacing = 1.14f;
             var shadow = textObj.AddComponent<Shadow>();
-            shadow.effectColor = new Color(0, 0, 0, 0.6f);
-            shadow.effectDistance = new Vector2(2, -2);
+            shadow.effectColor = new Color(0f, 0f, 0f, 0.45f);
+            shadow.effectDistance = new Vector2(1.5f, -1.5f);
 
             var hintObj = new GameObject("SkipHint");
             hintObj.transform.SetParent(canvasRoot.transform);
@@ -202,13 +279,14 @@ namespace Deadlight.Narrative
             hintRect.anchorMax = new Vector2(0.5f, 0.05f);
             hintRect.pivot = new Vector2(0.5f, 0f);
             hintRect.anchoredPosition = Vector2.zero;
-            hintRect.sizeDelta = new Vector2(400, 30);
+            hintRect.sizeDelta = new Vector2(500, 32);
             skipHintText = hintObj.AddComponent<Text>();
             skipHintText.font = font;
             skipHintText.fontSize = 18;
             skipHintText.alignment = TextAnchor.MiddleCenter;
-            skipHintText.color = new Color(0.6f, 0.6f, 0.6f, 0.5f);
+            skipHintText.color = new Color(0.58f, 0.66f, 0.76f, 0.85f);
             skipHintText.text = "Hold ESC to skip";
+            skipHintText.raycastTarget = false;
         }
 
         private IEnumerator PlayIntro()
@@ -221,7 +299,7 @@ namespace Deadlight.Narrative
 
                 var line = introLines[i];
 
-                if (i == 5)
+                if (i == ExplosionLineIndex)
                 {
                     TriggerScreenShake();
                     PlayExplosionSound();
@@ -251,7 +329,7 @@ namespace Deadlight.Narrative
         private IEnumerator TypewriterReveal(string fullText)
         {
             narrativeText.text = "";
-            narrativeText.color = new Color(0.3f, 1f, 0.3f, 1f);
+            narrativeText.color = IntroTextColor;
 
             int clickCounter = 0;
             for (int i = 0; i <= fullText.Length; i++)
@@ -280,7 +358,7 @@ namespace Deadlight.Narrative
             if (narrativeText == null) yield break;
 
             float elapsed = 0f;
-            Color baseColor = new Color(0.3f, 1f, 0.3f);
+            Color baseColor = IntroTextColor;
 
             while (elapsed < duration)
             {
@@ -296,18 +374,18 @@ namespace Deadlight.Narrative
 
         private IEnumerator FadeBackground(float from, float to, float duration)
         {
-            if (blackBackground == null) yield break;
+            if (introGroup == null) yield break;
 
             float elapsed = 0f;
             while (elapsed < duration)
             {
                 elapsed += Time.unscaledDeltaTime;
                 float alpha = Mathf.Lerp(from, to, elapsed / duration);
-                blackBackground.color = new Color(0, 0, 0, alpha);
+                introGroup.alpha = alpha;
                 yield return null;
             }
 
-            blackBackground.color = new Color(0, 0, 0, to);
+            introGroup.alpha = to;
         }
 
         private IEnumerator HoldWithSkipCheck(float duration)

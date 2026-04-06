@@ -72,7 +72,7 @@ namespace Deadlight.UI
         private static readonly string[] levelMapNames = { "Town Center", "Suburban Evacuation", "Industrial District", "Research Facility" };
         private static readonly string[] levelStageLabels = { "3 objective nights", "3 objective nights", "3 objective nights", "3 nights + boss finale" };
         private static readonly string[] levelPreviewKeys = { "TownCenter", "Suburban", "Industrial", "Research" };
-        private const int MaxSelectableLevel = 2;
+        private const int MaxSelectableLevel = 1;
         private static readonly string[] levelObjectiveSummaries = {
             "Recover Flight 7's black box.",
             "Recover the shelter evacuation records.",
@@ -295,7 +295,7 @@ namespace Deadlight.UI
                 TextAnchor.UpperLeft);
 
             UIFactory.CreateTextAt(left.transform, "Body",
-                "Fight through four campaign levels. Each carries three daylight objective pushes before nightfall. Level 4 ends with the Subject 23 boss fight.",
+                "Deliverable 2 prototype focuses on Level 1 (three objective nights). Levels 2 to 4 are marked COMING SOON for next deliverables.",
                 UITheme.FontBody, UITheme.TextSecondary,
                 new Vector2(0f, 1f), new Vector2(26f, -148f), new Vector2(480f, 80f),
                 TextAnchor.UpperLeft);
@@ -317,7 +317,7 @@ namespace Deadlight.UI
                 new Vector2(500f, 86f), StartCampaign);
 
             UIFactory.CreateActionButton(left.transform, "MapBtn", "Level Select",
-                "Review unlocked levels and the final boss push.",
+                "Play Level 1 now, preview upcoming levels.",
                 UITheme.AccentGold, new Vector2(0f, 1f), new Vector2(24f, -442f),
                 new Vector2(500f, 86f), ShowCampaignMap);
 
@@ -347,7 +347,7 @@ namespace Deadlight.UI
                 TextAnchor.UpperLeft, FontStyle.Bold);
 
             UIFactory.CreateTextAt(right.transform, "RouteDesc",
-                "Each level contains three daylight objectives before each night. Level 4 ends with the Subject 23 boss fight.",
+                "Level 1 is playable now with three objective nights. Levels 2 to 4 are upcoming for the next deliverables.",
                 UITheme.FontBody, UITheme.TextSecondary,
                 new Vector2(0f, 1f), new Vector2(24f, -72f), new Vector2(900f, 48f),
                 TextAnchor.UpperLeft);
@@ -436,7 +436,7 @@ namespace Deadlight.UI
                 TextAnchor.UpperLeft, FontStyle.Bold);
 
             UIFactory.CreateTextAt(_mapSelectPanel.transform, "Desc",
-                "Choose any unlocked level. Each contains three daylight objectives, and Level 4 ends with the Subject 23 boss fight.",
+                "Level 1 is playable in this prototype. Levels 2 to 4 are marked COMING SOON for next deliverables.",
                 UITheme.FontBody, UITheme.TextSecondary,
                 new Vector2(0f, 1f), new Vector2(54f, -158f), new Vector2(720f, 48f),
                 TextAnchor.UpperLeft);
@@ -586,60 +586,74 @@ namespace Deadlight.UI
         private void BuildGuidePanel()
         {
             _guidePanel = UIFactory.CreateFullPanel(_canvasRoot.transform, "GuidePanel",
-                new Color(0.03f, 0.04f, 0.06f, 0.97f));
+                new Color(0.02f, 0.03f, 0.05f, 0.96f));
 
             UIFactory.CreateTextAt(_guidePanel.transform, "Title", "SURVIVAL GUIDE",
-                UITheme.FontTitle + 4, UITheme.TextPrimary,
-                new Vector2(0.5f, 1f), new Vector2(-280f, -32f), new Vector2(560f, 48f),
+                UITheme.FontTitle + 6, UITheme.TextPrimary,
+                new Vector2(0.5f, 1f), new Vector2(-320f, -28f), new Vector2(640f, 54f),
                 TextAnchor.MiddleCenter, FontStyle.Bold);
 
             UIFactory.CreateTextAt(_guidePanel.transform, "Subtitle",
-                "Controls, core rules, and item explanations",
-                UITheme.FontBody, UITheme.TextSecondary,
-                new Vector2(0.5f, 1f), new Vector2(-340f, -82f), new Vector2(680f, 24f),
+                "Controls, loop rules, and item systems",
+                UITheme.FontBody - 1, UITheme.WithAlpha(UITheme.TextSecondary, 0.95f),
+                new Vector2(0.5f, 1f), new Vector2(-330f, -86f), new Vector2(660f, 26f),
                 TextAnchor.MiddleCenter);
 
             // Three-column layout
             BuildGuideSection("ControlsCol", "CONTROLS", GameplayGuideContent.GetControlsText(),
-                new Vector2(0.04f, 0.14f), new Vector2(0.34f, 0.84f));
+                new Vector2(0.035f, 0.13f), new Vector2(0.34f, 0.86f), UITheme.AccentBlue);
             BuildGuideSection("LoopCol", "SURVIVAL LOOP",
                 GameplayGuideContent.GetRulesText() + "\n\n" + GameplayGuideContent.GetSystemsText(),
-                new Vector2(0.36f, 0.14f), new Vector2(0.66f, 0.84f));
+                new Vector2(0.35f, 0.13f), new Vector2(0.665f, 0.86f), UITheme.AccentGold);
             BuildGuideSection("ItemsCol", "ITEMS & ONBOARDING",
                 GameplayGuideContent.GetItemsText() + "\n\n" + GameplayGuideContent.GetAccessibilityNote(),
-                new Vector2(0.68f, 0.14f), new Vector2(0.96f, 0.84f));
+                new Vector2(0.675f, 0.13f), new Vector2(0.965f, 0.86f), UITheme.AccentGreen);
 
             UIFactory.CreateTextAt(_guidePanel.transform, "Footer",
                 "Press H, F1, or Esc to close",
-                UITheme.FontCaption, UITheme.TextMuted,
-                new Vector2(0.5f, 0f), new Vector2(-200f, 68f), new Vector2(400f, 20f),
+                UITheme.FontCaption + 1, UITheme.WithAlpha(UITheme.TextMuted, 0.95f),
+                new Vector2(0.5f, 0f), new Vector2(-220f, 72f), new Vector2(440f, 22f),
                 TextAnchor.MiddleCenter);
 
             UIFactory.CreateCenteredButton(_guidePanel.transform, "CloseBtn", "CLOSE",
-                UITheme.AccentBlue, new Vector2(0.5f, 0.06f), new Vector2(200f, 42f), CloseGuide);
+                UITheme.AccentBlue, new Vector2(0.5f, 0.06f), new Vector2(220f, 46f), CloseGuide);
         }
 
         private void BuildGuideSection(string name, string title, string body,
-            Vector2 anchorMin, Vector2 anchorMax)
+            Vector2 anchorMin, Vector2 anchorMax, Color accentColor)
         {
             var section = UIFactory.CreateRegion(_guidePanel.transform, name,
-                anchorMin, anchorMax, UITheme.BgMedium, new Vector2(8f, 8f));
+                anchorMin, anchorMax, UITheme.Darken(UITheme.BgMedium, 0.10f), new Vector2(10f, 10f));
+
+            var accent = new GameObject("Accent");
+            accent.transform.SetParent(section.transform, false);
+            var accentRt = accent.AddComponent<RectTransform>();
+            accentRt.anchorMin = new Vector2(0f, 1f);
+            accentRt.anchorMax = new Vector2(1f, 1f);
+            accentRt.pivot = new Vector2(0.5f, 1f);
+            accentRt.anchoredPosition = Vector2.zero;
+            accentRt.sizeDelta = new Vector2(0f, 4f);
+            var accentImg = accent.AddComponent<Image>();
+            accentImg.color = UITheme.WithAlpha(accentColor, 0.95f);
+            accentImg.raycastTarget = false;
 
             var titleTxt = UIFactory.CreateText(section.transform, "Title", title,
-                UITheme.FontBody + 2, UITheme.AccentGold, TextAnchor.MiddleLeft, FontStyle.Bold);
+                UITheme.FontBody + 4, UITheme.WithAlpha(UITheme.TextPrimary, 0.98f), TextAnchor.MiddleLeft, FontStyle.Bold);
             var titleRt = titleTxt.GetComponent<RectTransform>();
             titleRt.anchorMin = new Vector2(0f, 1f);
             titleRt.anchorMax = new Vector2(1f, 1f);
-            titleRt.offsetMin = new Vector2(14f, -48f);
-            titleRt.offsetMax = new Vector2(-14f, -14f);
+            titleRt.offsetMin = new Vector2(16f, -56f);
+            titleRt.offsetMax = new Vector2(-16f, -12f);
 
             var bodyTxt = UIFactory.CreateText(section.transform, "Body", body,
-                UITheme.FontBody - 1, UITheme.TextPrimary, TextAnchor.UpperLeft);
+                UITheme.FontBody + 1, UITheme.WithAlpha(UITheme.TextPrimary, 0.98f), TextAnchor.UpperLeft);
             var bodyRt = bodyTxt.GetComponent<RectTransform>();
             bodyRt.anchorMin = Vector2.zero;
             bodyRt.anchorMax = Vector2.one;
-            bodyRt.offsetMin = new Vector2(14f, 14f);
-            bodyRt.offsetMax = new Vector2(-14f, -60f);
+            bodyRt.offsetMin = new Vector2(18f, 18f);
+            bodyRt.offsetMax = new Vector2(-18f, -68f);
+            bodyTxt.lineSpacing = 1.2f;
+            bodyTxt.supportRichText = true;
         }
 
         // =====================================================================
@@ -1042,32 +1056,34 @@ namespace Deadlight.UI
                 _mainMenuProgressText.text = $"Level {highest:00} ready: {levelObjectiveSummaries[highest - 1]}";
 
             if (_mapSelectProgressText != null)
-                _mapSelectProgressText.text = $"Unlocked through Level {highest:00}. Levels 3 and 4 are locked for now.";
+                _mapSelectProgressText.text = $"Unlocked through Level {highest:00}. Levels 2 to 4 are COMING SOON (next deliverables).";
 
             foreach (var row in _campaignRouteRows)
             {
-                bool unlocked = row.Level <= MaxSelectableLevel && IsLevelUnlocked(row.Level);
+                bool upcoming = row.Level > MaxSelectableLevel;
+                bool unlocked = !upcoming && IsLevelUnlocked(row.Level);
                 bool ready = unlocked && row.Level == highest;
-                row.StatusText.text = ready ? "READY" : unlocked ? "UNLOCKED" : "LOCKED";
+                row.StatusText.text = ready ? "READY" : unlocked ? "UNLOCKED" : upcoming ? "UPCOMING" : "LOCKED";
                 row.StatusBackground.color = ready
                     ? UITheme.Darken(UITheme.AccentGreen, 0.35f)
-                    : unlocked ? UITheme.BgLight : UITheme.Darken(UITheme.AccentRed, 0.5f);
+                    : unlocked ? UITheme.BgLight : upcoming ? UITheme.Darken(UITheme.AccentBlue, 0.55f) : UITheme.Darken(UITheme.AccentRed, 0.5f);
             }
 
             foreach (var card in _campaignCards)
             {
-                bool unlocked = card.Level <= MaxSelectableLevel && IsLevelUnlocked(card.Level);
+                bool upcoming = card.Level > MaxSelectableLevel;
+                bool unlocked = !upcoming && IsLevelUnlocked(card.Level);
                 bool ready = unlocked && card.Level == highest;
 
                 if (card.Button != null) card.Button.interactable = unlocked;
                 if (card.StatusText != null)
                 {
-                    card.StatusText.text = ready ? "READY" : unlocked ? "UNLOCKED" : "LOCKED";
+                    card.StatusText.text = ready ? "READY" : unlocked ? "UNLOCKED" : upcoming ? "UPCOMING" : "LOCKED";
                     card.StatusText.color = unlocked ? UITheme.TextPrimary : UITheme.TextMuted;
                 }
                 if (card.ActionText != null)
                 {
-                    card.ActionText.text = unlocked ? "DEPLOY" : "LOCKED";
+                    card.ActionText.text = unlocked ? "DEPLOY" : upcoming ? "COMING SOON" : "LOCKED";
                     card.ActionText.color = unlocked ? UITheme.TextPrimary : UITheme.TextMuted;
                 }
                 if (card.PreviewImage != null)

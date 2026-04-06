@@ -55,28 +55,28 @@ namespace Deadlight.UI
                 "Adds reserve ammo."),
             [ItemIds.Scrap] = new GameplayHelpEntry(
                 ItemIds.Scrap,
-                "Scrap",
-                "Common salvage used in daytime crafting, especially Ammo Cache and Weakpoint Intel prep.",
-                "Core crafting salvage."),
+                "Legacy Scrap",
+                "Legacy crafting material from older runs. In the current build it is auto-converted to points.",
+                "Auto-converts to points."),
             [ItemIds.Wood] = new GameplayHelpEntry(
                 ItemIds.Wood,
-                "Wood",
-                "Support material used for early prep and fortification-style crafting during the day.",
-                "Basic support material."),
+                "Legacy Wood",
+                "Legacy crafting material from older runs. In the current build it is auto-converted to points.",
+                "Auto-converts to points."),
             [ItemIds.Chemicals] = new GameplayHelpEntry(
                 ItemIds.Chemicals,
-                "Chemicals",
-                "Needed for Field Med and Shock Beacon crafting recipes before nightfall.",
-                "Medical and tech crafting."),
+                "Legacy Chemicals",
+                "Legacy crafting material from older runs. In the current build it is auto-converted to points.",
+                "Auto-converts to points."),
             [ItemIds.Electronics] = new GameplayHelpEntry(
                 ItemIds.Electronics,
-                "Electronics",
-                "Advanced parts used in higher-tier recipes like Shock Beacon and Weakpoint Intel.",
-                "Advanced crafting part."),
+                "Legacy Electronics",
+                "Legacy crafting material from older runs. In the current build it is auto-converted to points.",
+                "Auto-converts to points."),
             [ItemIds.Points] = new GameplayHelpEntry(
                 ItemIds.Points,
                 "Points",
-                "Spend these at dawn on weapons, armor, and permanent upgrades for later levels.",
+                "Spend these at dawn on weapons, armor, utility refills, and run upgrades.",
                 "Spend at dawn shop."),
             [ItemIds.Powerup] = new GameplayHelpEntry(
                 ItemIds.Powerup,
@@ -86,8 +86,8 @@ namespace Deadlight.UI
             [ItemIds.BlueprintToken] = new GameplayHelpEntry(
                 ItemIds.BlueprintToken,
                 "Blueprint Token",
-                "Unlocks advanced daytime recipes that improve your odds in the next level.",
-                "Needed for advanced crafting."),
+                "Legacy token from earlier crafting builds. Not required in the current core loop.",
+                "Legacy item."),
             [ItemIds.Armor] = new GameplayHelpEntry(
                 ItemIds.Armor,
                 "Armor",
@@ -123,52 +123,79 @@ namespace Deadlight.UI
 
         public static string GetControlsText()
         {
-            return "WASD  Move\n" +
-                   "Mouse  Aim\n" +
-                   "Left Click  Fire\n" +
-                   "R  Reload\n" +
-                   "1 / 2 / Wheel  Swap weapon\n" +
-                   "Left Shift  Sprint\n" +
-                   "Space  Dodge\n" +
-                   "Q  Throw grenade\n" +
-                   "G  Throw molotov\n" +
-                   "C  Use stored medkit (2.5s apply)\n" +
-                   "F  Interact\n" +
-                   "J  Open journal\n" +
-                   "[ and ]  Cycle journal pages\n" +
-                   "H or F1  Open guide\n" +
-                   "Esc  Pause";
+            return "<b>Movement + Combat</b>\n" +
+                   "WASD Move\n" +
+                   "Mouse Aim\n" +
+                   "Left Click Fire\n" +
+                   "R Reload\n" +
+                   "1 / 2 / Wheel Swap weapon\n" +
+                   "Left Shift Sprint\n" +
+                   "Space Dodge\n\n" +
+                   "<b>Utility</b>\n" +
+                   "Q Throw grenade\n" +
+                   "G Throw molotov\n" +
+                   "C Use stored medkit (2.5s channel)\n" +
+                   "F Interact / secure objectives\n\n" +
+                   "<b>Interface</b>\n" +
+                   "J Open journal\n" +
+                   "[ and ] Cycle journal pages\n" +
+                   "H or F1 Open guide\n" +
+                   "Esc Pause";
         }
 
         public static string GetRulesText()
         {
-            return "Daytime is for scavenging, story leads, and prep. Collect supplies, recover lore, and secure contested drops before sunset.\n\n" +
-                   "Nighttime is pure survival. Hold out through the waves until dawn while using the resources and upgrades you prepared earlier.\n\n" +
-                   "At dawn, spend points on weapons, armor, and upgrades. Smart purchases make later levels manageable.";
+            return "<b>Campaign Scope</b>\n" +
+                   "- Deliverable 2: playable Levels 1-2 only.\n" +
+                   "- Route: Town Center -> Suburban.\n" +
+                   "- Levels 3-4 are intentionally locked.\n\n" +
+                   "<b>Core Loop</b>\n" +
+                   "- Each level has 3 day/night steps.\n" +
+                   "- Day: complete objective + loot.\n" +
+                   "- Night: survive all waves until dawn.\n" +
+                   "- Dawn: shop, refill, upgrade, redeploy.\n\n" +
+                   "<b>Run End</b>\n" +
+                   "- Win this build by clearing Level 2, Night 3.\n" +
+                   "- Player death ends the run.";
         }
 
         public static string GetSystemsText()
         {
-            return "Contested Drops: High-value crates during the day that pay out bundled combat supplies and points if you secure them.\n\n" +
-                   "Journal: Press J to review recovered lore and the current story arc so players can reconnect mechanics with the world.";
+            return "<b>Objective Miss Rule</b>\n" +
+                   "- Miss once: 1 retry on the same step.\n" +
+                   "- Miss twice: forced advance.\n\n" +
+                   "<b>Penalty Rule</b>\n" +
+                   "- Next-night enemies are stronger.\n" +
+                   "- Next-level point carryover is reduced.\n\n" +
+                   "<b>Economy + Progression</b>\n" +
+                   "- Upgrades persist during the run.\n" +
+                   "- Points partially carry between levels.\n\n" +
+                   "<b>Events + Story</b>\n" +
+                   "- Contested drops give bonus supplies if secured.\n" +
+                   "- Journal (J) tracks lore and objective context.";
         }
 
         public static string GetItemsText()
         {
             var builder = new StringBuilder();
-            builder.AppendLine("Health Packs: restore lost HP.");
-            builder.AppendLine("Medkits: buy at dawn, store up to capacity, press C to apply over time.");
-            builder.AppendLine("Ammo: refills reserve ammo.");
-            builder.AppendLine("Points: currency for the dawn shop and upgrades.");
-            builder.AppendLine("Powerups: temporary combat boosts.");
-            builder.AppendLine("Armor: helmets and vests soak damage before health.");
-            builder.Append("Intel Documents: collectible lore entries added to the journal.");
+            builder.AppendLine("<b>Pickups + Utility</b>");
+            builder.AppendLine("- Health: instant heal on pickup.");
+            builder.AppendLine("- Ammo: adds reserve ammo.");
+            builder.AppendLine("- Grenade / Molotov: throw with Q/G, refill at dawn.");
+            builder.AppendLine("- Medkit: buy/store (max 5), use with C (2.5s).");
+            builder.AppendLine("- Points: shop currency.");
+            builder.AppendLine("- Powerup: temporary combat buff.");
+            builder.AppendLine("- Armor: vest/helmet absorb damage first.");
+            builder.AppendLine("- Intel Documents: journal lore pickups.");
+            builder.AppendLine();
+            builder.AppendLine("<b>Crafting Status</b>");
+            builder.Append("Legacy crafting materials auto-convert to points in the current build.");
             return builder.ToString();
         }
 
         public static string GetAccessibilityNote()
         {
-            return "First-time discoveries show fuller guidance; repeat pickups stay compact so the HUD remains readable.";
+            return "Pickup callouts show what you gained, and the HUD utility panel tracks grenade/molotov/medkit counts plus active molotov fire time.";
         }
     }
 

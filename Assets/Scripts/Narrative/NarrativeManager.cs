@@ -60,6 +60,7 @@ namespace Deadlight.Narrative
                 Debug.Log($"[NarrativeManager] Loaded {defaults.Count} default dialogues");
             }
 
+            EnsureDialogueUI();
             SubscribeToGameEvents();
         }
 
@@ -186,6 +187,7 @@ namespace Deadlight.Narrative
         {
             isPlaying = true;
             currentDialogue = dialogue;
+            EnsureDialogueUI();
 
             if (dialogue.PlayOnce)
             {
@@ -251,6 +253,23 @@ namespace Deadlight.Narrative
 
             currentDialogue = null;
             isPlaying = false;
+        }
+
+        private void EnsureDialogueUI()
+        {
+            if (dialogueUI != null)
+            {
+                return;
+            }
+
+            dialogueUI = FindFirstObjectByType<DialogueUI>();
+            if (dialogueUI != null)
+            {
+                return;
+            }
+
+            var uiObject = new GameObject("DialogueUI");
+            dialogueUI = uiObject.AddComponent<DialogueUI>();
         }
 
         public void SkipCurrentDialogue()
