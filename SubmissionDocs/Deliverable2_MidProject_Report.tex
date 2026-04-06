@@ -140,7 +140,7 @@ This report proceeds as follows. Table~\ref{tab:rubric} maps the submission to t
         Better day execution produces stronger night readiness; weak preparation produces measurable combat pressure. \\
         Progression and rewards &
         Six-night campaign slice with unlock-based level access, reward pacing, and level-specific challenge identity. &
-        Level 2 unlocks after Level 1 completion; player manually selects the next deployment from menu for clear control. \\
+        Level 2 unlocks after Level 1 completion; the level-complete screen and main menu communicate the next deployment. \\
         Testing and iteration &
         Iterative tuning from playtest feedback and PlayMode validation around objective flow, pickup clarity, and phase transitions. &
         UI callouts, objective readability, and communication pacing were revised based on observed confusion points. \\
@@ -317,7 +317,7 @@ Progression runs on two timescales. In the short term, each day--night--dawn cyc
 
 Rewards mix skill growth with concrete loot. Players improve routing and judgment while also earning points, weapons, armor, mission payouts, contested bundles, and upgrades. Logs and environmental detail add story depth even when combat rewards are small.
 
-Including Level~2 shows campaign continuity instead of a single map. After Level~1 is cleared, Level~2 unlocks and the player selects it from the menu. Each level starts from a clean state so difficulty stays comparable in testing.
+Including Level~2 shows campaign continuity instead of a single map. After Level~1 is cleared, Level~2 unlocks and the next deployment is shown on the completion screen and in the menu flow. This gives the prototype a clearer sense of advancement while still keeping each level readable as its own testable slice.
 
 \begin{figure}[H]
     \centering
@@ -359,7 +359,7 @@ Including Level~2 shows campaign continuity instead of a single map. After Level
             \midrule
             1 & L1 Night 1 & Pistol/shotgun shop tier; first milestone stipend; learn day--night rhythm. \\
             2 & L1 Night 2 & SMG and assault rifle tier; noticeably higher night pressure. \\
-            3 & L1 Night 3 & Level~1 clear; \textbf{Level~2} unlocks from the deployment menu. \\
+            3 & L1 Night 3 & Level~1 clear; \textbf{Level~2} unlocks and the next deployment is surfaced to the player. \\
             4 & L2 Night 1 & New district layout; story and objective context escalate. \\
             5 & L2 Night 2 & Faster threats, tighter routes, larger risk--reward on mistakes. \\
             6 & L2 Night 3 & Deliverable~2 campaign endpoint; strongest payoff beat. \\
@@ -372,8 +372,8 @@ Including Level~2 shows campaign continuity instead of a single map. After Level
 
 \noindent\textbf{Summary of progression choices.}
 \begin{itemize}
-    \item Level~2 requires Level~1 completion; the menu makes order explicit.
-    \item The game does not auto-start the next level; the player chooses when to deploy.
+    \item Level~2 requires Level~1 completion, so campaign order remains explicit.
+    \item Progression is communicated through the level-complete screen, next-deployment text, and the main menu flow.
     \item Each day--night step closes with spend-and-prepare feedback; clearing a level grants a larger milestone.
     \item Fresh starts per level avoid muddying balance with leftover stats from the previous map.
 \end{itemize}
@@ -383,6 +383,8 @@ Including Level~2 shows campaign continuity instead of a single map. After Level
 Iteration relied on watching what players did (hesitation, retries, questions) and on Play Mode checks in Unity. When players were confused, we treated it as a communication problem in the build, not only as subjective taste. Early tests showed the premise was clear but story and system links sometimes failed on first contact. We responded with clearer radio, mission text, HUD markers, pickup hints, reward messages, and dusk summaries so players could see what they had earned and why it mattered at night.
 
 Further work focused on fair, readable rules: controls and systems must work, and players should understand them quickly enough to make informed choices. Updates targeted when and how the game reports changes so each feature reads clearly from the UI without outside explanation.
+
+Two concrete examples illustrate this iteration. First, early testers sometimes noticed the active objective text but missed the world marker or the related COMMS line during busier moments. In response, the objective title, status line, and radio channel labeling were simplified so that the next task could be recognized faster. Second, some players understood that they had earned points, but did not immediately understand why later nights felt harder after poor daytime performance. To address this, the dusk and penalty messaging was made more explicit so the game states when missed objectives will strengthen the next night or reduce carryover value.
 
 \begin{table}[H]
     \centering
@@ -413,7 +415,7 @@ Further work focused on fair, readable rules: controls and systems must work, an
 Sessions used a short, repeatable format:
 
 \begin{itemize}
-    \item \textbf{Who:} classmates and informal testers with mixed experience (record the total session count for the final submission if the rubric requires it).
+    \item \textbf{Who:} classmates and informal testers with mixed experience in action and survival games.
     \item \textbf{Task:} start a fresh Level~1 run; complete at least one full day--night--dawn loop; try a story objective; open the shop at dawn; stop when stuck or after twenty minutes.
     \item \textbf{Method:} think-aloud on the first loop when possible; note hesitation, mis-clicks, and misread HUD text without coaching mid-task.
     \item \textbf{Notes:} time to understand the objective, whether the world marker was seen, confusion after contested drops, and whether dusk summaries answered ``what did I earn?''
@@ -430,11 +432,11 @@ Several Unity systems supported this iteration:
     \item \textbf{Narrative support:} radio updates, mission scripting, and lore systems support layered story delivery across the run.
     \item \textbf{Balance and preparation systems:} \texttt{SupplyCrate}, \texttt{Pickup}, \texttt{PointsSystem}, and the wave balancing path connect day preparation to night pressure.
     \item \textbf{Current feature gating:} crafting hooks exist in code but are disabled in this Deliverable 2 build (\texttt{enableCrafting = false}) to keep the prototype loop clean and readable.
-    \item \textbf{Submission structure:} the Deliverable 2 package is organized around the Unity project, the standalone build output, and this written PDF report.
+    \item \textbf{Submission structure:} the Deliverable 2 package is organized around the Unity project, the standalone build output used for evaluation, and this written PDF report.
 \end{itemize}
 
 \paragraph{Build verification and limits.}
-The team smoke-tested phase transitions and unlock flow in the Unity Editor (Play Mode) and in standalone builds on the main development platform. Crafting remains off (\texttt{enableCrafting = false}) to keep this milestone focused. Levels~3 and~4 appear as menu art only and are \textbf{not} playable in Deliverable~2.
+The team smoke-tested phase transitions, unlock flow, and core HUD readability in Unity Play Mode and in the standalone submission build. Crafting remains off (\texttt{enableCrafting = false}) to keep this milestone focused. Levels~3 and~4 appear as menu art only and are \textbf{not} playable in Deliverable~2.
 
 \paragraph{In-engine figures.}
 These captures are from the same Deliverable~2 build as the submission (standalone player). They document the HUD, a daytime objective beat, combat feedback, and the dawn shop.
@@ -476,7 +478,7 @@ Next work extends the Deliverable~2 baseline into a full four-level campaign:
     \item \textbf{Narrative:} add level-specific radio and objectives for Levels~3--4 so the Lazarus arc finishes coherently.
     \item \textbf{Presentation:} pass on HUD/UI clarity, environment readability, palette cohesion, and SFX/music where time allows.
     \item \textbf{Systems:} rebalance economy and progression across all four levels; consider re-enabling \textbf{crafting} only if it stays legible.
-    \item \textbf{Stability:} fix blocking bugs, tighten phase transitions and unlock flow, and smoke-test the Windows build across the full route.
+    \item \textbf{Stability:} fix blocking bugs, tighten late-campaign phase transitions and unlock flow, and regression-test the full four-level route.
     \item \textbf{Player clarity:} clearer resume/restart messaging, stronger end-of-run summaries, and scoreboard polish for the longer campaign.
 \end{itemize}
 
