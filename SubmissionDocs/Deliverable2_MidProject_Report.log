@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.12.11)  6 APR 2026 00:18
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.12.11)  6 APR 2026 01:18
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -553,7 +553,7 @@ File: ../Assets/Resources/MenuPreviews/TownCenter.png Graphic file (type png)
 <use ../Assets/Resources/MenuPreviews/TownCenter.png>
 Package pdftex.def Info: ../Assets/Resources/MenuPreviews/TownCenter.png  used on input line 111.
 (pdftex.def)             Requested size: 225.4804pt x 225.47562pt.
-<../Assets/Resources/MenuPreviews/Suburban.png, id=69, 2409.0pt x 2409.0pt>
+<../Assets/Resources/MenuPreviews/Suburban.png, id=64, 2409.0pt x 2409.0pt>
 File: ../Assets/Resources/MenuPreviews/Suburban.png Graphic file (type png)
 <use ../Assets/Resources/MenuPreviews/Suburban.png>
 Package pdftex.def Info: ../Assets/Resources/MenuPreviews/Suburban.png  used on input line 117.
@@ -562,50 +562,49 @@ Package pdftex.def Info: ../Assets/Resources/MenuPreviews/Suburban.png  used on 
 
  <../Assets/Resources/MenuPreviews/Suburban.png>] [2] [3] [4] [5]
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <9> on input line 356.
+(Font)              <9> on input line 357.
  [6] [7]
-<d2_fig_hud.png, id=121, 1610.015pt x 738.76pt>
+<d2_fig_hud.png, id=116, 1610.015pt x 738.76pt>
 File: d2_fig_hud.png Graphic file (type png)
 <use d2_fig_hud.png>
-Package pdftex.def Info: d2_fig_hud.png  used on input line 444.
+Package pdftex.def Info: d2_fig_hud.png  used on input line 447.
 (pdftex.def)             Requested size: 432.17375pt x 198.29552pt.
-<d2_fig_daytime.png, id=122, 1603.9925pt x 728.7225pt>
+ [8]
+<d2_fig_daytime.png, id=123, 1603.9925pt x 728.7225pt>
 File: d2_fig_daytime.png Graphic file (type png)
 <use d2_fig_daytime.png>
-Package pdftex.def Info: d2_fig_daytime.png  used on input line 451.
+Package pdftex.def Info: d2_fig_daytime.png  used on input line 454.
 (pdftex.def)             Requested size: 432.17375pt x 196.34628pt.
- [8 <./d2_fig_hud.png>]
-<d2_fig_combat.png, id=131, 1630.09pt x 741.77126pt>
+<d2_fig_combat.png, id=124, 1630.09pt x 741.77126pt>
 File: d2_fig_combat.png Graphic file (type png)
 <use d2_fig_combat.png>
-Package pdftex.def Info: d2_fig_combat.png  used on input line 458.
+Package pdftex.def Info: d2_fig_combat.png  used on input line 461.
 (pdftex.def)             Requested size: 432.17375pt x 196.659pt.
-<d2_fig_dawn_shop.png, id=132, 1408.26125pt x 734.745pt>
-File: d2_fig_dawn_shop.png Graphic file (type png)
-<use d2_fig_dawn_shop.png>
-Package pdftex.def Info: d2_fig_dawn_shop.png  used on input line 465.
-(pdftex.def)             Requested size: 432.17375pt x 225.48149pt.
- [9 <./d2_fig_daytime.png> <./d2_fig_combat.png>] [10 <./d2_fig_dawn_shop.png>] [11] (./Deliverable2_MidProject_Report.aux)
+ [9 <./d2_fig_hud.png> <./d2_fig_daytime.png>] [10 <./d2_fig_combat.png>] [11] (./Deliverable2_MidProject_Report.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2025-11-14>
  ***********
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
 Package rerunfilecheck Info: File `Deliverable2_MidProject_Report.out' has not changed.
 (rerunfilecheck)             Checksum: 96393D8B5AC2A08E8FBA9209BD75E90F;1894.
  ) 
 Here is how much of TeX's memory you used:
- 22546 strings out of 469519
- 433263 string characters out of 5469170
- 838833 words of memory out of 5000000
- 50826 multiletter control sequences out of 15000+600000
+ 22538 strings out of 469519
+ 433058 string characters out of 5469170
+ 837835 words of memory out of 5000000
+ 50819 multiletter control sequences out of 15000+600000
  635464 words of font info for 66 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 84i,12n,94p,621b,868s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 84i,12n,94p,846b,868s stack positions out of 10000i,1000n,20000p,200000b,200000s
  </Users/simar/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm0900.600pk> </Users/simar/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1095.600pk></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on Deliverable2_MidProject_Report.pdf (13 pages, 6948052 bytes).
+Output written on Deliverable2_MidProject_Report.pdf (13 pages, 6877972 bytes).
 PDF statistics:
- 220 PDF objects out of 1000 (max. 8388607)
- 165 compressed objects within 2 object streams
- 38 named destinations out of 1000 (max. 500000)
- 123 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 212 PDF objects out of 1000 (max. 8388607)
+ 159 compressed objects within 2 object streams
+ 37 named destinations out of 1000 (max. 500000)
+ 118 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -8,15 +8,17 @@ namespace Deadlight.Player
 {
     public class PlayerShooting : MonoBehaviour
     {
+        private const int MaxWeaponSlots = 4;
+
         [Header("Weapon Settings")]
         [SerializeField] private WeaponData currentWeapon;
         [SerializeField] private Transform firePoint;
         [SerializeField] private GameObject bulletPrefab;
 
         [Header("Weapon Switching")]
-        [SerializeField] private WeaponData[] weaponSlots = new WeaponData[2];
-        [SerializeField] private int[] slotAmmo = new int[2];
-        [SerializeField] private int[] slotReserve = new int[2];
+        [SerializeField] private WeaponData[] weaponSlots = new WeaponData[MaxWeaponSlots];
+        [SerializeField] private int[] slotAmmo = new int[MaxWeaponSlots];
+        [SerializeField] private int[] slotReserve = new int[MaxWeaponSlots];
         private int activeSlot = 0;
 
         [Header("Ammo")]
@@ -47,6 +49,16 @@ namespace Deadlight.Player
         public event Action OnEmptyTriggerPulled;
         public event Action<int, int> OnLowAmmoWarning;
         public event Action<WeaponData> OnWeaponChanged;
+
+        private void Awake()
+        {
+            EnsureSlotCapacity();
+        }
+
+        private void OnValidate()
+        {
+            EnsureSlotCapacity();
+        }
 
         private void Start()
         {
@@ -106,6 +118,10 @@ namespace Deadlight.Player
                 int magBonus = PlayerUpgrades.Instance != null ? PlayerUpgrades.Instance.MagazineBonus : 0;
                 currentAmmo = currentWeapon.magazineSize + magBonus;
                 reserveAmmo = currentWeapon.magazineSize * 3;
+                activeSlot = 0;
+                weaponSlots[0] = currentWeapon;
+                slotAmmo[0] = currentAmmo;
+                slotReserve[0] = reserveAmmo;
                 OnAmmoChanged?.Invoke(currentAmmo, reserveAmmo);
             }
         }
@@ -130,10 +146,20 @@ namespace Deadlight.Player
 
             if (Input.GetKeyDown(KeyCode.Alpha1)) SwitchToSlot(0);
             if (Input.GetKeyDown(KeyCode.Alpha2)) SwitchToSlot(1);
+            if (Input.GetKeyDown(KeyCode.Alpha3)) SwitchToSlot(2);
+            if (Input.GetKeyDown(KeyCode.Alpha4)) SwitchToSlot(3);
 
             float scroll = Input.GetAxis("Mouse ScrollWheel");
-            if (Mathf.Abs(scroll) > 0.01f)
-                SwitchToSlot(activeSlot == 0 ? 1 : 0);
+            if (scroll > 0.01f)
+            {
+                int next = GetNextOccupiedSlot(activeSlot, 1);
+                if (next >= 0) SwitchToSlot(next);
+            }
+            else if (scroll < -0.01f)
+            {
+                int prev = GetNextOccupiedSlot(activeSlot, -1);
+                if (prev >= 0) SwitchToSlot(prev);
+            }
         }
 
         private void SwitchToSlot(int slot)
@@ -157,13 +183,29 @@ namespace Deadlight.Player
 
         public void SetSecondWeapon(WeaponData weapon)
         {
-            weaponSlots[1] = weapon;
-            if (weapon != null)
+            SetWeaponInSlot(1, weapon, true);
+        }
+
+        public bool HasFreeWeaponSlot(int startSlot = 1)
+        {
+            return FindFirstEmptySlot(startSlot) >= 0;
+        }
+
+        public bool TryAddWeaponToLoadout(WeaponData weapon, bool switchToWeapon = true, int startSlot = 1)
+        {
+            if (weapon == null)
             {
-                slotAmmo[1] = weapon.magazineSize;
-                slotReserve[1] = weapon.magazineSize * 3;
-                SwitchToSlot(1);
+                return false;
             }
+
+            int slot = FindFirstEmptySlot(startSlot);
+            if (slot < 0)
+            {
+                return false;
+            }
+
+            SetWeaponInSlot(slot, weapon, switchToWeapon);
+            return true;
         }
 
         public bool HasWeaponType(WeaponType weaponType)
@@ -343,6 +385,7 @@ namespace Deadlight.Player
         public void SetWeapon(WeaponData weapon)
         {
             currentWeapon = weapon;
+            activeSlot = 0;
             weaponSlots[0] = weapon;
             UpdateWeaponSound();
 
@@ -362,6 +405,14 @@ namespace Deadlight.Player
         public void ResetLoadout(WeaponData weapon, int reserveMagazines = 3)
         {
             currentWeapon = weapon;
+            activeSlot = 0;
+
+            for (int i = 0; i < weaponSlots.Length; i++)
+            {
+                weaponSlots[i] = null;
+                slotAmmo[i] = 0;
+                slotReserve[i] = 0;
+            }
 
             if (weapon == null)
             {
@@ -374,9 +425,13 @@ namespace Deadlight.Player
             reserveMagazines = Mathf.Max(1, reserveMagazines);
             currentAmmo = weapon.magazineSize;
             reserveAmmo = Mathf.Clamp(weapon.magazineSize * reserveMagazines, 0, maxReserveAmmo);
+            weaponSlots[0] = weapon;
+            slotAmmo[0] = currentAmmo;
+            slotReserve[0] = reserveAmmo;
             isReloading = false;
 
             OnAmmoChanged?.Invoke(currentAmmo, reserveAmmo);
+            OnWeaponChanged?.Invoke(currentWeapon);
             EmitLowAmmoWarningIfNeeded();
         }
 
@@ -388,6 +443,82 @@ namespace Deadlight.Player
         public void SetFirePoint(Transform point)
         {
             firePoint = point;
+        }
+
+        private void EnsureSlotCapacity()
+        {
+            weaponSlots = ResizeArray(weaponSlots, MaxWeaponSlots);
+            slotAmmo = ResizeArray(slotAmmo, MaxWeaponSlots);
+            slotReserve = ResizeArray(slotReserve, MaxWeaponSlots);
+            activeSlot = Mathf.Clamp(activeSlot, 0, MaxWeaponSlots - 1);
+        }
+
+        private static T[] ResizeArray<T>(T[] source, int size)
+        {
+            if (source != null && source.Length == size)
+            {
+                return source;
+            }
+
+            var resized = new T[size];
+            if (source != null && source.Length > 0)
+            {
+                Array.Copy(source, resized, Mathf.Min(source.Length, size));
+            }
+
+            return resized;
+        }
+
+        private int FindFirstEmptySlot(int startSlot)
+        {
+            int first = Mathf.Clamp(startSlot, 0, weaponSlots.Length - 1);
+            for (int i = first; i < weaponSlots.Length; i++)
+            {
+                if (weaponSlots[i] == null)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        private void SetWeaponInSlot(int slot, WeaponData weapon, bool switchToWeapon)
+        {
+            if (weapon == null) return;
+            if (slot < 0 || slot >= weaponSlots.Length) return;
+
+            weaponSlots[slot] = weapon;
+            slotAmmo[slot] = weapon.magazineSize;
+            slotReserve[slot] = weapon.magazineSize * 3;
+
+            if (switchToWeapon)
+            {
+                SwitchToSlot(slot);
+            }
+        }
+
+        private int GetNextOccupiedSlot(int fromSlot, int direction)
+        {
+            if (weaponSlots == null || weaponSlots.Length == 0)
+            {
+                return -1;
+            }
+
+            int dir = direction >= 0 ? 1 : -1;
+            int len = weaponSlots.Length;
+
+            for (int step = 1; step <= len; step++)
+            {
+                int idx = (fromSlot + dir * step) % len;
+                if (idx < 0) idx += len;
+                if (weaponSlots[idx] != null)
+                {
+                    return idx;
+                }
+            }
+
+            return -1;
         }
 
         private void EmitLowAmmoWarningIfNeeded()

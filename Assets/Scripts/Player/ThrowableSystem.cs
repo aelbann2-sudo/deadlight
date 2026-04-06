@@ -30,6 +30,8 @@ namespace Deadlight.Player
         [Header("Cooldown")]
         [SerializeField] private float throwCooldown = 1f;
         private float lastThrowTime = -999f;
+        private int initialGrenadeCount;
+        private int initialMolotovCount;
 
         public int GrenadeCount => grenadeCount;
         public int MolotovCount => molotovCount;
@@ -40,6 +42,12 @@ namespace Deadlight.Player
         public System.Action<ThrowableType> OnThrowableUsed;
         public System.Action<float> OnMolotovFireZoneStarted;
         public System.Action OnMolotovFireZoneEnded;
+
+        private void Awake()
+        {
+            initialGrenadeCount = grenadeCount;
+            initialMolotovCount = molotovCount;
+        }
 
         private void Update()
         {
@@ -146,6 +154,14 @@ namespace Deadlight.Player
         public void AddMolotovs(int count)
         {
             molotovCount = Mathf.Min(molotovCount + count, maxMolotovs);
+            OnInventoryChanged?.Invoke(grenadeCount, molotovCount);
+        }
+
+        public void ResetInventory()
+        {
+            grenadeCount = Mathf.Clamp(initialGrenadeCount, 0, maxGrenades);
+            molotovCount = Mathf.Clamp(initialMolotovCount, 0, maxMolotovs);
+            lastThrowTime = -999f;
             OnInventoryChanged?.Invoke(grenadeCount, molotovCount);
         }
     }

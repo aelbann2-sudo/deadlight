@@ -860,7 +860,6 @@ namespace Deadlight.UI
         {
             float y = 0f;
             const int h = 56;
-            AddWeaponShopItem("Shotgun", "Close-range spread", 100, 1, WeaponType.Shotgun, ref y, h);
             AddWeaponShopItem("SMG", "Fast fire rate", 150, 2, WeaponType.SMG, ref y, h);
             AddWeaponShopItem("Sniper Rifle", "High damage, long range", 250, 2, WeaponType.SniperRifle, ref y, h);
             AddWeaponShopItem("Assault Rifle", "Balanced auto", 200, 3, WeaponType.AssaultRifle, ref y, h);
@@ -1284,9 +1283,15 @@ namespace Deadlight.UI
             if (PointsSystem.Instance == null || !PointsSystem.Instance.CanAfford(cost)) return;
             int progressionNight = GameManager.Instance?.CurrentNight ?? 1;
             if (progressionNight < unlockNight) return;
-            if (!PointsSystem.Instance.SpendPoints(cost, $"Weapon: {wt}")) return;
 
-            _purchasedWeapons.Add(wt);
+            var player = GameObject.Find("Player");
+            var shooting = player != null ? player.GetComponent<PlayerShooting>() : null;
+            if (shooting == null) return;
+            if (!shooting.HasFreeWeaponSlot())
+            {
+                RadioTransmissions.Instance?.ShowMessage("Loadout full (4/4). No free weapon slot.", 2.8f);
+                return;
+            }
 
             WeaponData weapon = wt switch
             {
@@ -1300,12 +1305,17 @@ namespace Deadlight.UI
                 _ => null
             };
 
-            if (weapon != null)
+            if (weapon == null) return;
+            if (!PointsSystem.Instance.SpendPoints(cost, $"Weapon: {wt}")) return;
+
+            if (!shooting.TryAddWeaponToLoadout(weapon, true))
             {
-                var player = GameObject.Find("Player");
-                player?.GetComponent<PlayerShooting>()?.SetSecondWeapon(weapon);
+                // Should be rare due pre-check, but keep a clear fallback message.
+                RadioTransmissions.Instance?.ShowMessage("Unable to equip weapon: loadout slots unavailable.", 2.8f);
+                return;
             }
 
+            _purchasedWeapons.Add(wt);
             RefreshShop();
         }
 
@@ -1428,9 +1438,9 @@ namespace Deadlight.UI
                 if (lbl != null) lbl.text = needsMolotov ? $"Molotov +1 ({MolotovRefillCost})" : "Molotovs Full";
             }
 
-            WeaponType[] wts = { WeaponType.Shotgun, WeaponType.SMG, WeaponType.SniperRifle, WeaponType.AssaultRifle, WeaponType.GrenadeLauncher, WeaponType.Flamethrower };
-            int[] costs = { 100, 150, 250, 200, 350, 400 };
-            int[] requiredNights = { 1, 2, 2, 3, 3, 4 };
+            WeaponType[] wts = { WeaponType.SMG, WeaponType.SniperRifle, WeaponType.AssaultRifle, WeaponType.GrenadeLauncher, WeaponType.Flamethrower };
+            int[] costs = { 150, 250, 200, 350, 400 };
+            int[] requiredNights = { 2, 2, 3, 3, 4 };
             for (int i = 0; i < wts.Length; i++)
             {
                 int idx = SupplyButtonCount + i;
@@ -1525,6 +1535,8 @@ namespace Deadlight.UI
         {
             HidePanel(_levelCompletePanel);
             Time.timeScale = 1f;
+            _purchasedWeapons.Clear();
+            PlayerUpgrades.Instance?.ResetUpgrades();
             GameManager.Instance?.StartNextLevel();
         }
 
@@ -1566,14 +1578,7 @@ namespace Deadlight.UI
                 string nextDeploymentText = hasNextPlayableLevel
                     ? $"Level {next} - {nextMap}"
                     : nextMap;
-                float carryRatio = Mathf.Clamp01(GameManager.Instance.GetProjectedCarryoverRatio());
-                string carryText = carryRatio >= 0.999f
-                    ? "Point carryover on direct deploy: 100%"
-                    : $"Point carryover on direct deploy: {Mathf.RoundToInt(carryRatio * 100f)}%";
-                if (GameManager.Instance.PendingObjectiveCarryoverPenaltyStacks > 0)
-                {
-                    carryText += " (objective penalty)";
-                }
+                string resetText = "Next level starts fresh: points, upgrades, and purchased loadout reset.";
 
                 _levelCompleteStatsText.text =
                     $"Congratulations. Level {level} - {map} is complete.\n" +
@@ -1584,7 +1589,7 @@ namespace Deadlight.UI
                     $"Run Time: {minutes}:{seconds:D2}\n\n" +
                     $"Next Deployment: {nextDeploymentText}\n" +
                     $"{nextObj}\n" +
-                    $"{carryText}\n\n" +
+                    $"{resetText}\n\n" +
                     "You can deploy immediately or return to the main menu and select the next level.";
             }
             ShowPanel(_levelCompletePanel);
@@ -1671,6 +1676,11 @@ namespace Deadlight.UI
                     ShowPanel(_mainMenuPanel);
                     break;
                 case GameState.DayPhase:
+                    if (GameManager.Instance != null && GameManager.Instance.NightWithinLevel == 1)
+                    {
+                        _purchasedWeapons.Clear();
+                    }
+                    break;
                 case GameState.NightPhase:
                 case GameState.Transition:
                     break;
