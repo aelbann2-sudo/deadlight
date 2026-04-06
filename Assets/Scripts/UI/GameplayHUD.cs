@@ -36,6 +36,7 @@ namespace Deadlight.UI
         private Player.PlayerShooting playerShooting;
         private Player.PlayerController playerController;
         private Player.ThrowableSystem throwableSystem;
+        private Player.PlayerMedkitSystem playerMedkitSystem;
         private WaveManager waveManager;
         private WaveSpawner waveSpawner;
         private RectTransform healthFillRect;
@@ -119,6 +120,7 @@ namespace Deadlight.UI
             playerShooting = player.GetComponent<Player.PlayerShooting>();
             playerController = player.GetComponent<Player.PlayerController>();
             throwableSystem = player.GetComponent<Player.ThrowableSystem>();
+            playerMedkitSystem = player.GetComponent<Player.PlayerMedkitSystem>();
         }
 
         private void SubscribeEvents()
@@ -145,8 +147,17 @@ namespace Deadlight.UI
 
             if (throwableSystem != null)
             {
-                throwableSystem.OnInventoryChanged += UpdateThrowables;
-                UpdateThrowables(throwableSystem.GrenadeCount, throwableSystem.MolotovCount);
+                throwableSystem.OnInventoryChanged += OnThrowableInventoryChanged;
+            }
+
+            if (playerMedkitSystem != null)
+            {
+                playerMedkitSystem.OnMedkitCountChanged += OnMedkitInventoryChanged;
+            }
+
+            if (throwableSystem != null || playerMedkitSystem != null)
+            {
+                UpdateUtilityInventoryDisplay();
             }
             else if (throwablesText != null)
             {
@@ -228,7 +239,11 @@ namespace Deadlight.UI
             }
             if (throwableSystem != null)
             {
-                throwableSystem.OnInventoryChanged -= UpdateThrowables;
+                throwableSystem.OnInventoryChanged -= OnThrowableInventoryChanged;
+            }
+            if (playerMedkitSystem != null)
+            {
+                playerMedkitSystem.OnMedkitCountChanged -= OnMedkitInventoryChanged;
             }
             if (Player.PlayerArmor.Instance != null)
             {
@@ -350,31 +365,69 @@ namespace Deadlight.UI
             ammoText.text = $"{playerShooting.CurrentAmmo} / {playerShooting.ReserveAmmo}";
         }
 
-        private void UpdateThrowables(int grenades, int molotovs)
+        private void OnThrowableInventoryChanged(int grenades, int molotovs)
+        {
+            UpdateUtilityInventoryDisplay();
+        }
+
+        private void OnMedkitInventoryChanged(int medkits, int maxMedkits)
+        {
+            UpdateUtilityInventoryDisplay();
+        }
+
+        private void UpdateUtilityInventoryDisplay()
         {
             if (throwablesText == null)
             {
                 return;
             }
 
-            if (throwableSystem == null)
+            if (throwableSystem == null && playerMedkitSystem == null)
             {
                 throwablesText.gameObject.SetActive(false);
                 return;
             }
 
             throwablesText.gameObject.SetActive(true);
-            throwablesText.text = $"Q GRENADE {grenades}/{throwableSystem.MaxGrenades}\nG MOLOTOV {molotovs}/{throwableSystem.MaxMolotovs}";
+
+            string utilityText = string.Empty;
+            if (throwableSystem != null)
+            {
+                utilityText = $"Q GRENADE {throwableSystem.GrenadeCount}/{throwableSystem.MaxGrenades}\n" +
+                              $"G MOLOTOV {throwableSystem.MolotovCount}/{throwableSystem.MaxMolotovs}";
+            }
+
+            if (playerMedkitSystem != null)
+            {
+                if (utilityText.Length > 0)
+                {
+                    utilityText += "\n";
+                }
+
+                utilityText += $"C MEDKIT {playerMedkitSystem.MedkitCount}/{playerMedkitSystem.MaxMedkits}";
+                if (playerMedkitSystem.IsApplying)
+                {
+                    utilityText += " (APPLYING)";
+                }
+            }
+
+            throwablesText.text = utilityText;
         }
 
         private void UpdateThrowablesFromState()
         {
-            if (throwableSystem == null || throwablesText == null)
+            if (throwablesText == null)
             {
                 return;
             }
 
-            UpdateThrowables(throwableSystem.GrenadeCount, throwableSystem.MolotovCount);
+            if (throwableSystem == null && playerMedkitSystem == null)
+            {
+                throwablesText.gameObject.SetActive(false);
+                return;
+            }
+
+            UpdateUtilityInventoryDisplay();
         }
 
         private void UpdateStamina()

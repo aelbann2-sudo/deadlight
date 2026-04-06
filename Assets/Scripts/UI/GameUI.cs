@@ -679,7 +679,7 @@ namespace Deadlight.UI
             UIFactory.SetAnchored(srRt, new Vector2(0.5f, 0.78f), Vector2.zero, new Vector2(900f, 36f));
 
             var healBtn = UIFactory.CreateCenteredButton(supplyRow.transform, "HealBtn",
-                $"Full Heal ({HealCost})", UITheme.AccentRed,
+                $"Health Kit +1 ({HealCost})", UITheme.AccentRed,
                 new Vector2(0.125f, 0.5f), new Vector2(200f, 32f), BuyHealthKit);
             _shopBuyButtons.Add(healBtn);
 
@@ -793,7 +793,7 @@ namespace Deadlight.UI
         private void BuildUpgradeItems()
         {
             float y = 0f;
-            const int h = 52;
+            const int h = 58;
             AddUpgradeItem("Damage", ref y, h, () => { if (PlayerUpgrades.Instance?.TryUpgradeDamage() == true) RefreshShop(); });
             AddUpgradeItem("Fire Rate", ref y, h, () => { if (PlayerUpgrades.Instance?.TryUpgradeFireRate() == true) RefreshShop(); });
             AddUpgradeItem("Magazine", ref y, h, () => { if (PlayerUpgrades.Instance?.TryUpgradeMagazine() == true) RefreshShop(); });
@@ -815,9 +815,14 @@ namespace Deadlight.UI
                 UITheme.BgMedium.g, UITheme.BgMedium.b + 0.04f, 0.9f);
 
             var label = UIFactory.CreateTextAt(root.transform, "Label", name,
-                UITheme.FontBody, UITheme.TextPrimary,
-                new Vector2(0f, 0.5f), new Vector2(14f, 0f), new Vector2(380f, height),
-                TextAnchor.MiddleLeft);
+                UITheme.FontBody - 1, UITheme.TextPrimary,
+                new Vector2(0f, 1f), new Vector2(14f, -10f), new Vector2(396f, 30f),
+                TextAnchor.MiddleLeft, FontStyle.Bold);
+            label.horizontalOverflow = HorizontalWrapMode.Overflow;
+            label.verticalOverflow = VerticalWrapMode.Truncate;
+            var labelOutline = label.gameObject.AddComponent<Outline>();
+            labelOutline.effectColor = new Color(0f, 0f, 0f, 0.55f);
+            labelOutline.effectDistance = new Vector2(1f, -1f);
             _upgradeLabels.Add(label);
 
             var buyBtn = UIFactory.CreateCenteredButton(root.transform, "Buy", "UPGRADE",
@@ -1192,9 +1197,9 @@ namespace Deadlight.UI
 
         private void BuyHealthKit()
         {
-            if (!CanPurchaseHealthKit(out var health)) return;
+            if (!CanPurchaseHealthKit(out var medkits)) return;
             if (!PointsSystem.Instance.SpendPoints(HealCost, "Health Kit")) return;
-            health.FullHeal();
+            medkits.AddMedkits(1);
             RefreshShop();
         }
 
@@ -1253,11 +1258,22 @@ namespace Deadlight.UI
             if (_shopSummaryText != null && PointsSystem.Instance != null)
             {
                 var stats = PointsSystem.Instance.GetGameStats();
-                _shopSummaryText.text = $"Kills: {stats.enemiesKilled}  |  Earned: {stats.totalEarned}";
+                string summary = $"Kills: {stats.enemiesKilled}  |  Earned: {stats.totalEarned}";
+
+                if (GameManager.Instance != null && GameManager.Instance.WillRetryCurrentStepOnAdvance)
+                {
+                    summary += "\nObjective missed: next deploy retries this step.";
+                }
+                else if (GameManager.Instance != null && GameManager.Instance.PendingObjectiveCarryoverPenaltyStacks > 0)
+                {
+                    summary += "\nPenalty queued: stronger next-night enemies and reduced carryover.";
+                }
+
+                _shopSummaryText.text = summary;
             }
 
             int night = GameManager.Instance?.CurrentLevel ?? 1;
-            bool needsHeal = NeedsHealing(out _);
+            bool needsHeal = NeedsMedkits(out var medkits);
             bool needsGrenade = NeedsGrenades(out _);
             bool needsMolotov = NeedsMolotovs(out _);
             bool canHeal = needsHeal && PointsSystem.Instance != null && PointsSystem.Instance.CanAfford(HealCost);
@@ -1269,7 +1285,12 @@ namespace Deadlight.UI
             if (_shopBuyButtons.Count > 0)
             {
                 var lbl = _shopBuyButtons[0].GetComponentInChildren<Text>();
-                if (lbl != null) lbl.text = needsHeal ? $"Full Heal ({HealCost})" : "Health Full";
+                if (lbl != null)
+                {
+                    lbl.text = needsHeal
+                        ? $"Health Kit +1 ({HealCost})"
+                        : (medkits != null ? "Medkits Full" : "No Medkits");
+                }
             }
 
             if (_shopBuyButtons.Count > 2)
@@ -1311,17 +1332,17 @@ namespace Deadlight.UI
             }
         }
 
-        private bool CanPurchaseHealthKit(out PlayerHealth health)
+        private bool CanPurchaseHealthKit(out PlayerMedkitSystem medkits)
         {
-            if (!NeedsHealing(out health)) return false;
+            if (!NeedsMedkits(out medkits)) return false;
             return PointsSystem.Instance != null && PointsSystem.Instance.CanAfford(HealCost);
         }
 
-        private bool NeedsHealing(out PlayerHealth health)
+        private bool NeedsMedkits(out PlayerMedkitSystem medkits)
         {
             var player = GameObject.Find("Player");
-            health = player != null ? player.GetComponent<PlayerHealth>() : null;
-            return health != null && health.CurrentHealth < health.MaxHealth - 0.01f;
+            medkits = player != null ? player.GetComponent<PlayerMedkitSystem>() : null;
+            return medkits != null && medkits.HasCapacity();
         }
 
         private bool CanPurchaseGrenadeRefill(out ThrowableSystem throwable)
@@ -1402,11 +1423,19 @@ namespace Deadlight.UI
                 string nextObj = next > level
                     ? levelObjectiveSummaries[Mathf.Clamp(next - 1, 0, levelObjectiveSummaries.Length - 1)]
                     : "Final containment cleared.";
+                float carryRatio = Mathf.Clamp01(GameManager.Instance.GetProjectedCarryoverRatio());
+                string carryText = carryRatio >= 0.999f
+                    ? "Points carryover: 100%"
+                    : $"Points carryover: {Mathf.RoundToInt(carryRatio * 100f)}%";
+                if (GameManager.Instance.PendingObjectiveCarryoverPenaltyStacks > 0)
+                {
+                    carryText += " (objective penalty)";
+                }
 
                 _levelCompleteStatsText.text =
                     $"Level {level} - {map} cleared!\n\n" +
                     $"Enemies Killed: {kills}\nPoints Earned: {earned}\n\n" +
-                    $"Next: Level {next} - {nextMap}\n{nextObj}";
+                    $"Next: Level {next} - {nextMap}\n{nextObj}\n{carryText}";
             }
             ShowPanel(_levelCompletePanel);
             Time.timeScale = 0f;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using Deadlight.Data;
 using Deadlight.Enemy;
 using Deadlight.Level;
@@ -64,6 +65,12 @@ namespace Deadlight.Core
         [SerializeField] private bool autoBootstrapGameScene = true;
         [SerializeField] private bool autoStartWhenGameSceneLoads = false;
         [SerializeField] private float dawnAutoAdvanceDelay = 2f;
+        [Header("Level Progression")]
+        [SerializeField, Range(0f, 1f)] private float interLevelPointCarryRatio = 0.65f;
+        [Header("Objective Miss Rules")]
+        [SerializeField, Min(0)] private int maxObjectiveRetriesPerStep = 1;
+        [SerializeField, Range(1f, 2f)] private float missedObjectiveEnemyPenaltyMultiplier = 1.2f;
+        [SerializeField, Range(0.2f, 1f)] private float missedObjectiveCarryoverPenaltyMultiplier = 0.75f;
         [Header("Feature Toggles")]
         [SerializeField] private bool enableCrafting = false;
 
@@ -86,6 +93,11 @@ namespace Deadlight.Core
             (!startupIntroShown || startupIntroInProgress);
         public bool CraftingEnabled => enableCrafting;
         public float RunStartTime { get; private set; }
+        public float InterLevelPointCarryRatio => interLevelPointCarryRatio;
+        public bool WillRetryCurrentStepOnAdvance => repeatCurrentNightOnAdvance;
+        public int PendingObjectiveCarryoverPenaltyStacks => queuedCarryoverPenaltyStacks;
+        public float CurrentNightEnemyPenaltyMultiplier => objectivePenaltyActiveForCurrentNight ? missedObjectiveEnemyPenaltyMultiplier : 1f;
+        public bool IsObjectivePenaltyActiveThisNight => objectivePenaltyActiveForCurrentNight;
 
         public static int GetLevelForNight(int night) => Mathf.Clamp((night - 1) / NightsPerLevel + 1, 1, TotalLevels);
         public static int GetNightWithinLevel(int night) => ((night - 1) % NightsPerLevel) + 1;
@@ -105,6 +117,11 @@ namespace Deadlight.Core
         private bool startupIntroShown;
         private bool startupIntroInProgress;
         private int queuedStartNight = 1;
+        private readonly Dictionary<int, int> missedObjectiveRetriesByNight = new Dictionary<int, int>();
+        private bool repeatCurrentNightOnAdvance;
+        private bool objectivePenaltyActiveForCurrentNight;
+        private int queuedEnemyPenaltyNights;
+        private int queuedCarryoverPenaltyStacks;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void EnsureRuntimeGameManager()
@@ -357,6 +374,17 @@ namespace Deadlight.Core
 
         public void OnNightSurvived()
         {
+            if (currentState != GameState.NightPhase)
+            {
+                return;
+            }
+
+            if (ShouldRetryCurrentStepAfterNight())
+            {
+                TransitionToDawnPhase();
+                return;
+            }
+
             if (currentNight >= maxNights)
             {
                 UnlockNextLevel();
@@ -371,17 +399,7 @@ namespace Deadlight.Core
                 return;
             }
 
-            ChangeState(GameState.DawnPhase);
-
-            if (!HasInteractiveDawnUI())
-            {
-                if (dawnAdvanceCoroutine != null)
-                {
-                    StopCoroutine(dawnAdvanceCoroutine);
-                }
-
-                dawnAdvanceCoroutine = StartCoroutine(AutoAdvanceFromDawn());
-            }
+            TransitionToDawnPhase();
         }
 
         public void AdvanceToNextNight()
@@ -392,7 +410,21 @@ namespace Deadlight.Core
                 return;
             }
 
-            currentNight = Mathf.Min(currentNight + 1, maxNights);
+            bool retryingCurrentStep = repeatCurrentNightOnAdvance;
+            repeatCurrentNightOnAdvance = false;
+
+            if (!retryingCurrentStep)
+            {
+                currentNight = Mathf.Min(currentNight + 1, maxNights);
+                selectedMap = GetCampaignMapForNight(currentNight);
+                ApplyQueuedEnemyPenaltyForCurrentNight();
+            }
+            else
+            {
+                RadioTransmissions.Instance?.ShowMessage(
+                    "Objective missed. Retry active: this level step repeats once.", 3.8f);
+            }
+
             OnNightChanged?.Invoke(currentNight);
             ChangeState(GameState.DayPhase);
         }
@@ -405,11 +437,30 @@ namespace Deadlight.Core
                 return;
             }
 
+            float carryRatio = ConsumeProjectedCarryoverRatio();
+            if (PointsSystem.Instance != null && carryRatio < 0.999f)
+            {
+                PointsSystem.Instance.ApplyLevelCarryover(carryRatio);
+            }
+
+            repeatCurrentNightOnAdvance = false;
             currentNight = Mathf.Min(currentNight + 1, maxNights);
             selectedMap = GetCampaignMapForNight(currentNight);
+            ApplyQueuedEnemyPenaltyForCurrentNight();
             RebuildMapForCurrentLevel();
             OnNightChanged?.Invoke(currentNight);
             ChangeState(GameState.DayPhase);
+        }
+
+        public float GetProjectedCarryoverRatio()
+        {
+            float ratio = Mathf.Clamp01(interLevelPointCarryRatio);
+            if (queuedCarryoverPenaltyStacks > 0)
+            {
+                ratio *= Mathf.Pow(missedObjectiveCarryoverPenaltyMultiplier, queuedCarryoverPenaltyStacks);
+            }
+
+            return Mathf.Clamp01(ratio);
         }
 
         public void OnPlayerDeath()
@@ -422,6 +473,7 @@ namespace Deadlight.Core
             currentNight = 1;
             queuedStartNight = 1;
             startNewRunAfterGameSceneLoad = false;
+            ClearObjectiveMissState();
 
             if (deferredRestartCoroutine != null)
             {
@@ -439,6 +491,7 @@ namespace Deadlight.Core
             currentNight = 1;
             queuedStartNight = 1;
             startNewRunAfterGameSceneLoad = true;
+            ClearObjectiveMissState();
             SetPaused(false);
             ChangeState(GameState.MainMenu);
             SceneManager.LoadScene("Game");
@@ -455,6 +508,7 @@ namespace Deadlight.Core
             currentNight = 1;
             selectedMap = GetCampaignMapForNight(currentNight);
             startNewRunAfterGameSceneLoad = true;
+            ClearObjectiveMissState();
 
             if (deferredRestartCoroutine != null)
             {
@@ -478,6 +532,7 @@ namespace Deadlight.Core
             currentNight = queuedStartNight;
             selectedMap = GetCampaignMapForNight(currentNight);
             startNewRunAfterGameSceneLoad = true;
+            ClearObjectiveMissState();
 
             if (deferredRestartCoroutine != null)
             {
@@ -917,6 +972,11 @@ namespace Deadlight.Core
             health.FullHeal();
             health.SetInvincible(false);
 
+            if (player.GetComponent<PlayerMedkitSystem>() == null)
+            {
+                player.AddComponent<PlayerMedkitSystem>();
+            }
+
             var shooting = player.GetComponent<PlayerShooting>();
             if (shooting == null)
             {
@@ -1118,6 +1178,8 @@ namespace Deadlight.Core
                 dawnAdvanceCoroutine = null;
             }
 
+            ClearObjectiveMissState();
+
             var pointsSystem = PointsSystem.Instance;
             if (pointsSystem != null)
             {
@@ -1182,7 +1244,103 @@ namespace Deadlight.Core
                 {
                     shooting.ResetLoadout(WeaponData.CreatePistol());
                 }
+
+                player.GetComponent<PlayerMedkitSystem>()?.ResetMedkits();
             }
+        }
+
+        private void TransitionToDawnPhase()
+        {
+            ChangeState(GameState.DawnPhase);
+
+            if (!HasInteractiveDawnUI())
+            {
+                if (dawnAdvanceCoroutine != null)
+                {
+                    StopCoroutine(dawnAdvanceCoroutine);
+                }
+
+                dawnAdvanceCoroutine = StartCoroutine(AutoAdvanceFromDawn());
+            }
+        }
+
+        private bool ShouldRetryCurrentStepAfterNight()
+        {
+            if (!WasCurrentObjectiveMissed())
+            {
+                repeatCurrentNightOnAdvance = false;
+                missedObjectiveRetriesByNight.Remove(currentNight);
+                return false;
+            }
+
+            int retriesUsed = missedObjectiveRetriesByNight.TryGetValue(currentNight, out var count) ? count : 0;
+            if (retriesUsed < Mathf.Max(0, maxObjectiveRetriesPerStep))
+            {
+                missedObjectiveRetriesByNight[currentNight] = retriesUsed + 1;
+                repeatCurrentNightOnAdvance = true;
+                RadioTransmissions.Instance?.ShowMessage(
+                    "Objective missed. One retry granted before forced advance.", 4.2f);
+                return true;
+            }
+
+            repeatCurrentNightOnAdvance = false;
+            QueueObjectiveMissPenalty();
+            RadioTransmissions.Instance?.ShowMessage(
+                "Objective missed again. Forced advance with penalties applied.", 4.8f);
+            return false;
+        }
+
+        private bool WasCurrentObjectiveMissed()
+        {
+            if (StoryObjective.Instance == null || !StoryObjective.Instance.HasActiveObjective)
+            {
+                return false;
+            }
+
+            return !StoryObjective.Instance.IsComplete;
+        }
+
+        private void QueueObjectiveMissPenalty()
+        {
+            queuedEnemyPenaltyNights = Mathf.Clamp(queuedEnemyPenaltyNights + 1, 0, 12);
+            queuedCarryoverPenaltyStacks = Mathf.Clamp(queuedCarryoverPenaltyStacks + 1, 0, 12);
+        }
+
+        private void ApplyQueuedEnemyPenaltyForCurrentNight()
+        {
+            if (queuedEnemyPenaltyNights > 0)
+            {
+                objectivePenaltyActiveForCurrentNight = true;
+                queuedEnemyPenaltyNights--;
+                RadioTransmissions.Instance?.ShowMessage(
+                    "Penalty active: enemies are stronger this night.", 3.6f);
+            }
+            else
+            {
+                objectivePenaltyActiveForCurrentNight = false;
+            }
+        }
+
+        private float ConsumeProjectedCarryoverRatio()
+        {
+            float ratio = GetProjectedCarryoverRatio();
+            if (queuedCarryoverPenaltyStacks > 0)
+            {
+                RadioTransmissions.Instance?.ShowMessage(
+                    $"Carryover penalty: {Mathf.RoundToInt(ratio * 100f)}% points retained into next level.", 4.4f);
+            }
+
+            queuedCarryoverPenaltyStacks = 0;
+            return ratio;
+        }
+
+        private void ClearObjectiveMissState()
+        {
+            missedObjectiveRetriesByNight.Clear();
+            repeatCurrentNightOnAdvance = false;
+            objectivePenaltyActiveForCurrentNight = false;
+            queuedEnemyPenaltyNights = 0;
+            queuedCarryoverPenaltyStacks = 0;
         }
 
         private bool HasInteractiveDawnUI()

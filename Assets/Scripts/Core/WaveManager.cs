@@ -757,6 +757,14 @@ namespace Deadlight.Core
                 damageMultiplier *= CraftingSystem.Instance.GetNightEnemyDamageMultiplier();
             }
 
+            if (!isDaySkirmish && GameManager.Instance != null)
+            {
+                float penalty = Mathf.Max(1f, GameManager.Instance.CurrentNightEnemyPenaltyMultiplier);
+                healthMultiplier *= penalty;
+                damageMultiplier *= penalty;
+                speedMultiplier *= Mathf.Lerp(1f, penalty, 0.5f);
+            }
+
             if (isDaySkirmish)
             {
                 healthMultiplier = Mathf.Lerp(1f, healthMultiplier, daySkirmishHealthMultiplier);
