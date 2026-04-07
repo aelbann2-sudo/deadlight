@@ -242,7 +242,7 @@ Balance depends not only on enemy tuning, but also on how clearly the game expla
 \begin{itemize}
     \item Pickup callouts and HUD counts show what changed after looting or shopping.
     \item Objective results, scavenging, and shop buys all feed into how survivable the night feels.
-    \item Missed day objectives can strengthen the next night and reduce how many points carry forward; radio and summary UI explain this so the rule is visible, not hidden.
+            \item Missed day objectives can strengthen the next night inside the same level; radio and summary UI surface this. Advancing to a new level (\texttt{GameManager.StartNextLevel}) resets points, upgrades, armor, throwables, and loadout to a fresh baseline so Deliverable~2 progression stays readable.
     \item Pickup flow emphasizes combat items (ammo, health, utility, points) to limit inventory clutter.
 \end{itemize}
 
@@ -360,8 +360,8 @@ Including Level~2 is important because it gives the prototype a sense of continu
             \toprule
             \textbf{\#} & \textbf{Beat} & \textbf{What changes for the player} \\
             \midrule
-            1 & L1 Night 1 & Starter loadout and supply shop use; first milestone stipend; learn day--night rhythm. \\
-            2 & L1 Night 2 & SMG and assault rifle tier; noticeably higher night pressure. \\
+            1 & L1 Night 1 & Pistol baseline; dawn shop and pickups add weapons to open slots; first milestone stipend; learn day--night rhythm. \\
+            2 & L1 Night 2 & SMG and sniper rifle unlock at the dawn shop (night~$2$); assault rifle and grenade launcher remain night~$3$+; higher night pressure. \\
             3 & L1 Night 3 & Level~1 clear; \textbf{Level~2} unlocks and the next deployment is surfaced to the player. \\
             4 & L2 Night 1 & New district layout; story and objective context escalate. \\
             5 & L2 Night 2 & Faster threats, tighter routes, larger risk--reward on mistakes. \\
@@ -386,13 +386,13 @@ Including Level~2 is important because it gives the prototype a sense of continu
     \begin{subfigure}[t]{0.48\textwidth}
         \centering
         \includegraphics[width=\linewidth]{d2_fig_level1_complete.png}
-        \caption{Level 1 completion screen showing the next deployment and carryover summary.}
+        \caption{Level 1 completion panel: stats, next deployment, and explicit reset of points, upgrades, and purchased loadout before Level~2.}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{0.48\textwidth}
         \centering
         \includegraphics[width=\linewidth]{d2_fig_level2_briefing.png}
-        \caption{Level 2 briefing screen presenting the next district and its objective.}
+        \caption{Level 2 daytime play after deployment: fresh score and pistol baseline, suburban objectives, and four-slot weapon HUD.}
     \end{subfigure}
 
     \vspace{0.6em}
@@ -457,7 +457,8 @@ Several Unity systems were important to this iteration:
     \item \textbf{Game flow and campaign state:} \texttt{GameManager} and \texttt{GameFlowController} coordinate the day, night, dawn, and level transition structure.
     \item \textbf{Mission guidance:} \texttt{StoryObjective}, the objective HUD, and objective markers provide in-world direction without relying on a heavy tutorial layer; support markers also track drops and nearest enemy direction.
     \item \textbf{Narrative support:} radio updates, mission scripting, and lore systems support layered story delivery across the run.
-    \item \textbf{Balance and preparation systems:} \texttt{SupplyCrate}, \texttt{Pickup}, \texttt{PointsSystem}, and the wave balancing path connect day preparation to night pressure; contested and helicopter drops now use map-scattered spawn placement.
+    \item \textbf{Balance and preparation systems:} \texttt{SupplyCrate}, \texttt{Pickup}, \texttt{PointsSystem}, and the wave balancing path connect day preparation to night pressure; contested and helicopter drops use map-scattered spawn placement.
+    \item \textbf{Weapon loadout:} \texttt{PlayerShooting} supports four weapon slots with hotkey switching; the shop fills empty slots rather than selling duplicate types already carried.
     \item \textbf{Current feature gating:} crafting hooks exist in code but are disabled in this Deliverable 2 build (\texttt{enableCrafting = false}) to keep the prototype loop clean and readable.
     \item \textbf{Submission structure:} the Deliverable 2 package is organized around the Unity project, the standalone build output used for evaluation, and this written PDF report.
 \end{itemize}
@@ -466,26 +467,26 @@ Several Unity systems were important to this iteration:
 The team smoke-tested phase transitions, unlock flow, and HUD readability in Unity Play Mode and in the standalone submission build. Crafting remains off (\texttt{enableCrafting = false}) to keep this milestone focused. Levels~3 and~4 appear as menu art only and are \textbf{not} playable in Deliverable~2.
 
 \paragraph{In-engine figures.}
-These captures are from the same Deliverable~2 build as the submission. They document the HUD, a daytime objective beat, combat feedback, and the dawn shop.
+These screenshots come from the current Deliverable~2 evaluation build. They show the four-slot HUD, daytime scavenging, night combat, the dawn shop, and level-to-level flow.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.92\textwidth]{d2_fig_hud.png}
-    \caption{Objective text, distance cue to the target, and COMMS during daytime play.}
+    \caption{Objective panel, navigation cues, and loadout strip (four weapon slots) during daytime play.}
     \label{fig:d2hud}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.92\textwidth]{d2_fig_daytime.png}
-    \caption{Daytime exploration at an objective site: loadout panel, health, and mission status.}
+    \caption{Daytime scavenging: loot interaction, contested-drop feedback in COMMS, and multi-slot loadout.}
     \label{fig:d2daytime}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.92\textwidth]{d2_fig_combat.png}
-    \caption{Combat encounter: hostiles counter, objective, score, and point feedback on the HUD.}
+    \caption{Night combat: wave indicator, hostiles count, objective status, score, and weapon slots.}
     \label{fig:d2combat}
 \end{figure}
 
