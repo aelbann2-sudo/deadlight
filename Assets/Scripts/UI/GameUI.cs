@@ -947,10 +947,10 @@ namespace Deadlight.UI
         {
             float y = 0f;
             const int h = 56;
-            AddArmorItem("Vest Lv1", "Light body armor", 80, ArmorTier.Level1, false, ref y, h);
-            AddArmorItem("Vest Lv2", "Heavy body armor", 180, ArmorTier.Level2, false, ref y, h);
-            AddArmorItem("Helmet Lv1", "Basic protection", 60, ArmorTier.Level1, true, ref y, h);
-            AddArmorItem("Helmet Lv2", "Reinforced helmet", 140, ArmorTier.Level2, true, ref y, h);
+            AddArmorItem("Vest Lv1",    "Light body armor",  80,  ArmorTier.Level1, false, ref y, h);
+            AddArmorItem("Vest Lv2",    "Heavy body armor",  180, ArmorTier.Level2, false, ref y, h);
+            AddArmorItem("Helmet Lv1",  "Basic protection",  60,  ArmorTier.Level1, true,  ref y, h);
+            AddArmorItem("Helmet Lv2",  "Reinforced helmet", 140, ArmorTier.Level2, true,  ref y, h);
         }
 
         private void AddArmorItem(string name, string desc, int cost,
@@ -978,15 +978,34 @@ namespace Deadlight.UI
                 TextAnchor.MiddleLeft);
 
             var t = tier;
-            var h = isHelmet;
+            var helm = isHelmet;
             var c = cost;
             var buyBtn = UIFactory.CreateCenteredButton(root.transform, "Buy", "BUY",
                 UITheme.AccentBlue, new Vector2(1f, 0.5f), new Vector2(76f, 30f),
-                () => BuyArmor(t, h, c));
+                () => BuyArmor(t, helm, c));
             buyBtn.GetComponent<RectTransform>().anchoredPosition = new Vector2(-48f, 0f);
 
             _shopBuyButtons.Add(buyBtn);
             y -= height;
+        }
+
+        private static GameObject CreateShopRow(Transform parent, string name, int preferredHeight, Color background)
+        {
+            var root = new GameObject(name);
+            root.transform.SetParent(parent, false);
+            root.AddComponent<RectTransform>();
+            root.AddComponent<Image>().color = background;
+            UIFactory.AddLayoutElement(root, preferredHeight: preferredHeight);
+            return root;
+        }
+
+        private static Text CreateShopRowText(Transform parent, string name, string content,
+            int fontSize, Color color, Vector2 anchor, Vector2 anchoredPosition, Vector2 size,
+            TextAnchor alignment, FontStyle style = FontStyle.Normal)
+        {
+            var text = UIFactory.CreateText(parent, name, content, fontSize, color, alignment, style);
+            UIFactory.SetAnchored(text.rectTransform, anchor, anchoredPosition, size, new Vector2(0f, 0.5f));
+            return text;
         }
 
         // =====================================================================
@@ -1449,9 +1468,15 @@ namespace Deadlight.UI
                 bool sold = _purchasedWeapons.Contains(wts[i]) || PlayerAlreadyHasWeapon(wts[i]);
                 bool afford = PointsSystem.Instance != null && PointsSystem.Instance.CanAfford(costs[i]);
                 bool unlocked = progressionNight >= requiredNights[i];
-                b.interactable = !sold && afford && unlocked;
+                bool canBuy = !sold && afford && unlocked;
+                b.interactable = canBuy;
                 var lt = b.GetComponentInChildren<Text>();
                 if (lt != null) lt.text = sold ? "OWNED" : (unlocked ? "BUY" : $"N{requiredNights[i]}+");
+                var img = b.GetComponent<Image>();
+                if (img != null)
+                    img.color = sold ? UITheme.BgLight
+                        : unlocked ? UITheme.AccentGreen
+                        : new Color(0.25f, 0.35f, 0.25f, 0.7f);
             }
 
             var upgrades = PlayerUpgrades.Instance;
@@ -1462,6 +1487,17 @@ namespace Deadlight.UI
                 UpdateUpgradeRow(2, upgrades.MagazineTier, PlayerUpgrades.MaxMagazineTier, upgrades.GetMagazineCost(), upgrades.GetMagazineDescription(), "Magazine");
                 UpdateUpgradeRow(3, upgrades.HealthTier, PlayerUpgrades.MaxHealthTier, upgrades.GetHealthCost(), upgrades.GetHealthDescription(), "Max Health");
                 UpdateUpgradeRow(4, upgrades.SprintTier, PlayerUpgrades.MaxSprintTier, upgrades.GetSprintCost(), upgrades.GetSprintDescription(), "Sprint Speed");
+            }
+
+            // Refresh armor buy buttons' interactability based on current points
+            int[] armorCosts = { 80, 180, 60, 140 };
+            int armorStart = SupplyButtonCount + wts.Length;
+            for (int i = 0; i < armorCosts.Length; i++)
+            {
+                int idx = armorStart + i;
+                if (idx >= _shopBuyButtons.Count) break;
+                _shopBuyButtons[idx].interactable =
+                    PointsSystem.Instance != null && PointsSystem.Instance.CanAfford(armorCosts[i]);
             }
         }
 
