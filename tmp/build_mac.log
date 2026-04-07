@@ -1,0 +1,29 @@
+Deadlight — build log placeholder (macOS editor host)
+=======================================================
+This file documents the last editor build attempt on a Mac. Replace with real Unity
+console output if your course requires proof of build.
+
+If you only ship a Windows executable, add a sibling **build_windows.log** from the
+machine that ran **Deadlight → Build Windows** (Unity menu).
+
+Template — paste Editor.log excerpt after build:
+--------------------------------------------------
+Date:
+Unity version:
+Platform target:
+Result (success / fail):
+First error line (if any):
+
+--------------------------------------------------
+(Optional) Command-line batch build examples (adjust Unity path and project path):
+  # macOS player smoke (project includes this method):
+  .../Unity.app/Contents/MacOS/Unity -batchmode -nographics -quit \
+    -projectPath "/path/to/deadlight" \
+    -executeMethod Deadlight.Editor.DeadlightMenuItems.BuildMacHeadlessTest \
+    -logFile ./tmp/unity_build.log
+
+  # Windows .exe (requires Windows Build Support module):
+  .../Unity.app/Contents/MacOS/Unity -batchmode -nographics -quit \
+    -projectPath "/path/to/deadlight" \
+    -executeMethod Deadlight.Editor.DeadlightMenuItems.BuildWindowsHeadlessTest \
+    -logFile ./tmp/unity_build_windows.log

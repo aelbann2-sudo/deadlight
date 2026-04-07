@@ -102,7 +102,7 @@ Deliverable 2 presents a playable Unity prototype of \textit{Deadlight}. The cur
 
 The core loop has three phases. During the day, the player explores the map, follows objectives, and gathers resources. At night, the player defends against zombie waves as the pressure increases. At dawn, the player receives points and rewards, then uses the shop to buy weapons, armor, ammunition, healing, and upgrades before the next cycle. This structure connects exploration, combat, and progression in a clear way.
 
-The main goal of this iteration was to make \textbf{preparation matter}. In earlier versions, the day phase risked feeling like a pause between combat sections. In the current build, daytime choices affect the following night through objective rewards, contested drops, and resource management. As a result, the player can clearly see how exploration and preparation shape survival. The build also gives more narrative context through radio messages, environmental details, and mission events connected to EVAC Command, Project Lazarus, Dr.~Chen, and Subject~23.
+This build makes \textbf{preparation matter}: daytime work ties to the next night through objective rewards, contested drops, and resource management, so exploration and the dawn shop read as part of survival rather than a break from it. Players can see how loot, routes, and spending change the defense phase. Narrative context arrives through radio, environmental detail, and mission events involving EVAC Command, Project Lazarus, Dr.~Chen, and Subject~23.
 
 Table~\ref{tab:rubric} maps the submission to the deliverable criteria. The following sections discuss level design, narrative, systems, progression, testing, technical implementation, and planned work for Deliverable~3.
 
@@ -185,7 +185,7 @@ The design aims to balance guidance and freedom. Optional loot and lore are stil
 
 The narrative design follows a play-first approach. Story information is delivered during movement, scavenging, defense, and mission completion rather than through long cutscenes. This keeps the pace of the game steady while still giving the player enough context to understand the situation.
 
-In the Deliverable 2 build, the player takes the role of a survivor of a failed evacuation attempt. Across six nights, the player receives updates from EVAC Command while moving through two unsafe districts in search of supplies, information, and a route to extraction. As the run continues, the radio dialogue and mission structure reveal more about Project Lazarus, Dr.~Chen, and Subject~23. This gives the prototype a clearer story arc than a simple wave-survival mode.
+In the Deliverable 2 build, the player takes the role of a survivor of a failed evacuation attempt. Across six nights, the player receives updates from EVAC Command while moving through two unsafe districts in search of supplies, information, and a route to extraction. As the run continues, the radio dialogue and mission structure reveal more about Project Lazarus, Dr.~Chen, and Subject~23. This gives the prototype an explicit story arc alongside combat survival.
 
 Delivery uses several channels:
 
@@ -242,7 +242,7 @@ Balance depends not only on enemy tuning, but also on how clearly the game expla
 \begin{itemize}
     \item Pickup callouts and HUD counts show what changed after looting or shopping.
     \item Objective results, scavenging, and shop buys all feed into how survivable the night feels.
-            \item Missed day objectives can strengthen the next night inside the same level; radio and summary UI surface this. Advancing to a new level (\texttt{GameManager.StartNextLevel}) resets points, upgrades, armor, throwables, and loadout to a fresh baseline so Deliverable~2 progression stays readable.
+    \item Missed day objectives can strengthen the next night inside the same level; radio and summary UI surface this. Advancing to a new level (\texttt{GameManager.StartNextLevel}) resets points, upgrades, armor, throwables, and loadout to a fresh baseline so Deliverable~2 progression stays readable.
     \item Pickup flow emphasizes combat items (ammo, health, utility, points) to limit inventory clutter.
 \end{itemize}
 
@@ -290,7 +290,7 @@ Balance depends not only on enemy tuning, but also on how clearly the game expla
     \end{tikzpicture}
 
     \vspace{0.45em}
-    {\footnotesize Day: objectives, scavenging, contested drops \textbullet{} Night: wave pressure tied to prep \textbullet{} Rewards: points, gear, grades \textbullet{} Shop: spend before the next day.}
+    {\footnotesize Day: objectives, scavenging, contested drops \textbullet{} Night: wave pressure tied to prep \textbullet{} Rewards: points, pickups, objectives \textbullet{} Shop: spend before the next day.}
     \caption{Core loop for Deliverable~2. Sections~\ref{sec:systems} and~\ref{sec:progression} describe this structure in full.}
 \end{figure}
 
@@ -305,9 +305,9 @@ The table below lists default values from the code and ScriptableObjects. Design
         Parameter & Role in the prototype \\
         \midrule
         Night survived payout & Base \texttt{pointsPerNightSurvived} $= 100$ plus scaling \texttt{bonusPointsPerNight} $\times$ nights survived (default $50$ per stack in \texttt{PointsSystem}). \\
-        Dawn milestones & Clearing nights 1--3 on a level grants milestone stipends of $+100$, $+150$, and $+200$ points (\texttt{ProgressionManager}). \\
+        Dawn milestones & \texttt{ProgressionManager} awards stipends when a milestone row matches the surviving night index (defaults: nights $1$--$3$ at $+100$, $+150$, $+200$). Milestones reset on new-level setup; add rows for nights $4$--$6$ in Unity if Level~2 should receive the same stipend cadence. \\
         Contested drops & Timed pickups grant tiered point bundles ($+110$ / $+170$ / $+260$) plus ammo and healing, with drop locations scattered across the map (\texttt{GameFlowController}, \texttt{SupplyCrate}). \\
-        Objective miss penalty & Missed day objectives can strengthen the next night (default enemy multiplier $1.2\times$) and stack penalties on points carried to the next level (default $0.75$ per stack). Radio messages announce this when it applies (\texttt{GameManager}). \\
+        Objective miss penalty & Missed day objectives can strengthen the **next night** in the same level (default enemy multiplier $1.2\times$, \texttt{GameManager}). Radio and UI call out penalties. \texttt{StartNextLevel} clears miss queues and resets economy, so this milestone does \textbf{not} rely on partial point carry between maps in the current D2 flow. \\
         Weapon shop tiers & Dawn shop weapon purchases begin at night gates (SMG/Sniper at N2+, Assault Rifle/Grenade Launcher at N3+, Flamethrower at N4+); shotgun is no longer sold in the dawn weapon list (\texttt{GameUI}). \\
         \bottomrule
     \end{tabularx}
@@ -411,7 +411,7 @@ Testing and iteration were based on two main sources: observing how people playe
 
 Later work focused on making the rules fair and readable. The systems needed to function correctly, but they also needed to be understood quickly enough for players to make informed decisions. For that reason, much of the iteration focused on when the game gives feedback and how clearly that feedback is presented.
 
-Two examples show this process clearly. First, some testers saw the objective text but missed the world marker or the related COMMS line during busier moments. To fix this, the objective title, status line, and radio channel labeling were simplified, and support markers were added for drops and nearest enemy direction. Second, some players understood that they had earned points, but did not immediately understand why later nights felt harder after poor daytime performance. To address this, the dusk and penalty messaging was revised so the game more clearly states when missed objectives will strengthen the next night or reduce carryover value. A related UI pass also removed transient level-complete congratulation overlays and kept completion details in the dedicated summary panel.
+Two examples show this process clearly. First, some testers saw the objective text but missed the world marker or the related COMMS line during busier moments. To fix this, the objective title, status line, and radio channel labeling were simplified, and support markers were added for drops and nearest enemy direction. Second, some players understood that they had earned points, but did not immediately understand why later nights felt harder after poor daytime performance. To address this, the dusk and penalty messaging was revised so the game more clearly states when missed objectives will strengthen the next night (and any linked penalty summary). A related UI pass also removed transient level-complete congratulation overlays and kept completion details in the dedicated summary panel.
 
 \begin{table}[H]
     \centering
@@ -512,7 +512,7 @@ The next stage of development extends the Deliverable~2 baseline into a full fou
 
 \section{Conclusion}\label{sec:conclusion}
 
-Deliverable~2 moves the project from a basic survival prototype to a more complete playable slice. The build shows clearer level flow, stronger player guidance, better integration between story and mechanics, and a more visible progression structure across two linked maps.
+Deliverable~2 is a playable slice with clearer level flow, strong player guidance, integrated story and mechanics, and visible progression across two linked maps.
 
 The most important result of this milestone is that the mechanics now support the intended setting and player experience. The player is not only surviving waves, but also exploring, following mission leads, responding to radio updates, and seeing how preparation affects later combat. This gives the prototype a stronger sense of coherence and provides a solid base for Deliverable~3.
 
