@@ -1,110 +1,89 @@
-# Deadlight Deliverable 2 Mid-Project Report
+# Deadlight: Survival After Dark — Deliverable 2 Mid-Project Report
 
-**Course:** CS4483B/9541 Game Design
-**Team:** Group 16
-**Project:** Deadlight: Survival After Dark
-**Build Focus:** Deliverable 2 daytime preparation, contested drops, and integrated narrative/world-building
+**Course:** CS4483B / 9541 Game Design  
+**Team:** Group 16  
+**Members:** Simranjeet Singh, Abdelrahman El Banna, Koroush Emari, Ashraf Esam Mahdi  
+**Date:** April 2026  
 
-## Project Overview
+> **Authoritative write-up:** The submission PDF is generated from `Deliverable2_MidProject_Report.tex` (same folder). This Markdown is a plain-text mirror of that document for graders who prefer `.md`.
 
-Deliverable 2 moves our project from an early zombie-survival prototype toward a more complete playable loop with clearer guidance, stronger systemic depth, and a more coherent world. The current Deliverable 2 scope is a two-level campaign (Levels 1-2, six nights total) with alternating day, night, and dawn phases. During the day, the player explores, scavenges, completes objectives, and prepares for the next defense. At night, the player survives escalating zombie waves. At dawn, the player spends points on weapons, upgrades, and supplies before the cycle repeats.
+## Submission scope
 
-Our main focus for this submission was making daytime play meaningful rather than passive. We added a crafting system, contested supply drops, blueprint-token rewards, and day objective bonuses so the player's preparation directly changes the difficulty and tempo of the following night. At the same time, we strengthened immersion by tying those systems into the game's fiction through radio transmissions, lore pickups, environmental storytelling, and an ongoing narrative about EVAC Command, Dr. Chen, Project Lazarus, and Subject 23.
+| | |
+|--|--|
+| **Playable scope** | Levels 1–2 (Town Center, Suburban); six objective nights total |
+| **Coming soon** | Levels 3–4 are menu previews only in this milestone |
+| **Project** | Top-down zombie survival prototype in Unity |
+| **Focus** | Level design, guidance, narrative, systems, progression, testing |
 
-## Level Design and Player Guidance
+## Project overview
 
-Our level structure is built around readable landmarks and a semi-linear flow. We want the player to feel pressure and scarcity, but not confusion. To support that, we use spatial anchors such as the safe area, scavenging routes, contested drop locations, and objective spaces that can be recognized quickly during play. The day phase encourages movement outward from safety, while the night phase collapses the player's attention back toward defense and survival. This phase contrast helps us control pacing without hard-locking exploration.
+Deliverable 2 is a playable Unity slice of *Deadlight*. The core loop has three phases: **day** (explore, objectives, resources), **night** (waves, increasing pressure), **dawn** (points, shop, preparation). This build makes **preparation matter**: daytime work ties to the next night through objectives, contested drops, and resource management, so exploration and the dawn shop stay part of survival. Narrative context comes from radio, environmental detail, and missions tied to EVAC Command, Project Lazarus, Dr. Chen, and Subject 23.
 
-We guide the player through a combination of visual and systemic cues. Objective titles and descriptions are generated during the day through `StoryObjective`, and supporting UI elements such as the objective HUD and objective markers reinforce where attention should go. Radio transmissions provide short contextual directions at the start of each phase, which keeps guidance in-world instead of relying only on abstract UI. We also use state changes such as helicopter broadcasts, drop descent, secure timers, and dusk summaries to make the world communicate what matters next.
+## Deliverable 2 criteria coverage
 
-Balancing challenge with exploration was important. The player is rewarded for taking risks during the day, but the systems do not force a single optimal path. Optional exploration can produce lore, resources, crafting materials, or a contested supply drop. If the player ignores preparation entirely, the following night starts under a short soft penalty. This keeps exploration meaningful while still allowing different play styles.
+| Rubric point | Implemented | Demonstrated in-game |
+|--------------|-------------|----------------------|
+| Level design & guidance | Two authored spaces with landmarks and objective routes | Objective HUD, world markers, support markers (drops, nearest enemy) |
+| Narrative & world-building | Radio, story objectives, lore, Lazarus arc framing | Plot advances by night; not “waves only” |
+| Systems & balance | Day–night–dawn economy (points, ammo, health, armor, utilities, upgrades) | Better day play → better night readiness; contested drops |
+| Progression & rewards | Six-night slice, unlock-based level access | Level 2 after Level 1; level-complete panel; deploy next or return to menu |
+| Testing & iteration | Playtests + Play Mode checks | UI/objective/comms iteration from observed confusion |
 
-## Narrative Design and World-Building
+## Level design and player guidance
 
-Our narrative design is built around a "play-first" delivery model. Instead of separating story from gameplay with long cutscenes, we embed fiction into systems the player is already using. The player is framed as the sole survivor of a crashed extraction attempt, holding out across the six-night Deliverable 2 run while EVAC Command tries to assemble a rescue. As the run continues, the radio narrative reveals the history of Project Lazarus, the role of Dr. Chen, and the emergence of Subject 23 as the source of the outbreak.
+Levels balance **readable structure** with **player freedom**. Level 1 introduces crash site, checkpoint, and hospital-style beats; Level 2 is more open and punishing. Guidance stacks: objective HUD, world markers, radio, landmarks, and pacing shifts between exploration and defense.
 
-We use several layers of narrative delivery:
+## Narrative design
 
-- `RadioTransmissions` gives phase-based story beats, tactical warnings, and world context.
-- `NarrativeManager`, `DialogueData`, and `StoryTrigger` support queued dialogue and location-based story moments.
-- `EnvironmentalLore` stores discoverable logs, journals, orders, and intercepted transmissions that deepen the setting.
-- `IntroSequence` and `EndingSequence` create a stronger beginning and ending frame for the player's survival run.
+Story is **play-first**: radio, objectives, optional lore, dressed environments, short framing beats. The main arc stays clear without requiring every collectible.
 
-This structure lets us combine broad world fiction with optional detail. A player who only follows the core loop still learns the basic stakes through EVAC broadcasts and phase transitions. A player who explores more deeply can uncover Dr. Chen's logs, military cover-up orders, survivor journals, and evidence that the infected are not simply mindless enemies but part of a larger evolving system.
+**Segment thrust (D2):**
 
-World-building also appears in how the mechanics are framed. Daytime crafting is not presented as an abstract tech tree; it represents improvised survival preparation. Recipes such as `Ammo Cache`, `Field Med`, `Shock Beacon`, and `Weakpoint Intel` imply that the player is scavenging, assembling, and planning for the coming night. Contested supply drops reinforce the fiction of a collapsing emergency zone where outside aid still appears occasionally, but only under pressure and limited time. Blueprint tokens work as a fiction-friendly progression material because they suggest recovered plans, instructions, or tactical intel rather than arbitrary currency.
+- **L1 N1–N3:** Failed evacuation, EVAC as voice of order, early Lazarus hints (crash, checkpoint, clinic chain).
+- **L2 N1–N3:** Suburban escalation; quarantine and Lazarus evidence; extraction fantasy tied to scavenging and survival.
 
-Earlier narrative work also shaped how we think about the environment itself. The safe house, alley routes, supply areas, and crisis landmarks are meant to suggest a district that was defended, evacuated poorly, and then abandoned under pressure. Even when the player is not reading explicit lore, the project aims for the environment to imply last stands, interrupted plans, and improvised communication between survivors.
+## Systems and balance
 
-The result is a narrative layer that supports immersion without interrupting the survival loop. Story is delivered through movement, tension, discovery, and state change rather than only through exposition.
+Daytime supports scavenging, **contested timed drops**, mission leads, and looting under time pressure. Balance table (defaults in code; tunable in Unity):
 
-## Systems Design and Game Balance
+- **Night survived:** `PointsSystem` base 100 + 50 × nights survived (serialized defaults).
+- **Milestones:** `ProgressionManager` matches stipends to milestone rows by campaign night index (defaults: nights 1–3 at +100 / +150 / +200). Rows reset on new-level setup; add nights 4–6 in Unity if Level 2 should repeat that cadence.
+- **Contested tiers:** +110 / +170 / +260 points plus supplies (`SupplyCrate`).
+- **Missed objectives:** Stronger next night (e.g. 1.2× enemies); messaging via radio/`GameManager`. Level advance uses a **fresh baseline** (see below).
+- **Dawn weapons:** SMG and sniper at shop night 2+; assault rifle and grenade launcher night 3+; flamethrower night 4+; **shotgun not listed** in dawn weapon shop (`GameUI`).
 
-Deliverable 2's main systems work is the connection between day preparation and night survival. The `CraftingSystem` introduces a resource economy built around Scrap, Wood, Chemicals, Electronics, and Blueprint Tokens. Each craft has an opportunity cost, and per-day caps prevent a single dominant strategy. This means the player must decide whether to invest in immediate security, healing, ammo, or longer-term efficiency.
+**Core loop:** Day → Dusk → Night → Rewards → Shop → repeat.
 
-The effects of crafting are intentionally direct and legible:
+## Progression
 
-- `Ammo Cache` increases reserve ammo at night start.
-- `Field Med` grants healing value at night start.
-- `Shock Beacon` slows enemies.
-- `Weakpoint Intel` lowers enemy health and damage.
+Six nights: L1×3 then L2×3. Beat 3 (L1 Night 3) clears Level 1 and surfaces Level 2. **Fresh start per level:** `GameManager.StartNextLevel` / `ResetInterLevelProgressionState` resets points session, progression snapshot, upgrades, armor, throwables, and loadout (pistol baseline) so Deliverable 2 stays readable.
 
-This design makes the daytime loop easy to read. The player is not asked to trust invisible backend math; the dusk summary and following night communicate what changed and why. The soft no-prep penalty is also part of this philosophy. If the player neither crafts nor secures a contested drop, the game applies a short damage increase to enemies early in the night. This is not meant as punishment for experimentation, but as a clear reminder that daytime actions matter.
+**Weapon loadout:** `PlayerShooting` uses **four slots** with hotkeys; the shop adds to **free** slots and blocks duplicate weapon types already carried.
 
-Contested supply drops extend the same risk-reward principle. The drop state flow (`Broadcast -> Descent -> Secure -> Resolved/Expired`) creates a timed decision point that interrupts routine scavenging. Higher-tier contested rewards include better materials and blueprint tokens, so the player is encouraged to take controlled risks rather than simply sweep the map passively.
+## Testing and iteration
 
-We also connect progression systems together so they feel coherent instead of isolated. Points, ammo rewards, resources, objective rewards, weapon unlocks, and day buffs all contribute to the same survival curve. This helps maintain fairness because the player can understand how preparation, combat performance, and shop decisions influence later nights.
+Iteration mixed **observation** (hesitation, missed markers, busy COMMS) with **Play Mode** regression on phase transitions. Examples: simplified objective/comms labeling; support markers for drops and threats; clearer penalty messaging; level-complete details consolidated in the **dedicated panel** (transient congrats overlays reduced on level complete).
 
-## Progression Systems and Rewards
+**Playtest protocol (summary):** Fresh Level 1; one full day–night–dawn; story objective; dawn shop; think-aloud where possible; take notes on objectives, contested drops, summaries; one fix category per pass before re-test.
 
-Player progression in *Deadlight* is structured across both short-term and long-term loops. The short-term loop is the individual day-night cycle: gather, prepare, survive, recover. The long-term loop in Deliverable 2 is the six-night run across Levels 1-2, where each night introduces stronger enemies, new threats, and additional weapon options.
+## Technical notes
 
-We use a mix of intrinsic and extrinsic rewards. Intrinsic motivation comes from survival mastery, better routing, improved preparation, and learning how systems combine. Extrinsic motivation comes from point rewards, unlockable weapons, objective payouts, rare drop materials, and better build options in later phases. The shop at dawn, weapon availability by night, armor upgrades, and day objective bonuses all contribute to a sense of upward momentum.
+- **Flow:** `GameManager`, `GameFlowController` (day/night/dawn, drops).
+- **Guidance:** `StoryObjective`, objective HUD, markers.
+- **Narrative:** Radio, scripted missions, lore systems.
+- **Economy:** `PointsSystem`, pickups, `SupplyCrate`, waves.
+- **Crafting:** Hooks exist; **`enableCrafting = false`** in this build.
+- **Package:** Unity project (`Assets`, `Packages`, `ProjectSettings`) + Windows executable per course instructions + this report PDF.
 
-Narrative discovery also acts as a progression layer. Lore is optional, but it gives players another reason to explore and creates a second kind of reward beyond raw combat strength. This helps the game appeal to both mastery-driven and curiosity-driven players.
+## Deliverable 3 (planned)
 
-## Testing and Iteration
-
-We iterated on both mechanics and narrative clarity through a combination of peer feedback and runtime validation. Earlier narrative playtesting showed that players could correctly read the broad crisis context of the world, but some more specific story elements were too subtle. In response, we strengthened explicit communication through radio beats, clearer trigger-driven story moments, stronger lore framing, and a more legible connection between tactical systems and fiction.
-
-On the systems side, we added automated PlayMode coverage for the new daytime-preparation mechanics. Current tests verify:
-
-- day-only crafting restrictions,
-- resource spending and per-day recipe caps,
-- contested secure and expire flows,
-- blueprint token rewards and consumption,
-- pickup purpose hints,
-- no-prep penalty behavior,
-- regression coverage for regular crates and night emergency drops.
-
-Local smoke validation also confirms that the runtime loop transitions correctly across day, night, and dawn states without errors or warnings. This combination of peer feedback and runtime checks helped us iterate with more confidence and avoid adding features that only worked in ideal cases.
-
-## Technical Notes
-
-Several Unity-specific systems supported this iteration:
-
-- Event-driven managers such as `GameManager`, `DayObjectiveSystem`, `CraftingSystem`, and `NarrativeManager` keep phase transitions and feature interactions synchronized.
-- Coroutines are used for timed transmissions, intro pacing, drop sequencing, and other temporal beats.
-- The narrative layer uses `DialogueData` and queued dialogue playback so story content can be triggered by state, space, or discovery.
-- Runtime UI such as objective displays, crafting feedback, and radio overlays help maintain legibility without forcing the player into separate menus too often.
-- PlayMode tests were used to validate new rules and reduce regression risk as systems became more interdependent.
-
-Key implementation files include:
-
-- `Assets/Scripts/Core/DayObjectiveSystem.cs`
-- `Assets/Scripts/Core/RadioTransmissions.cs`
-- `Assets/Scripts/Core/GameFlowController.cs`
-- `Assets/Scripts/Systems/CraftingSystem.cs`
-- `Assets/Scripts/Systems/SupplyCrate.cs`
-- `Assets/Scripts/Systems/Pickup.cs`
-- `Assets/Scripts/Narrative/NarrativeManager.cs`
-- `Assets/Scripts/Narrative/EnvironmentalLore.cs`
-- `Assets/Scripts/Narrative/StoryTrigger.cs`
-- `Assets/Scripts/Narrative/IntroSequence.cs`
-- `Assets/Tests/PlayMode/DaytimePrepRuntimeTests.cs`
+Extend to **four playable levels**, finish Lazarus arc, polish presentation/audio, rebalance full campaign, stability pass, optional **crafting** if legible, clearer end-of-run UI.
 
 ## Conclusion
 
-Deliverable 2 represents a meaningful step toward a cohesive survival game rather than a collection of disconnected features. The project now has clearer player guidance, a more intentional day-to-night preparation loop, stronger progression structure, and a narrative layer that supports immersion through radio dialogue, lore, world logic, and environmental context.
+Deliverable 2 delivers two linked districts, a clear prep-vs-survival loop, stronger guidance, integrated fiction, and visible progression—including level-complete flow and a fresh baseline when entering Level 2. It forms the base for the full four-level campaign in Deliverable 3.
 
-Most importantly, the narrative and world-building elements are not separate from the gameplay systems. They are part of how the player understands why they are scavenging, why contested drops matter, why EVAC keeps transmitting, and what is really happening in the world. That integration is the main design goal of this iteration, and it is what makes the current build feel closer to a complete game experience.
+---
+
+**Appendix files (same folder):** `Deliverable2_Narrative_Worldbuilding_Appendix.md`, `Deliverable2_Testing_Iteration_Notes.md`
