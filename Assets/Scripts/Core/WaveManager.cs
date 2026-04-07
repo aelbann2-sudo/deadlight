@@ -55,6 +55,7 @@ namespace Deadlight.Core
         public event Action<int> OnWaveStarted;
         public event Action<int> OnWaveCompleted;
         public event Action OnAllWavesCompleted;
+        public event Action<GameObject, int> OnEnemySpawned;
         public event Action<int> OnEnemyKilled;
         public event Action<int> OnEnemyCountChanged;
 
@@ -492,6 +493,7 @@ namespace Deadlight.Core
 
             totalEnemiesSpawned++;
             enemiesRemaining++;
+            OnEnemySpawned?.Invoke(enemy, totalEnemiesSpawned);
             OnEnemyCountChanged?.Invoke(enemiesRemaining);
         }
 
