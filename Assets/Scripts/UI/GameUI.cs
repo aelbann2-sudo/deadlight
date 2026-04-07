@@ -945,39 +945,48 @@ namespace Deadlight.UI
 
         private void BuildArmorItems()
         {
+            float y = 0f;
             const int h = 56;
-            AddArmorItem("Vest Lv1", "Light body armor", 80, ArmorTier.Level1, false, h);
-            AddArmorItem("Vest Lv2", "Heavy body armor", 180, ArmorTier.Level2, false, h);
-            AddArmorItem("Helmet Lv1", "Basic protection", 60, ArmorTier.Level1, true, h);
-            AddArmorItem("Helmet Lv2", "Reinforced helmet", 140, ArmorTier.Level2, true, h);
+            AddArmorItem("Vest Lv1",    "Light body armor",  80,  ArmorTier.Level1, false, ref y, h);
+            AddArmorItem("Vest Lv2",    "Heavy body armor",  180, ArmorTier.Level2, false, ref y, h);
+            AddArmorItem("Helmet Lv1",  "Basic protection",  60,  ArmorTier.Level1, true,  ref y, h);
+            AddArmorItem("Helmet Lv2",  "Reinforced helmet", 140, ArmorTier.Level2, true,  ref y, h);
         }
 
         private void AddArmorItem(string name, string desc, int cost,
-            ArmorTier tier, bool isHelmet, int height)
+            ArmorTier tier, bool isHelmet, ref float y, int height)
         {
-            var root = CreateShopRow(_armorTabContent.transform, $"Armor_{name}", height - 4,
-                new Color(UITheme.BgMedium.r, UITheme.BgMedium.g + 0.02f, UITheme.BgMedium.b + 0.04f, 0.9f));
+            var root = new GameObject($"Armor_{name}");
+            root.transform.SetParent(_armorTabContent.transform, false);
+            var rt = root.AddComponent<RectTransform>();
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
+            rt.pivot = new Vector2(0.5f, 1f);
+            rt.anchoredPosition = new Vector2(0f, y);
+            rt.sizeDelta = new Vector2(560f, height - 4);
 
-            CreateShopRowText(root.transform, "Name", name,
+            root.AddComponent<Image>().color = new Color(UITheme.BgMedium.r,
+                UITheme.BgMedium.g + 0.02f, UITheme.BgMedium.b + 0.04f, 0.9f);
+
+            UIFactory.CreateTextAt(root.transform, "Name", name,
                 UITheme.FontBody, UITheme.TextPrimary,
-                new Vector2(0f, 0.64f), new Vector2(16f, 0f), new Vector2(340f, 24f),
+                new Vector2(0f, 0.5f), new Vector2(14f, 8f), new Vector2(260f, 24f),
                 TextAnchor.MiddleLeft, FontStyle.Bold);
 
-            CreateShopRowText(root.transform, "Desc", $"{desc}  ·  {cost} pts",
+            UIFactory.CreateTextAt(root.transform, "Desc", $"{desc}  ·  {cost} pts",
                 UITheme.FontSmall + 1, UITheme.TextMuted,
-                new Vector2(0f, 0.28f), new Vector2(16f, 0f), new Vector2(380f, 18f),
+                new Vector2(0f, 0.5f), new Vector2(14f, -12f), new Vector2(320f, 16f),
                 TextAnchor.MiddleLeft);
 
             var t = tier;
-            var h = isHelmet;
+            var helm = isHelmet;
             var c = cost;
             var buyBtn = UIFactory.CreateCenteredButton(root.transform, "Buy", "BUY",
-                UITheme.AccentBlue, new Vector2(1f, 0.5f), new Vector2(92f, 32f),
-                () => BuyArmor(t, h, c));
-            UIFactory.SetAnchored(buyBtn.GetComponent<RectTransform>(),
-                new Vector2(1f, 0.5f), new Vector2(-58f, 0f), new Vector2(92f, 32f));
+                UITheme.AccentBlue, new Vector2(1f, 0.5f), new Vector2(76f, 30f),
+                () => BuyArmor(t, helm, c));
+            buyBtn.GetComponent<RectTransform>().anchoredPosition = new Vector2(-48f, 0f);
 
             _shopBuyButtons.Add(buyBtn);
+            y -= height;
         }
 
         private static GameObject CreateShopRow(Transform parent, string name, int preferredHeight, Color background)
@@ -1459,9 +1468,15 @@ namespace Deadlight.UI
                 bool sold = _purchasedWeapons.Contains(wts[i]) || PlayerAlreadyHasWeapon(wts[i]);
                 bool afford = PointsSystem.Instance != null && PointsSystem.Instance.CanAfford(costs[i]);
                 bool unlocked = progressionNight >= requiredNights[i];
-                b.interactable = !sold && afford && unlocked;
+                bool canBuy = !sold && afford && unlocked;
+                b.interactable = canBuy;
                 var lt = b.GetComponentInChildren<Text>();
                 if (lt != null) lt.text = sold ? "OWNED" : (unlocked ? "BUY" : $"N{requiredNights[i]}+");
+                var img = b.GetComponent<Image>();
+                if (img != null)
+                    img.color = sold ? UITheme.BgLight
+                        : unlocked ? UITheme.AccentGreen
+                        : new Color(0.25f, 0.35f, 0.25f, 0.7f);
             }
 
             var upgrades = PlayerUpgrades.Instance;
@@ -1472,6 +1487,17 @@ namespace Deadlight.UI
                 UpdateUpgradeRow(2, upgrades.MagazineTier, PlayerUpgrades.MaxMagazineTier, upgrades.GetMagazineCost(), upgrades.GetMagazineDescription(), "Magazine");
                 UpdateUpgradeRow(3, upgrades.HealthTier, PlayerUpgrades.MaxHealthTier, upgrades.GetHealthCost(), upgrades.GetHealthDescription(), "Max Health");
                 UpdateUpgradeRow(4, upgrades.SprintTier, PlayerUpgrades.MaxSprintTier, upgrades.GetSprintCost(), upgrades.GetSprintDescription(), "Sprint Speed");
+            }
+
+            // Refresh armor buy buttons' interactability based on current points
+            int[] armorCosts = { 80, 180, 60, 140 };
+            int armorStart = SupplyButtonCount + wts.Length;
+            for (int i = 0; i < armorCosts.Length; i++)
+            {
+                int idx = armorStart + i;
+                if (idx >= _shopBuyButtons.Count) break;
+                _shopBuyButtons[idx].interactable =
+                    PointsSystem.Instance != null && PointsSystem.Instance.CanAfford(armorCosts[i]);
             }
         }
 
