@@ -18,9 +18,13 @@
 
 ## Project overview
 
-Deliverable 2 is a playable Unity slice of *Deadlight*. The core loop has three phases: **day** (explore, objectives, resources), **night** (waves, increasing pressure), **dawn** (points, shop, preparation). This build makes **preparation matter**: daytime work ties to the next night through objectives, contested drops, and resource management, so exploration and the dawn shop stay part of survival. Narrative context comes from radio, environmental detail, and missions tied to EVAC Command, Project Lazarus, Dr. Chen, and Subject 23.
+Deliverable 2 is a playable Unity slice of *Deadlight*: **Levels 1–2** (Town Center and Suburban), six campaign nights, with Levels 3–4 reserved for later work.
 
-## Deliverable 2 criteria coverage
+**Day:** explore, objectives, resources. **Night:** escalating waves. **Dawn:** rewards and shop (weapons, armor, ammo, healing, upgrades). **Preparation** ties day to night through objectives, contested drops, and resources; radio, environment, and missions carry EVAC Command, Project Lazarus, Dr. Chen, and Subject 23.
+
+The criteria table below matches the section order that follows.
+
+## Criteria coverage
 
 | Rubric point | Implemented | Demonstrated in-game |
 |--------------|-------------|----------------------|
@@ -29,6 +33,8 @@ Deliverable 2 is a playable Unity slice of *Deadlight*. The core loop has three 
 | Systems & balance | Day–night–dawn economy (points, ammo, health, armor, utilities, upgrades) | Better day play → better night readiness; contested drops |
 | Progression & rewards | Six-night slice, unlock-based level access | Level 2 after Level 1; level-complete panel; deploy next or return to menu |
 | Testing & iteration | Playtests + Play Mode checks | UI/objective/comms iteration from observed confusion |
+
+Sections below expand each row in order.
 
 ## Level design and player guidance
 
@@ -82,7 +88,7 @@ Extend to **four playable levels**, finish Lazarus arc, polish presentation/audi
 
 ## Conclusion
 
-Deliverable 2 delivers two linked districts, a clear prep-vs-survival loop, stronger guidance, integrated fiction, and visible progression—including level-complete flow and a fresh baseline when entering Level 2. It forms the base for the full four-level campaign in Deliverable 3.
+Deliverable 2 is a coherent slice: guided flow, fiction on missions and radio, systems that reward preparation, and visible progression across Town Center and Suburban. That stack supports exploration, mission leads, radio context, and consequences of daytime choices, and it sets up the four-level campaign in Deliverable 3.
 
 ---
 
