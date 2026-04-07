@@ -18,7 +18,7 @@ The weaker points were:
 
 Based on that feedback, the current branch emphasizes clearer story signaling:
 
-- stronger radio communication across the five-night structure,
+- stronger radio communication across the current two-level / six-night structure,
 - more direct phase messaging during day and night transitions,
 - optional lore entries that name actors and explain consequences,
 - day objectives and contested events that feel like in-world tactical activity rather than abstract tasks,

@@ -7,7 +7,7 @@
 
 ## Project Overview
 
-Deliverable 2 moves our project from an early zombie-survival prototype toward a more complete playable loop with clearer guidance, stronger systemic depth, and a more coherent world. The core structure of *Deadlight* is a five-night survival run with alternating day, night, and dawn phases. During the day, the player explores, scavenges, completes objectives, and prepares for the next defense. At night, the player survives escalating zombie waves. At dawn, the player spends points on weapons, upgrades, and supplies before the cycle repeats.
+Deliverable 2 moves our project from an early zombie-survival prototype toward a more complete playable loop with clearer guidance, stronger systemic depth, and a more coherent world. The current Deliverable 2 scope is a two-level campaign (Levels 1-2, six nights total) with alternating day, night, and dawn phases. During the day, the player explores, scavenges, completes objectives, and prepares for the next defense. At night, the player survives escalating zombie waves. At dawn, the player spends points on weapons, upgrades, and supplies before the cycle repeats.
 
 Our main focus for this submission was making daytime play meaningful rather than passive. We added a crafting system, contested supply drops, blueprint-token rewards, and day objective bonuses so the player's preparation directly changes the difficulty and tempo of the following night. At the same time, we strengthened immersion by tying those systems into the game's fiction through radio transmissions, lore pickups, environmental storytelling, and an ongoing narrative about EVAC Command, Dr. Chen, Project Lazarus, and Subject 23.
 
@@ -15,13 +15,13 @@ Our main focus for this submission was making daytime play meaningful rather tha
 
 Our level structure is built around readable landmarks and a semi-linear flow. We want the player to feel pressure and scarcity, but not confusion. To support that, we use spatial anchors such as the safe area, scavenging routes, contested drop locations, and objective spaces that can be recognized quickly during play. The day phase encourages movement outward from safety, while the night phase collapses the player's attention back toward defense and survival. This phase contrast helps us control pacing without hard-locking exploration.
 
-We guide the player through a combination of visual and systemic cues. Objective titles and descriptions are generated during the day through the `DayObjectiveSystem`, and supporting UI elements such as the objective HUD and objective markers reinforce where attention should go. Radio transmissions provide short contextual directions at the start of each phase, which keeps guidance in-world instead of relying only on abstract UI. We also use state changes such as helicopter broadcasts, drop descent, secure timers, and dusk summaries to make the world communicate what matters next.
+We guide the player through a combination of visual and systemic cues. Objective titles and descriptions are generated during the day through `StoryObjective`, and supporting UI elements such as the objective HUD and objective markers reinforce where attention should go. Radio transmissions provide short contextual directions at the start of each phase, which keeps guidance in-world instead of relying only on abstract UI. We also use state changes such as helicopter broadcasts, drop descent, secure timers, and dusk summaries to make the world communicate what matters next.
 
 Balancing challenge with exploration was important. The player is rewarded for taking risks during the day, but the systems do not force a single optimal path. Optional exploration can produce lore, resources, crafting materials, or a contested supply drop. If the player ignores preparation entirely, the following night starts under a short soft penalty. This keeps exploration meaningful while still allowing different play styles.
 
 ## Narrative Design and World-Building
 
-Our narrative design is built around a "play-first" delivery model. Instead of separating story from gameplay with long cutscenes, we embed fiction into systems the player is already using. The player is framed as the sole survivor of a crashed extraction attempt, holding out for five nights while EVAC Command tries to assemble a rescue. As the run continues, the radio narrative reveals the history of Project Lazarus, the role of Dr. Chen, and the emergence of Subject 23 as the source of the outbreak.
+Our narrative design is built around a "play-first" delivery model. Instead of separating story from gameplay with long cutscenes, we embed fiction into systems the player is already using. The player is framed as the sole survivor of a crashed extraction attempt, holding out across the six-night Deliverable 2 run while EVAC Command tries to assemble a rescue. As the run continues, the radio narrative reveals the history of Project Lazarus, the role of Dr. Chen, and the emergence of Subject 23 as the source of the outbreak.
 
 We use several layers of narrative delivery:
 
@@ -57,7 +57,7 @@ We also connect progression systems together so they feel coherent instead of is
 
 ## Progression Systems and Rewards
 
-Player progression in *Deadlight* is structured across both short-term and long-term loops. The short-term loop is the individual day-night cycle: gather, prepare, survive, recover. The long-term loop is the five-night run, where each night introduces stronger enemies, new threats, and additional weapon options.
+Player progression in *Deadlight* is structured across both short-term and long-term loops. The short-term loop is the individual day-night cycle: gather, prepare, survive, recover. The long-term loop in Deliverable 2 is the six-night run across Levels 1-2, where each night introduces stronger enemies, new threats, and additional weapon options.
 
 We use a mix of intrinsic and extrinsic rewards. Intrinsic motivation comes from survival mastery, better routing, improved preparation, and learning how systems combine. Extrinsic motivation comes from point rewards, unlockable weapons, objective payouts, rare drop materials, and better build options in later phases. The shop at dawn, weapon availability by night, armor upgrades, and day objective bonuses all contribute to a sense of upward momentum.
 
