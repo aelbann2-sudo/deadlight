@@ -48,6 +48,9 @@ namespace Deadlight.UI
         private float molotovInFlightUntil = -1f;
         private const float MolotovFlightHintSeconds = 1.25f;
 
+        private Image[] _slotBg = new Image[4];
+        private Text[] _slotName = new Text[4];
+
         public void Initialize(
             Text health, Image hFill, Text ammo, Image sFill,
             Text wave, Text night, Text enemyCount, Text status, Text reload,
@@ -78,6 +81,13 @@ namespace Deadlight.UI
             weaponIcon = icon;
             weaponNameText = wName;
             weaponStatsText = wStats;
+        }
+
+        public void SetWeaponSlotStrip(Image[] bgs, Text[] names)
+        {
+            _slotBg = bgs;
+            _slotName = names;
+            UpdateWeaponSlotStrip();
         }
 
         public void SetArmorHUD(Image vFill, Image hFill, Text vLabel, Text hLabel, GameObject panel)
@@ -147,6 +157,7 @@ namespace Deadlight.UI
                     UpdateWeaponDisplay(playerShooting.CurrentWeapon);
 
                 UpdateAmmo(playerShooting.CurrentAmmo, playerShooting.ReserveAmmo);
+                UpdateWeaponSlotStrip();
             }
 
             if (throwableSystem != null)
@@ -615,6 +626,36 @@ namespace Deadlight.UI
             {
                 try { weaponIcon.sprite = Visuals.ProceduralSpriteGenerator.CreateWeaponIcon(weapon.weaponType); }
                 catch { }
+            }
+
+            UpdateWeaponSlotStrip();
+        }
+
+        private void UpdateWeaponSlotStrip()
+        {
+            if (playerShooting == null) return;
+
+            int active = playerShooting.ActiveSlot;
+            var activeCol  = new Color(0.25f, 0.55f, 0.90f, 0.80f);
+            var filledCol  = new Color(0.10f, 0.10f, 0.13f, 0.85f);
+            var emptyCol   = new Color(0.06f, 0.06f, 0.08f, 0.60f);
+            var nameActive = new Color(1.00f, 1.00f, 1.00f, 1.00f);
+            var nameEmpty  = new Color(0.40f, 0.40f, 0.44f, 1.00f);
+
+            for (int i = 0; i < 4; i++)
+            {
+                var slot = playerShooting.GetSlotWeapon(i);
+                bool isActive  = (i == active);
+                bool hasWeapon = (slot != null);
+
+                if (_slotBg != null && i < _slotBg.Length && _slotBg[i] != null)
+                    _slotBg[i].color = isActive ? activeCol : (hasWeapon ? filledCol : emptyCol);
+
+                if (_slotName != null && i < _slotName.Length && _slotName[i] != null)
+                {
+                    _slotName[i].text  = hasWeapon ? slot.weaponName.ToUpper() : "───";
+                    _slotName[i].color = (isActive || hasWeapon) ? nameActive : nameEmpty;
+                }
             }
         }
 

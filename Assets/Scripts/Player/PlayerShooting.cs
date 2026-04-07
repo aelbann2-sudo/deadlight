@@ -41,6 +41,10 @@ namespace Deadlight.Player
         public int ReserveAmmo => reserveAmmo;
         public bool IsReloading => isReloading;
         public bool CanFire => !isReloading && currentAmmo > 0 && Time.time >= lastFireTime + (currentWeapon?.fireRate ?? 0.5f);
+        public int ActiveSlot => activeSlot;
+        public int SlotCount => MaxWeaponSlots;
+        public WeaponData GetSlotWeapon(int slot) =>
+            (slot >= 0 && slot < weaponSlots.Length) ? weaponSlots[slot] : null;
 
         public event Action<int, int> OnAmmoChanged;
         public event Action OnWeaponFired;
