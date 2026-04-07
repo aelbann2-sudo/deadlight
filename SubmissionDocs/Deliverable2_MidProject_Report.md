@@ -12,15 +12,15 @@
 | | |
 |--|--|
 | **Playable scope** | Levels 1–2 (Town Center, Suburban); six objective nights total |
-| **Coming soon** | Levels 3–4 are menu previews only in this milestone |
+| **Coming soon** | Levels 3–4 are **not completed** in this milestone; full content is planned for **Deliverable 3** (menu previews may appear) |
 | **Project** | Top-down zombie survival prototype in Unity |
 | **Focus** | Level design, guidance, narrative, systems, progression, testing |
 
 ## Project overview
 
-Deliverable 2 is a playable Unity slice of *Deadlight*: **Levels 1–2** (Town Center and Suburban), six campaign nights, with Levels 3–4 reserved for later work.
+Deliverable 2 is a playable Unity slice of *Deadlight*: **Levels 1–2** (Town Center and Suburban), six campaign nights. **Levels 3–4 are not completed yet** and are planned for **Deliverable 3**.
 
-**Day:** explore, objectives, resources. **Night:** escalating waves. **Dawn:** rewards and shop (weapons, armor, ammo, healing, upgrades). **Preparation** ties day to night through objectives, contested drops, and resources; radio, environment, and missions carry EVAC Command, Project Lazarus, Dr. Chen, and Subject 23.
+**Day:** explore, objectives, resources. **Night:** escalating waves. **Dawn:** rewards and shop (weapons, armor, ammo, healing, upgrades). Between day and night, **`DayNightCycle`** runs a short timed handoff; **`GameManager`** stays in **`DayPhase`** until **`StartNightPhase`** (the **`GameState.Transition`** enum exists for UI hooks but is not the active manager state on this path). **Preparation** ties day to night through objectives, contested drops, and resources; radio, environment, and missions carry EVAC Command, Project Lazarus, Dr. Chen, and Subject 23.
 
 The criteria table below matches the section order that follows.
 
@@ -53,13 +53,13 @@ Story is **play-first**: radio, objectives, optional lore, dressed environments,
 
 Daytime supports scavenging, **contested timed drops**, mission leads, and looting under time pressure. Balance table (defaults in code; tunable in Unity):
 
-- **Night survived:** `PointsSystem` base 100 + 50 × nights survived (serialized defaults).
+- **Night survived:** `PointsSystem` base 100 + 50 × `nightsSurvived` (serialized defaults); `nightsSurvived` increments every dawn, including objective-retry loops.
 - **Milestones:** `ProgressionManager` matches stipends to milestone rows by campaign night index (defaults: nights 1–3 at +100 / +150 / +200). Rows reset on new-level setup; add nights 4–6 in Unity if Level 2 should repeat that cadence.
 - **Contested tiers:** +110 / +170 / +260 points plus supplies (`SupplyCrate`).
-- **Missed objectives:** Stronger next night (e.g. 1.2× enemies); messaging via radio/`GameManager`. Level advance uses a **fresh baseline** (see below).
+- **Missed objectives:** Default `GameManager` flow: **one retry of the same campaign night** (`maxObjectiveRetriesPerStep = 1`), so one miss **replays the step** instead of immediately spiking difficulty. After a forced advance, a **queued** **1.2×** multiplier is consumed on the **next night index advance** (`CurrentNightEnemyPenaltyMultiplier` → `WaveManager`). Radio/UI distinguish retry vs penalty. Level advance uses a **fresh baseline** (see below); no partial point carry between maps on the playable `StartNextLevel` path (carryover helpers exist but are not wired there).
 - **Dawn weapons:** SMG and sniper at shop night 2+; assault rifle and grenade launcher night 3+; flamethrower night 4+; **shotgun not listed** in dawn weapon shop (`GameUI`).
 
-**Core loop:** Day → Dusk → Night → Rewards → Shop → repeat.
+**Core loop:** Day → **transition** (`DayNightCycle` into `NightPhase`) → Night → Rewards → Shop → repeat.
 
 ## Progression
 
@@ -69,7 +69,7 @@ Six nights: L1×3 then L2×3. Beat 3 (L1 Night 3) clears Level 1 and surfaces Le
 
 ## Testing and iteration
 
-Iteration mixed **observation** (hesitation, missed markers, busy COMMS) with **Play Mode** regression on phase transitions. Examples: simplified objective/comms labeling; support markers for drops and threats; clearer penalty messaging; level-complete details consolidated in the **dedicated panel** (transient congrats overlays reduced on level complete).
+Iteration mixed **observation** (hesitation, missed markers, busy COMMS) with **Play Mode** regression on phase transitions. Examples: simplified objective/comms labeling; support markers for drops and threats; clearer **retry vs queued-penalty** messaging at the day-to-night transition; level-complete details consolidated in the **dedicated panel** (transient congrats overlays reduced on level complete).
 
 **Playtest protocol (summary):** Fresh Level 1; one full day–night–dawn; story objective; dawn shop; think-aloud where possible; take notes on objectives, contested drops, summaries; one fix category per pass before re-test.
 

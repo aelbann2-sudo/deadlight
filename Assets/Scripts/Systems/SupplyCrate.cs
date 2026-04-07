@@ -11,6 +11,9 @@ namespace Deadlight.Systems
 
     public class SupplyCrate : MonoBehaviour
     {
+        /// <summary>Fired once when a crate is fully looted or a contested drop is secured (before destroy).</summary>
+        public static event System.Action<SupplyCrate> OnCrateSuccessfullyLooted;
+
         private float interactionTime = 1.5f;
         private float interactProgress;
         private bool isLooting;
@@ -33,6 +36,8 @@ namespace Deadlight.Systems
         private bool initialized;
         private bool isContestedDrop;
         private bool contestedResolved;
+
+        public bool IsContestedSupplyDrop => isContestedDrop;
         private float contestedLifetime;
         private float contestedExpirySeconds = 20f;
         private System.Action<SupplyCrate> onContestedSecured;
@@ -354,6 +359,7 @@ namespace Deadlight.Systems
             catch { }
 
             sr.color = new Color(0.3f, 0.3f, 0.3f, 0.5f);
+            OnCrateSuccessfullyLooted?.Invoke(this);
             Destroy(gameObject, 1f);
         }
 

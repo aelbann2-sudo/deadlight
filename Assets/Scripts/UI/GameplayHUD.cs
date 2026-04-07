@@ -725,6 +725,42 @@ namespace Deadlight.UI
             StartCoroutine(StatusRoutine(text, duration));
         }
 
+        /// <summary>Transient status line without canceling the main phase status coroutine.</summary>
+        public void ShowTransientStatus(string text, float duration)
+        {
+            if (statusText == null) return;
+            StopCoroutine(nameof(TransientStatusRoutine));
+            StartCoroutine(TransientStatusRoutine(text, duration));
+        }
+
+        private IEnumerator TransientStatusRoutine(string text, float duration)
+        {
+            statusText.text = text;
+            statusText.gameObject.SetActive(true);
+
+            float fadeIn = 0.3f;
+            float elapsed = 0f;
+            while (elapsed < fadeIn)
+            {
+                elapsed += Time.deltaTime;
+                statusText.color = new Color(1, 1, 1, elapsed / fadeIn);
+                yield return null;
+            }
+
+            yield return new WaitForSeconds(duration);
+
+            float fadeOut = 0.5f;
+            elapsed = 0f;
+            while (elapsed < fadeOut)
+            {
+                elapsed += Time.deltaTime;
+                statusText.color = new Color(1, 1, 1, 1f - elapsed / fadeOut);
+                yield return null;
+            }
+
+            statusText.gameObject.SetActive(false);
+        }
+
         private IEnumerator StatusRoutine(string text, float duration)
         {
             statusText.text = text;

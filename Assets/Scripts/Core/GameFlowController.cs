@@ -81,6 +81,8 @@ namespace Deadlight.Core
         public event Action<string> OnStatusMessage;
         public event Action<DayContestedDropState, float> OnContestedDropStateChanged;
 
+        public bool DayContestedDropsEnabled => enableDayContestedDrop;
+
         private void Awake()
         {
             if (Instance != null && Instance != this)

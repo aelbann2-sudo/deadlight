@@ -5,10 +5,10 @@
 \contentsline {section}{\numberline {5}Systems Design and Game Balance}{4}{section.5}%
 \contentsline {paragraph}{Balance numbers in the build.}{5}{section*.7}%
 \contentsline {section}{\numberline {6}Progression Systems and Rewards}{6}{section.6}%
-\contentsline {section}{\numberline {7}Testing and Iteration}{7}{section.7}%
-\contentsline {paragraph}{Playtesting protocol.}{8}{section*.12}%
-\contentsline {section}{\numberline {8}Technical Notes}{9}{section.8}%
-\contentsline {paragraph}{Build verification and limits.}{9}{section*.13}%
-\contentsline {paragraph}{In-engine figures.}{9}{section*.14}%
-\contentsline {section}{\numberline {9}Upcoming Development (Deliverable 3)}{11}{section.9}%
-\contentsline {section}{\numberline {10}Conclusion}{12}{section.10}%
+\contentsline {section}{\numberline {7}Testing and Iteration}{8}{section.7}%
+\contentsline {paragraph}{Playtesting protocol.}{9}{section*.12}%
+\contentsline {section}{\numberline {8}Technical Notes}{10}{section.8}%
+\contentsline {paragraph}{Build verification and limits.}{10}{section*.13}%
+\contentsline {paragraph}{In-engine figures.}{10}{section*.14}%
+\contentsline {section}{\numberline {9}Upcoming Development (Deliverable 3)}{12}{section.9}%
+\contentsline {section}{\numberline {10}Conclusion}{13}{section.10}%

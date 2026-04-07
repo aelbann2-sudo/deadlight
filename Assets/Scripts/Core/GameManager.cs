@@ -895,6 +895,16 @@ namespace Deadlight.Core
                 new GameObject("StoryEventManager").AddComponent<StoryEventManager>();
             }
 
+            if (FindFirstObjectByType<FirstCombatHintController>() == null)
+            {
+                new GameObject("FirstCombatHintController").AddComponent<FirstCombatHintController>();
+            }
+
+            if (FindFirstObjectByType<SupportMarkerGuidanceController>() == null)
+            {
+                new GameObject("SupportMarkerGuidanceController").AddComponent<SupportMarkerGuidanceController>();
+            }
+
             if (FindFirstObjectByType<StoryObjective>() == null)
             {
                 new GameObject("StoryObjective").AddComponent<StoryObjective>();
