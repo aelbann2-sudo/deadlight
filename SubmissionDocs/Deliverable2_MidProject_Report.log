@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.12.11)  7 APR 2026 22:35
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.12.11)  7 APR 2026 22:47
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -540,73 +540,69 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <8> on input line 74.
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <6> on input line 74.
-<../Assets/Resources/MenuPreviews/TownCenter.png, id=47, 2409.0pt x 2409.0pt>
-File: ../Assets/Resources/MenuPreviews/TownCenter.png Graphic file (type png)
-<use ../Assets/Resources/MenuPreviews/TownCenter.png>
-Package pdftex.def Info: ../Assets/Resources/MenuPreviews/TownCenter.png  used on input line 85.
-(pdftex.def)             Requested size: 347.62129pt x 347.62355pt.
  [1
 
-{/Users/simar/Library/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2 <../Assets/Resources/MenuPreviews/TownCenter.png>] (./Deliverable2_MidProject_Report.toc)
+{/Users/simar/Library/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] (./Deliverable2_MidProject_Report.toc)
 \tf@toc=\write5
 \openout5 = `Deliverable2_MidProject_Report.toc'.
 
  [1
 
 ]
-Package hyperref Info: Option `pageanchor' set `true' on input line 95.
+Package hyperref Info: Option `pageanchor' set `true' on input line 88.
+<../Assets/Resources/MenuPreviews/TownCenter.png, id=71, 2409.0pt x 2409.0pt>
 File: ../Assets/Resources/MenuPreviews/TownCenter.png Graphic file (type png)
 <use ../Assets/Resources/MenuPreviews/TownCenter.png>
-Package pdftex.def Info: ../Assets/Resources/MenuPreviews/TownCenter.png  used on input line 113.
+Package pdftex.def Info: ../Assets/Resources/MenuPreviews/TownCenter.png  used on input line 106.
 (pdftex.def)             Requested size: 225.4804pt x 225.47562pt.
-<../Assets/Resources/MenuPreviews/Suburban.png, id=78, 2409.0pt x 2409.0pt>
+<../Assets/Resources/MenuPreviews/Suburban.png, id=73, 2409.0pt x 2409.0pt>
 File: ../Assets/Resources/MenuPreviews/Suburban.png Graphic file (type png)
 <use ../Assets/Resources/MenuPreviews/Suburban.png>
-Package pdftex.def Info: ../Assets/Resources/MenuPreviews/Suburban.png  used on input line 119.
+Package pdftex.def Info: ../Assets/Resources/MenuPreviews/Suburban.png  used on input line 112.
 (pdftex.def)             Requested size: 225.4804pt x 225.47562pt.
  [1
 
- <../Assets/Resources/MenuPreviews/Suburban.png>] [2] [3] [4] [5]
+ <../Assets/Resources/MenuPreviews/TownCenter.png> <../Assets/Resources/MenuPreviews/Suburban.png>] [2] [3] [4] [5]
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <9> on input line 370.
+(Font)              <9> on input line 363.
  [6]
-<d2_fig_level1_complete.png, id=126, 1512.65125pt x 858.20625pt>
+<d2_fig_level1_complete.png, id=122, 1512.65125pt x 858.20625pt>
 File: d2_fig_level1_complete.png Graphic file (type png)
 <use d2_fig_level1_complete.png>
-Package pdftex.def Info: d2_fig_level1_complete.png  used on input line 399.
+Package pdftex.def Info: d2_fig_level1_complete.png  used on input line 392.
 (pdftex.def)             Requested size: 225.4804pt x 127.92657pt.
-<d2_fig_level2_briefing.png, id=127, 1512.65125pt x 858.20625pt>
+<d2_fig_level2_briefing.png, id=123, 1512.65125pt x 858.20625pt>
 File: d2_fig_level2_briefing.png Graphic file (type png)
 <use d2_fig_level2_briefing.png>
-Package pdftex.def Info: d2_fig_level2_briefing.png  used on input line 405.
+Package pdftex.def Info: d2_fig_level2_briefing.png  used on input line 398.
 (pdftex.def)             Requested size: 225.4804pt x 127.92657pt.
-<d2_fig_victory.png, id=128, 1927.2pt x 1084.05pt>
+<d2_fig_victory.png, id=124, 1927.2pt x 1084.05pt>
 File: d2_fig_victory.png Graphic file (type png)
 <use d2_fig_victory.png>
-Package pdftex.def Info: d2_fig_victory.png  used on input line 413.
+Package pdftex.def Info: d2_fig_victory.png  used on input line 406.
 (pdftex.def)             Requested size: 319.42996pt x 179.67105pt.
  [7] [8 <./d2_fig_level1_complete.png> <./d2_fig_level2_briefing.png> <./d2_fig_victory.png>] [9]
-<d2_fig_hud.png, id=148, 1512.65125pt x 858.20625pt>
+<d2_fig_hud.png, id=144, 1512.65125pt x 858.20625pt>
 File: d2_fig_hud.png Graphic file (type png)
 <use d2_fig_hud.png>
-Package pdftex.def Info: d2_fig_hud.png  used on input line 488.
+Package pdftex.def Info: d2_fig_hud.png  used on input line 481.
 (pdftex.def)             Requested size: 432.17375pt x 245.1937pt.
  [10]
-<d2_fig_daytime.png, id=155, 1512.65125pt x 858.20625pt>
+<d2_fig_daytime.png, id=151, 1512.65125pt x 858.20625pt>
 File: d2_fig_daytime.png Graphic file (type png)
 <use d2_fig_daytime.png>
-Package pdftex.def Info: d2_fig_daytime.png  used on input line 495.
+Package pdftex.def Info: d2_fig_daytime.png  used on input line 488.
 (pdftex.def)             Requested size: 432.17375pt x 245.1937pt.
-<d2_fig_combat.png, id=156, 1512.65125pt x 858.20625pt>
+<d2_fig_combat.png, id=152, 1512.65125pt x 858.20625pt>
 File: d2_fig_combat.png Graphic file (type png)
 <use d2_fig_combat.png>
-Package pdftex.def Info: d2_fig_combat.png  used on input line 502.
+Package pdftex.def Info: d2_fig_combat.png  used on input line 495.
 (pdftex.def)             Requested size: 432.17375pt x 245.1937pt.
  [11 <./d2_fig_hud.png> <./d2_fig_daytime.png>]
-<d2_fig_dawn_shop_v2.png, id=167, 1597.97pt x 738.76pt>
+<d2_fig_dawn_shop_v2.png, id=162, 1597.97pt x 738.76pt>
 File: d2_fig_dawn_shop_v2.png Graphic file (type png)
 <use d2_fig_dawn_shop_v2.png>
-Package pdftex.def Info: d2_fig_dawn_shop_v2.png  used on input line 509.
+Package pdftex.def Info: d2_fig_dawn_shop_v2.png  used on input line 502.
 (pdftex.def)             Requested size: 432.17375pt x 199.79475pt.
  [12 <./d2_fig_combat.png> <./d2_fig_dawn_shop_v2.png>] [13] (./Deliverable2_MidProject_Report.aux)
  ***********
@@ -617,18 +613,18 @@ Package rerunfilecheck Info: File `Deliverable2_MidProject_Report.out' has not c
 (rerunfilecheck)             Checksum: FD3B78087E5A83F59CCEACAB9DDD62EE;1724.
  ) 
 Here is how much of TeX's memory you used:
- 22580 strings out of 469519
- 434228 string characters out of 5469170
+ 22579 strings out of 469519
+ 434211 string characters out of 5469170
  838797 words of memory out of 5000000
  50852 multiletter control sequences out of 15000+600000
  635631 words of font info for 67 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  84i,13n,94p,909b,868s stack positions out of 10000i,1000n,20000p,200000b,200000s
  </Users/simar/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm0900.600pk> </Users/simar/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1095.600pk></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb>
-Output written on Deliverable2_MidProject_Report.pdf (16 pages, 8418431 bytes).
+Output written on Deliverable2_MidProject_Report.pdf (15 pages, 8417605 bytes).
 PDF statistics:
- 251 PDF objects out of 1000 (max. 8388607)
- 185 compressed objects within 2 object streams
- 42 named destinations out of 1000 (max. 500000)
+ 247 PDF objects out of 1000 (max. 8388607)
+ 182 compressed objects within 2 object streams
+ 41 named destinations out of 1000 (max. 500000)
  138 words of extra memory for PDF output out of 10000 (max. 10000000)
 

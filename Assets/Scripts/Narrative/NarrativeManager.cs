@@ -25,6 +25,7 @@ namespace Deadlight.Narrative
         [SerializeField] [Range(0f, 3f)] private float minInterruptProtectSeconds = 1.2f;
 
         private HashSet<string> playedDialogues = new HashSet<string>();
+        private HashSet<string> queuedPlayOnceDialogueIds = new HashSet<string>();
         private Queue<DialogueData> dialogueQueue = new Queue<DialogueData>();
         private DialogueData currentDialogue;
         private bool isPlaying = false;
@@ -165,6 +166,24 @@ namespace Deadlight.Narrative
         {
             if (dialogue == null) return;
 
+            if (dialogue.PlayOnce)
+            {
+                string dialogueId = dialogue.DialogueId;
+                if (playedDialogues.Contains(dialogueId) || queuedPlayOnceDialogueIds.Contains(dialogueId))
+                {
+                    return;
+                }
+
+                if (currentDialogue != null &&
+                    currentDialogue.PlayOnce &&
+                    string.Equals(currentDialogue.DialogueId, dialogueId, StringComparison.Ordinal))
+                {
+                    return;
+                }
+
+                queuedPlayOnceDialogueIds.Add(dialogueId);
+            }
+
             dialogueQueue.Enqueue(dialogue);
             EnsureQueueProcessorRunning();
         }
@@ -176,6 +195,7 @@ namespace Deadlight.Narrative
             StopAllCoroutines();
             queueProcessorCoroutine = null;
             dialogueQueue.Clear();
+            queuedPlayOnceDialogueIds.Clear();
 
             if (dialogueUI != null)
             {
@@ -286,6 +306,11 @@ namespace Deadlight.Narrative
                 if (dialogue == null)
                 {
                     continue;
+                }
+
+                if (dialogue.PlayOnce)
+                {
+                    queuedPlayOnceDialogueIds.Remove(dialogue.DialogueId);
                 }
 
                 yield return StartCoroutine(PlayDialogueCoroutine(dialogue));
@@ -424,6 +449,7 @@ namespace Deadlight.Narrative
         public void ClearQueue()
         {
             dialogueQueue.Clear();
+            queuedPlayOnceDialogueIds.Clear();
 
             if (!isPlaying && queueProcessorCoroutine != null)
             {
@@ -437,6 +463,7 @@ namespace Deadlight.Narrative
             StopAllCoroutines();
             queueProcessorCoroutine = null;
             dialogueQueue.Clear();
+            queuedPlayOnceDialogueIds.Clear();
 
             if (dialogueUI != null)
             {
@@ -460,6 +487,18 @@ namespace Deadlight.Narrative
         public void ResetPlayedDialogues()
         {
             playedDialogues.Clear();
+        }
+
+        public void ResetRuntimeStateForNewRun(bool clearPlayedDialogues = true)
+        {
+            CancelAllDialoguePlayback(immediateHide: true);
+            if (clearPlayedDialogues)
+            {
+                playedDialogues.Clear();
+            }
+
+            hasTriggeredGameStart = false;
+            currentDialogueStartedAt = -999f;
         }
 
         public bool HasPlayed(string dialogueId)

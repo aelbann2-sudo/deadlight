@@ -334,9 +334,7 @@ namespace Deadlight.Core
 
             if (NarrativeManager.Instance != null)
             {
-                NarrativeManager.Instance.ClearQueue();
-                NarrativeManager.Instance.ResetPlayedDialogues();
-                NarrativeManager.Instance.TriggerDialogue(DialogueTriggerType.GameStart, currentNight);
+                NarrativeManager.Instance.ResetRuntimeStateForNewRun(clearPlayedDialogues: true);
             }
 
             StoryObjective.Instance?.ResetStoryProgress();
