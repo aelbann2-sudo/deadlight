@@ -20,7 +20,7 @@
 
 Deliverable 2 is a playable Unity slice of *Deadlight*: **Levels 1–2** (Town Center and Suburban), six campaign nights. **Levels 3–4 are not completed yet** and are planned for **Deliverable 3**.
 
-**Day:** explore, objectives, resources. **Night:** escalating waves. **Dawn:** rewards and shop (weapons, armor, ammo, healing, upgrades). Between day and night, **`DayNightCycle`** runs a short timed handoff; **`GameManager`** stays in **`DayPhase`** until **`StartNightPhase`** (the **`GameState.Transition`** enum exists for UI hooks but is not the active manager state on this path). **Preparation** ties day to night through objectives, contested drops, and resources; radio, environment, and missions carry EVAC Command, Project Lazarus, Dr. Chen, and Subject 23.
+**Day:** explore, objectives, resources. **Night:** escalating waves. **Dawn:** rewards and shop (weapons, armor, ammo, healing, upgrades). Between day and night, **`DayNightCycle`** runs a short timed handoff; **`GameManager`** stays in **`DayPhase`** until **`StartNightPhase`** begins the night. The **`GameState.Transition`** enum exists for UI handling, but it is not the active manager state on this path. **Preparation** ties day to night through objectives, contested drops, and resources; radio, environment, and missions carry EVAC Command, Project Lazarus, Dr. Chen, and Subject 23.
 
 The criteria table below matches the section order that follows.
 
@@ -38,7 +38,7 @@ Sections below expand each row in order.
 
 ## Level design and player guidance
 
-Levels balance **readable structure** with **player freedom**. Level 1 introduces crash site, checkpoint, and hospital-style beats; Level 2 is more open and punishing. Guidance stacks: objective HUD, world markers, radio, landmarks, and pacing shifts between exploration and defense.
+Levels balance **readable structure** with **player freedom**. Level 1 introduces crash site, checkpoint, and hospital-style beats; Level 2 is more open and punishing. Guidance comes from the objective HUD, world markers, radio, landmarks, and pacing shifts between exploration and defense.
 
 Recent implementation updates focus on **structured onboarding** in Level 1:
 
@@ -77,7 +77,7 @@ Six nights: L1×3 then L2×3. Beat 3 (L1 Night 3) clears Level 1 and surfaces Le
 
 ## Testing and iteration
 
-Iteration mixed **observation** (hesitation, missed markers, busy COMMS) with **Play Mode** regression on phase transitions. Examples: simplified objective/comms labeling; support markers for drops and threats; clearer **retry vs queued-penalty** messaging at the day-to-night transition; level-complete details consolidated in the **dedicated panel** (transient congrats overlays reduced on level complete).
+Iteration mixed **observation** (hesitation, missed markers, busy COMMS) with **Play Mode** regression on phase transitions. This led to simpler objective and COMMS labeling, support markers for drops and threats, clearer **retry vs queued-penalty** messaging at the day-to-night transition, and level-complete details being kept in the **dedicated panel**.
 
 The latest iteration also addressed message clarity and timing:
 
@@ -94,7 +94,7 @@ The latest iteration also addressed message clarity and timing:
 - **Narrative:** Radio, scripted missions, lore systems.
 - **COMMS reliability:** `NarrativeManager` queue processing and interrupt protection were revised to reduce premature message overrides.
 - **Economy:** `PointsSystem`, pickups, `SupplyCrate`, waves.
-- **Crafting:** Hooks exist; **`enableCrafting = false`** in this build.
+- **Crafting:** Hooks exist, but **`enableCrafting = false`** in this build.
 - **Package:** Unity project (`Assets`, `Packages`, `ProjectSettings`) + Windows executable per course instructions + this report PDF.
 
 ## Deliverable 3 (planned)

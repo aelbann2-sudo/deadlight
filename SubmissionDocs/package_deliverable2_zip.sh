@@ -25,19 +25,16 @@ zip -r "$OUTZIP" \
   SubmissionDocs \
   -x "*/.DS_Store" \
   -x "*/*.tmp" \
+  -x "Assets/_Recovery/*" \
+  -x "Assets/_Recovery.meta" \
+  -x "SubmissionDocs/Deliverable 3 - Copy.pdf" \
+  -x "SubmissionDocs/*.docx" \
   -x "SubmissionDocs/*.aux" \
   -x "SubmissionDocs/*.log" \
   -x "SubmissionDocs/*.out" \
   -x "SubmissionDocs/*.toc" \
   -x "SubmissionDocs/*.synctex.gz"
 
-# Optional validation templates (small; omit entire tmp/ tree)
-for f in tmp/runtime_smoke_report.txt tmp/build_mac.log; do
-  if [[ -f "$REPO_ROOT/$f" ]]; then
-    zip -j "$OUTZIP" "$REPO_ROOT/$f"
-  fi
-done
-
 echo ""
-echo "Done. Excluded (not in zip): Library/, Logs/, Temp/, UserSettings/ — add Windows build + re-zip if your brief requires it."
+echo "Done. Excluded (not in zip): Library/, Logs/, Temp/, UserSettings/, placeholder validation files — add Windows build + any real smoke-test notes if your brief requires them."
 echo "Suggested: unzip -l \"$OUTZIP\" | head"
