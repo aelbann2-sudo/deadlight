@@ -119,7 +119,10 @@ namespace Deadlight.Narrative
                     if (!hasTriggeredGameStart)
                     {
                         hasTriggeredGameStart = true;
-                        TriggerDialogue(DialogueTriggerType.GameStart, 1);
+                        if (currentNight == 1)
+                        {
+                            TriggerDialogue(DialogueTriggerType.GameStart, 1);
+                        }
                     }
                     TriggerDialogue(DialogueTriggerType.NightEnd, currentNight - 1);
                     break;

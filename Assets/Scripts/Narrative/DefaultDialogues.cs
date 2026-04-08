@@ -51,11 +51,11 @@ namespace Deadlight.Narrative
                 2,
                 new string[]
                 {
-                    "*static* The shelter records you found... Command didn't evacuate those families.",
-                    "They drew the quarantine line right through the suburb. On purpose.",
-                    "And the infected are changing. Our sensors show faster ones. Runners.",
-                    "Whatever Project Lazarus created, it's still evolving out there.",
-                    "Two more levels, medic. Keep moving. *static*"
+                    "*static* Checkpoint packets are in. Command froze the quarantine line before evac buses arrived.",
+                    "Your route tonight runs through barricade corridors. Expect tighter contact and fast flanks.",
+                    "Runners confirmed on perimeter cams. They break from packs and sprint your position.",
+                    "Keep moving between cover and hold the line until dawn.",
+                    "Stay alive, medic. EVAC Command out. *static*"
                 });
             return dialogue;
         }

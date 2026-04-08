@@ -119,28 +119,36 @@ Table~\ref{tab:rubric} summarizes how the build meets the criteria. The body of 
 
 \begin{table}[H]
     \centering
+    \begingroup
     \small
-    \begin{tabularx}{\textwidth}{>{\raggedright\bfseries\arraybackslash}p{0.26\textwidth} Y Y}
+    \renewcommand{\arraystretch}{1.2}
+    \setlength{\tabcolsep}{7pt}
+    \begin{tabularx}{\textwidth}{>{\raggedright\bfseries\arraybackslash}p{0.24\textwidth} Y Y}
         \toprule
         Rubric Point & What Is Implemented in the Prototype & How It Is Demonstrated In-Game \\
         \midrule
         Level design and player guidance &
         Two authored spaces (Town Center and Suburban) with route structure, landmark sequencing, and objective-based navigation. &
         Objective HUD + mission markers + support markers (drops and nearest enemy) direct movement while preserving optional exploration paths. \\
+        \addlinespace[0.25em]
         Narrative and world-building &
         Mission-aligned radio beats, story objectives, lore pickups, and start/end framing tied to the Lazarus arc. &
         Each night advances plot context (evac failure, quarantine intent, Lazarus evidence) instead of isolated wave survival. \\
+        \addlinespace[0.25em]
         Systems and game balance &
         Day-night-dawn loop with connected economy (points, ammo, health, armor, utility, upgrades), plus escalation by night. &
         Better day execution produces stronger night readiness; weak preparation produces measurable combat pressure, including map-wide contested drop decisions. \\
+        \addlinespace[0.25em]
         Progression and rewards &
         Six-night campaign slice with unlock-based level access, reward pacing, and level-specific challenge identity. &
         Level 2 unlocks after Level 1 completion; a dedicated level-complete panel shows summary stats and supports either deploy-next or return-to-menu flow. \\
+        \addlinespace[0.25em]
         Testing and iteration &
         Iterative tuning from playtest feedback and PlayMode validation around objective flow, pickup clarity, and phase transitions. &
         UI callouts, objective readability, and communication pacing were revised based on observed confusion points. \\
         \bottomrule
     \end{tabularx}
+    \endgroup
     \caption{How each criterion maps to implemented systems and observable behavior in the prototype.}
     \label{tab:rubric}
 \end{table}
@@ -212,15 +220,20 @@ The main plot remains understandable even if the player skips optional lore, whi
 
 \begin{table}[H]
     \centering
+    \begingroup
     \small
-    \begin{tabularx}{\textwidth}{>{\bfseries}p{0.14\textwidth} Y}
+    \renewcommand{\arraystretch}{1.18}
+    \setlength{\tabcolsep}{7pt}
+    \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{0.17\textwidth} Y}
         \toprule
         Segment & Narrative and mission thrust \\
         \midrule
         L1 N1--N3 & Establish failed evacuation and EVAC Command as the voice of order; introduce Project Lazarus through early radio beats and objectives tied to the crash site, checkpoint, and clinic chain. \\
+        \addlinespace[0.25em]
         L2 N1--N3 & Escalate quarantine and Lazarus evidence in the suburban district; reinforce that scavenging and night survival directly support the extraction fantasy. \\
         \bottomrule
     \end{tabularx}
+    \endgroup
     \caption{High-level narrative coverage by campaign segment. Beats are delivered primarily through radio, story objectives, and optional lore rather than long cutscenes.}
 \end{table}
 
@@ -303,18 +316,26 @@ The table below lists default values from the code and ScriptableObjects. Design
 
 \begin{table}[H]
     \centering
+    \begingroup
     \small
-    \begin{tabularx}{\textwidth}{>{\bfseries}p{0.28\textwidth} Y}
+    \renewcommand{\arraystretch}{1.2}
+    \setlength{\tabcolsep}{7pt}
+    \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{0.24\textwidth} Y}
         \toprule
         Parameter & Role in the prototype \\
         \midrule
         Night survived payout & Base \texttt{pointsPerNightSurvived} $= 100$ plus scaling \texttt{bonusPointsPerNight} $\times$ \texttt{nightsSurvived} (default $50$ per stack in \texttt{PointsSystem}); \texttt{nightsSurvived} increments each dawn, including objective-retry loops that repeat the same campaign night. \\
+        \addlinespace[0.25em]
         Dawn milestones & \texttt{ProgressionManager} awards stipends when a milestone row matches the surviving night index (defaults: nights $1$--$3$ at $+100$, $+150$, $+200$). Milestones reset on new-level setup; add rows for nights $4$--$6$ in Unity if Level~2 should receive the same stipend cadence. \\
+        \addlinespace[0.25em]
         Contested drops & Timed pickups grant tiered point bundles ($+110$ / $+170$ / $+260$) plus ammo and healing, with drop locations scattered across the map (\texttt{GameFlowController}, \texttt{SupplyCrate}). \\
+        \addlinespace[0.25em]
         Objective miss penalty & Default flow (\texttt{GameManager}): one \textbf{retry of the same campaign night} if a day objective is missed (\texttt{maxObjectiveRetriesPerStep} $= 1$); after a forced advance, a \textbf{queued} $1.2\times$ enemy multiplier is consumed on the next night index advance (\texttt{WaveManager} scales waves with \texttt{CurrentNightEnemyPenaltyMultiplier}). Radio and UI separate retry from penalty. \texttt{StartNextLevel} clears miss queues and resets session points, so there is \textbf{no} partial point carry between maps on the playable inter-level path (carryover helpers exist in code but are not wired into that reset). \\
+        \addlinespace[0.25em]
         Weapon shop tiers & Dawn shop weapon purchases begin at night gates (SMG/Sniper at N2+, Assault Rifle/Grenade Launcher at N3+, Flamethrower at N4+); shotgun is no longer sold in the dawn weapon list (\texttt{GameUI}). \\
         \bottomrule
     \end{tabularx}
+    \endgroup
     \caption{Representative balance anchors as implemented in the Deliverable 2 codebase. Exact shop prices are set per-weapon in the Unity inspector rather than duplicated here.}
 \end{table}
 
@@ -421,19 +442,28 @@ Two examples show this process clearly. First, some testers saw the objective te
 
 \begin{table}[H]
     \centering
+    \begingroup
     \small
-    \begin{tabularx}{\textwidth}{>{\bfseries}p{0.29\textwidth} Y}
+    \renewcommand{\arraystretch}{1.2}
+    \setlength{\tabcolsep}{7pt}
+    \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{0.24\textwidth} Y}
         \toprule
         Validation Area & Evidence Included in the Current Prototype \\
         \midrule
         Objective readability & Objective title/status presentation and marker behavior were iterated to reduce overlap and missed-task confusion. \\
+        \addlinespace[0.25em]
         Narrative readability & Speaker/channel labeling and compact COMMS presentation were revised for faster recognition during combat. \\
+        \addlinespace[0.25em]
         Resource clarity & Pickup purpose hints and reward messaging were added to reduce confusion after looting. \\
+        \addlinespace[0.25em]
         Balance response & Night escalation and objective handling (retry of the same night, then queued penalty nights) were tuned so players can see how day choices affect night difficulty. \\
+        \addlinespace[0.25em]
         Progression behavior & Level completion panel flow (deploy next vs. return to menu), unlock gating, and manual next-level selection were tested to ensure predictable campaign flow. \\
+        \addlinespace[0.25em]
         Regression safety & Narrative playtest notes and local PlayMode checks were used to re-verify phase transitions and core loop stability. \\
         \bottomrule
     \end{tabularx}
+    \endgroup
     \caption{Testing and iteration summary for Deliverable 2. Local Play Mode checks were used as regression evidence for phase transitions and the core loop.}
 \end{table}
 

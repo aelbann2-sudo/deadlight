@@ -17,6 +17,7 @@ namespace Deadlight.Core
         private AudioClip radioBeepClip;
         private Coroutine overlayBypassCoroutine;
         private Coroutine dayTransmissionCoroutine;
+        private int lastBriefedNight = -1;
 
         private static readonly string[][] nightTransmissions = {
             // Level 1, Night 1
@@ -339,7 +340,11 @@ namespace Deadlight.Core
                     dayTransmissionCoroutine = null;
                 }
 
-                dayTransmissionCoroutine = StartCoroutine(PlayTransmissions(night - 1));
+                if (night != lastBriefedNight)
+                {
+                    dayTransmissionCoroutine = StartCoroutine(PlayTransmissions(night - 1));
+                    lastBriefedNight = night;
+                }
             }
             else if (state == GameState.NightPhase)
             {
@@ -386,11 +391,14 @@ namespace Deadlight.Core
         private float lastMessageTime = -10f;
         private const float MessageCooldown = 5f;
 
-        public void ShowMessage(string text, float duration)
+        public void ShowMessage(string text, float duration, bool bypassCooldown = false)
         {
-            if (Time.unscaledTime - lastMessageTime < MessageCooldown)
-                return;
-            lastMessageTime = Time.unscaledTime;
+            if (!bypassCooldown)
+            {
+                if (Time.unscaledTime - lastMessageTime < MessageCooldown)
+                    return;
+                lastMessageTime = Time.unscaledTime;
+            }
 
             if (TryShowUnifiedMessage(text, duration))
             {
@@ -641,6 +649,7 @@ namespace Deadlight.Core
             lowHealthPlayed = false;
             killStreakPlayed = false;
             lastMessageTime = -10f;
+            lastBriefedNight = -1;
 
             if (transmissionPanel != null)
             {
@@ -660,7 +669,6 @@ namespace Deadlight.Core
             if (lowHealthPlayed) return;
             lowHealthPlayed = true;
             ShowMessage("RADIO: Survivor, your vitals are critical! Find cover!", 3f);
-            lowHealthPlayed = false;
             StartCoroutine(ResetFlagAfterDelay(() => lowHealthPlayed = false, 30f));
         }
 

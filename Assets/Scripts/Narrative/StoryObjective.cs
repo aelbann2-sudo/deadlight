@@ -313,7 +313,7 @@ namespace Deadlight.Narrative
 
         private void ShowObjectiveAnnouncement(string message)
         {
-            RadioTransmissions.Instance?.ShowMessage($"MISSION LOG: {message}", 3.25f);
+            RadioTransmissions.Instance?.ShowMessage($"MISSION LOG: {message}", 3.25f, bypassCooldown: true);
         }
 
         private void LoadFont()

@@ -98,10 +98,13 @@ namespace Deadlight.UI
                 if (GameManager.Instance.CurrentNight == 1)
                 {
                     ResetRunTutorialState();
+                    ArmGuidanceDelayWindow();
+                    StartDayLoopIfNeeded();
                 }
-
-                ArmGuidanceDelayWindow();
-                StartDayLoopIfNeeded();
+                else
+                {
+                    StopDayLoop();
+                }
             }
         }
 
@@ -140,7 +143,7 @@ namespace Deadlight.UI
 
         private void Update()
         {
-            if (!IsDayPhaseActive() || tutorialComplete)
+            if (!IsDayPhaseActive() || tutorialComplete || !IsDayOne())
             {
                 return;
             }
@@ -227,12 +230,15 @@ namespace Deadlight.UI
                 {
                     ResetRunTutorialState();
                     EvaluateObjectiveImmediate();
+                    latestDropState = DayContestedDropState.Inactive;
+                    pendingDayOneDropGuidance = false;
+                    ArmGuidanceDelayWindow();
+                    StartDayLoopIfNeeded();
                 }
-
-                latestDropState = DayContestedDropState.Inactive;
-                pendingDayOneDropGuidance = false;
-                ArmGuidanceDelayWindow();
-                StartDayLoopIfNeeded();
+                else
+                {
+                    StopDayLoop();
+                }
             }
             else
             {
@@ -242,6 +248,11 @@ namespace Deadlight.UI
 
         private void OnObjectiveChanged()
         {
+            if (!IsDayOne())
+            {
+                return;
+            }
+
             EvaluateObjectiveImmediate();
             if (IsDayPhaseActive())
             {
@@ -270,6 +281,11 @@ namespace Deadlight.UI
 
         private void HandleObjectiveProgressRefresh()
         {
+            if (!IsDayOne())
+            {
+                return;
+            }
+
             EvaluateObjectiveImmediate();
             if (!IsDayPhaseActive())
             {
@@ -326,6 +342,11 @@ namespace Deadlight.UI
 
         private void OnContestedDropStateChanged(DayContestedDropState state, float _)
         {
+            if (!IsDayOne())
+            {
+                return;
+            }
+
             latestDropState = state;
 
             if (state == DayContestedDropState.Resolved)
@@ -361,6 +382,11 @@ namespace Deadlight.UI
         private void OnCrateSuccessfullyLooted(SupplyCrate crate)
         {
             if (crate == null)
+            {
+                return;
+            }
+
+            if (!IsDayOne() || !IsDayPhaseActive())
             {
                 return;
             }
