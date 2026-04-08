@@ -337,7 +337,7 @@ namespace Deadlight.Narrative
             channelText.fontStyle = FontStyles.Bold;
             channelText.color = UITheme.AccentGold;
             channelText.alignment = TextAlignmentOptions.Center;
-            channelText.enableWordWrapping = false;
+            channelText.textWrappingMode = TextWrappingModes.NoWrap;
             channelText.raycastTarget = false;
 
             var speakerTag = new GameObject("SpeakerTag");
@@ -365,7 +365,7 @@ namespace Deadlight.Narrative
             speakerNameText.fontStyle = FontStyles.Bold;
             speakerNameText.color = UITheme.AccentBlue;
             speakerNameText.alignment = TextAlignmentOptions.Left;
-            speakerNameText.enableWordWrapping = false;
+            speakerNameText.textWrappingMode = TextWrappingModes.NoWrap;
             speakerNameText.raycastTarget = false;
 
             var bodyObj = new GameObject("DialogueText");
@@ -379,7 +379,7 @@ namespace Deadlight.Narrative
             dialogueText.fontSize = 36f;
             dialogueText.color = dialogueTextColor;
             dialogueText.alignment = TextAlignmentOptions.TopLeft;
-            dialogueText.enableWordWrapping = true;
+            dialogueText.textWrappingMode = TextWrappingModes.Normal;
             dialogueText.lineSpacing = 6f;
             dialogueText.text = string.Empty;
             dialogueText.raycastTarget = false;
@@ -398,7 +398,7 @@ namespace Deadlight.Narrative
             skipText.fontStyle = FontStyles.Bold;
             skipText.color = hintColor;
             skipText.alignment = TextAlignmentOptions.Right;
-            skipText.enableWordWrapping = false;
+            skipText.textWrappingMode = TextWrappingModes.NoWrap;
             skipText.raycastTarget = false;
 
             if (speakerPortrait == null)
@@ -451,7 +451,7 @@ namespace Deadlight.Narrative
                 dialogueText.color = appliedBodyColor;
                 dialogueText.fontSize = compactLayoutActive ? 20f : 36f;
                 dialogueText.lineSpacing = compactLayoutActive ? 1f : 6f;
-                dialogueText.enableWordWrapping = true;
+                dialogueText.textWrappingMode = TextWrappingModes.Normal;
             }
 
             if (channelText != null)

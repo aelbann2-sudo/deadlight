@@ -44,6 +44,9 @@ namespace Deadlight.UI
         private float targetHealthRatio = 1f;
         private float displayedHealthRatio = 1f;
         private const float HealthBarLerpSpeed = 6f;
+        private int statusDisplayToken;
+        private Coroutine statusRoutineCoroutine;
+        private Coroutine transientStatusRoutineCoroutine;
         private readonly List<float> molotovZoneEndTimes = new List<float>();
         private float molotovInFlightUntil = -1f;
         private const float MolotovFlightHintSeconds = 1.25f;
@@ -721,19 +724,33 @@ namespace Deadlight.UI
         private void ShowStatus(string text, float duration)
         {
             if (statusText == null) return;
-            StopCoroutine("StatusRoutine");
-            StartCoroutine(StatusRoutine(text, duration));
+            statusDisplayToken++;
+            int token = statusDisplayToken;
+
+            if (statusRoutineCoroutine != null)
+            {
+                StopCoroutine(statusRoutineCoroutine);
+            }
+
+            statusRoutineCoroutine = StartCoroutine(StatusRoutine(text, duration, token));
         }
 
         /// <summary>Transient status line without canceling the main phase status coroutine.</summary>
         public void ShowTransientStatus(string text, float duration)
         {
             if (statusText == null) return;
-            StopCoroutine(nameof(TransientStatusRoutine));
-            StartCoroutine(TransientStatusRoutine(text, duration));
+            statusDisplayToken++;
+            int token = statusDisplayToken;
+
+            if (transientStatusRoutineCoroutine != null)
+            {
+                StopCoroutine(transientStatusRoutineCoroutine);
+            }
+
+            transientStatusRoutineCoroutine = StartCoroutine(TransientStatusRoutine(text, duration, token));
         }
 
-        private IEnumerator TransientStatusRoutine(string text, float duration)
+        private IEnumerator TransientStatusRoutine(string text, float duration, int token)
         {
             statusText.text = text;
             statusText.gameObject.SetActive(true);
@@ -743,7 +760,13 @@ namespace Deadlight.UI
             while (elapsed < fadeIn)
             {
                 elapsed += Time.deltaTime;
-                statusText.color = new Color(1, 1, 1, elapsed / fadeIn);
+                if (token != statusDisplayToken)
+                {
+                    transientStatusRoutineCoroutine = null;
+                    yield break;
+                }
+
+                statusText.color = new Color(1f, 1f, 1f, elapsed / fadeIn);
                 yield return null;
             }
 
@@ -754,14 +777,25 @@ namespace Deadlight.UI
             while (elapsed < fadeOut)
             {
                 elapsed += Time.deltaTime;
-                statusText.color = new Color(1, 1, 1, 1f - elapsed / fadeOut);
+                if (token != statusDisplayToken)
+                {
+                    transientStatusRoutineCoroutine = null;
+                    yield break;
+                }
+
+                statusText.color = new Color(1f, 1f, 1f, 1f - elapsed / fadeOut);
                 yield return null;
             }
 
-            statusText.gameObject.SetActive(false);
+            if (token == statusDisplayToken)
+            {
+                statusText.gameObject.SetActive(false);
+            }
+
+            transientStatusRoutineCoroutine = null;
         }
 
-        private IEnumerator StatusRoutine(string text, float duration)
+        private IEnumerator StatusRoutine(string text, float duration, int token)
         {
             statusText.text = text;
             statusText.gameObject.SetActive(true);
@@ -771,7 +805,13 @@ namespace Deadlight.UI
             while (elapsed < fadeIn)
             {
                 elapsed += Time.deltaTime;
-                statusText.color = new Color(1, 1, 1, elapsed / fadeIn);
+                if (token != statusDisplayToken)
+                {
+                    statusRoutineCoroutine = null;
+                    yield break;
+                }
+
+                statusText.color = new Color(1f, 1f, 1f, elapsed / fadeIn);
                 yield return null;
             }
 
@@ -782,11 +822,22 @@ namespace Deadlight.UI
             while (elapsed < fadeOut)
             {
                 elapsed += Time.deltaTime;
-                statusText.color = new Color(1, 1, 1, 1f - elapsed / fadeOut);
+                if (token != statusDisplayToken)
+                {
+                    statusRoutineCoroutine = null;
+                    yield break;
+                }
+
+                statusText.color = new Color(1f, 1f, 1f, 1f - elapsed / fadeOut);
                 yield return null;
             }
 
-            statusText.gameObject.SetActive(false);
+            if (token == statusDisplayToken)
+            {
+                statusText.gameObject.SetActive(false);
+            }
+
+            statusRoutineCoroutine = null;
         }
     }
 }

@@ -43,6 +43,28 @@ namespace Deadlight.Core
         [SerializeField] private float daySkirmishHealthMultiplier = 0.75f;
         [SerializeField] private float daySkirmishDamageMultiplier = 0.65f;
         [SerializeField] private float daySkirmishSpeedMultiplier = 0.9f;
+        [SerializeField] private bool disableDaySkirmishOnNightOne = true;
+        [Header("Night 1 Learning Pace")]
+        [SerializeField] private bool nightOneSpawnOneByOne = true;
+        [SerializeField] [Range(0, 4)] private int nightOneNearPlayerSpawnCount = 2;
+        [SerializeField] [Range(2f, 12f)] private float nightOneNearSpawnMinDistance = 5.8f;
+        [SerializeField] [Range(2.5f, 14f)] private float nightOneNearSpawnMaxDistance = 8.8f;
+        [SerializeField] [Range(0f, 10f)] private float nightOneFirstSpawnDelay = 5.6f;
+        [SerializeField] [Range(0f, 4f)] private float nightOneDelayAfterKillBeforeNextSpawn = 1.5f;
+        [SerializeField] [Min(1)] private int nightOneMaxEnemiesPerWave = 2;
+        [Header("Day 1 Tutorial Skirmish")]
+        [SerializeField] private bool enableDayOneTutorialSkirmish = false;
+        [SerializeField] [Range(5f, 18f)] private float dayOneTutorialStartDelay = 8f;
+        [SerializeField] [Min(1)] private int dayOneTutorialEnemyCount = 2;
+        [SerializeField] private float dayOneTutorialSpawnGap = 1.2f;
+        [SerializeField] [Range(1.5f, 6f)] private float dayOneTutorialSpawnMinDistance = 2.2f;
+        [SerializeField] [Range(2f, 7f)] private float dayOneTutorialSpawnMaxDistance = 3.8f;
+        [SerializeField] private float dayOneTutorialRadioDuration = 3.2f;
+        [Header("Town Center intro (Level 1)")]
+        [Tooltip("Campaign night 1: first day skirmish + first night waves.")]
+        [SerializeField] [Range(0.35f, 1f)] private float campaignNight1EnemySpeedScale = 0.50f;
+        [Tooltip("Level 1 nights 2–3 (still Town Center).")]
+        [SerializeField] [Range(0.45f, 1f)] private float levelOneEnemySpeedScale = 0.72f;
         [SerializeField] private float emergencySpawnDelay = 5f;
         [SerializeField] private float waveEnemyGrowthPerWave = 0.16f;
         [SerializeField] private float waveOverlapThresholdRatio = 0.2f;
@@ -51,6 +73,7 @@ namespace Deadlight.Core
         public int EnemiesRemaining => enemiesRemaining;
         public int TotalEnemiesKilled => totalEnemiesKilled;
         public bool IsSpawning => isSpawning;
+        public bool DayOneTutorialCombatComplete => dayOneTutorialCombatComplete;
 
         public event Action<int> OnWaveStarted;
         public event Action<int> OnWaveCompleted;
@@ -58,12 +81,44 @@ namespace Deadlight.Core
         public event Action<int> OnEnemyKilled;
         public event Action<int> OnEnemyCountChanged;
 
+        /// <summary>
+        /// Extra enemy speed multiplier for campaign night 1 and rest of Level 1 (for WaveSpawner / tools).
+        /// </summary>
+        public static float GetIntroPacingEnemySpeedMultiplier()
+        {
+            return Instance != null ? Instance.EvalIntroEnemySpeedScale() : 1f;
+        }
+
+        private float EvalIntroEnemySpeedScale()
+        {
+            if (GameManager.Instance == null)
+            {
+                return 1f;
+            }
+
+            if (GameManager.Instance.CurrentLevel != 1)
+            {
+                return 1f;
+            }
+
+            return GameManager.Instance.CurrentNight == 1
+                ? campaignNight1EnemySpeedScale
+                : levelOneEnemySpeedScale;
+        }
+
         private NightConfig currentNightConfig;
         private Coroutine nightSequenceCoroutine;
         private DayNightCycle dayNightCycle;
         private GameObject runtimeZombiePrefab;
         private float idleNightTimer;
         private bool daySkirmishTriggered;
+        private Coroutine daySkirmishCoroutine;
+        private float dayOneTutorialStartAt = float.PositiveInfinity;
+        private int dayOneTutorialKills;
+        private bool dayOneTutorialCombatActive;
+        private bool dayOneTutorialCombatComplete = true;
+        private int nightOneNearSpawnsUsed;
+        private bool nightOneFirstSpawnDelayConsumed;
         private bool bossSpawned;
         private bool miniBossSpawned;
 
@@ -181,10 +236,32 @@ namespace Deadlight.Core
                 ResetForNewNight();
                 StopAllSpawning();
                 daySkirmishTriggered = false;
+                nightOneNearSpawnsUsed = 0;
+                nightOneFirstSpawnDelayConsumed = false;
+                dayOneTutorialKills = 0;
+                dayOneTutorialCombatActive = false;
+
+                bool isFirstCampaignDay = GameManager.Instance != null && GameManager.Instance.CurrentNight == 1;
+                if (isFirstCampaignDay)
+                {
+                    dayOneTutorialCombatComplete = true;
+                    dayOneTutorialStartAt = float.PositiveInfinity;
+                }
+                else if (ShouldRequireDayOneTutorialCombat())
+                {
+                    dayOneTutorialCombatComplete = false;
+                    dayOneTutorialStartAt = Time.time + Mathf.Max(0f, dayOneTutorialStartDelay);
+                }
+                else
+                {
+                    dayOneTutorialCombatComplete = true;
+                    dayOneTutorialStartAt = float.PositiveInfinity;
+                }
             }
             else if (newState != GameState.NightPhase)
             {
                 StopAllSpawning();
+                dayOneTutorialCombatActive = false;
             }
         }
 
@@ -252,6 +329,10 @@ namespace Deadlight.Core
                 currentWave = wave;
                 int waveEnemyCount = CalculateEnemyCount(wave);
                 int waveOverlapThreshold = Mathf.RoundToInt(waveEnemyCount * Mathf.Clamp01(waveOverlapThresholdRatio));
+                if (ShouldUseNightOneOneByOneSpawns())
+                {
+                    waveOverlapThreshold = 0;
+                }
                 OnWaveStarted?.Invoke(wave);
 
                 yield return StartCoroutine(SpawnWave(wave));
@@ -294,6 +375,13 @@ namespace Deadlight.Core
 
             int enemyCount = CalculateEnemyCount(waveNumber);
             float spawnInterval = Mathf.Max(0.55f, (currentNightConfig?.spawnInterval ?? 2f) * GetSpawnIntervalMultiplier() * GetAdaptiveSpawnIntervalMultiplier());
+            bool oneByOne = ShouldUseNightOneOneByOneSpawns();
+
+            if (ShouldUseNightOneInitialSpawnDelay(waveNumber))
+            {
+                yield return new WaitForSeconds(Mathf.Max(0f, nightOneFirstSpawnDelay));
+                nightOneFirstSpawnDelayConsumed = true;
+            }
 
             for (int i = 0; i < enemyCount; i++)
             {
@@ -302,11 +390,91 @@ namespace Deadlight.Core
                     break;
                 }
 
-                SpawnEnemy();
-                yield return new WaitForSeconds(spawnInterval);
+                if (oneByOne)
+                {
+                    while (GameManager.Instance?.CurrentState == GameState.NightPhase && enemiesRemaining > 0)
+                    {
+                        yield return null;
+                    }
+                }
+
+                Vector3? overrideSpawnPosition = null;
+                if (ShouldUseNightOneNearPlayerSpawn() &&
+                    TryGetNightOneNearPlayerSpawn(out var nearPlayerSpawn))
+                {
+                    overrideSpawnPosition = nearPlayerSpawn;
+                    nightOneNearSpawnsUsed++;
+                }
+
+                SpawnEnemy(overrideSpawnPosition);
+                if (oneByOne)
+                {
+                    while (GameManager.Instance?.CurrentState == GameState.NightPhase && enemiesRemaining > 0)
+                    {
+                        yield return null;
+                    }
+
+                    if (i < enemyCount - 1)
+                    {
+                        float postKillDelay = Mathf.Max(0f, nightOneDelayAfterKillBeforeNextSpawn);
+                        if (postKillDelay > 0f)
+                        {
+                            yield return new WaitForSeconds(postKillDelay);
+                        }
+                    }
+                }
+                else
+                {
+                    yield return new WaitForSeconds(spawnInterval);
+                }
             }
 
             isSpawning = false;
+        }
+
+        private bool ShouldUseNightOneOneByOneSpawns()
+        {
+            return nightOneSpawnOneByOne &&
+                   GameManager.Instance != null &&
+                   GameManager.Instance.CurrentState == GameState.NightPhase &&
+                   GameManager.Instance.CurrentNight == 1;
+        }
+
+        private bool ShouldUseNightOneNearPlayerSpawn()
+        {
+            return ShouldUseNightOneOneByOneSpawns() &&
+                   nightOneNearSpawnsUsed < Mathf.Max(0, nightOneNearPlayerSpawnCount);
+        }
+
+        private bool ShouldUseNightOneInitialSpawnDelay(int waveNumber)
+        {
+            return ShouldUseNightOneOneByOneSpawns() &&
+                   waveNumber == 1 &&
+                   !nightOneFirstSpawnDelayConsumed;
+        }
+
+        private bool TryGetNightOneNearPlayerSpawn(out Vector3 spawnPosition)
+        {
+            spawnPosition = Vector3.zero;
+
+            var player = GameObject.FindGameObjectWithTag("Player");
+            if (player == null)
+            {
+                player = GameObject.Find("Player");
+            }
+
+            if (player == null)
+            {
+                return false;
+            }
+
+            float minDistance = Mathf.Max(1f, nightOneNearSpawnMinDistance);
+            float maxDistance = Mathf.Max(minDistance + 0.2f, nightOneNearSpawnMaxDistance);
+            float angle = UnityEngine.Random.Range(0f, Mathf.PI * 2f);
+            float distance = UnityEngine.Random.Range(minDistance, maxDistance);
+            spawnPosition = player.transform.position + new Vector3(Mathf.Cos(angle) * distance, Mathf.Sin(angle) * distance, 0f);
+            spawnPosition = ClampToMapBounds(spawnPosition);
+            return true;
         }
 
         private int CalculateEnemyCount(int waveNumber)
@@ -315,8 +483,14 @@ namespace Deadlight.Core
             float waveScaling = 1f + (waveNumber - 1) * Mathf.Max(0.1f, waveEnemyGrowthPerWave);
             float campaignMultiplier = GetCampaignWaveMultiplier() * GetAdaptiveEnemyCountMultiplier();
             int maxPerWave = GetNightEnemyCap();
+            int computed = Mathf.Clamp(Mathf.RoundToInt(baseCount * waveScaling * campaignMultiplier), 1, maxPerWave);
 
-            return Mathf.Clamp(Mathf.RoundToInt(baseCount * waveScaling * campaignMultiplier), 1, maxPerWave);
+            if (GameManager.Instance != null && GameManager.Instance.CurrentNight == 1)
+            {
+                computed = Mathf.Min(computed, Mathf.Max(1, nightOneMaxEnemiesPerWave));
+            }
+
+            return computed;
         }
 
         private int GetNightEnemyCap()
@@ -385,12 +559,22 @@ namespace Deadlight.Core
             return 1f;
         }
 
-        private void SpawnEnemy()
+        private void SpawnEnemy(Vector3? overrideSpawnPosition = null, SpawnType? forcedSpawnType = null)
         {
             EnsureRuntimeDefaults();
 
-            var spawnPosition = GetSpawnPosition(out SpawnPoint usedSpawnPoint);
-            if (spawnPosition == Vector3.zero && spawnPoints.Count == 0)
+            SpawnPoint usedSpawnPoint = null;
+            Vector3 spawnPosition;
+            if (overrideSpawnPosition.HasValue)
+            {
+                spawnPosition = overrideSpawnPosition.Value;
+            }
+            else
+            {
+                spawnPosition = GetSpawnPosition(out usedSpawnPoint);
+            }
+
+            if (!overrideSpawnPosition.HasValue && spawnPosition == Vector3.zero && spawnPoints.Count == 0)
             {
                 Debug.LogWarning("[WaveManager] No spawn points available");
                 return;
@@ -401,14 +585,17 @@ namespace Deadlight.Core
             int level = GameManager.GetLevelForNight(nightNum);
             bool isLastNight = GameManager.IsLastNightOfLevel(nightNum);
             bool isDaySkirmish = GameManager.Instance?.CurrentState == GameState.DayPhase;
-            var spawnType = SelectSpawnType(nightNum, isDaySkirmish);
+            var spawnType = forcedSpawnType ?? SelectSpawnType(nightNum, isDaySkirmish);
+            bool hasForcedSpawnType = forcedSpawnType.HasValue;
 
-            bool shouldSpawnMiniBoss = level >= 2 && isLastNight &&
+            bool shouldSpawnMiniBoss = !hasForcedSpawnType &&
+                                       level >= 2 && isLastNight &&
                                        currentWave >= (currentNightConfig?.waveCount ?? 3) &&
                                        !isDaySkirmish &&
                                        !miniBossSpawned;
 
-            bool shouldSpawnBoss = nightNum >= maxNights &&
+            bool shouldSpawnBoss = !hasForcedSpawnType &&
+                                   nightNum >= maxNights &&
                                    spawnType == SpawnType.Tank &&
                                    currentWave >= (currentNightConfig?.waveCount ?? 3) &&
                                    !isDaySkirmish &&
@@ -773,6 +960,8 @@ namespace Deadlight.Core
                 speedMultiplier = Mathf.Lerp(1f, speedMultiplier, daySkirmishSpeedMultiplier);
             }
 
+            speedMultiplier *= EvalIntroEnemySpeedScale();
+
             var enemyHealth = enemy.GetComponent<Enemy.EnemyHealth>();
             if (enemyHealth != null)
             {
@@ -816,7 +1005,53 @@ namespace Deadlight.Core
                 return;
             }
 
-            if (!dayNightCycle.IsDay || dayNightCycle.TimeRemaining > daySkirmishTriggerTime)
+            if (!dayNightCycle.IsDay)
+            {
+                return;
+            }
+
+            if (GameManager.Instance != null && GameManager.Instance.CurrentNight == 1)
+            {
+                // Day 1 is tutorial guidance only: never spawn daytime zombies.
+                if (daySkirmishCoroutine != null)
+                {
+                    StopCoroutine(daySkirmishCoroutine);
+                    daySkirmishCoroutine = null;
+                }
+
+                dayOneTutorialCombatActive = false;
+                dayOneTutorialCombatComplete = true;
+                dayOneTutorialStartAt = float.PositiveInfinity;
+                return;
+            }
+
+            bool runDayOneTutorialSkirmish = ShouldRunDayOneTutorialSkirmish();
+            if (disableDaySkirmishOnNightOne &&
+                GameManager.Instance != null &&
+                GameManager.Instance.CurrentNight == 1 &&
+                !runDayOneTutorialSkirmish)
+            {
+                return;
+            }
+
+            if (runDayOneTutorialSkirmish)
+            {
+                if (Time.time < dayOneTutorialStartAt)
+                {
+                    return;
+                }
+
+                daySkirmishTriggered = true;
+                if (daySkirmishCoroutine != null)
+                {
+                    StopCoroutine(daySkirmishCoroutine);
+                }
+
+                daySkirmishCoroutine = StartCoroutine(RunDayOneTutorialSkirmish());
+                return;
+            }
+
+            if (dayNightCycle.TimeRemaining > daySkirmishTriggerTime)
             {
                 return;
             }
@@ -827,6 +1062,92 @@ namespace Deadlight.Core
             {
                 SpawnEnemy();
             }
+        }
+
+        private bool ShouldRequireDayOneTutorialCombat()
+        {
+            // Disabled by default for guidance-focused Day 1; can be enabled via inspector when needed.
+            return enableDayOneTutorialSkirmish &&
+                   GameManager.Instance != null &&
+                   GameManager.Instance.CurrentNight == 1;
+        }
+
+        private bool ShouldRunDayOneTutorialSkirmish()
+        {
+            return ShouldRequireDayOneTutorialCombat() && !dayOneTutorialCombatComplete;
+        }
+
+        private IEnumerator RunDayOneTutorialSkirmish()
+        {
+            dayOneTutorialCombatActive = true;
+            RadioTransmissions.Instance?.ShowMessage(
+                "RADIO: Daylight drill. Aim with the mouse and left-click to fire. Two hostiles inbound.",
+                dayOneTutorialRadioDuration);
+
+            int count = Mathf.Max(1, dayOneTutorialEnemyCount);
+            for (int i = 0; i < count; i++)
+            {
+                while (GameManager.Instance != null &&
+                       GameManager.Instance.CurrentState == GameState.DayPhase &&
+                       enemiesRemaining > 0)
+                {
+                    yield return null;
+                }
+
+                if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameState.DayPhase)
+                {
+                    break;
+                }
+
+                Vector3 tutorialSpawn = GetDayOneTutorialSpawnPosition();
+                SpawnEnemy(tutorialSpawn, SpawnType.Basic);
+
+                if (i < count - 1)
+                {
+                    yield return new WaitForSeconds(Mathf.Max(0f, dayOneTutorialSpawnGap));
+                }
+            }
+
+            daySkirmishCoroutine = null;
+        }
+
+        private Vector3 GetDayOneTutorialSpawnPosition()
+        {
+            var player = GameObject.FindGameObjectWithTag("Player");
+            if (player == null)
+            {
+                player = GameObject.Find("Player");
+            }
+
+            SpawnPoint ignoredSpawnPoint;
+            if (player == null)
+            {
+                return GetSpawnPosition(out ignoredSpawnPoint);
+            }
+
+            Vector3 playerPos = player.transform.position;
+            float minDistance = Mathf.Max(1f, dayOneTutorialSpawnMinDistance);
+            float maxDistance = Mathf.Max(minDistance + 0.2f, dayOneTutorialSpawnMaxDistance);
+
+            float angle = UnityEngine.Random.Range(0f, Mathf.PI * 2f);
+            float distance = UnityEngine.Random.Range(minDistance, maxDistance);
+            Vector3 candidate = playerPos + new Vector3(Mathf.Cos(angle) * distance, Mathf.Sin(angle) * distance, 0f);
+            return ClampToMapBounds(candidate);
+        }
+
+        private Vector3 ClampToMapBounds(Vector3 position)
+        {
+            if (GameManager.Instance == null)
+            {
+                return position;
+            }
+
+            var cfg = MapConfig.GetConfigForType(GameManager.Instance.SelectedMap);
+            float halfW = Mathf.Max(2f, cfg.perimeterHalfW - 1f);
+            float halfH = Mathf.Max(2f, cfg.perimeterHalfH - 1f);
+            position.x = Mathf.Clamp(position.x, -halfW, halfW);
+            position.y = Mathf.Clamp(position.y, -halfH, halfH);
+            return position;
         }
 
         private void SpawnEmergencyBurst()
@@ -855,6 +1176,19 @@ namespace Deadlight.Core
                 DayObjectiveSystem.Instance != null)
             {
                 DayObjectiveSystem.Instance.AddProgress(1);
+            }
+
+            if (ShouldRequireDayOneTutorialCombat() && dayOneTutorialCombatActive && !dayOneTutorialCombatComplete)
+            {
+                dayOneTutorialKills++;
+                if (dayOneTutorialKills >= Mathf.Max(1, dayOneTutorialEnemyCount))
+                {
+                    dayOneTutorialCombatComplete = true;
+                    dayOneTutorialCombatActive = false;
+                    RadioTransmissions.Instance?.ShowMessage(
+                        "RADIO: Daylight drill complete. Proceed to the orange objective marker.",
+                        dayOneTutorialRadioDuration);
+                }
             }
         }
 
@@ -885,6 +1219,8 @@ namespace Deadlight.Core
             }
 
             StopAllCoroutines();
+            daySkirmishCoroutine = null;
+            dayOneTutorialCombatActive = false;
             isSpawning = false;
         }
 

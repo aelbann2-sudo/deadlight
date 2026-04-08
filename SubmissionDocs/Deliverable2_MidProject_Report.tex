@@ -160,6 +160,14 @@ The two playable districts were designed to guide movement, control pacing, and 
 
 Level~1 introduces the campaign. Its main path leads the player through clear landmarks such as the crash site, the military checkpoint, and the hospital. These locations are visually distinct, so the player can follow the route without becoming lost. Level~2 keeps the same general structure, but it is more open and exposed. This makes navigation, looting, and defense planning more demanding.
 
+\noindent\textbf{Latest onboarding iteration (Level~1).}
+\begin{itemize}
+    \item Day~1 guidance follows a fixed order: objective guidance appears first, then drop guidance appears only after objective completion.
+    \item The first drop instruction asks the player to follow the marker; the hold-to-loot instruction appears only when the player is near the crate.
+    \item Night~1 combat guidance is tied to first visible hostiles, with spaced prompts to prevent message stacking.
+    \item Early pressure is controlled for onboarding: Night~1 uses one-by-one enemy pressure and reduced enemy speed in Level~1 before normal pacing resumes.
+\end{itemize}
+
 The difficulty curve is intentional. Level~1 teaches the basic day--night rhythm and the preparation loop. Level~2 expects the player to apply that knowledge under more pressure. The increase in difficulty comes from level layout and encounter spacing as well as stronger enemy pressure.
 
 Player guidance is delivered through several overlapping cues:
@@ -244,6 +252,7 @@ Balance depends not only on enemy tuning, but also on how clearly the game expla
 \begin{itemize}
     \item Pickup callouts and HUD counts show what changed after looting or shopping.
     \item Objective results, scavenging, and shop buys all feed into how survivable the night feels.
+    \item Level~1 onboarding pacing is intentionally softer: first-night enemy speed and spawn cadence are reduced for readability, then campaign pacing returns to normal on later nights.
     \item Missed day objectives use a \textbf{retry-first} rule: by default the player gets \textbf{one repeat of the same campaign night} (\texttt{maxObjectiveRetriesPerStep} $= 1$ in \texttt{GameManager}) before a forced advance, so a single miss does \textbf{not} immediately jump difficulty---it replays the step. After retries are exhausted, a \textbf{queued} enemy-strength penalty (default $1.2\times$) is consumed when the campaign night index next advances (\texttt{GameManager} / \texttt{WaveManager}). Radio and summary UI distinguish retry from penalty. Moving to Level~2 after Level~1 applies a full reset of points, upgrades, armor, throwables, and loadout via \texttt{GameManager.StartNextLevel} (Section~\ref{sec:progression}).
     \item Pickup flow emphasizes combat items (ammo, health, utility, points) to limit inventory clutter.
 \end{itemize}
@@ -413,6 +422,8 @@ Testing and iteration were based on two main sources: observing how people playe
 
 Later work focused on making the rules fair and readable. The systems needed to function correctly, but they also needed to be understood quickly enough for players to make informed decisions. For that reason, much of the iteration focused on when the game gives feedback and how clearly that feedback is presented.
 
+The latest iteration cycle focused on communication timing and coherence. COMMS playback behavior was stabilized to reduce cases where messages were cut off by overlapping events. Day~1 objective and drop teaching was moved to staged on-screen prompts, and Night~1 aim/fire prompts were tied to visible-contact moments rather than stacked startup lines.
+
 Two examples show this process clearly. First, some testers saw the objective text but missed the world marker or the related COMMS line during busier moments. To fix this, the objective title, status line, and radio channel labeling were simplified, and support markers were added for drops and nearest enemy direction. Second, some players understood that they had earned points, but did not immediately understand why later nights felt harder after poor daytime performance. To address this, transition-phase and penalty messaging was revised so the game more clearly states the \textbf{retry} rule, when a \textbf{queued} enemy boost applies on a \textbf{later} night, and any linked penalty summary. A related UI pass also removed transient level-complete congratulation overlays and kept completion details in the dedicated summary panel.
 
 \begin{table}[H]
@@ -457,8 +468,9 @@ The prototype relies on these Unity systems:
 
 \begin{itemize}
     \item \textbf{Game flow and campaign state:} \texttt{GameManager} and \texttt{GameFlowController} coordinate the day, night, dawn, and level transition structure.
-    \item \textbf{Mission guidance:} \texttt{StoryObjective}, the objective HUD, and objective markers provide in-world direction without relying on a heavy tutorial layer; support markers also track drops and nearest enemy direction.
+    \item \textbf{Mission guidance:} \texttt{StoryObjective}, objective HUD, objective markers, \texttt{SupportMarkerGuidanceController}, and \texttt{FirstCombatHintController} provide staged objective, drop, and combat onboarding.
     \item \textbf{Narrative support:} radio updates, mission scripting, and lore systems support layered story delivery across the run.
+    \item \textbf{COMMS reliability:} \texttt{NarrativeManager} queue processing and interrupt handling were updated to reduce premature message overrides.
     \item \textbf{Balance and preparation systems:} \texttt{SupplyCrate}, \texttt{Pickup}, \texttt{PointsSystem}, and the wave balancing path connect day preparation to night pressure; contested and helicopter drops use map-scattered spawn placement.
     \item \textbf{Weapon loadout:} \texttt{PlayerShooting} supports four weapon slots with hotkey switching; the shop fills empty slots rather than selling duplicate types already carried.
     \item \textbf{Current feature gating:} crafting hooks exist in code but are disabled in this Deliverable 2 build (\texttt{enableCrafting = false}) to keep the prototype loop clean and readable.

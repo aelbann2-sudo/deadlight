@@ -13,6 +13,7 @@ namespace Deadlight.Narrative
         private int killCount;
         private float lowHealthCooldown;
         private int nightsSurvived;
+        private GameState lastKnownState = GameState.MainMenu;
 
         void Awake()
         {
@@ -23,11 +24,32 @@ namespace Deadlight.Narrative
         void Start()
         {
             if (GameManager.Instance != null)
+            {
                 GameManager.Instance.OnGameStateChanged += OnStateChanged;
+                lastKnownState = GameManager.Instance.CurrentState;
+            }
 
             var waveManager = FindFirstObjectByType<WaveManager>();
             if (waveManager != null)
                 waveManager.OnEnemyKilled += OnEnemyKilled;
+        }
+
+        public void ResetSession()
+        {
+            firstKillTriggered = false;
+            lowHealthTriggered = false;
+            killCount = 0;
+            lowHealthCooldown = 0f;
+            nightsSurvived = 0;
+
+            if (GameManager.Instance != null)
+            {
+                lastKnownState = GameManager.Instance.CurrentState;
+            }
+            else
+            {
+                lastKnownState = GameState.MainMenu;
+            }
         }
 
         void Update()
@@ -50,17 +72,19 @@ namespace Deadlight.Narrative
 
             if (state == GameState.DayPhase)
             {
-                nightsSurvived++;
+                bool transitionedFromNight = lastKnownState == GameState.NightPhase;
+
                 if (NightMutation.Instance != null)
                     NightMutation.Instance.ClearMutation();
 
-                if (nightsSurvived > 0 && RadioTransmissions.Instance != null)
+                if (transitionedFromNight && RadioTransmissions.Instance != null)
                 {
+                    nightsSurvived++;
                     string[] survivalMessages = {
-                        "You cleared another level. Don't let your guard down.",
-                        "Dawn breaks... but the next level will be worse.",
-                        "Another sunrise. Use the daylight wisely, survivor.",
-                        "The infected retreat at dawn. Scavenge while you can."
+                        "You made it through the night. Use daylight to restock and reposition.",
+                        "Dawn secured. Loot quickly and prepare before sundown.",
+                        "Another sunrise. Fortify your route and conserve ammo.",
+                        "Daylight window open. Gather resources before dark."
                     };
                     int idx = Mathf.Min(nightsSurvived - 1, survivalMessages.Length - 1);
                     RadioTransmissions.Instance.ShowMessage(survivalMessages[idx], 4f);
@@ -78,6 +102,8 @@ namespace Deadlight.Narrative
                 if (EndingSequence.Instance != null)
                     EndingSequence.Instance.PlayVictoryEnding();
             }
+
+            lastKnownState = state;
         }
 
         void OnEnemyKilled(int totalKills)

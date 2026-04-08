@@ -70,6 +70,7 @@ namespace Deadlight.Core
 
         public DayObjective GenerateObjective(int night, int seed)
         {
+            OnObjectiveGenerated?.Invoke(activeObjective);
             return activeObjective;
         }
 

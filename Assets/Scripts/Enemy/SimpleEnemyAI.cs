@@ -314,9 +314,19 @@ namespace Deadlight.Enemy
             speedMultiplier = Mathf.Max(0.1f, multiplier);
         }
 
+        public void MultiplySpeedMultiplier(float multiplier)
+        {
+            speedMultiplier = Mathf.Max(0.1f, speedMultiplier * Mathf.Max(0.1f, multiplier));
+        }
+
         public void ApplyDamageMultiplier(float multiplier)
         {
             damageMultiplier = Mathf.Max(0.1f, multiplier);
+        }
+
+        public void MultiplyDamageMultiplier(float multiplier)
+        {
+            damageMultiplier = Mathf.Max(0.1f, damageMultiplier * Mathf.Max(0.1f, multiplier));
         }
 
         private void RefreshAggressionPhase(GameState state)

@@ -20,7 +20,6 @@ namespace Deadlight.Systems
         [SerializeField] private float healthAmount = 25f;
         [SerializeField] private int pointsAmount = 50;
         [SerializeField] private int scrapAmount = 2;
-        [SerializeField] private int woodAmount = 2;
         [SerializeField] private int chemicalsAmount = 1;
         [SerializeField] private int electronicsAmount = 1;
 
