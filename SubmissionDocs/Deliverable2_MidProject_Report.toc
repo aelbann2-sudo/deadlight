@@ -9,6 +9,6 @@
 \contentsline {paragraph}{Playtesting protocol.}{9}{section*.12}%
 \contentsline {section}{\numberline {8}Technical Notes}{10}{section.8}%
 \contentsline {paragraph}{Build verification and limits.}{10}{section*.13}%
-\contentsline {paragraph}{In-engine figures.}{10}{section*.14}%
+\contentsline {paragraph}{In-engine figures.}{11}{section*.14}%
 \contentsline {section}{\numberline {9}Upcoming Development (Deliverable 3)}{12}{section.9}%
 \contentsline {section}{\numberline {10}Conclusion}{13}{section.10}%

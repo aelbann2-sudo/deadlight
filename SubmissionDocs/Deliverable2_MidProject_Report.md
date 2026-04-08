@@ -90,7 +90,7 @@ The latest iteration also addressed message clarity and timing:
 ## Technical notes
 
 - **Flow:** `GameManager`, `GameFlowController` (day/night/dawn, drops).
-- **Guidance:** `StoryObjective`, objective HUD, markers, `FirstCombatHintController`, `SupportMarkerGuidanceController`.
+- **Guidance:** `StoryObjective`, objective HUD, and markers, plus staged controllers for objective, drop, and first-contact combat onboarding.
 - **Narrative:** Radio, scripted missions, lore systems.
 - **COMMS reliability:** `NarrativeManager` queue processing and interrupt protection were revised to reduce premature message overrides.
 - **Economy:** `PointsSystem`, pickups, `SupplyCrate`, waves.

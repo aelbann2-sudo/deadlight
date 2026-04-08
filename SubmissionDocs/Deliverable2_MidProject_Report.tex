@@ -468,7 +468,7 @@ The prototype relies on these Unity systems:
 
 \begin{itemize}
     \item \textbf{Game flow and campaign state:} \texttt{GameManager} and \texttt{GameFlowController} coordinate the day, night, dawn, and level transition structure.
-    \item \textbf{Mission guidance:} \texttt{StoryObjective}, objective HUD, objective markers, \texttt{SupportMarkerGuidanceController}, and \texttt{FirstCombatHintController} provide staged objective, drop, and combat onboarding.
+    \item \textbf{Mission guidance:} \texttt{StoryObjective}, objective HUD, and objective markers are combined with staged guidance controllers for objective, drop, and first-contact combat onboarding.
     \item \textbf{Narrative support:} radio updates, mission scripting, and lore systems support layered story delivery across the run.
     \item \textbf{COMMS reliability:} \texttt{NarrativeManager} queue processing and interrupt handling were updated to reduce premature message overrides.
     \item \textbf{Balance and preparation systems:} \texttt{SupplyCrate}, \texttt{Pickup}, \texttt{PointsSystem}, and the wave balancing path connect day preparation to night pressure; contested and helicopter drops use map-scattered spawn placement.
