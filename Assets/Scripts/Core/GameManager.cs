@@ -329,6 +329,9 @@ namespace Deadlight.Core
                 LevelManager.Instance.ResetAllSpawnPoints();
             }
 
+            RadioTransmissions.Instance?.ResetRuntimeState();
+            StoryEventManager.Instance?.ResetSession();
+
             if (NarrativeManager.Instance != null)
             {
                 NarrativeManager.Instance.ClearQueue();
@@ -369,6 +372,8 @@ namespace Deadlight.Core
         public void StartNightPhase()
         {
             ChangeState(GameState.NightPhase);
+
+            FirstCombatHintController.NotifyAfterNightPhaseEntered();
 
             var waveManager = FindFirstObjectByType<WaveManager>();
             if (waveManager != null && !waveManager.IsSpawning && waveManager.EnemiesRemaining <= 0)

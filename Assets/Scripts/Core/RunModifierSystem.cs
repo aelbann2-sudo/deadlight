@@ -95,15 +95,15 @@ namespace Deadlight.Core
             var enemyAI = enemy.GetComponent<Enemy.EnemyAI>();
             if (enemyAI != null)
             {
-                enemyAI.ApplySpeedMultiplier(speed);
-                enemyAI.ApplyDamageMultiplier(damage);
+                enemyAI.MultiplySpeedMultiplier(speed);
+                enemyAI.MultiplyDamageMultiplier(damage);
             }
 
             var simpleAI = enemy.GetComponent<Enemy.SimpleEnemyAI>();
             if (simpleAI != null)
             {
-                simpleAI.ApplySpeedMultiplier(speed);
-                simpleAI.ApplyDamageMultiplier(damage);
+                simpleAI.MultiplySpeedMultiplier(speed);
+                simpleAI.MultiplyDamageMultiplier(damage);
             }
         }
 

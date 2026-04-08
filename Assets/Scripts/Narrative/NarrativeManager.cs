@@ -22,11 +22,14 @@ namespace Deadlight.Narrative
         [SerializeField] private bool autoPlayNightDialogues = true;
         [SerializeField] private float dialogueDelay = 1f;
         [SerializeField] private bool playEndingStateDialogues = false;
+        [SerializeField] [Range(0f, 3f)] private float minInterruptProtectSeconds = 1.2f;
 
         private HashSet<string> playedDialogues = new HashSet<string>();
         private Queue<DialogueData> dialogueQueue = new Queue<DialogueData>();
         private DialogueData currentDialogue;
         private bool isPlaying = false;
+        private Coroutine queueProcessorCoroutine;
+        private float currentDialogueStartedAt = -999f;
 
         public bool IsPlaying => isPlaying;
         public DialogueData CurrentDialogue => currentDialogue;
@@ -163,11 +166,7 @@ namespace Deadlight.Narrative
             if (dialogue == null) return;
 
             dialogueQueue.Enqueue(dialogue);
-            
-            if (!isPlaying)
-            {
-                StartCoroutine(ProcessDialogueQueue());
-            }
+            EnsureQueueProcessorRunning();
         }
 
         public void PlayDialogueImmediate(DialogueData dialogue)
@@ -175,7 +174,26 @@ namespace Deadlight.Narrative
             if (dialogue == null) return;
 
             StopAllCoroutines();
+            queueProcessorCoroutine = null;
             dialogueQueue.Clear();
+
+            if (dialogueUI != null)
+            {
+                dialogueUI.HideDialogue(true);
+            }
+
+            if (isPlaying)
+            {
+                OnDialogueEnded?.Invoke(currentDialogue);
+            }
+
+            if (currentDialogue != null && currentDialogue.IsRuntimeTransient)
+            {
+                Destroy(currentDialogue);
+            }
+
+            currentDialogue = null;
+            isPlaying = false;
             
             StartCoroutine(PlayDialogueCoroutine(dialogue));
         }
@@ -193,7 +211,8 @@ namespace Deadlight.Narrative
             }
 
             var runtimeDialogue = DialogueData.CreateRuntimeMessage(speaker, message, duration, playRadioStatic);
-            if (interrupt)
+            bool shouldInterruptNow = interrupt && CanInterruptCurrentDialogue(speaker);
+            if (shouldInterruptNow)
             {
                 PlayDialogueImmediate(runtimeDialogue);
             }
@@ -203,15 +222,80 @@ namespace Deadlight.Narrative
             }
         }
 
+        private bool CanInterruptCurrentDialogue(string speaker)
+        {
+            if (!isPlaying)
+            {
+                return true;
+            }
+
+            if (IsHighPrioritySpeaker(speaker))
+            {
+                return true;
+            }
+
+            float protectedWindow = Mathf.Max(0f, minInterruptProtectSeconds);
+            return Time.unscaledTime - currentDialogueStartedAt >= protectedWindow;
+        }
+
+        private static bool IsHighPrioritySpeaker(string speaker)
+        {
+            if (string.IsNullOrWhiteSpace(speaker))
+            {
+                return false;
+            }
+
+            return speaker.Trim().Equals("ALERT", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private void EnsureQueueProcessorRunning()
+        {
+            if (queueProcessorCoroutine != null)
+            {
+                return;
+            }
+
+            queueProcessorCoroutine = StartCoroutine(ProcessDialogueQueue());
+        }
+
         private System.Collections.IEnumerator ProcessDialogueQueue()
         {
-            yield return new WaitForSeconds(dialogueDelay);
-
             while (dialogueQueue.Count > 0)
             {
+                while (isPlaying)
+                {
+                    yield return null;
+                }
+
+                if (dialogueDelay > 0f)
+                {
+                    yield return new WaitForSeconds(dialogueDelay);
+                }
+
+                while (isPlaying)
+                {
+                    yield return null;
+                }
+
+                if (dialogueQueue.Count == 0)
+                {
+                    break;
+                }
+
                 var dialogue = dialogueQueue.Dequeue();
+                if (dialogue == null)
+                {
+                    continue;
+                }
+
                 yield return StartCoroutine(PlayDialogueCoroutine(dialogue));
                 yield return new WaitForSeconds(0.5f);
+            }
+
+            queueProcessorCoroutine = null;
+            if (dialogueQueue.Count > 0 && !isPlaying)
+            {
+                EnsureQueueProcessorRunning();
             }
         }
 
@@ -219,6 +303,7 @@ namespace Deadlight.Narrative
         {
             isPlaying = true;
             currentDialogue = dialogue;
+            currentDialogueStartedAt = Time.unscaledTime;
             EnsureDialogueUI();
 
             if (dialogue.PlayOnce)
@@ -314,6 +399,7 @@ namespace Deadlight.Narrative
             if (!isPlaying) return;
 
             StopAllCoroutines();
+            queueProcessorCoroutine = null;
 
             if (dialogueUI != null)
             {
@@ -331,18 +417,25 @@ namespace Deadlight.Narrative
 
             if (dialogueQueue.Count > 0)
             {
-                StartCoroutine(ProcessDialogueQueue());
+                EnsureQueueProcessorRunning();
             }
         }
 
         public void ClearQueue()
         {
             dialogueQueue.Clear();
+
+            if (!isPlaying && queueProcessorCoroutine != null)
+            {
+                StopCoroutine(queueProcessorCoroutine);
+                queueProcessorCoroutine = null;
+            }
         }
 
         private void CancelAllDialoguePlayback(bool immediateHide)
         {
             StopAllCoroutines();
+            queueProcessorCoroutine = null;
             dialogueQueue.Clear();
 
             if (dialogueUI != null)

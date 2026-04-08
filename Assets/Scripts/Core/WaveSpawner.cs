@@ -9,6 +9,10 @@ namespace Deadlight.Core
     {
         public static WaveSpawner Instance { get; private set; }
 
+        [Header("Mode")]
+        [Tooltip("Legacy spawner. Keep OFF when WaveManager is used (recommended).")]
+        [SerializeField] private bool enableLegacyNightSpawner = false;
+
         [Header("Spawning")]
         [SerializeField] private float spawnInterval = 3f;
         [SerializeField] private int baseEnemiesPerWave = 5;
@@ -69,6 +73,13 @@ namespace Deadlight.Core
 
         private void OnGameStateChanged(GameState state)
         {
+            if (!ShouldUseLegacySpawner())
+            {
+                StopAllCoroutines();
+                isSpawning = false;
+                return;
+            }
+
             if (state == GameState.NightPhase)
             {
                 StartWaves();
@@ -91,7 +102,14 @@ namespace Deadlight.Core
 
         public void StartWaves()
         {
+            if (!ShouldUseLegacySpawner())
+            {
+                return;
+            }
+
+            StopAllCoroutines();
             currentWave = 0;
+            enemiesAlive = 0;
             StartCoroutine(WaveRoutine());
         }
 
@@ -127,7 +145,16 @@ namespace Deadlight.Core
             }
 
             OnAllWavesCleared?.Invoke();
-            GameManager.Instance?.OnNightSurvived();
+            if (ShouldUseLegacySpawner())
+            {
+                GameManager.Instance?.OnNightSurvived();
+            }
+        }
+
+        private bool ShouldUseLegacySpawner()
+        {
+            return enableLegacyNightSpawner &&
+                   (WaveManager.Instance == null || !WaveManager.Instance.isActiveAndEnabled);
         }
 
         private void SpawnEnemy()
@@ -175,7 +202,8 @@ namespace Deadlight.Core
             float craftingSpeedMultiplier = CraftingSystem.Instance != null
                 ? CraftingSystem.Instance.GetNightEnemySpeedMultiplier()
                 : 1f;
-            ai.ApplySpeedMultiplier(baseSpeedMultiplier * craftingSpeedMultiplier);
+            ai.ApplySpeedMultiplier(
+                baseSpeedMultiplier * craftingSpeedMultiplier * WaveManager.GetIntroPacingEnemySpeedMultiplier());
 
             if (CraftingSystem.Instance != null)
             {

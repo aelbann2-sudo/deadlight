@@ -15,11 +15,13 @@ namespace Deadlight.Core
         private GameObject transmissionPanel;
         private AudioSource radioAudioSource;
         private AudioClip radioBeepClip;
+        private Coroutine overlayBypassCoroutine;
+        private Coroutine dayTransmissionCoroutine;
 
         private static readonly string[][] nightTransmissions = {
             // Level 1, Night 1
             new[] {
-                "[Radio] EVAC Command. Welcome to the zone, medic. Scavenge during daylight — they're slow in the sun.",
+                "[Radio] EVAC Command. Welcome to the zone, medic. Scavenge during daylight while the streets are quieter.",
                 "When the sun sets, they change. Find a defensible position."
             },
             // Level 1, Night 2
@@ -322,10 +324,22 @@ namespace Deadlight.Core
 
         private void OnGameStateChanged(GameState state)
         {
+            if (state != GameState.DayPhase && dayTransmissionCoroutine != null)
+            {
+                StopCoroutine(dayTransmissionCoroutine);
+                dayTransmissionCoroutine = null;
+            }
+
             if (state == GameState.DayPhase)
             {
                 int night = GameManager.Instance?.CurrentNight ?? 1;
-                StartCoroutine(PlayTransmissions(night - 1));
+                if (dayTransmissionCoroutine != null)
+                {
+                    StopCoroutine(dayTransmissionCoroutine);
+                    dayTransmissionCoroutine = null;
+                }
+
+                dayTransmissionCoroutine = StartCoroutine(PlayTransmissions(night - 1));
             }
             else if (state == GameState.NightPhase)
             {
@@ -353,6 +367,8 @@ namespace Deadlight.Core
                     yield return new WaitForSeconds(3f);
                 }
             }
+
+            dayTransmissionCoroutine = null;
         }
 
         private IEnumerator ShowTransmission(string text, float duration)
@@ -364,6 +380,65 @@ namespace Deadlight.Core
 
             if (transmissionPanel == null || transmissionText == null) yield break;
 
+            yield return PlayLegacyTransmissionVisual(text, duration);
+        }
+
+        private float lastMessageTime = -10f;
+        private const float MessageCooldown = 5f;
+
+        public void ShowMessage(string text, float duration)
+        {
+            if (Time.unscaledTime - lastMessageTime < MessageCooldown)
+                return;
+            lastMessageTime = Time.unscaledTime;
+
+            if (TryShowUnifiedMessage(text, duration))
+            {
+                return;
+            }
+
+            StartCoroutine(ShowTransmission(text, duration));
+        }
+
+        /// <summary>
+        /// Urgent tutorial overlay path. Prefers unified COMMS with interrupt=true (same layer as wave alerts),
+        /// and falls back to the legacy radio panel only when NarrativeManager is unavailable.
+        /// </summary>
+        public void ShowOverlayBypassingQueue(string text, float duration)
+        {
+            if (overlayBypassCoroutine != null)
+            {
+                StopCoroutine(overlayBypassCoroutine);
+                overlayBypassCoroutine = null;
+            }
+
+            overlayBypassCoroutine = StartCoroutine(OverlayBypassQueueRoutine(text, duration));
+        }
+
+        private IEnumerator OverlayBypassQueueRoutine(string text, float duration)
+        {
+            // Keep urgent tutorial overlays on the same COMMS layer as wave alerts whenever possible.
+            if (TryShowUnifiedMessage(text, duration, interrupt: true, playRadioStatic: false))
+            {
+                if (transmissionPanel != null)
+                {
+                    transmissionPanel.SetActive(false);
+                }
+
+                overlayBypassCoroutine = null;
+                yield break;
+            }
+
+            if (transmissionPanel != null && transmissionText != null)
+            {
+                yield return PlayLegacyTransmissionVisual(text, duration);
+            }
+
+            overlayBypassCoroutine = null;
+        }
+
+        private IEnumerator PlayLegacyTransmissionVisual(string text, float duration)
+        {
             try
             {
                 var staticClip = Audio.ProceduralAudioGenerator.GenerateRadioStatic();
@@ -413,23 +488,6 @@ namespace Deadlight.Core
             }
 
             transmissionPanel.SetActive(false);
-        }
-
-        private float lastMessageTime = -10f;
-        private const float MessageCooldown = 5f;
-
-        public void ShowMessage(string text, float duration)
-        {
-            if (Time.unscaledTime - lastMessageTime < MessageCooldown)
-                return;
-            lastMessageTime = Time.unscaledTime;
-
-            if (TryShowUnifiedMessage(text, duration))
-            {
-                return;
-            }
-
-            StartCoroutine(ShowTransmission(text, duration));
         }
 
         public void ShowRandomLore()
@@ -564,6 +622,31 @@ namespace Deadlight.Core
         private bool firstKillPlayed;
         private bool lowHealthPlayed;
         private bool killStreakPlayed;
+
+        public void ResetRuntimeState()
+        {
+            if (overlayBypassCoroutine != null)
+            {
+                StopCoroutine(overlayBypassCoroutine);
+                overlayBypassCoroutine = null;
+            }
+
+            if (dayTransmissionCoroutine != null)
+            {
+                StopCoroutine(dayTransmissionCoroutine);
+                dayTransmissionCoroutine = null;
+            }
+
+            firstKillPlayed = false;
+            lowHealthPlayed = false;
+            killStreakPlayed = false;
+            lastMessageTime = -10f;
+
+            if (transmissionPanel != null)
+            {
+                transmissionPanel.SetActive(false);
+            }
+        }
 
         public void TriggerFirstKill()
         {
