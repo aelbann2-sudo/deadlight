@@ -167,11 +167,11 @@ namespace Deadlight.Core
 
             if (AudioManager.Instance != null)
             {
-                float duck = playRadioStatic ? 0.4f : 0.32f;
+                float duck = playRadioStatic ? 0.3f : 0.22f;
                 AudioManager.Instance.DuckForVoice(duration + 0.5f, duck);
                 if (LooksLikeAlert(message))
                 {
-                    AudioManager.Instance.SignalCombatPeak(0.2f, duration * 0.5f);
+                    AudioManager.Instance.SignalCombatPeak(0.1f, duration * 0.45f);
                 }
             }
 
@@ -457,7 +457,7 @@ namespace Deadlight.Core
 
         private IEnumerator PlayLegacyTransmissionVisual(string text, float duration)
         {
-            AudioManager.Instance?.DuckForVoice(duration + 0.6f, 0.34f);
+            AudioManager.Instance?.DuckForVoice(duration + 0.6f, 0.24f);
 
             try
             {
@@ -592,8 +592,8 @@ namespace Deadlight.Core
 
             if (transmissionPanel == null || transmissionText == null) yield break;
 
-            AudioManager.Instance?.DuckForVoice(3.8f, 0.45f);
-            AudioManager.Instance?.SignalCombatPeak(0.28f, 2f);
+            AudioManager.Instance?.DuckForVoice(3.8f, 0.3f);
+            AudioManager.Instance?.SignalCombatPeak(0.16f, 1.8f);
 
             try
             {
@@ -734,8 +734,8 @@ namespace Deadlight.Core
 
             if (transmissionPanel == null || transmissionText == null) yield break;
 
-            AudioManager.Instance?.DuckForVoice(6f, 0.5f);
-            AudioManager.Instance?.SignalCombatPeak(0.45f, 4f);
+            AudioManager.Instance?.DuckForVoice(6f, 0.36f);
+            AudioManager.Instance?.SignalCombatPeak(0.24f, 3.2f);
 
             try
             {

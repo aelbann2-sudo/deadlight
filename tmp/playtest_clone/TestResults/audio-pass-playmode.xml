@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<test-run id="2" testcasecount="12" result="Passed" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-04-09 08:18:20Z" end-time="2026-04-09 08:18:48Z" duration="20.6521974">
-  <test-suite type="TestSuite" id="1023" name="Deadlight" fullname="Deadlight" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-04-09 08:18:20Z" end-time="2026-04-09 08:18:48Z" duration="20.652197" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+<test-run id="2" testcasecount="12" result="Passed" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-04-09 19:57:31Z" end-time="2026-04-09 19:57:51Z" duration="20.759839">
+  <test-suite type="TestSuite" id="1023" name="Deadlight" fullname="Deadlight" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-04-09 19:57:31Z" end-time="2026-04-09 19:57:51Z" duration="20.759839" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
     <properties>
       <property name="platform" value="PlayMode" />
     </properties>
-    <test-suite type="Assembly" id="1017" name="Deadlight.PlayModeTests.dll" fullname="/Users/simar/deadlight/tmp/playtest_clone/Library/ScriptAssemblies/Deadlight.PlayModeTests.dll" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-04-09 08:18:20Z" end-time="2026-04-09 08:18:48Z" duration="20.647881" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <test-suite type="Assembly" id="1017" name="Deadlight.PlayModeTests.dll" fullname="/Users/simar/deadlight/tmp/playtest_clone/Library/ScriptAssemblies/Deadlight.PlayModeTests.dll" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-04-09 19:57:31Z" end-time="2026-04-09 19:57:51Z" duration="20.756656" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
       <properties>
-        <property name="_PID" value="44937" />
+        <property name="_PID" value="51149" />
         <property name="_APPDOMAIN" value="Unity Child Domain" />
         <property name="platform" value="PlayMode" />
         <property name="EditorOnly" value="False" />
       </properties>
-      <test-suite type="TestSuite" id="1018" name="Deadlight" fullname="Deadlight" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-04-09 08:18:20Z" end-time="2026-04-09 08:18:48Z" duration="20.647517" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <test-suite type="TestSuite" id="1018" name="Deadlight" fullname="Deadlight" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-04-09 19:57:31Z" end-time="2026-04-09 19:57:51Z" duration="20.756368" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
         <properties />
-        <test-suite type="TestSuite" id="1019" name="Tests" fullname="Deadlight.Tests" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-04-09 08:18:20Z" end-time="2026-04-09 08:18:48Z" duration="20.647239" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <test-suite type="TestSuite" id="1019" name="Tests" fullname="Deadlight.Tests" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-04-09 19:57:31Z" end-time="2026-04-09 19:57:51Z" duration="20.756152" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
           <properties />
-          <test-suite type="TestSuite" id="1020" name="PlayMode" fullname="Deadlight.Tests.PlayMode" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-04-09 08:18:20Z" end-time="2026-04-09 08:18:48Z" duration="20.646934" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <test-suite type="TestSuite" id="1020" name="PlayMode" fullname="Deadlight.Tests.PlayMode" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-04-09 19:57:31Z" end-time="2026-04-09 19:57:51Z" duration="20.755915" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
             <properties />
-            <test-suite type="TestFixture" id="1001" name="DaytimePrepRuntimeTests" fullname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests" classname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-04-09 08:18:20Z" end-time="2026-04-09 08:18:47Z" duration="19.826709" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <test-suite type="TestFixture" id="1001" name="DaytimePrepRuntimeTests" fullname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests" classname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-04-09 19:57:31Z" end-time="2026-04-09 19:57:51Z" duration="19.978160" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
               <properties />
-              <test-case id="1004" name="ContestedCrate_SecureAndExpireFlows_WorkAndGrantRewards" fullname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests.ContestedCrate_SecureAndExpireFlows_WorkAndGrantRewards" methodname="ContestedCrate_SecureAndExpireFlows_WorkAndGrantRewards" classname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests" runstate="Runnable" seed="1810940443" result="Passed" start-time="2026-04-09 08:18:20Z" end-time="2026-04-09 08:18:38Z" duration="10.376877" asserts="0">
+              <test-case id="1004" name="ContestedCrate_SecureAndExpireFlows_WorkAndGrantRewards" fullname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests.ContestedCrate_SecureAndExpireFlows_WorkAndGrantRewards" methodname="ContestedCrate_SecureAndExpireFlows_WorkAndGrantRewards" classname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests" runstate="Runnable" seed="1729540980" result="Passed" start-time="2026-04-09 19:57:31Z" end-time="2026-04-09 19:57:41Z" duration="10.546782" asserts="0">
                 <properties>
                   <property name="_JOINTYPE" value="UnityCombinatorial" />
                   <property name="retryIteration" value="0" />
@@ -37,7 +37,7 @@
 [PlayerHealth] Healed 30. Health: 100/100
 ]]></output>
               </test-case>
-              <test-case id="1002" name="Crafting_DayOnly_SpendsResources_RespectsCaps_AndAppliesNightPrep" fullname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests.Crafting_DayOnly_SpendsResources_RespectsCaps_AndAppliesNightPrep" methodname="Crafting_DayOnly_SpendsResources_RespectsCaps_AndAppliesNightPrep" classname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests" runstate="Runnable" seed="29240413" result="Passed" start-time="2026-04-09 08:18:38Z" end-time="2026-04-09 08:18:38Z" duration="0.026199" asserts="0">
+              <test-case id="1002" name="Crafting_DayOnly_SpendsResources_RespectsCaps_AndAppliesNightPrep" fullname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests.Crafting_DayOnly_SpendsResources_RespectsCaps_AndAppliesNightPrep" methodname="Crafting_DayOnly_SpendsResources_RespectsCaps_AndAppliesNightPrep" classname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests" runstate="Runnable" seed="1108005086" result="Passed" start-time="2026-04-09 19:57:41Z" end-time="2026-04-09 19:57:41Z" duration="0.025236" asserts="0">
                 <properties>
                   <property name="_JOINTYPE" value="UnityCombinatorial" />
                   <property name="retryIteration" value="0" />
@@ -59,7 +59,7 @@
 [GameManager] State changed to: NightPhase
 ]]></output>
               </test-case>
-              <test-case id="1005" name="DayContestedDrop_FiresOncePerDay_AndProgressesStateFlow" fullname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests.DayContestedDrop_FiresOncePerDay_AndProgressesStateFlow" methodname="DayContestedDrop_FiresOncePerDay_AndProgressesStateFlow" classname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests" runstate="Runnable" seed="1895691940" result="Passed" start-time="2026-04-09 08:18:38Z" end-time="2026-04-09 08:18:47Z" duration="9.012031" asserts="0">
+              <test-case id="1005" name="DayContestedDrop_FiresOncePerDay_AndProgressesStateFlow" fullname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests.DayContestedDrop_FiresOncePerDay_AndProgressesStateFlow" methodname="DayContestedDrop_FiresOncePerDay_AndProgressesStateFlow" classname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests" runstate="Runnable" seed="153880300" result="Passed" start-time="2026-04-09 19:57:41Z" end-time="2026-04-09 19:57:50Z" duration="9.012349" asserts="0">
                 <properties>
                   <property name="_JOINTYPE" value="UnityCombinatorial" />
                   <property name="retryIteration" value="0" />
@@ -70,7 +70,7 @@
 [NarrativeManager] Night changed to 1
 ]]></output>
               </test-case>
-              <test-case id="1003" name="NoPrepDay_AppliesSoftPenalty_ButSecuredDropRemovesIt" fullname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests.NoPrepDay_AppliesSoftPenalty_ButSecuredDropRemovesIt" methodname="NoPrepDay_AppliesSoftPenalty_ButSecuredDropRemovesIt" classname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests" runstate="Runnable" seed="203586398" result="Passed" start-time="2026-04-09 08:18:47Z" end-time="2026-04-09 08:18:47Z" duration="0.020511" asserts="0">
+              <test-case id="1003" name="NoPrepDay_AppliesSoftPenalty_ButSecuredDropRemovesIt" fullname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests.NoPrepDay_AppliesSoftPenalty_ButSecuredDropRemovesIt" methodname="NoPrepDay_AppliesSoftPenalty_ButSecuredDropRemovesIt" classname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests" runstate="Runnable" seed="1293387693" result="Passed" start-time="2026-04-09 19:57:50Z" end-time="2026-04-09 19:57:50Z" duration="0.013249" asserts="0">
                 <properties>
                   <property name="_JOINTYPE" value="UnityCombinatorial" />
                   <property name="retryIteration" value="0" />
@@ -86,7 +86,7 @@
 [GameManager] State changed to: DayPhase
 ]]></output>
               </test-case>
-              <test-case id="1007" name="Regression_RegularCrateLootAndNightEmergencyDrop_StillWork" fullname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests.Regression_RegularCrateLootAndNightEmergencyDrop_StillWork" methodname="Regression_RegularCrateLootAndNightEmergencyDrop_StillWork" classname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests" runstate="Runnable" seed="1760288917" result="Passed" start-time="2026-04-09 08:18:47Z" end-time="2026-04-09 08:18:47Z" duration="0.367485" asserts="0">
+              <test-case id="1007" name="Regression_RegularCrateLootAndNightEmergencyDrop_StillWork" fullname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests.Regression_RegularCrateLootAndNightEmergencyDrop_StillWork" methodname="Regression_RegularCrateLootAndNightEmergencyDrop_StillWork" classname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests" runstate="Runnable" seed="858186465" result="Passed" start-time="2026-04-09 19:57:50Z" end-time="2026-04-09 19:57:51Z" duration="0.362577" asserts="0">
                 <properties>
                   <property name="_JOINTYPE" value="UnityCombinatorial" />
                   <property name="retryIteration" value="0" />
@@ -102,7 +102,7 @@
 [GameManager] State changed to: NightPhase
 ]]></output>
               </test-case>
-              <test-case id="1006" name="ResourcePickup_AddsResource_AndShowsCraftingPurposeHint" fullname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests.ResourcePickup_AddsResource_AndShowsCraftingPurposeHint" methodname="ResourcePickup_AddsResource_AndShowsCraftingPurposeHint" classname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests" runstate="Runnable" seed="1855168186" result="Passed" start-time="2026-04-09 08:18:47Z" end-time="2026-04-09 08:18:47Z" duration="0.016069" asserts="0">
+              <test-case id="1006" name="ResourcePickup_AddsResource_AndShowsCraftingPurposeHint" fullname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests.ResourcePickup_AddsResource_AndShowsCraftingPurposeHint" methodname="ResourcePickup_AddsResource_AndShowsCraftingPurposeHint" classname="Deadlight.Tests.PlayMode.DaytimePrepRuntimeTests" runstate="Runnable" seed="592632777" result="Passed" start-time="2026-04-09 19:57:51Z" end-time="2026-04-09 19:57:51Z" duration="0.011927" asserts="0">
                 <properties>
                   <property name="_JOINTYPE" value="UnityCombinatorial" />
                   <property name="retryIteration" value="0" />
@@ -115,9 +115,9 @@
 ]]></output>
               </test-case>
             </test-suite>
-            <test-suite type="TestFixture" id="1008" name="EdgeFlowSmokeRuntimeTests" fullname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests" classname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-04-09 08:18:47Z" end-time="2026-04-09 08:18:48Z" duration="0.783282" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <test-suite type="TestFixture" id="1008" name="EdgeFlowSmokeRuntimeTests" fullname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests" classname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-04-09 19:57:51Z" end-time="2026-04-09 19:57:51Z" duration="0.747813" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
               <properties />
-              <test-case id="1011" name="Marker_DropMarkerIsRemovedImmediatelyWhenCrateLooted" fullname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests.Marker_DropMarkerIsRemovedImmediatelyWhenCrateLooted" methodname="Marker_DropMarkerIsRemovedImmediatelyWhenCrateLooted" classname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests" runstate="Runnable" seed="661752318" result="Passed" start-time="2026-04-09 08:18:47Z" end-time="2026-04-09 08:18:47Z" duration="0.027165" asserts="0">
+              <test-case id="1011" name="Marker_DropMarkerIsRemovedImmediatelyWhenCrateLooted" fullname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests.Marker_DropMarkerIsRemovedImmediatelyWhenCrateLooted" methodname="Marker_DropMarkerIsRemovedImmediatelyWhenCrateLooted" classname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests" runstate="Runnable" seed="1096275881" result="Passed" start-time="2026-04-09 19:57:51Z" end-time="2026-04-09 19:57:51Z" duration="0.019006" asserts="0">
                 <properties>
                   <property name="_JOINTYPE" value="UnityCombinatorial" />
                   <property name="retryIteration" value="0" />
@@ -131,7 +131,7 @@
 [ResourceManager] Added 1 TechParts. Total: 1
 ]]></output>
               </test-case>
-              <test-case id="1012" name="Marker_FastDayToNightTransition_DoesNotRestoreMissionMarkers" fullname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests.Marker_FastDayToNightTransition_DoesNotRestoreMissionMarkers" methodname="Marker_FastDayToNightTransition_DoesNotRestoreMissionMarkers" classname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests" runstate="Runnable" seed="31868716" result="Passed" start-time="2026-04-09 08:18:47Z" end-time="2026-04-09 08:18:48Z" duration="0.675129" asserts="0">
+              <test-case id="1012" name="Marker_FastDayToNightTransition_DoesNotRestoreMissionMarkers" fullname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests.Marker_FastDayToNightTransition_DoesNotRestoreMissionMarkers" methodname="Marker_FastDayToNightTransition_DoesNotRestoreMissionMarkers" classname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests" runstate="Runnable" seed="1446218100" result="Passed" start-time="2026-04-09 19:57:51Z" end-time="2026-04-09 19:57:51Z" duration="0.667995" asserts="0">
                 <properties>
                   <property name="_JOINTYPE" value="UnityCombinatorial" />
                   <property name="retryIteration" value="0" />
@@ -144,7 +144,7 @@
 [GameManager] State changed to: NightPhase
 ]]></output>
               </test-case>
-              <test-case id="1010" name="ObjectiveMissPenalty_ForcesAdvanceAndAppliesExactlyOneNight" fullname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests.ObjectiveMissPenalty_ForcesAdvanceAndAppliesExactlyOneNight" methodname="ObjectiveMissPenalty_ForcesAdvanceAndAppliesExactlyOneNight" classname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests" runstate="Runnable" seed="250470595" result="Passed" start-time="2026-04-09 08:18:48Z" end-time="2026-04-09 08:18:48Z" duration="0.045458" asserts="0">
+              <test-case id="1010" name="ObjectiveMissPenalty_ForcesAdvanceAndAppliesExactlyOneNight" fullname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests.ObjectiveMissPenalty_ForcesAdvanceAndAppliesExactlyOneNight" methodname="ObjectiveMissPenalty_ForcesAdvanceAndAppliesExactlyOneNight" classname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests" runstate="Runnable" seed="845474014" result="Passed" start-time="2026-04-09 19:57:51Z" end-time="2026-04-09 19:57:51Z" duration="0.033476" asserts="0">
                 <properties>
                   <property name="_JOINTYPE" value="UnityCombinatorial" />
                   <property name="retryIteration" value="0" />
@@ -173,7 +173,7 @@
 [GameManager] State changed to: DayPhase
 ]]></output>
               </test-case>
-              <test-case id="1009" name="RetryDawn_DoesNotGrantNightRewardOrIncrementSurvivedCount" fullname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests.RetryDawn_DoesNotGrantNightRewardOrIncrementSurvivedCount" methodname="RetryDawn_DoesNotGrantNightRewardOrIncrementSurvivedCount" classname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests" runstate="Runnable" seed="1984624723" result="Passed" start-time="2026-04-09 08:18:48Z" end-time="2026-04-09 08:18:48Z" duration="0.033478" asserts="0">
+              <test-case id="1009" name="RetryDawn_DoesNotGrantNightRewardOrIncrementSurvivedCount" fullname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests.RetryDawn_DoesNotGrantNightRewardOrIncrementSurvivedCount" methodname="RetryDawn_DoesNotGrantNightRewardOrIncrementSurvivedCount" classname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests" runstate="Runnable" seed="298186189" result="Passed" start-time="2026-04-09 19:57:51Z" end-time="2026-04-09 19:57:51Z" duration="0.025392" asserts="0">
                 <properties>
                   <property name="_JOINTYPE" value="UnityCombinatorial" />
                   <property name="retryIteration" value="0" />
@@ -193,9 +193,9 @@
 ]]></output>
               </test-case>
             </test-suite>
-            <test-suite type="TestFixture" id="1013" name="LevelTransitionResetRuntimeTests" fullname="Deadlight.Tests.PlayMode.LevelTransitionResetRuntimeTests" classname="Deadlight.Tests.PlayMode.LevelTransitionResetRuntimeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-04-09 08:18:48Z" end-time="2026-04-09 08:18:48Z" duration="0.025672" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <test-suite type="TestFixture" id="1013" name="LevelTransitionResetRuntimeTests" fullname="Deadlight.Tests.PlayMode.LevelTransitionResetRuntimeTests" classname="Deadlight.Tests.PlayMode.LevelTransitionResetRuntimeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-04-09 19:57:51Z" end-time="2026-04-09 19:57:51Z" duration="0.020463" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
               <properties />
-              <test-case id="1014" name="StartNextLevel_ResetsPointsUpgradesAndLoadout" fullname="Deadlight.Tests.PlayMode.LevelTransitionResetRuntimeTests.StartNextLevel_ResetsPointsUpgradesAndLoadout" methodname="StartNextLevel_ResetsPointsUpgradesAndLoadout" classname="Deadlight.Tests.PlayMode.LevelTransitionResetRuntimeTests" runstate="Runnable" seed="912890301" result="Passed" start-time="2026-04-09 08:18:48Z" end-time="2026-04-09 08:18:48Z" duration="0.023556" asserts="0">
+              <test-case id="1014" name="StartNextLevel_ResetsPointsUpgradesAndLoadout" fullname="Deadlight.Tests.PlayMode.LevelTransitionResetRuntimeTests.StartNextLevel_ResetsPointsUpgradesAndLoadout" methodname="StartNextLevel_ResetsPointsUpgradesAndLoadout" classname="Deadlight.Tests.PlayMode.LevelTransitionResetRuntimeTests" runstate="Runnable" seed="392773515" result="Passed" start-time="2026-04-09 19:57:51Z" end-time="2026-04-09 19:57:51Z" duration="0.018438" asserts="0">
                 <properties>
                   <property name="_JOINTYPE" value="UnityCombinatorial" />
                   <property name="retryIteration" value="0" />
@@ -210,9 +210,9 @@
 ]]></output>
               </test-case>
             </test-suite>
-            <test-suite type="TestFixture" id="1015" name="WeaponLoadoutRuntimeTests" fullname="Deadlight.Tests.PlayMode.WeaponLoadoutRuntimeTests" classname="Deadlight.Tests.PlayMode.WeaponLoadoutRuntimeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-04-09 08:18:48Z" end-time="2026-04-09 08:18:48Z" duration="0.010358" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <test-suite type="TestFixture" id="1015" name="WeaponLoadoutRuntimeTests" fullname="Deadlight.Tests.PlayMode.WeaponLoadoutRuntimeTests" classname="Deadlight.Tests.PlayMode.WeaponLoadoutRuntimeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-04-09 19:57:51Z" end-time="2026-04-09 19:57:51Z" duration="0.008727" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
               <properties />
-              <test-case id="1016" name="Loadout_AllowsFourWeapons_AndRejectsFifth" fullname="Deadlight.Tests.PlayMode.WeaponLoadoutRuntimeTests.Loadout_AllowsFourWeapons_AndRejectsFifth" methodname="Loadout_AllowsFourWeapons_AndRejectsFifth" classname="Deadlight.Tests.PlayMode.WeaponLoadoutRuntimeTests" runstate="Runnable" seed="1703655485" result="Passed" start-time="2026-04-09 08:18:48Z" end-time="2026-04-09 08:18:48Z" duration="0.008282" asserts="0">
+              <test-case id="1016" name="Loadout_AllowsFourWeapons_AndRejectsFifth" fullname="Deadlight.Tests.PlayMode.WeaponLoadoutRuntimeTests.Loadout_AllowsFourWeapons_AndRejectsFifth" methodname="Loadout_AllowsFourWeapons_AndRejectsFifth" classname="Deadlight.Tests.PlayMode.WeaponLoadoutRuntimeTests" runstate="Runnable" seed="553473983" result="Passed" start-time="2026-04-09 19:57:51Z" end-time="2026-04-09 19:57:51Z" duration="0.007106" asserts="0">
                 <properties>
                   <property name="_JOINTYPE" value="UnityCombinatorial" />
                   <property name="retryIteration" value="0" />

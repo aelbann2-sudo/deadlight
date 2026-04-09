@@ -75,7 +75,7 @@ namespace Deadlight.Player
         {
             footstepSource = gameObject.AddComponent<AudioSource>();
             footstepSource.playOnAwake = false;
-            footstepSource.volume = 0.2f;
+            footstepSource.volume = 0.16f;
             footstepSource.spatialBlend = 0f;
             footstepSource.dopplerLevel = 0f;
 
@@ -124,10 +124,10 @@ namespace Deadlight.Player
                 if (clip != null)
                 {
                     bool isLeftStep = (footstepStepIndex++ % 2) == 0;
-                    float stepVolume = Mathf.Lerp(0.12f, 0.28f, speedRatio);
+                    float stepVolume = Mathf.Lerp(0.08f, 0.2f, speedRatio);
                     if (isSprinting)
                     {
-                        stepVolume += 0.07f;
+                        stepVolume += 0.04f;
                     }
 
                     if (!isLeftStep)
@@ -135,10 +135,10 @@ namespace Deadlight.Player
                         stepVolume *= 0.92f;
                     }
 
-                    footstepSource.pitch = Random.Range(0.92f, 1.1f) + (isSprinting ? 0.03f : 0f);
+                    footstepSource.pitch = Random.Range(0.9f, 1.04f) + (isSprinting ? 0.02f : 0f);
                     footstepSource.panStereo = isLeftStep
-                        ? Random.Range(-0.14f, -0.04f)
-                        : Random.Range(0.04f, 0.14f);
+                        ? Random.Range(-0.08f, -0.02f)
+                        : Random.Range(0.02f, 0.08f);
                     footstepSource.PlayOneShot(clip, stepVolume);
                 }
             }

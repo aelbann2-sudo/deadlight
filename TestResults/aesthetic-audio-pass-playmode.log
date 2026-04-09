@@ -1,0 +1,31 @@
+Unity Editor version:    6000.3.9f1 (7a9955a4f2fa)
+Branch:                  6000.3/staging
+Build type:              Release
+Batch mode:              YES
+macOS version:           Version 26.2 (Build 25C56)
+Darwin version:          25.2.0
+Architecture:            arm64
+Running under Rosetta:   NO
+Available memory:        18432 MB
+Date:                    2026-04-09T20:06:59Z
+[Licensing::Module] Trying to connect to existing licensing client channel...
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-simar" at "2026-04-09T20:06:59.124231Z"
+Launching external process: /Applications/Unity/Hub/Editor/6000.3.9f1/Unity.app/Contents/Resources/PackageManager/Server/UnityPackageManager
+
+COMMAND LINE ARGUMENTS:
+/Applications/Unity/Hub/Editor/6000.3.9f1/Unity.app/Contents/MacOS/Unity
+-batchmode
+-nographics
+-projectPath
+/Users/simar/deadlight
+-runTests
+-testPlatform
+PlayMode
+-testResults
+/Users/simar/deadlight/TestResults/aesthetic-audio-pass-playmode.xml
+-logFile
+/Users/simar/deadlight/TestResults/aesthetic-audio-pass-playmode.log
+-quit
+Successfully changed project path to: /Users/simar/deadlight
+/Users/simar/deadlight
+[Package Manager] Server process was shutdown

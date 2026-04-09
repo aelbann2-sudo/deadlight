@@ -236,7 +236,7 @@ namespace Deadlight.Narrative
             if (Core.AudioManager.Instance != null)
             {
                 float duckDuration = Mathf.Max(1f, duration + 0.5f);
-                float duckAmount = playRadioStatic ? 0.38f : 0.28f;
+                float duckAmount = playRadioStatic ? 0.29f : 0.2f;
                 Core.AudioManager.Instance.DuckForVoice(duckDuration, duckAmount);
             }
 
@@ -350,7 +350,7 @@ namespace Deadlight.Narrative
 
             if (dialogue.PlayRadioStatic && dialogue.RadioStaticSound != null)
             {
-                Core.AudioManager.Instance?.DuckForVoice(0.65f, 0.4f);
+                Core.AudioManager.Instance?.DuckForVoice(0.65f, 0.3f);
                 narrativeAudioSource.PlayOneShot(dialogue.RadioStaticSound);
                 yield return new WaitForSeconds(0.3f);
             }
@@ -380,7 +380,7 @@ namespace Deadlight.Narrative
 
                 if (line.voiceClip != null)
                 {
-                    Core.AudioManager.Instance?.DuckForVoice(line.displayDuration + 0.25f, 0.32f);
+                    Core.AudioManager.Instance?.DuckForVoice(line.displayDuration + 0.25f, 0.24f);
                     narrativeAudioSource.PlayOneShot(line.voiceClip);
                 }
 

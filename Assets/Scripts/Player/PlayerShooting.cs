@@ -364,7 +364,7 @@ namespace Deadlight.Player
             isReloading = true;
             OnReloadStarted?.Invoke();
             PlaySound(reloadSound ?? currentWeapon.reloadSound);
-            AudioManager.Instance?.SignalCombatPeak(0.04f, 0.25f);
+            AudioManager.Instance?.SignalCombatPeak(0.015f, 0.2f);
 
             yield return new WaitForSeconds(currentWeapon.reloadTime);
 
@@ -388,9 +388,9 @@ namespace Deadlight.Player
                 return;
             }
 
-            float volumeScale = 0.75f;
+            float volumeScale = 0.62f;
             float pitch = 1f;
-            float pitchJitter = 0.04f;
+            float pitchJitter = 0.03f;
 
             bool isShot = clip == shootSound || (currentWeapon != null && clip == currentWeapon.fireSound);
             bool isReload = clip == reloadSound || (currentWeapon != null && clip == currentWeapon.reloadSound);
@@ -403,15 +403,15 @@ namespace Deadlight.Player
             }
             else if (isReload)
             {
-                volumeScale = 0.55f;
-                pitch = 0.98f;
-                pitchJitter = 0.05f;
+                volumeScale = 0.45f;
+                pitch = 0.96f;
+                pitchJitter = 0.035f;
             }
             else if (clip == emptyClickSound)
             {
-                volumeScale = 0.35f;
-                pitch = 1.08f;
-                pitchJitter = 0.05f;
+                volumeScale = 0.26f;
+                pitch = 1.03f;
+                pitchJitter = 0.03f;
             }
 
             if (AudioManager.Instance != null)
@@ -431,25 +431,25 @@ namespace Deadlight.Player
         {
             if (currentWeapon == null)
             {
-                return 0.75f;
+                return 0.62f;
             }
 
-            float loudness = 0.75f;
+            float loudness = 0.62f;
             if (currentWeapon.pelletsPerShot > 1)
             {
-                loudness = 1.05f;
+                loudness = 0.86f;
             }
             else if (currentWeapon.isAutomatic)
             {
-                loudness = 0.68f;
+                loudness = 0.56f;
             }
             else if (currentWeapon.damage >= 40f)
             {
-                loudness = 0.9f;
+                loudness = 0.72f;
             }
 
-            loudness += Mathf.Clamp01((currentWeapon.damage - 18f) / 80f) * 0.1f;
-            return Mathf.Clamp(loudness, 0.45f, 1.15f);
+            loudness += Mathf.Clamp01((currentWeapon.damage - 18f) / 80f) * 0.06f;
+            return Mathf.Clamp(loudness, 0.38f, 0.95f);
         }
 
         private float GetCurrentWeaponPitch()
@@ -461,12 +461,12 @@ namespace Deadlight.Player
 
             if (currentWeapon.pelletsPerShot > 1)
             {
-                return 0.94f;
+                return 0.92f;
             }
 
             if (currentWeapon.isAutomatic)
             {
-                return 1.04f;
+                return 1.015f;
             }
 
             return 1f;
@@ -476,20 +476,20 @@ namespace Deadlight.Player
         {
             if (currentWeapon == null)
             {
-                return 0.1f;
+                return 0.05f;
             }
 
             if (currentWeapon.pelletsPerShot > 1)
             {
-                return 0.22f;
+                return 0.1f;
             }
 
             if (currentWeapon.isAutomatic)
             {
-                return 0.08f;
+                return 0.04f;
             }
 
-            return 0.14f;
+            return 0.06f;
         }
 
         public void AddAmmo(int amount)

@@ -24,7 +24,7 @@ namespace Deadlight.Player
         [SerializeField] private AudioClip hurtSound;
         [SerializeField] private AudioClip deathSound;
         [SerializeField] private AudioClip lowHealthHeartbeat;
-        [SerializeField, Range(0.1f, 0.9f)] private float lowHealthThreshold = 0.35f;
+        [SerializeField, Range(0.1f, 0.9f)] private float lowHealthThreshold = 0.3f;
 
         public float MaxHealth => maxHealth;
         public float CurrentHealth => currentHealth;
@@ -239,7 +239,7 @@ namespace Deadlight.Player
                 return;
             }
 
-            float volumeScale = clip == deathSound ? 1f : 0.75f;
+            float volumeScale = clip == deathSound ? 0.82f : 0.62f;
             float pitch = clip == deathSound ? 0.92f : 1f;
             float pitchJitter = clip == deathSound ? 0.03f : 0.06f;
 
@@ -248,7 +248,7 @@ namespace Deadlight.Player
                 AudioManager.Instance.PlaySFXAtPosition(clip, transform.position, volumeScale, pitch, pitchJitter);
                 if (clip == deathSound)
                 {
-                    AudioManager.Instance.SignalCombatPeak(0.2f, 0.9f);
+                    AudioManager.Instance.SignalCombatPeak(0.08f, 0.75f);
                 }
                 return;
             }
@@ -282,8 +282,8 @@ namespace Deadlight.Player
 
             float normalizedDanger = 1f - Mathf.Clamp01(healthRatio / Mathf.Max(0.01f, lowHealthThreshold));
             heartbeatSource.clip = lowHealthHeartbeat;
-            heartbeatSource.pitch = Mathf.Lerp(0.9f, 1.08f, normalizedDanger);
-            heartbeatSource.volume = Mathf.Lerp(0.06f, 0.22f, normalizedDanger);
+            heartbeatSource.pitch = Mathf.Lerp(0.88f, 1.03f, normalizedDanger);
+            heartbeatSource.volume = Mathf.Lerp(0.03f, 0.13f, normalizedDanger);
 
             if (!heartbeatSource.isPlaying)
             {
