@@ -23,6 +23,8 @@ namespace Deadlight.Player
         [SerializeField] private AudioSource audioSource;
         [SerializeField] private AudioClip hurtSound;
         [SerializeField] private AudioClip deathSound;
+        [SerializeField] private AudioClip lowHealthHeartbeat;
+        [SerializeField, Range(0.1f, 0.9f)] private float lowHealthThreshold = 0.35f;
 
         public float MaxHealth => maxHealth;
         public float CurrentHealth => currentHealth;
@@ -35,6 +37,8 @@ namespace Deadlight.Player
         public event Action OnPlayerDeath;
 
         private Color originalColor;
+        private AudioSource heartbeatSource;
+        private bool lowHealthLoopActive;
 
         private void Awake()
         {
@@ -49,12 +53,20 @@ namespace Deadlight.Player
             {
                 originalColor = spriteRenderer.color;
             }
+
+            heartbeatSource = gameObject.AddComponent<AudioSource>();
+            heartbeatSource.playOnAwake = false;
+            heartbeatSource.loop = true;
+            heartbeatSource.spatialBlend = 0f;
+            heartbeatSource.dopplerLevel = 0f;
+            heartbeatSource.volume = 0f;
         }
 
         private void Start()
         {
             GenerateProceduralSounds();
             ApplyCampaignBalance();
+            UpdateLowHealthLoop();
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
         }
 
@@ -94,6 +106,7 @@ namespace Deadlight.Player
             
             OnDamageTaken?.Invoke(actualDamage);
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
+            UpdateLowHealthLoop();
 
             PlaySound(hurtSound);
             StartCoroutine(DamageFlashCoroutine());
@@ -111,6 +124,7 @@ namespace Deadlight.Player
         {
             Debug.Log("[PlayerHealth] Player died!");
 
+            StopLowHealthLoop();
             PlaySound(deathSound);
             OnPlayerDeath?.Invoke();
 
@@ -142,6 +156,7 @@ namespace Deadlight.Player
 
             currentHealth = Mathf.Min(maxHealth, currentHealth + actualHeal);
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
+            UpdateLowHealthLoop();
 
             Debug.Log($"[PlayerHealth] Healed {actualHeal}. Health: {currentHealth}/{maxHealth}");
         }
@@ -161,12 +176,14 @@ namespace Deadlight.Player
             }
 
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
+            UpdateLowHealthLoop();
         }
 
         public void FullHeal()
         {
             currentHealth = maxHealth;
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
+            UpdateLowHealthLoop();
         }
 
         private System.Collections.IEnumerator DamageFlashCoroutine()
@@ -209,23 +226,87 @@ namespace Deadlight.Player
                     hurtSound = Deadlight.Audio.ProceduralAudioGenerator.GenerateZombieHitReact();
                 if (deathSound == null)
                     deathSound = Deadlight.Audio.ProceduralAudioGenerator.GenerateExplosion();
+                if (lowHealthHeartbeat == null)
+                    lowHealthHeartbeat = Deadlight.Audio.ProceduralAudioGenerator.GenerateHeartbeat();
             }
             catch (System.Exception) { }
         }
 
         private void PlaySound(AudioClip clip)
         {
-            if (clip != null)
+            if (clip == null)
             {
-                if (audioSource != null)
-                {
-                    audioSource.PlayOneShot(clip);
-                }
-                else
-                {
-                    AudioSource.PlayClipAtPoint(clip, transform.position);
-                }
+                return;
             }
+
+            float volumeScale = clip == deathSound ? 1f : 0.75f;
+            float pitch = clip == deathSound ? 0.92f : 1f;
+            float pitchJitter = clip == deathSound ? 0.03f : 0.06f;
+
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySFXAtPosition(clip, transform.position, volumeScale, pitch, pitchJitter);
+                if (clip == deathSound)
+                {
+                    AudioManager.Instance.SignalCombatPeak(0.2f, 0.9f);
+                }
+                return;
+            }
+
+            if (audioSource != null)
+            {
+                audioSource.pitch = pitch + UnityEngine.Random.Range(-pitchJitter, pitchJitter);
+                audioSource.PlayOneShot(clip, volumeScale);
+            }
+            else
+            {
+                AudioSource.PlayClipAtPoint(clip, transform.position, volumeScale);
+            }
+        }
+
+        private void UpdateLowHealthLoop()
+        {
+            if (heartbeatSource == null || lowHealthHeartbeat == null || maxHealth <= 0f || !IsAlive)
+            {
+                StopLowHealthLoop();
+                return;
+            }
+
+            float healthRatio = Mathf.Clamp01(currentHealth / maxHealth);
+            bool shouldPlay = healthRatio <= lowHealthThreshold;
+            if (!shouldPlay)
+            {
+                StopLowHealthLoop();
+                return;
+            }
+
+            float normalizedDanger = 1f - Mathf.Clamp01(healthRatio / Mathf.Max(0.01f, lowHealthThreshold));
+            heartbeatSource.clip = lowHealthHeartbeat;
+            heartbeatSource.pitch = Mathf.Lerp(0.9f, 1.08f, normalizedDanger);
+            heartbeatSource.volume = Mathf.Lerp(0.06f, 0.22f, normalizedDanger);
+
+            if (!heartbeatSource.isPlaying)
+            {
+                heartbeatSource.Play();
+            }
+
+            lowHealthLoopActive = true;
+        }
+
+        private void StopLowHealthLoop()
+        {
+            if (!lowHealthLoopActive && heartbeatSource != null && !heartbeatSource.isPlaying)
+            {
+                return;
+            }
+
+            if (heartbeatSource != null)
+            {
+                heartbeatSource.Stop();
+                heartbeatSource.clip = null;
+            }
+
+            lowHealthLoopActive = false;
         }
 
         public void SetInvincible(bool invincible)

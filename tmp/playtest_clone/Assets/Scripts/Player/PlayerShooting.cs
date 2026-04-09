@@ -75,6 +75,13 @@ namespace Deadlight.Player
                 }
             }
 
+            audioSource.playOnAwake = false;
+            audioSource.spatialBlend = 0.2f;
+            audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
+            audioSource.minDistance = 1f;
+            audioSource.maxDistance = 14f;
+            audioSource.dopplerLevel = 0f;
+
             GenerateProceduralSounds();
             InitializeWeapon();
         }
@@ -267,6 +274,7 @@ namespace Deadlight.Player
             SpawnBullet();
 
             PlaySound(shootSound ?? currentWeapon.fireSound);
+            AudioManager.Instance?.SignalCombatPeak(GetCombatPeakAmount(), 0.55f);
             OnWeaponFired?.Invoke();
             OnAmmoChanged?.Invoke(currentAmmo, reserveAmmo);
             EmitLowAmmoWarningIfNeeded();
@@ -356,6 +364,7 @@ namespace Deadlight.Player
             isReloading = true;
             OnReloadStarted?.Invoke();
             PlaySound(reloadSound ?? currentWeapon.reloadSound);
+            AudioManager.Instance?.SignalCombatPeak(0.04f, 0.25f);
 
             yield return new WaitForSeconds(currentWeapon.reloadTime);
 
@@ -374,10 +383,113 @@ namespace Deadlight.Player
 
         private void PlaySound(AudioClip clip)
         {
-            if (clip != null && audioSource != null)
+            if (clip == null)
             {
-                audioSource.PlayOneShot(clip);
+                return;
             }
+
+            float volumeScale = 0.75f;
+            float pitch = 1f;
+            float pitchJitter = 0.04f;
+
+            bool isShot = clip == shootSound || (currentWeapon != null && clip == currentWeapon.fireSound);
+            bool isReload = clip == reloadSound || (currentWeapon != null && clip == currentWeapon.reloadSound);
+
+            if (isShot)
+            {
+                volumeScale = GetCurrentWeaponLoudness();
+                pitch = GetCurrentWeaponPitch();
+                pitchJitter = 0.03f;
+            }
+            else if (isReload)
+            {
+                volumeScale = 0.55f;
+                pitch = 0.98f;
+                pitchJitter = 0.05f;
+            }
+            else if (clip == emptyClickSound)
+            {
+                volumeScale = 0.35f;
+                pitch = 1.08f;
+                pitchJitter = 0.05f;
+            }
+
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySFXAtPosition(clip, transform.position, volumeScale, pitch, pitchJitter);
+                return;
+            }
+
+            if (audioSource != null)
+            {
+                audioSource.pitch = pitch + UnityEngine.Random.Range(-pitchJitter, pitchJitter);
+                audioSource.PlayOneShot(clip, volumeScale);
+            }
+        }
+
+        private float GetCurrentWeaponLoudness()
+        {
+            if (currentWeapon == null)
+            {
+                return 0.75f;
+            }
+
+            float loudness = 0.75f;
+            if (currentWeapon.pelletsPerShot > 1)
+            {
+                loudness = 1.05f;
+            }
+            else if (currentWeapon.isAutomatic)
+            {
+                loudness = 0.68f;
+            }
+            else if (currentWeapon.damage >= 40f)
+            {
+                loudness = 0.9f;
+            }
+
+            loudness += Mathf.Clamp01((currentWeapon.damage - 18f) / 80f) * 0.1f;
+            return Mathf.Clamp(loudness, 0.45f, 1.15f);
+        }
+
+        private float GetCurrentWeaponPitch()
+        {
+            if (currentWeapon == null)
+            {
+                return 1f;
+            }
+
+            if (currentWeapon.pelletsPerShot > 1)
+            {
+                return 0.94f;
+            }
+
+            if (currentWeapon.isAutomatic)
+            {
+                return 1.04f;
+            }
+
+            return 1f;
+        }
+
+        private float GetCombatPeakAmount()
+        {
+            if (currentWeapon == null)
+            {
+                return 0.1f;
+            }
+
+            if (currentWeapon.pelletsPerShot > 1)
+            {
+                return 0.22f;
+            }
+
+            if (currentWeapon.isAutomatic)
+            {
+                return 0.08f;
+            }
+
+            return 0.14f;
         }
 
         public void AddAmmo(int amount)

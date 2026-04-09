@@ -665,7 +665,7 @@ namespace Deadlight.UI
             return marker.kind switch
             {
                 MarkerKind.Mission => IsCompletedMissionTarget(marker.target),
-                MarkerKind.Drop => IsDroppedMarkerStillValid(marker.target),
+                MarkerKind.Drop => !IsDroppedMarkerStillValid(marker.target),
                 MarkerKind.EnemyHint => !IsEnemyTargetAlive(marker.target),
                 _ => false
             };

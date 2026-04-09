@@ -445,19 +445,7 @@ namespace Deadlight.Core
                 return;
             }
 
-            int carryoverPoints = 0;
-            float carryoverRatio = ConsumeProjectedCarryoverRatio();
-            if (PointsSystem.Instance != null)
-            {
-                carryoverPoints = Mathf.RoundToInt(Mathf.Max(0, PointsSystem.Instance.CurrentPoints) * Mathf.Clamp01(carryoverRatio));
-            }
-
             ResetInterLevelProgressionState();
-
-            if (carryoverPoints > 0 && PointsSystem.Instance != null)
-            {
-                PointsSystem.Instance.AddPoints(carryoverPoints, "Inter-Level Carryover");
-            }
 
             repeatCurrentNightOnAdvance = false;
             currentNight = Mathf.Min(currentNight + 1, maxNights);
