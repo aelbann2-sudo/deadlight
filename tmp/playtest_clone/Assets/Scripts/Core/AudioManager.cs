@@ -25,27 +25,27 @@ namespace Deadlight.Core
         [SerializeField] private AudioClip nightAmbient;
 
         [Header("Settings")]
-        [SerializeField, Range(0f, 1f)] private float musicVolume = 0.5f;
-        [SerializeField, Range(0f, 1f)] private float sfxVolume = 1f;
-        [SerializeField, Range(0f, 1f)] private float ambientVolume = 0.3f;
-        [SerializeField, Min(0.05f)] private float crossfadeDuration = 2f;
+        [SerializeField, Range(0f, 1f)] private float musicVolume = 0.42f;
+        [SerializeField, Range(0f, 1f)] private float sfxVolume = 0.82f;
+        [SerializeField, Range(0f, 1f)] private float ambientVolume = 0.36f;
+        [SerializeField, Min(0.05f)] private float crossfadeDuration = 3.2f;
 
         [Header("Dynamic Mix")]
-        [SerializeField, Range(0f, 1f)] private float dayBaseTension = 0.08f;
-        [SerializeField, Range(0f, 1f)] private float nightBaseTension = 0.35f;
-        [SerializeField, Range(0f, 1f)] private float bossBaseTension = 0.95f;
-        [SerializeField, Min(0.1f)] private float tensionLerpSpeed = 1.8f;
-        [SerializeField, Range(1f, 1.35f)] private float maxTensionMusicMultiplier = 1.12f;
-        [SerializeField, Range(0.4f, 1f)] private float maxTensionAmbientMultiplier = 0.68f;
-        [SerializeField, Range(0.9f, 1.15f)] private float maxTensionMusicPitch = 1.04f;
+        [SerializeField, Range(0f, 1f)] private float dayBaseTension = 0.05f;
+        [SerializeField, Range(0f, 1f)] private float nightBaseTension = 0.28f;
+        [SerializeField, Range(0f, 1f)] private float bossBaseTension = 0.8f;
+        [SerializeField, Min(0.1f)] private float tensionLerpSpeed = 1.15f;
+        [SerializeField, Range(1f, 1.35f)] private float maxTensionMusicMultiplier = 1.06f;
+        [SerializeField, Range(0.4f, 1f)] private float maxTensionAmbientMultiplier = 0.84f;
+        [SerializeField, Range(0.9f, 1.15f)] private float maxTensionMusicPitch = 1.015f;
 
         [Header("Voice Ducking")]
-        [SerializeField, Range(0f, 1f)] private float defaultVoiceDuckAmount = 0.35f;
-        [SerializeField, Min(0.1f)] private float duckLerpSpeed = 5f;
+        [SerializeField, Range(0f, 1f)] private float defaultVoiceDuckAmount = 0.24f;
+        [SerializeField, Min(0.1f)] private float duckLerpSpeed = 3.2f;
 
         [Header("3D SFX Pool")]
         [SerializeField, Range(4, 24)] private int positionalSourcePoolSize = 10;
-        [SerializeField, Range(5f, 50f)] private float positionalMaxDistance = 18f;
+        [SerializeField, Range(5f, 50f)] private float positionalMaxDistance = 20f;
 
         private readonly Dictionary<string, AudioClip> sfxLibrary = new Dictionary<string, AudioClip>();
         private readonly List<AudioSource> positionalSources = new List<AudioSource>();
@@ -260,7 +260,7 @@ namespace Deadlight.Core
                     PlayNightAudio();
                     break;
                 case GameState.DawnPhase:
-                    SetBaseTension(0.22f);
+                    SetBaseTension(0.16f);
                     PlayMusic(dawnMusic);
                     StopAmbient();
                     break;
@@ -290,7 +290,7 @@ namespace Deadlight.Core
             float levelBonus = 0f;
             if (GameManager.Instance != null)
             {
-                levelBonus = Mathf.InverseLerp(1f, GameManager.TotalLevels, GameManager.Instance.CurrentLevel) * 0.2f;
+                levelBonus = Mathf.InverseLerp(1f, GameManager.TotalLevels, GameManager.Instance.CurrentLevel) * 0.12f;
             }
 
             SetBaseTension(Mathf.Clamp01(nightBaseTension + levelBonus));
@@ -563,8 +563,8 @@ namespace Deadlight.Core
                 return;
             }
 
-            transientTension = Mathf.Clamp01(transientTension + amount);
-            transientTensionTimer = Mathf.Max(transientTensionTimer, Mathf.Max(0f, holdSeconds));
+            transientTension = Mathf.Clamp01(transientTension + (amount * 0.6f));
+            transientTensionTimer = Mathf.Max(transientTensionTimer, Mathf.Max(0f, holdSeconds * 0.85f));
         }
 
         public void DuckForVoice(float duration, float amount = -1f)
@@ -592,7 +592,7 @@ namespace Deadlight.Core
             }
             else
             {
-                transientTension = Mathf.MoveTowards(transientTension, 0f, deltaTime * 0.35f);
+                transientTension = Mathf.MoveTowards(transientTension, 0f, deltaTime * 0.22f);
             }
 
             float targetTension = Mathf.Clamp01(baseTension + transientTension);
@@ -613,11 +613,11 @@ namespace Deadlight.Core
             float ambientTensionMultiplier = Mathf.Lerp(1f, maxTensionAmbientMultiplier, currentTension);
             float musicDuckMultiplier = 1f - currentDuckAmount;
             float ambientDuckMultiplier = 1f - (currentDuckAmount * 0.6f);
-            float sfxDuckMultiplier = 1f - (currentDuckAmount * 0.2f);
+            float sfxDuckMultiplier = 1f - (currentDuckAmount * 0.15f);
 
             float targetMusicVolume = Mathf.Clamp01(musicVolume * musicBlend * musicTensionMultiplier * musicDuckMultiplier);
             float targetAmbientVolume = Mathf.Clamp01(ambientVolume * ambientBlend * ambientTensionMultiplier * ambientDuckMultiplier);
-            currentSfxMixMultiplier = Mathf.MoveTowards(currentSfxMixMultiplier, sfxDuckMultiplier, deltaTime * 6f);
+            currentSfxMixMultiplier = Mathf.MoveTowards(currentSfxMixMultiplier, sfxDuckMultiplier, deltaTime * 4.2f);
 
             if (musicSource != null)
             {

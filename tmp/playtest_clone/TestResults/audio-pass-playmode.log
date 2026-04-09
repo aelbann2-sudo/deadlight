@@ -7,9 +7,9 @@ Darwin version:          25.2.0
 Architecture:            arm64
 Running under Rosetta:   NO
 Available memory:        18432 MB
-Date:                    2026-04-09T08:18:05Z
+Date:                    2026-04-09T19:57:21Z
 [Licensing::Module] Trying to connect to existing licensing client channel...
-[Licensing::IpcConnector] Successfully connected to: "LicenseClient-simar" at "2026-04-09T08:18:05.017286Z"
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-simar" at "2026-04-09T19:57:21.817122Z"
 Launching external process: /Applications/Unity/Hub/Editor/6000.3.9f1/Unity.app/Contents/Resources/PackageManager/Server/UnityPackageManager
 
 COMMAND LINE ARGUMENTS:
@@ -64,23 +64,23 @@ Successfully changed project path to: /Users/simar/deadlight/tmp/playtest_clone
     "memorysetup-temp-allocator-size-gfx=262144"
 Player connection [8289889344]  Target information:
 
-Player connection [8289889344]  * "[IP] 10.0.0.60 [Port] 55505 [Flags] 2 [Guid] 525951686 [EditorId] 525951686 [Version] 1048832 [Id] OSXEditor(0,Simars-MacBook-Pro.local) [Debug] 1 [PackageName] OSXEditor [ProjectName] Editor" 
+Player connection [8289889344]  * "[IP] 172.30.196.91 [Port] 55505 [Flags] 2 [Guid] 3637963253 [EditorId] 3637963253 [Version] 1048832 [Id] OSXEditor(0,dyn172-30-196-91.wireless.uwo.pri) [Debug] 1 [PackageName] OSXEditor [ProjectName] Editor" 
 
 Player connection [8289889344] Host joined multi-casting on [225.0.0.222:54997]...
 Player connection [8289889344] Host joined alternative multi-casting on [225.0.0.222:34997]...
 Input System module state changed to: Initialized.
 [Physics::Module] Initialized fallback backend.
 [Physics::Module] Id: 0xdecafbad
-[Package Manager] Connected to IPC stream "Upm-44937" after 0.1 seconds.
+[Package Manager] Connected to IPC stream "Upm-51149" after 0.1 seconds.
 [Licensing::Module] Licensing is not yet initialized.
 [Licensing::Client] Handshaking with LicensingClient:
   Version:                 1.17.4+4293ba1
-  Session Id:              ac86a911feda420c89c94b9235a8a2c1
+  Session Id:              9288ce300c234d27aa503d76db990575
   Correlation Id:          eb3722d54d4da96496eb3c897feec0d9
-  External correlation Id: 8088414688636138893
+  External correlation Id: 3317825092167501730
   Machine Id:              WQSPeEPPFSCVgq3b7ELWBdYJEi4=
-[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-simar" (connect: 0.00s, validation: 0.00s, handshake: 0.28s)
-[Licensing::IpcConnector] Successfully connected to: "LicenseClient-simar-notifications" at "2026-04-09T08:18:05.303867Z"
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-simar" (connect: 0.00s, validation: 0.00s, handshake: 0.30s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-simar-notifications" at "2026-04-09T19:57:22.116137Z"
 [Licensing::Module] Error: Access token is unavailable; failed to update
 [Licensing::Client] Successfully resolved entitlement details
 [Licensing::Module] License group:
@@ -89,7 +89,7 @@ Input System module state changed to: Initialized.
   Type: Assigned
   Expiration: Unlimited
 [Licensing::Client] Successfully updated license, isAsync: True, time: 0.00
-[Licensing::Module] Licensing Background thread has ended after 0.29s
+[Licensing::Module] Licensing Background thread has ended after 0.30s
 [Licensing::Module] Licensing is initialized (took 0.09s).
 [Licensing::Client] Successfully resolved entitlement details
 Library Redirect Path: Library/
@@ -99,7 +99,7 @@ Library Redirect Path: Library/
 [Physics::Module] SDK Version: 4.1.2
 [Physics::Module] Integration Version: 1.0.0
 [Physics::Module] Threading Mode: Multi-Threaded
-Refreshing native plugins compatible for Editor in 0.19 ms, found 0 plugins.
+Refreshing native plugins compatible for Editor in 0.07 ms, found 0 plugins.
 Preloading 0 native plugins for Editor in 0.00 ms.
 Initialize engine version: 6000.3.9f1 (7a9955a4f2fa)
 [Subsystems] Discovering subsystems at path /Applications/Unity/Hub/Editor/6000.3.9f1/Unity.app/Contents/Resources/UnitySubsystems
@@ -114,7 +114,7 @@ Initialize mono
 Mono path[0] = '/Applications/Unity/Hub/Editor/6000.3.9f1/Unity.app/Contents/Resources/Scripting/Managed'
 Mono path[1] = '/Applications/Unity/Hub/Editor/6000.3.9f1/Unity.app/Contents/Resources/Scripting/MonoBleedingEdge/lib/mono/unityjit-macos'
 Mono config path = '/Applications/Unity/Hub/Editor/6000.3.9f1/Unity.app/Contents/Resources/Scripting/MonoBleedingEdge/etc'
-Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56937
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56149
 Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
 Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
 ImportWorker Server TCP listen port: 0
@@ -124,42 +124,42 @@ Registering precompiled unity dll's ...
 Register platform support module: /Applications/Unity/Hub/Editor/6000.3.9f1/PlaybackEngines/WebGLSupport/UnityEditor.WebGL.Extensions.dll
 Register platform support module: /Applications/Unity/Hub/Editor/6000.3.9f1/Unity.app/Contents/PlaybackEngines/MacStandaloneSupport/UnityEditor.OSXStandalone.Extensions.dll
 Register platform support module: /Applications/Unity/Hub/Editor/6000.3.9f1/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
-Registered in 0.001215 seconds.
-- Loaded All Assemblies, in  0.559 seconds
+Registered in 0.000454 seconds.
+- Loaded All Assemblies, in  0.187 seconds
 Native extension for WindowsStandalone target not found
 Native extension for OSXStandalone target not found
 Native extension for WebGL target not found
 ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:False
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.388 seconds
-Domain Reload Profiling: 946ms
-	BeginReloadAssembly (162ms)
+- Finished resetting the current domain, in  0.210 seconds
+Domain Reload Profiling: 397ms
+	BeginReloadAssembly (37ms)
 		ExecutionOrderSort (0ms)
 		DisableScriptedObjects (0ms)
 		BackupInstance (0ms)
 		ReleaseScriptingObjects (0ms)
 		CreateAndSetChildDomain (1ms)
-	RebuildCommonClasses (57ms)
-	RebuildNativeTypeToScriptingClass (23ms)
-	initialDomainReloadingComplete (74ms)
-	LoadAllAssembliesAndSetupDomain (243ms)
-		LoadAssemblies (161ms)
+	RebuildCommonClasses (22ms)
+	RebuildNativeTypeToScriptingClass (9ms)
+	initialDomainReloadingComplete (20ms)
+	LoadAllAssembliesAndSetupDomain (98ms)
+		LoadAssemblies (37ms)
 		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (236ms)
-			TypeCache.Refresh (235ms)
-				TypeCache.ScanAssembly (216ms)
+		AnalyzeDomain (97ms)
+			TypeCache.Refresh (96ms)
+				TypeCache.ScanAssembly (88ms)
 			BuildScriptInfoCaches (0ms)
-			ResolveRequiredComponents (1ms)
-	FinalizeReload (388ms)
+			ResolveRequiredComponents (0ms)
+	FinalizeReload (210ms)
 		ReleaseScriptCaches (0ms)
 		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (345ms)
+		SetupLoadedEditorAssemblies (189ms)
 			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (45ms)
-			SetLoadedEditorAssemblies (5ms)
-			BeforeProcessingInitializeOnLoad (93ms)
-			ProcessInitializeOnLoadAttributes (131ms)
-			ProcessInitializeOnLoadMethodAttributes (71ms)
+			InitializePlatformSupportModulesInManaged (24ms)
+			SetLoadedEditorAssemblies (2ms)
+			BeforeProcessingInitializeOnLoad (48ms)
+			ProcessInitializeOnLoadAttributes (72ms)
+			ProcessInitializeOnLoadMethodAttributes (42ms)
 			AfterProcessingInitializeOnLoad (0ms)
 			EditorAssembliesLoaded (0ms)
 		ExecutionOrderSort2 (0ms)
@@ -265,7 +265,7 @@ Package Manager log level set to [2]
 [40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
 [40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping application/grpc - - 200 - application/grpc 24.6200ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping application/grpc - - 200 - application/grpc 18.6091ms
 Starting: /Applications/Unity/Hub/Editor/6000.3.9f1/Unity.app/Contents/Resources/BuildPipeline/bee_backend --ipc --defer-dag-verification --dagfile="Library/Bee/200b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
 WorkingDir: /Users/simar/deadlight/tmp/playtest_clone
 DisplayProgressbar: Compiling Scripts
@@ -284,23 +284,7 @@ DisplayProgressbar: Compiling Scripts
 [40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
 [40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors application/grpc - - 200 - application/grpc 24.1032ms
-[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc -
-[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
-[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      Processing assembly Library/Bee/artifacts/200b0aE.dag/Deadlight.dll, with 133 defines and 283 references
-[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
-[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      running Unity.Jobs.CodeGen.JobsILPostProcessor
-[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
-[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc - - 200 - application/grpc 11.6770ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors application/grpc - - 200 - application/grpc 12.7162ms
 [40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[1]
       Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc -
 [40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
@@ -309,30 +293,14 @@ DisplayProgressbar: Compiling Scripts
       Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc -
 [40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
       Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
-[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      Processing assembly Library/Bee/artifacts/200b0aE.dag/Deadlight.Editor.dll, with 131 defines and 291 references
-[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      Processing assembly Library/Bee/artifacts/200b0aE.dag/Deadlight.PlayModeTests.dll, with 133 defines and 263 references
-[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
-[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
-[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      running Unity.Jobs.CodeGen.JobsILPostProcessor
-[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      running Unity.Jobs.CodeGen.JobsILPostProcessor
-[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
-[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
-      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
-[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc - - 200 - application/grpc 2.4904ms
-[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc - - 200 - application/grpc 2.8694ms
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc -
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc -
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
 [40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[1]
       Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc -
 [40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
@@ -340,25 +308,57 @@ DisplayProgressbar: Compiling Scripts
 [40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
       Processing assembly Library/Bee/artifacts/200b0aE.dag/Assembly-CSharp.dll, with 133 defines and 353 references
 [40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+      Processing assembly Library/Bee/artifacts/200b0aE.dag/Deadlight.PlayModeTests.dll, with 133 defines and 263 references
 [40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
-      running Unity.Jobs.CodeGen.JobsILPostProcessor
-[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
-      Resolved Unity.Collections, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null with Library/Bee/artifacts/200b0aE.dag/Unity.Collections.dll
-[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
-      Resolved UnityEditor.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null with /Applications/Unity/Hub/Editor/6000.3.9f1/Unity.app/Contents/Resources/Scripting/Managed/UnityEngine/UnityEditor.CoreModule.dll
-[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
-      Resolved UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null with /Applications/Unity/Hub/Editor/6000.3.9f1/Unity.app/Contents/Resources/Scripting/Managed/UnityEngine/UnityEngine.CoreModule.dll
-[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[1]
-      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc -
-[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
-      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+      Processing assembly Library/Bee/artifacts/200b0aE.dag/Deadlight.Editor.dll, with 131 defines and 291 references
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      Processing assembly Library/Bee/artifacts/200b0aE.dag/Deadlight.dll, with 133 defines and 283 references
 [40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
       Processing assembly Library/Bee/artifacts/200b0aE.dag/Assembly-CSharp-Editor.dll, with 131 defines and 376 references
 [40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
       processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
 [40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
       running Unity.Jobs.CodeGen.JobsILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running Unity.Jobs.CodeGen.JobsILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running Unity.Jobs.CodeGen.JobsILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running Unity.Jobs.CodeGen.JobsILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running Unity.Jobs.CodeGen.JobsILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Unity.Collections, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null with Library/Bee/artifacts/200b0aE.dag/Unity.Collections.dll
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc - - 200 - application/grpc 14.3466ms
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc - - 200 - application/grpc 14.5749ms
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc - - 200 - application/grpc 12.9493ms
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved UnityEditor.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null with /Applications/Unity/Hub/Editor/6000.3.9f1/Unity.app/Contents/Resources/Scripting/Managed/UnityEngine/UnityEditor.CoreModule.dll
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null with /Applications/Unity/Hub/Editor/6000.3.9f1/Unity.app/Contents/Resources/Scripting/Managed/UnityEngine/UnityEngine.CoreModule.dll
 [40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
       running zzzUnity.Burst.CodeGen.BurstILPostProcessor
 [40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
@@ -370,39 +370,31 @@ DisplayProgressbar: Compiling Scripts
 [40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
 [40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc - - 200 - application/grpc 86.6653ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc - - 200 - application/grpc 174.1150ms
 [40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc - - 200 - application/grpc 174.9522ms
-ExitCode: 0 Duration: 3s529ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc - - 200 - application/grpc 174.8419ms
+ExitCode: 0 Duration: 2s238ms
 [ 986/1331  0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
-[1311/1331  2s] Csc Library/Bee/artifacts/200b0aE.dag/Deadlight.dll (+2 others)
-Assets/Scripts/Narrative/StoryEventManager.cs(12,22): warning CS0414: The field 'StoryEventManager.lowHealthTriggered' is assigned but its value is never used
+[1311/1331  1s] Csc Library/Bee/artifacts/200b0aE.dag/Deadlight.dll (+2 others)
 Assets/Scripts/Core/GameFlowController.cs(70,40): warning CS0414: The field 'GameFlowController.contestedDropRadius' is assigned but its value is never used
-[1312/1331  0s] ILPostProcess Library/Bee/artifacts/200b0aE.dag/post-processed/Deadlight.dll (+pdb)
-Processing assembly Library/Bee/artifacts/200b0aE.dag/Deadlight.dll, with 133 defines and 283 references
-processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
-running Unity.Jobs.CodeGen.JobsILPostProcessor
-running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-[1313/1331  0s] CopyFiles Library/ScriptAssemblies/Deadlight.dll
-[1314/1331  0s] CopyFiles Library/ScriptAssemblies/Deadlight.pdb
-[1315/1331  0s] Csc Library/Bee/artifacts/200b0aE.dag/Deadlight.Editor.dll (+2 others)
-[1316/1331  0s] Csc Library/Bee/artifacts/200b0aE.dag/Deadlight.PlayModeTests.dll (+2 others)
-[1317/1331  0s] ILPostProcess Library/Bee/artifacts/200b0aE.dag/post-processed/Deadlight.Editor.dll (+pdb)
+Assets/Scripts/Narrative/StoryEventManager.cs(12,22): warning CS0414: The field 'StoryEventManager.lowHealthTriggered' is assigned but its value is never used
+[1316/1331  0s] ILPostProcess Library/Bee/artifacts/200b0aE.dag/post-processed/Deadlight.Editor.dll (+pdb)
 Processing assembly Library/Bee/artifacts/200b0aE.dag/Deadlight.Editor.dll, with 131 defines and 291 references
 processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
 running Unity.Jobs.CodeGen.JobsILPostProcessor
 running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-[1318/1331  0s] ILPostProcess Library/Bee/artifacts/200b0aE.dag/post-processed/Deadlight.PlayModeTests.dll (+pdb)
+[1317/1331  0s] ILPostProcess Library/Bee/artifacts/200b0aE.dag/post-processed/Deadlight.PlayModeTests.dll (+pdb)
 Processing assembly Library/Bee/artifacts/200b0aE.dag/Deadlight.PlayModeTests.dll, with 133 defines and 263 references
 processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
 running Unity.Jobs.CodeGen.JobsILPostProcessor
 running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-[1319/1331  0s] CopyFiles Library/ScriptAssemblies/Deadlight.PlayModeTests.dll
-[1320/1331  0s] CopyFiles Library/ScriptAssemblies/Deadlight.PlayModeTests.pdb
-[1321/1331  0s] CopyFiles Library/ScriptAssemblies/Deadlight.Editor.dll
-[1322/1331  0s] CopyFiles Library/ScriptAssemblies/Deadlight.Editor.pdb
-[1323/1331  0s] Csc Library/Bee/artifacts/200b0aE.dag/Assembly-CSharp.dll (+2 others)
-[1324/1331  0s] Csc Library/Bee/artifacts/200b0aE.dag/Assembly-CSharp-Editor.dll (+2 others)
+[1318/1331  0s] ILPostProcess Library/Bee/artifacts/200b0aE.dag/post-processed/Deadlight.dll (+pdb)
+Processing assembly Library/Bee/artifacts/200b0aE.dag/Deadlight.dll, with 133 defines and 283 references
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1323/1331  0s] CopyFiles Library/ScriptAssemblies/Deadlight.pdb
+[1324/1331  0s] CopyFiles Library/ScriptAssemblies/Deadlight.dll
 [1325/1331  0s] ILPostProcess Library/Bee/artifacts/200b0aE.dag/post-processed/Assembly-CSharp.dll (+pdb)
 Processing assembly Library/Bee/artifacts/200b0aE.dag/Assembly-CSharp.dll, with 133 defines and 353 references
 processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
@@ -413,148 +405,115 @@ Processing assembly Library/Bee/artifacts/200b0aE.dag/Assembly-CSharp-Editor.dll
 processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
 running Unity.Jobs.CodeGen.JobsILPostProcessor
 running zzzUnity.Burst.CodeGen.BurstILPostProcessor
-[1327/1331  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.dll
-[1328/1331  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.pdb
-[1329/1331  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.pdb
-[1330/1331  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.dll
-*** Tundra build success (3.51 seconds), 21 items updated, 1331 evaluated
-Assets/Scripts/Narrative/StoryEventManager.cs(12,22): warning CS0414: The field 'StoryEventManager.lowHealthTriggered' is assigned but its value is never used
+*** Tundra build success (2.22 seconds), 9 items updated, 1331 evaluated
 Assets/Scripts/Core/GameFlowController.cs(70,40): warning CS0414: The field 'GameFlowController.contestedDropRadius' is assigned but its value is never used
-AssetDatabase: script compilation time: 4.007694s
+Assets/Scripts/Narrative/StoryEventManager.cs(12,22): warning CS0414: The field 'StoryEventManager.lowHealthTriggered' is assigned but its value is never used
+AssetDatabase: script compilation time: 2.597970s
 Total cache size 117183740
+Total cache size after purge 117183740, took 00:00:00.0836556
 Begin MonoManager ReloadAssembly
-Total cache size after purge 117183740, took 00:00:00.1145582
 Symbol file LoadedFromMemory is not a mono symbol file
-- Loaded All Assemblies, in  0.808 seconds
-Refreshing native plugins compatible for Editor in 2.86 ms, found 2 plugins.
+- Loaded All Assemblies, in  0.466 seconds
+Refreshing native plugins compatible for Editor in 5.78 ms, found 2 plugins.
 Native extension for WindowsStandalone target not found
 Native extension for OSXStandalone target not found
 Native extension for WebGL target not found
-Refreshing native plugins compatible for Editor in 2.06 ms, found 2 plugins.
+Refreshing native plugins compatible for Editor in 1.02 ms, found 2 plugins.
 ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:False
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  3.043 seconds
-Domain Reload Profiling: 3851ms
-	BeginReloadAssembly (134ms)
+- Finished resetting the current domain, in  1.779 seconds
+Domain Reload Profiling: 2244ms
+	BeginReloadAssembly (120ms)
 		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (8ms)
+		DisableScriptedObjects (49ms)
 		BackupInstance (0ms)
 		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (30ms)
-	RebuildCommonClasses (48ms)
-	RebuildNativeTypeToScriptingClass (24ms)
-	initialDomainReloadingComplete (32ms)
-	LoadAllAssembliesAndSetupDomain (568ms)
-		LoadAssemblies (377ms)
+		CreateAndSetChildDomain (22ms)
+	RebuildCommonClasses (19ms)
+	RebuildNativeTypeToScriptingClass (8ms)
+	initialDomainReloadingComplete (12ms)
+	LoadAllAssembliesAndSetupDomain (306ms)
+		LoadAssemblies (213ms)
 		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (250ms)
-			TypeCache.Refresh (185ms)
-				TypeCache.ScanAssembly (165ms)
-			BuildScriptInfoCaches (53ms)
-			ResolveRequiredComponents (9ms)
-	FinalizeReload (3044ms)
+		AnalyzeDomain (122ms)
+			TypeCache.Refresh (88ms)
+				TypeCache.ScanAssembly (77ms)
+			BuildScriptInfoCaches (28ms)
+			ResolveRequiredComponents (5ms)
+	FinalizeReload (1779ms)
 		ReleaseScriptCaches (0ms)
 		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (2871ms)
+		SetupLoadedEditorAssemblies (1711ms)
 			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (27ms)
-			SetLoadedEditorAssemblies (8ms)
-			BeforeProcessingInitializeOnLoad (207ms)
-			ProcessInitializeOnLoadAttributes (2225ms)
-			ProcessInitializeOnLoadMethodAttributes (401ms)
-			AfterProcessingInitializeOnLoad (2ms)
+			InitializePlatformSupportModulesInManaged (11ms)
+			SetLoadedEditorAssemblies (3ms)
+			BeforeProcessingInitializeOnLoad (98ms)
+			ProcessInitializeOnLoadAttributes (1465ms)
+			ProcessInitializeOnLoadMethodAttributes (133ms)
+			AfterProcessingInitializeOnLoad (1ms)
 			EditorAssembliesLoaded (0ms)
 		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (6ms)
-Refreshing native plugins compatible for Editor in 3.32 ms, found 2 plugins.
+		AwakeInstancesAfterBackupRestoration (2ms)
+Refreshing native plugins compatible for Editor in 1.83 ms, found 2 plugins.
 Preloading 0 native plugins for Editor in 0.00 ms.
-Asset Pipeline Refresh (id=21c3ce68bca514a9a99c146ff462f574): Total: 9.314 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+Asset Pipeline Refresh (id=179cd1931db9f45d4a82cc28ab5b85d4): Total: 5.730 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
 	Summary:
 		Imports: total=0 (actual=0, local cache=0, cache server=0)
-		Asset DB Process Time: managed=0 ms, native=3958 ms
-		Asset DB Callback time: managed=474 ms, native=20 ms
-		Scripting: domain reloads=1, domain reload time=809 ms, compile time=4010 ms, other=42 ms
+		Asset DB Process Time: managed=0 ms, native=2295 ms
+		Asset DB Callback time: managed=275 ms, native=69 ms
+		Scripting: domain reloads=1, domain reload time=466 ms, compile time=2599 ms, other=23 ms
 		Project Asset Count: scripts=1593, non-scripts=3174
 		Asset File Changes: new=0, changed=1, moved=0, deleted=0
 		Scan Filter Count: 1
-	InvokeCustomDependenciesCallbacks: 0.001ms
-	InvokePackagesCallback: 12.994ms
-	ApplyChangesToAssetFolders: 0.309ms
-	Scan: 562.460ms
-	OnSourceAssetsModified: 0.837ms
-	CategorizeAssetsWithTransientArtifact: 42.213ms
-	ProcessAssetsWithTransientArtifactChanges: 61.397ms
-	CategorizeAssets: 92.021ms
-	ImportOutOfDateAssets: 3058.635ms (-953.541ms without children)
-		CompileScripts: 4009.594ms
+	InvokeCustomDependenciesCallbacks: 0.000ms
+	InvokePackagesCallback: 11.174ms
+	ApplyChangesToAssetFolders: 0.191ms
+	Scan: 334.372ms
+	OnSourceAssetsModified: 0.445ms
+	CategorizeAssetsWithTransientArtifact: 20.253ms
+	ProcessAssetsWithTransientArtifactChanges: 32.351ms
+	CategorizeAssets: 42.126ms
+	ImportOutOfDateAssets: 1789.269ms (-810.903ms without children)
+		CompileScripts: 2599.301ms
 		ReloadNativeAssets: 0.000ms
-		UnloadImportedAssets: 0.332ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 1.400ms
+		UnloadImportedAssets: 0.131ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.486ms
 		InitializingProgressBar: 0.000ms
 		PostProcessAllAssetNotificationsAddChangedAssets: 0.000ms
-		OnDemandSchedulerStart: 0.848ms
-	PostProcessAllAssets: 476.436ms
-	Hotreload: 5.662ms
+		OnDemandSchedulerStart: 0.253ms
+	PostProcessAllAssets: 330.569ms
+	Hotreload: 3.023ms
 	GatherAllCurrentPrimaryArtifactRevisions: 0.000ms
-	UnloadStreamsBegin: 0.755ms
-	PersistCurrentRevisions: 0.277ms
-	UnloadStreamsEnd: 0.001ms
-	GenerateScriptTypeHashes: 3.984ms
-	Untracked: 5000.373ms
+	UnloadStreamsBegin: 0.403ms
+	PersistCurrentRevisions: 0.094ms
+	UnloadStreamsEnd: 0.000ms
+	GenerateScriptTypeHashes: 8.072ms
+	Untracked: 3165.293ms
 
 Application.AssetDatabase Initial Refresh End
-Scanning for USB devices : 0.086ms
+Scanning for USB devices : 0.033ms
 Initializing Unity extensions:
 [MODES] ModeService[none].Initialize
 [MODES] ModeService[none].LoadModes
 [MODES] Loading mode Default (0) for mode-current-id-Deadlight
 Unloading 210 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 6128 unused Assets / (9.4 MB). Loaded Objects now: 6782.
-Memory consumption went from 245.9 MB to 236.5 MB.
-Total: 16.719125 ms (FindLiveObjects: 0.418834 ms CreateObjectMapping: 0.165541 ms MarkObjects: 12.353875 ms  DeleteObjects: 3.780542 ms)
+Unloading 6128 unused Assets / (7.5 MB). Loaded Objects now: 6782.
+Memory consumption went from 242.2 MB to 234.7 MB.
+Total: 14.056417 ms (FindLiveObjects: 0.314292 ms CreateObjectMapping: 0.118458 ms MarkObjects: 10.360750 ms  DeleteObjects: 3.262375 ms)
 
-[Project] Loading completed in 11.691 seconds
-	Project init time: 				11.467 seconds
+[Project] Loading completed in 7.028 seconds
+	Project init time: 				6.851 seconds
 		Template init time: 		0.000 seconds
-		Package Manager init time: 		0.222 seconds
-		Asset Database init time: 		0.170 seconds
-		Global illumination init time: 	0.001 seconds
-		Assemblies load time: 			0.965 seconds
-		Unity extensions init time: 	0.021 seconds
-		Asset Database refresh time: 	9.314 seconds
-	Scene opening time: 			0.182 seconds
-##utp:{"type":"ProjectInfo","version":2,"phase":"Immediate","time":1775722696703,"processId":44937,"projectLoad":11.690609375000001,"projectInit":11.467327958,"templateInit":0.0,"packageManagerInit":0.222087042,"assetDatabaseInit":0.170424875,"globalIlluminationInit":0.001060834,"assembliesLoad":0.964573917,"unityExtensionsInit":0.021134542,"assetDatabaseRefresh":9.314464542,"sceneOpening":0.181548458}
-##utp:{"type":"EditorInfo","version":2,"phase":"Immediate","time":1775722696703,"processId":44937,"editorVersion":"6000.3.9f1 (7a9955a4f2fa)","branch":"6000.3/staging","buildType":"Release","platform":"OSX"}
-Asset Pipeline Refresh (id=7aadf9c6b347346118e04585e609c610): Total: 0.567 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
-	Summary:
-		Imports: total=0 (actual=0, local cache=0, cache server=0)
-		Asset DB Process Time: managed=0 ms, native=566 ms
-		Asset DB Callback time: managed=0 ms, native=0 ms
-		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
-		Project Asset Count: scripts=1593, non-scripts=3174
-		Asset File Changes: new=0, changed=0, moved=0, deleted=0
-		Scan Filter Count: 1
-	InvokeCustomDependenciesCallbacks: 0.003ms
-	InvokePackagesCallback: 0.000ms
-	ApplyChangesToAssetFolders: 0.192ms
-	Scan: 487.363ms
-	OnSourceAssetsModified: 0.001ms
-	CategorizeAssetsWithTransientArtifact: 0.002ms
-	ProcessAssetsWithTransientArtifactChanges: 0.278ms
-	CategorizeAssets: 65.088ms
-	ImportOutOfDateAssets: 2.805ms (0.712ms without children)
-		ReloadNativeAssets: 0.065ms
-		UnloadImportedAssets: 0.423ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.912ms
-		InitializingProgressBar: 0.000ms
-		PostProcessAllAssetNotificationsAddChangedAssets: 0.000ms
-		OnDemandSchedulerStart: 0.692ms
-	GatherAllCurrentPrimaryArtifactRevisions: 0.184ms
-	UnloadStreamsBegin: 0.502ms
-	PersistCurrentRevisions: 0.203ms
-	UnloadStreamsEnd: 0.006ms
-	Untracked: 9.886ms
-
+		Package Manager init time: 		0.227 seconds
+		Asset Database init time: 		0.159 seconds
+		Global illumination init time: 	0.000 seconds
+		Assemblies load time: 			0.405 seconds
+		Unity extensions init time: 	0.005 seconds
+		Asset Database refresh time: 	5.730 seconds
+	Scene opening time: 			0.130 seconds
+##utp:{"type":"ProjectInfo","version":2,"phase":"Immediate","time":1775764648840,"processId":51149,"projectLoad":7.027606833,"projectInit":6.850580792,"templateInit":0.0,"packageManagerInit":0.227290333,"assetDatabaseInit":0.158746083,"globalIlluminationInit":0.000394208,"assembliesLoad":0.404923958,"unityExtensionsInit":0.005313625,"assetDatabaseRefresh":5.729600667,"sceneOpening":0.129644417}
+##utp:{"type":"EditorInfo","version":2,"phase":"Immediate","time":1775764648840,"processId":51149,"editorVersion":"6000.3.9f1 (7a9955a4f2fa)","branch":"6000.3/staging","buildType":"Release","platform":"OSX"}
+Asset Pipeline Refresh (id=72fe9129ccf474bab9d330df80130c6a): Total: 0.197 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
 Running tests for ExecutionSettings with details:
 targetPlatform = 
 playerHeartbeatTimeout = 600
@@ -582,16 +541,16 @@ UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /Users/bokken/
 (Filename: ./Library/PackageCache/com.unity.test-framework@0b7a23ab2e1d/UnityEditor.TestRunner/CommandLineTest/Executer.cs Line: 53)
 
 [UnityConnectServicesConfig] config is NOT valid, switching to default
-Created GICache directory at /Users/simar/Library/Caches/com.unity3d.UnityEditor/GiCache. Took: 0.002s, timestamps: [11.692 - 11.694]
+Created GICache directory at /Users/simar/Library/Caches/com.unity3d.UnityEditor/GiCache. Took: 0.001s, timestamps: [7.029 - 7.030]
 Unloading 8 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 14 unused Assets / (48.0 KB). Loaded Objects now: 6827.
-Memory consumption went from 186.1 MB to 186.1 MB.
-Total: 22.834958 ms (FindLiveObjects: 0.240250 ms CreateObjectMapping: 0.126958 ms MarkObjects: 22.368208 ms  DeleteObjects: 0.098709 ms)
+Unloading 14 unused Assets / (47.7 KB). Loaded Objects now: 6827.
+Memory consumption went from 188.8 MB to 188.8 MB.
+Total: 9.509583 ms (FindLiveObjects: 0.126541 ms CreateObjectMapping: 0.057542 ms MarkObjects: 9.278458 ms  DeleteObjects: 0.046708 ms)
 
-Start importing Assets/InitTestScenec090883b-3da0-48af-a974-6bcb4c2387c5.unity using Guid(4f49f75eaa6044f9c8dd7d1d679cd118) (DefaultImporter) -> (artifact id: '3cb76406742147a433c5173ce984dd59') in 0.052453958 seconds
-Refreshing native plugins compatible for Editor in 1.34 ms, found 2 plugins.
+Start importing Assets/InitTestScene7650c1ca-3775-43c2-bce6-0a967b6418d5.unity using Guid(aea0f357fd7044b55b8b0f2ff3945f88) (DefaultImporter) -> (artifact id: 'f4cce5246e1c101bb2e5ab0438d9cfac') in 0.003232209 seconds
+Refreshing native plugins compatible for Editor in 0.82 ms, found 2 plugins.
 Preloading 0 native plugins for Editor in 0.00 ms.
-Asset Pipeline Refresh (id=5cc0c3b35a07647ef9b512fb6284584d): Total: 0.099 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=351451278385846939cc826b98512306): Total: 0.024 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
 Executing IPrebuildSetup for: Unity.PerformanceTesting.Editor.TestRunBuilder.
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
@@ -607,92 +566,91 @@ UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /Users/bokken/
 
 (Filename: ./Library/PackageCache/com.unity.test-framework@0b7a23ab2e1d/UnityEditor.TestRunner/TestRun/Tasks/BuildActionTaskBase.cs Line: 48)
 
-Thread 0x328987000 may have been prematurely finalized
+Thread 0x17859b000 may have been prematurely finalized
 Reloading assemblies for play mode.
 Reloading assemblies after forced synchronous recompile.
 Begin MonoManager ReloadAssembly
-<CFData 0x9b01f0960 [0x1ef7eadd8]>{length = 6, capacity = 6, bytes = 0x7cf34de1df76}
+<CFData 0xc593fe0d0 [0x1ef7eadd8]>{length = 6, capacity = 6, bytes = 0x7cf34de1df76}
 Symbol file LoadedFromMemory is not a mono symbol file
-- Loaded All Assemblies, in  0.568 seconds
-Refreshing native plugins compatible for Editor in 1.14 ms, found 2 plugins.
+- Loaded All Assemblies, in  0.545 seconds
+Refreshing native plugins compatible for Editor in 1.04 ms, found 2 plugins.
 Native extension for WindowsStandalone target not found
 Native extension for OSXStandalone target not found
 Native extension for WebGL target not found
 ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:False
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.740 seconds
-Domain Reload Profiling: 1309ms
-	BeginReloadAssembly (398ms)
+- Finished resetting the current domain, in  0.543 seconds
+Domain Reload Profiling: 1089ms
+	BeginReloadAssembly (383ms)
 		ExecutionOrderSort (0ms)
 		DisableScriptedObjects (56ms)
 		BackupInstance (0ms)
 		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (291ms)
-	RebuildCommonClasses (20ms)
+		CreateAndSetChildDomain (280ms)
+	RebuildCommonClasses (19ms)
 	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (12ms)
-	LoadAllAssembliesAndSetupDomain (130ms)
-		LoadAssemblies (63ms)
+	initialDomainReloadingComplete (15ms)
+	LoadAllAssembliesAndSetupDomain (120ms)
+		LoadAssemblies (59ms)
 		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (96ms)
+		AnalyzeDomain (91ms)
 			TypeCache.Refresh (6ms)
 				TypeCache.ScanAssembly (0ms)
-			BuildScriptInfoCaches (82ms)
+			BuildScriptInfoCaches (77ms)
 			ResolveRequiredComponents (6ms)
-	FinalizeReload (740ms)
+	FinalizeReload (543ms)
 		ReleaseScriptCaches (0ms)
 		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (542ms)
+		SetupLoadedEditorAssemblies (394ms)
 			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (13ms)
+			InitializePlatformSupportModulesInManaged (11ms)
 			SetLoadedEditorAssemblies (3ms)
-			BeforeProcessingInitializeOnLoad (104ms)
-			ProcessInitializeOnLoadAttributes (198ms)
-			ProcessInitializeOnLoadMethodAttributes (222ms)
+			BeforeProcessingInitializeOnLoad (88ms)
+			ProcessInitializeOnLoadAttributes (152ms)
+			ProcessInitializeOnLoadMethodAttributes (140ms)
 			AfterProcessingInitializeOnLoad (1ms)
 			EditorAssembliesLoaded (0ms)
 		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (28ms)
-Asset Pipeline Refresh (id=7bd5f7c3df3004b16994bf54239ba58a): Total: 1.426 seconds - Initiated by StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)
+		AwakeInstancesAfterBackupRestoration (14ms)
+Asset Pipeline Refresh (id=01cbd4639e4ec4b66a98f52227292546): Total: 1.156 seconds - Initiated by StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)
 	Summary:
 		Imports: total=0 (actual=0, local cache=0, cache server=0)
-		Asset DB Process Time: managed=0 ms, native=822 ms
-		Asset DB Callback time: managed=28 ms, native=0 ms
-		Scripting: domain reloads=1, domain reload time=574 ms, compile time=1 ms, other=0 ms
+		Asset DB Process Time: managed=0 ms, native=592 ms
+		Asset DB Callback time: managed=13 ms, native=0 ms
+		Scripting: domain reloads=1, domain reload time=549 ms, compile time=1 ms, other=0 ms
 		Project Asset Count: scripts=1593, non-scripts=3175
 		Asset File Changes: new=0, changed=0, moved=0, deleted=0
 		Scan Filter Count: 0
 	InvokeCustomDependenciesCallbacks: 0.000ms
-	InvokePackagesCallback: 0.798ms
-	ApplyChangesToAssetFolders: 0.294ms
+	InvokePackagesCallback: 0.497ms
+	ApplyChangesToAssetFolders: 0.174ms
 	Scan: 0.000ms
-	OnSourceAssetsModified: 0.001ms
-	CategorizeAssetsWithTransientArtifact: 0.002ms
-	ProcessAssetsWithTransientArtifactChanges: 1.731ms
-	CategorizeAssets: 56.234ms
-	ImportOutOfDateAssets: 746.220ms (742.361ms without children)
-		CompileScripts: 1.048ms
-		CollectScriptTypesHashes: 1.033ms
-		ReloadNativeAssets: 0.675ms
-		UnloadImportedAssets: 0.015ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.758ms
-		InitializingProgressBar: 0.000ms
+	OnSourceAssetsModified: 0.000ms
+	CategorizeAssetsWithTransientArtifact: 0.001ms
+	ProcessAssetsWithTransientArtifactChanges: 1.608ms
+	CategorizeAssets: 29.113ms
+	ImportOutOfDateAssets: 547.030ms (544.929ms without children)
+		CompileScripts: 0.532ms
+		CollectScriptTypesHashes: 0.643ms
+		ReloadNativeAssets: 0.331ms
+		UnloadImportedAssets: 0.008ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.410ms
 		PostProcessAllAssetNotificationsAddChangedAssets: 0.000ms
-		OnDemandSchedulerStart: 0.329ms
-	PostProcessAllAssets: 28.530ms
-	GatherAllCurrentPrimaryArtifactRevisions: 0.128ms
-	UnloadStreamsBegin: 0.144ms
-	PersistCurrentRevisions: 0.200ms
+		OnDemandSchedulerStart: 0.177ms
+	PostProcessAllAssets: 13.802ms
+	GatherAllCurrentPrimaryArtifactRevisions: 0.109ms
+	UnloadStreamsBegin: 0.071ms
+	PersistCurrentRevisions: 0.093ms
 	UnloadStreamsEnd: 0.000ms
-	GenerateScriptTypeHashes: 3.945ms
-	Untracked: 591.794ms
+	GenerateScriptTypeHashes: 2.000ms
+	Untracked: 563.460ms
 
 Loaded scene 'Temp/__Backupscenes/0.backup'
-	Deserialize:            1.055 ms
-	Integration:            298.346 ms
+	Deserialize:            0.393 ms
+	Integration:            162.950 ms
 	Integration of assets:  0.001 ms
-	Thread Wait Time:       0.008 ms
-	Total Operation Time:   299.410 ms
+	Thread Wait Time:       0.005 ms
+	Total Operation Time:   163.348 ms
 [MODES] ModeService[none].Initialize
 [MODES] ModeService[none].LoadModes
 [GameManager] State changed to: DayPhase
@@ -2099,7 +2057,6 @@ UnityEngine.SetupCoroutine:InvokeMoveNext (System.Collections.IEnumerator,intptr
 
 (Filename: Assets/Scripts/Core/GameManager.cs Line: 367)
 
-TrimDiskCacheJob: Current cache size 0mb
 [DayNightCycle] Day phase started
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
@@ -3134,17 +3091,17 @@ UnityEngine.SetupCoroutine:InvokeMoveNext (System.Collections.IEnumerator,intptr
 
 Saving results to: /Users/simar/Library/Application Support/Group16/Deadlight/TestResults.xml
 Saving results to: /Users/simar/deadlight/tmp/playtest_clone/TestResults/audio-pass-playmode.xml
-Thread 0x16df87000 may have been prematurely finalized
+Thread 0x321207000 may have been prematurely finalized
 Unloading 18 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Temp/__Backupscenes/0.backup'
-	Deserialize:            0.393 ms
-	Integration:            177.560 ms
+	Deserialize:            0.444 ms
+	Integration:            170.911 ms
 	Integration of assets:  0.001 ms
-	Thread Wait Time:       0.010 ms
-	Total Operation Time:   177.963 ms
-Unloading 203 unused Assets / (492.7 KB). Loaded Objects now: 6857.
-Memory consumption went from 195.0 MB to 194.5 MB.
-Total: 15.530417 ms (FindLiveObjects: 0.331250 ms CreateObjectMapping: 0.123875 ms MarkObjects: 14.224958 ms  DeleteObjects: 0.849666 ms)
+	Thread Wait Time:       0.006 ms
+	Total Operation Time:   171.362 ms
+Unloading 203 unused Assets / (306.8 KB). Loaded Objects now: 6857.
+Memory consumption went from 183.9 MB to 183.6 MB.
+Total: 13.398875 ms (FindLiveObjects: 0.245666 ms CreateObjectMapping: 0.096750 ms MarkObjects: 12.349209 ms  DeleteObjects: 0.707000 ms)
 
 Executing IPostBuildCleanup for: Unity.PerformanceTesting.Editor.TestRunBuilder.
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -3161,15 +3118,15 @@ UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /Users/bokken/
 
 (Filename: ./Library/PackageCache/com.unity.test-framework@0b7a23ab2e1d/UnityEditor.TestRunner/TestRun/Tasks/BuildActionTaskBase.cs Line: 48)
 
-Asset Pipeline Refresh (id=0e2d58b7eabe9494ba12ce499fafaee7): Total: 0.114 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=d1e06c059daf542f4ba914f54eb66e17): Total: 0.153 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
 Unloading 0 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 1 unused Assets / (0.8 KB). Loaded Objects now: 6862.
-Memory consumption went from 192.4 MB to 192.4 MB.
-Total: 16.672000 ms (FindLiveObjects: 0.169000 ms CreateObjectMapping: 0.099334 ms MarkObjects: 16.384375 ms  DeleteObjects: 0.018958 ms)
+Unloading 1 unused Assets / (2.0 KB). Loaded Objects now: 6862.
+Memory consumption went from 181.1 MB to 181.1 MB.
+Total: 13.119375 ms (FindLiveObjects: 0.175209 ms CreateObjectMapping: 0.056833 ms MarkObjects: 12.857667 ms  DeleteObjects: 0.029125 ms)
 
-Refreshing native plugins compatible for Editor in 1.72 ms, found 2 plugins.
+Refreshing native plugins compatible for Editor in 1.33 ms, found 2 plugins.
 Preloading 0 native plugins for Editor in 0.00 ms.
-Asset Pipeline Refresh (id=1a830590c50044f2f8fd50f6f7a2615b): Total: 0.079 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=f1901fcf2c8ee4de29335a21d5b732ef): Total: 0.074 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
 DisplayProgressbar: Undo
 Test run completed. Exiting with code 0 (Ok). Run completed.
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -3184,7 +3141,7 @@ UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /Users/bokken/
 
 (Filename: ./Library/PackageCache/com.unity.test-framework@0b7a23ab2e1d/UnityEditor.TestRunner/CommandLineTest/Executer.cs Line: 81)
 
-Thread 0x16df87000 may have been prematurely finalized
+Thread 0x16dc8b000 may have been prematurely finalized
 Input System module state changed to: ShutdownInProgress.
 Input System polling thread exited.
 Input System module state changed to: Shutdown.
@@ -3192,15 +3149,14 @@ Input System module state changed to: Shutdown.
 [Physics::Module] Id: 0xf2b8ea05
 [Licensing::IpcConnector] LicenseClient-simar-notifications channel disconnected successfully.
 [Licensing::IpcConnector] LicenseClient-simar channel disconnected successfully.
-Thread 0x16c197000 may have been prematurely finalized
-Thread 0x16c2af000 may have been prematurely finalized
-Thread 0x16c33b000 may have been prematurely finalized
-Thread 0x16c56b000 may have been prematurely finalized
-Thread 0x16c223000 may have been prematurely finalized
-Thread 0x16c3c7000 may have been prematurely finalized
-Thread 0x16c4df000 may have been prematurely finalized
-Thread 0x16c453000 may have been prematurely finalized
-Thread 0x16c5f7000 may have been prematurely finalized
+Thread 0x16e137000 may have been prematurely finalized
+Thread 0x16e2db000 may have been prematurely finalized
+Thread 0x16e3f3000 may have been prematurely finalized
+Thread 0x16e1c3000 may have been prematurely finalized
+Thread 0x16e367000 may have been prematurely finalized
+Thread 0x16e24f000 may have been prematurely finalized
+Thread 0x16e47f000 may have been prematurely finalized
+Thread 0x16e50b000 may have been prematurely finalized
 AcceleratorClientConnectionCallback - disconnected - :0
 [40m[32minfo[39m[22m[49m: Microsoft.Hosting.Lifetime[0]
       Application is shutting down...

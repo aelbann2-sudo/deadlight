@@ -1411,6 +1411,7 @@ namespace Deadlight.Core
                 repeatCurrentNightOnAdvance = true;
                 RadioTransmissions.Instance?.ShowMessage(
                     "Objective missed. One retry granted before forced advance.", 4.2f);
+                TriggerObjectivePenaltyFeedback(severe: false);
                 return true;
             }
 
@@ -1418,6 +1419,7 @@ namespace Deadlight.Core
             QueueObjectiveMissPenalty();
             RadioTransmissions.Instance?.ShowMessage(
                 "Objective missed again. Forced advance with penalties applied.", 4.8f);
+            TriggerObjectivePenaltyFeedback(severe: true);
             return false;
         }
 
@@ -1445,11 +1447,28 @@ namespace Deadlight.Core
                 queuedEnemyPenaltyNights--;
                 RadioTransmissions.Instance?.ShowMessage(
                     "Penalty active: enemies are stronger this night.", 3.6f);
+                TriggerObjectivePenaltyFeedback(severe: false);
             }
             else
             {
                 objectivePenaltyActiveForCurrentNight = false;
             }
+        }
+
+        private static void TriggerObjectivePenaltyFeedback(bool severe)
+        {
+            float audioVolume = severe ? 0.2f : 0.12f;
+            float tensionAmount = severe ? 0.18f : 0.1f;
+            float tensionHold = severe ? 2.2f : 1.4f;
+
+            AudioManager.Instance?.PlaySFX("alarm_siren", audioVolume);
+            AudioManager.Instance?.SignalCombatPeak(tensionAmount, tensionHold);
+
+            Color flashColor = severe
+                ? new Color(0.5f, 0.08f, 0.05f, 0.26f)
+                : new Color(0.38f, 0.08f, 0.05f, 0.16f);
+            float flashDuration = severe ? 0.28f : 0.2f;
+            GameEffects.Instance?.FlashScreen(flashColor, flashDuration);
         }
 
         private float ConsumeProjectedCarryoverRatio()

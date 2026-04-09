@@ -351,12 +351,38 @@ namespace Deadlight.Systems
             if (DayObjectiveSystem.Instance != null)
                 DayObjectiveSystem.Instance.AddProgress(1);
 
-            try
+            if (AudioManager.Instance != null)
             {
-                var clip = Audio.ProceduralAudioGenerator.GeneratePickup();
-                if (clip != null) AudioSource.PlayClipAtPoint(clip, transform.position, 0.6f);
+                try
+                {
+                    var clip = Audio.ProceduralAudioGenerator.GeneratePickup();
+                    if (clip != null)
+                    {
+                        AudioManager.Instance.PlaySFXAtPosition(
+                            clip,
+                            transform.position,
+                            isContestedDrop ? 0.72f : 0.58f,
+                            1.02f,
+                            0.03f);
+                    }
+                }
+                catch
+                {
+                    AudioManager.Instance.PlaySFX("pickup", isContestedDrop ? 0.72f : 0.58f);
+                }
             }
-            catch { }
+            else
+            {
+                try
+                {
+                    var clip = Audio.ProceduralAudioGenerator.GeneratePickup();
+                    if (clip != null)
+                    {
+                        AudioSource.PlayClipAtPoint(clip, transform.position, isContestedDrop ? 0.72f : 0.58f);
+                    }
+                }
+                catch { }
+            }
 
             sr.color = new Color(0.3f, 0.3f, 0.3f, 0.5f);
             OnCrateSuccessfullyLooted?.Invoke(this);
@@ -467,6 +493,10 @@ namespace Deadlight.Systems
             {
                 FloatingTextManager.Instance.SpawnText("DROP EXPIRED", transform.position + Vector3.up * 0.5f, new Color(1f, 0.35f, 0.35f));
             }
+
+            AudioManager.Instance?.PlaySFX("alarm_siren", 0.14f);
+            AudioManager.Instance?.SignalCombatPeak(0.08f, 1.2f);
+            GameEffects.Instance?.FlashScreen(new Color(0.45f, 0.08f, 0.05f, 0.16f), 0.2f);
 
             onContestedExpired?.Invoke(this);
             Destroy(gameObject, 1f);

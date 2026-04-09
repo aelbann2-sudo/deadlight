@@ -1,4 +1,5 @@
 using UnityEngine;
+using Deadlight.Core;
 using Deadlight.Systems;
 using Deadlight.UI;
 
@@ -110,6 +111,10 @@ namespace Deadlight.Narrative
             if (pickupSound != null)
             {
                 AudioSource.PlayClipAtPoint(pickupSound, transform.position);
+            }
+            else
+            {
+                AudioManager.Instance?.PlaySFX("pickup", 0.5f);
             }
 
             if (destroyOnPickup)

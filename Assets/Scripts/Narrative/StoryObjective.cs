@@ -209,6 +209,7 @@ namespace Deadlight.Narrative
 
             CreateTargetForBeat(currentBeat);
             ShowObjectiveAnnouncement($"NIGHT {night}: {currentBeat.DayTitle}");
+            PlayObjectiveCue("radio_static", 0.2f);
             UpdateUI();
             RaiseChanged();
         }
@@ -239,6 +240,17 @@ namespace Deadlight.Narrative
             isObjectiveComplete = intelSecured;
 
             ShowObjectiveAnnouncement($"NIGHT {night}: {beat.NightTitle}");
+            if (intelSecured)
+            {
+                PlayObjectiveCue("pickup", 0.24f);
+                TriggerObjectiveFlash(new Color(0.18f, 0.48f, 0.30f, 0.12f), 0.16f);
+            }
+            else
+            {
+                PlayObjectiveCue("alarm_siren", 0.12f);
+                AudioManager.Instance?.SignalCombatPeak(0.1f, 1.6f);
+                TriggerObjectiveFlash(new Color(0.48f, 0.08f, 0.05f, 0.20f), 0.22f);
+            }
             UpdateUI();
             RaiseChanged();
         }
@@ -275,6 +287,8 @@ namespace Deadlight.Narrative
                 ? $"Lead secured. +{currentBeat.RewardPoints} points."
                 : "Lead secured.";
             isObjectiveComplete = true;
+            PlayObjectiveCue("pickup", 0.38f);
+            TriggerObjectiveFlash(new Color(0.18f, 0.55f, 0.28f, 0.18f), 0.2f);
             ClearActiveTarget();
             UpdateUI();
             RaiseChanged();
@@ -312,6 +326,21 @@ namespace Deadlight.Narrative
         private void ShowObjectiveAnnouncement(string message)
         {
             RadioTransmissions.Instance?.ShowMessage($"MISSION LOG: {message}", 3.25f, bypassCooldown: true);
+        }
+
+        private static void PlayObjectiveCue(string clipName, float volumeScale)
+        {
+            if (string.IsNullOrWhiteSpace(clipName))
+            {
+                return;
+            }
+
+            AudioManager.Instance?.PlaySFX(clipName, volumeScale);
+        }
+
+        private static void TriggerObjectiveFlash(Color color, float duration)
+        {
+            GameEffects.Instance?.FlashScreen(color, duration);
         }
 
         private void LoadFont()
