@@ -51,6 +51,7 @@ namespace Deadlight.UI
         private readonly HashSet<WeaponType> _purchasedWeapons = new HashSet<WeaponType>();
         private readonly List<Text> _upgradeLabels = new List<Text>();
         private readonly List<Button> _upgradeBuyButtons = new List<Button>();
+        private PointsSystem _observedPointsSystem;
         private const int SupplyButtonCount = 4;
         private const int HealCost = 50;
         private const int AmmoRefillCost = 30;
@@ -130,6 +131,8 @@ namespace Deadlight.UI
                 GameManager.Instance.OnPauseChanged += OnPauseChanged;
             }
 
+            HookPointsSystemEvents();
+
             RefreshForCurrentState();
         }
 
@@ -140,6 +143,8 @@ namespace Deadlight.UI
                 GameManager.Instance.OnGameStateChanged -= OnGameStateChanged;
                 GameManager.Instance.OnPauseChanged -= OnPauseChanged;
             }
+
+            UnhookPointsSystemEvents();
         }
 
         private void Update()
@@ -175,6 +180,8 @@ namespace Deadlight.UI
 
         public void RefreshForCurrentState()
         {
+            HookPointsSystemEvents();
+
             if (_mainMenuPanel == null)
             {
                 return;
@@ -1711,6 +1718,7 @@ namespace Deadlight.UI
 
         private void OnGameStateChanged(GameState state)
         {
+            HookPointsSystemEvents();
             HideAllPanelsFade();
 
             switch (state)
@@ -1748,6 +1756,45 @@ namespace Deadlight.UI
                     GameEffects.Instance?.ClearScreenOverlays();
                     HandleEndingState(true);
                     break;
+            }
+        }
+
+        private void HookPointsSystemEvents()
+        {
+            var current = PointsSystem.Instance;
+            if (_observedPointsSystem == current)
+            {
+                return;
+            }
+
+            if (_observedPointsSystem != null)
+            {
+                _observedPointsSystem.OnPointsChanged -= OnPointsChanged;
+            }
+
+            _observedPointsSystem = current;
+            if (_observedPointsSystem != null)
+            {
+                _observedPointsSystem.OnPointsChanged += OnPointsChanged;
+            }
+        }
+
+        private void UnhookPointsSystemEvents()
+        {
+            if (_observedPointsSystem == null)
+            {
+                return;
+            }
+
+            _observedPointsSystem.OnPointsChanged -= OnPointsChanged;
+            _observedPointsSystem = null;
+        }
+
+        private void OnPointsChanged(int _)
+        {
+            if (_dawnShopPanel != null && _dawnShopPanel.activeSelf)
+            {
+                UpdateShopDisplay();
             }
         }
 

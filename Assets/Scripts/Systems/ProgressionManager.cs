@@ -222,6 +222,19 @@ namespace Deadlight.Systems
                 return false;
             }
 
+            if (unlock.pointCost < 0)
+            {
+                Debug.LogWarning($"[ProgressionManager] Invalid negative point cost for {weapon.weaponName}: {unlock.pointCost}");
+                return false;
+            }
+
+            if (unlock.pointCost == 0)
+            {
+                unlock.isPurchased = true;
+                Debug.Log($"[ProgressionManager] Purchased weapon for free: {weapon.weaponName}");
+                return true;
+            }
+
             var pointsSystem = PointsSystem.Instance;
             if (pointsSystem == null || !pointsSystem.CanAfford(unlock.pointCost))
             {
@@ -293,11 +306,18 @@ namespace Deadlight.Systems
 
         public void AddWeaponUnlock(WeaponData weapon, int nightRequired, int pointCost)
         {
+            int sanitizedNightRequired = Mathf.Max(1, nightRequired);
+            int sanitizedPointCost = Mathf.Max(0, pointCost);
+            if (pointCost < 0)
+            {
+                Debug.LogWarning($"[ProgressionManager] Clamped negative weapon point cost for {weapon?.weaponName ?? "Unknown"} from {pointCost} to 0.");
+            }
+
             weaponUnlocks.Add(new WeaponUnlock
             {
                 weapon = weapon,
-                nightRequired = nightRequired,
-                pointCost = pointCost,
+                nightRequired = sanitizedNightRequired,
+                pointCost = sanitizedPointCost,
                 isUnlocked = false,
                 isPurchased = false
             });

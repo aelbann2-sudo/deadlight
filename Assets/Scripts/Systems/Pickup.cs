@@ -185,7 +185,7 @@ namespace Deadlight.Systems
                     else if (PointsSystem.Instance != null)
                     {
                         int bonusPoints = Mathf.Max(1, amount);
-                        PointsSystem.Instance.AddPoints(bonusPoints, "Converted Pickup");
+                        PointsSystem.Instance.AddPoints(bonusPoints, "Resource Pickup");
                         displayType = PickupType.Points;
                         displayAmount = bonusPoints;
                         consumed = true;

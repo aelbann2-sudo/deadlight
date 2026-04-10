@@ -55,24 +55,24 @@ namespace Deadlight.UI
                 "Adds reserve ammo."),
             [ItemIds.Scrap] = new GameplayHelpEntry(
                 ItemIds.Scrap,
-                "Legacy Scrap",
-                "Legacy crafting material from older runs. In the current build it is auto-converted to points.",
-                "Auto-converts to points."),
+                "Scrap",
+                "Salvage resource recovered from crates and field pickups.",
+                "Resource pickup."),
             [ItemIds.Wood] = new GameplayHelpEntry(
                 ItemIds.Wood,
-                "Legacy Wood",
-                "Legacy crafting material from older runs. In the current build it is auto-converted to points.",
-                "Auto-converts to points."),
+                "Wood",
+                "Recovered building material used in run progression systems.",
+                "Resource pickup."),
             [ItemIds.Chemicals] = new GameplayHelpEntry(
                 ItemIds.Chemicals,
-                "Legacy Chemicals",
-                "Legacy crafting material from older runs. In the current build it is auto-converted to points.",
-                "Auto-converts to points."),
+                "Chemicals",
+                "Recovered material found in supply crates and objective rewards.",
+                "Resource pickup."),
             [ItemIds.Electronics] = new GameplayHelpEntry(
                 ItemIds.Electronics,
-                "Legacy Electronics",
-                "Legacy crafting material from older runs. In the current build it is auto-converted to points.",
-                "Auto-converts to points."),
+                "Electronics",
+                "Recovered component used by advanced progression rewards.",
+                "Resource pickup."),
             [ItemIds.Points] = new GameplayHelpEntry(
                 ItemIds.Points,
                 "Points",
@@ -86,8 +86,8 @@ namespace Deadlight.UI
             [ItemIds.BlueprintToken] = new GameplayHelpEntry(
                 ItemIds.BlueprintToken,
                 "Blueprint Token",
-                "Legacy token from earlier crafting builds. Not required in the current core loop.",
-                "Legacy item."),
+                "Special token awarded from high-tier supply drops.",
+                "Special resource."),
             [ItemIds.Armor] = new GameplayHelpEntry(
                 ItemIds.Armor,
                 "Armor",
@@ -192,9 +192,6 @@ namespace Deadlight.UI
             builder.AppendLine("- Powerup: temporary combat buff.");
             builder.AppendLine("- Armor: vest/helmet absorb damage first.");
             builder.AppendLine("- Intel Documents: journal lore pickups.");
-            builder.AppendLine();
-            builder.AppendLine("<b>Crafting Status</b>");
-            builder.Append("Legacy crafting materials auto-convert to points in the current build.");
             return builder.ToString();
         }
 

@@ -188,6 +188,12 @@ namespace Deadlight.Systems
 
         public bool SpendPoints(int amount, string purpose = "Purchase")
         {
+            if (amount <= 0)
+            {
+                Debug.LogWarning($"[PointsSystem] Refusing invalid spend amount: {amount} ({purpose})");
+                return false;
+            }
+
             if (amount > currentPoints)
             {
                 Debug.Log($"[PointsSystem] Cannot spend {amount} points. Only have {currentPoints}");
@@ -208,6 +214,11 @@ namespace Deadlight.Systems
 
         public bool CanAfford(int amount)
         {
+            if (amount < 0)
+            {
+                return false;
+            }
+
             return currentPoints >= amount;
         }
 

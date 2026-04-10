@@ -101,6 +101,25 @@ namespace Deadlight.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator PointsSystem_RejectsNonPositiveSpendAmounts()
+        {
+            yield return BootstrapDayRun();
+
+            var points = PointsSystem.Instance;
+            Assert.IsNotNull(points, "PointsSystem is missing.");
+
+            points.ResetSession();
+            points.AddPoints(120, "Test Seed");
+            int before = points.CurrentPoints;
+
+            Assert.IsFalse(points.SpendPoints(0, "Invalid Zero"), "Zero-point spend should be rejected.");
+            Assert.IsFalse(points.SpendPoints(-25, "Invalid Negative"), "Negative spend should be rejected.");
+            Assert.AreEqual(before, points.CurrentPoints, "Invalid spends should not change current points.");
+            Assert.AreEqual(120, points.TotalEarned, "Invalid spends should not alter earned total.");
+            Assert.AreEqual(0, points.TotalSpent, "Invalid spends should not alter spent total.");
+        }
+
+        [UnityTest]
         public IEnumerator Marker_DropMarkerIsRemovedImmediatelyWhenCrateLooted()
         {
             yield return BootstrapDayRun();
