@@ -5,6 +5,7 @@ using Deadlight.Player;
 using Deadlight.Systems;
 using Deadlight.Level;
 using Deadlight.Data;
+using Deadlight.Narrative;
 
 namespace Deadlight.Core
 {
@@ -47,6 +48,7 @@ namespace Deadlight.Core
         [SerializeField] private int[] electronicsPickupsByNight = { 0, 1, 1, 1 };
         [SerializeField] private float pickupSpawnMinDistanceFromPlayer = 10f;
         [SerializeField] private float pickupMinSpacing = 6f;
+        [SerializeField] private bool allowPracticalDayObjectivesWhenStoryExists = false;
 
         private DayNightCycle dayNightCycle;
         private readonly List<GameObject> spawnedPickups = new List<GameObject>();
@@ -349,10 +351,18 @@ namespace Deadlight.Core
                     nextHelicopterDropTime = float.PositiveInfinity;
                     CleanupDayObjects();
                     ResetDayContestedDropState();
-                    GenerateDayObjective();
                     SpawnPickups();
                     SpawnSupplyCrates();
-                    SpawnObjectiveInteractables();
+                    if (ShouldUsePracticalDayObjectives())
+                    {
+                        GenerateDayObjective();
+                        SpawnObjectiveInteractables();
+                    }
+                    else
+                    {
+                        DayObjectiveSystem.Instance?.ResetObjective();
+                        RefreshObjectiveMarkers();
+                    }
                     ScheduleDayContestedDrop();
                     int lvl = GameManager.Instance?.CurrentLevel ?? 1;
                     int nwl = GameManager.Instance?.NightWithinLevel ?? 1;
@@ -688,6 +698,17 @@ namespace Deadlight.Core
             }
 
             DayObjectiveSystem.Instance.GenerateObjective(GameManager.Instance.CurrentNight, Time.frameCount);
+        }
+
+        private bool ShouldUsePracticalDayObjectives()
+        {
+            bool storyObjectiveAvailable = StoryObjective.Instance != null;
+            if (storyObjectiveAvailable && !allowPracticalDayObjectivesWhenStoryExists)
+            {
+                return false;
+            }
+
+            return DayObjectiveSystem.Instance != null;
         }
 
         private void SpawnObjectiveInteractables()
