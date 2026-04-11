@@ -1,0 +1,14 @@
+\contentsline {section}{\numberline {1}Project Overview}{1}{section.1}%
+\contentsline {section}{\numberline {2}Criteria Coverage}{2}{section.2}%
+\contentsline {section}{\numberline {3}Level Design and Player Guidance}{2}{section.3}%
+\contentsline {section}{\numberline {4}Narrative Design and World-Building}{3}{section.4}%
+\contentsline {section}{\numberline {5}Systems Design and Game Balance}{4}{section.5}%
+\contentsline {paragraph}{Balance numbers in the build.}{5}{section*.6}%
+\contentsline {section}{\numberline {6}Progression Systems and Rewards}{6}{section.6}%
+\contentsline {section}{\numberline {7}Testing and Iteration}{8}{section.7}%
+\contentsline {paragraph}{Playtesting protocol.}{9}{section*.11}%
+\contentsline {section}{\numberline {8}Technical Notes}{10}{section.8}%
+\contentsline {paragraph}{Build notes and limits.}{10}{section*.12}%
+\contentsline {paragraph}{In-engine figures.}{11}{section*.13}%
+\contentsline {section}{\numberline {9}Upcoming Development (Deliverable 3)}{12}{section.9}%
+\contentsline {section}{\numberline {10}Conclusion}{13}{section.10}%

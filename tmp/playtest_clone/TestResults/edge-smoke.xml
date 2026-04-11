@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="4" result="Passed" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-04-09 00:17:12Z" end-time="2026-04-09 00:17:13Z" duration="1.1949169">
+  <test-suite type="TestSuite" id="1023" name="Deadlight" fullname="Deadlight" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-04-09 00:17:12Z" end-time="2026-04-09 00:17:13Z" duration="1.194917" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1017" name="Deadlight.PlayModeTests.dll" fullname="/Users/simar/deadlight/tmp/playtest_clone/Library/ScriptAssemblies/Deadlight.PlayModeTests.dll" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-04-09 00:17:12Z" end-time="2026-04-09 00:17:13Z" duration="1.191351" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="39360" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1018" name="Deadlight" fullname="Deadlight" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-04-09 00:17:12Z" end-time="2026-04-09 00:17:13Z" duration="1.190957" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1019" name="Tests" fullname="Deadlight.Tests" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-04-09 00:17:12Z" end-time="2026-04-09 00:17:13Z" duration="1.190642" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1020" name="PlayMode" fullname="Deadlight.Tests.PlayMode" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-04-09 00:17:12Z" end-time="2026-04-09 00:17:13Z" duration="1.190344" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1008" name="EdgeFlowSmokeRuntimeTests" fullname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests" classname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-04-09 00:17:12Z" end-time="2026-04-09 00:17:13Z" duration="1.189649" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1011" name="Marker_DropMarkerIsRemovedImmediatelyWhenCrateLooted" fullname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests.Marker_DropMarkerIsRemovedImmediatelyWhenCrateLooted" methodname="Marker_DropMarkerIsRemovedImmediatelyWhenCrateLooted" classname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests" runstate="Runnable" seed="574478855" result="Passed" start-time="2026-04-09 00:17:12Z" end-time="2026-04-09 00:17:12Z" duration="0.447267" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[GameManager] State changed to: DayPhase
+[NarrativeManager] Loaded 0 dialogues
+[NarrativeManager] Loaded 9 default dialogues
+]]></output>
+              </test-case>
+              <test-case id="1012" name="Marker_FastDayToNightTransition_DoesNotRestoreMissionMarkers" fullname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests.Marker_FastDayToNightTransition_DoesNotRestoreMissionMarkers" methodname="Marker_FastDayToNightTransition_DoesNotRestoreMissionMarkers" classname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests" runstate="Runnable" seed="1247310485" result="Passed" start-time="2026-04-09 00:17:12Z" end-time="2026-04-09 00:17:13Z" duration="0.697079" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[DayNightCycle] Day phase started
+[GameManager] State changed to: DayPhase
+[NarrativeManager] Night changed to 1
+[DayNightCycle] Night phase started
+[GameManager] State changed to: NightPhase
+]]></output>
+              </test-case>
+              <test-case id="1010" name="ObjectiveMissPenalty_ForcesAdvanceAndAppliesExactlyOneNight" fullname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests.ObjectiveMissPenalty_ForcesAdvanceAndAppliesExactlyOneNight" methodname="ObjectiveMissPenalty_ForcesAdvanceAndAppliesExactlyOneNight" classname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests" runstate="Runnable" seed="880757951" result="Passed" start-time="2026-04-09 00:17:13Z" end-time="2026-04-09 00:17:13Z" duration="0.025294" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[DayNightCycle] Day phase started
+[GameManager] State changed to: DayPhase
+[NarrativeManager] Night changed to 1
+[DayNightCycle] Night phase started
+[GameManager] State changed to: NightPhase
+[PointsSystem] +150 points (Night Survived). Total: 150
+[PointsSystem] +50 points (Night Grade B). Total: 200
+[PointsSystem] +100 points (Night 1 Milestone). Total: 300
+[ProgressionManager] Milestone completed: Night 1 cleared - First Dawn supply stipend
+[GameManager] State changed to: DawnPhase
+[NarrativeManager] Night changed to 2
+[DayNightCycle] Day phase started
+[GameManager] State changed to: DayPhase
+[PointsSystem] +200 points (Night Survived). Total: 500
+[PointsSystem] +50 points (Night Grade B). Total: 550
+[PointsSystem] +125 points (Night 2 Milestone). Total: 675
+[ProgressionManager] Milestone completed: Night 2 cleared - Escalation supply stipend
+[GameManager] State changed to: DawnPhase
+[NarrativeManager] Night changed to 3
+[DayNightCycle] Day phase started
+[GameManager] State changed to: DayPhase
+]]></output>
+              </test-case>
+              <test-case id="1009" name="RetryDawn_DoesNotGrantNightRewardOrIncrementSurvivedCount" fullname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests.RetryDawn_DoesNotGrantNightRewardOrIncrementSurvivedCount" methodname="RetryDawn_DoesNotGrantNightRewardOrIncrementSurvivedCount" classname="Deadlight.Tests.PlayMode.EdgeFlowSmokeRuntimeTests" runstate="Runnable" seed="1076436135" result="Passed" start-time="2026-04-09 00:17:13Z" end-time="2026-04-09 00:17:13Z" duration="0.014289" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[DayNightCycle] Day phase started
+[GameManager] State changed to: DayPhase
+[NarrativeManager] Night changed to 1
+[DayNightCycle] Night phase started
+[GameManager] State changed to: NightPhase
+[PointsSystem] +100 points (Night 1 Milestone). Total: 100
+[ProgressionManager] Milestone completed: Night 1 cleared - First Dawn supply stipend
+[GameManager] State changed to: DawnPhase
+[NarrativeManager] Night changed to 1
+[DayNightCycle] Day phase started
+[GameManager] State changed to: DayPhase
+Saving results to: /Users/simar/Library/Application Support/Group16/Deadlight/TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
