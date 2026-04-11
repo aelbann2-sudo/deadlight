@@ -50,6 +50,25 @@ namespace Deadlight.Player
         public int SlotCount => MaxWeaponSlots;
         public WeaponData GetSlotWeapon(int slot) =>
             (slot >= 0 && slot < weaponSlots.Length) ? weaponSlots[slot] : null;
+        public bool HasWeaponInSlot(int slot) =>
+            slot >= 0 && slot < weaponSlots.Length && weaponSlots[slot] != null;
+        public int GetSlotCurrentAmmo(int slot) =>
+            HasWeaponInSlot(slot) ? slotAmmo[slot] : 0;
+        public int GetSlotReserveAmmo(int slot) =>
+            HasWeaponInSlot(slot) ? slotReserve[slot] : 0;
+        public int GetSlotReserveAmmoSpace(int slot)
+        {
+            if (!HasWeaponInSlot(slot))
+            {
+                return 0;
+            }
+
+            return reserveAmmoCapEnabled
+                ? Mathf.Max(0, ReserveAmmoLimit - slotReserve[slot])
+                : int.MaxValue;
+        }
+        public bool IsSlotReserveFull(int slot) =>
+            HasWeaponInSlot(slot) && reserveAmmoCapEnabled && slotReserve[slot] >= ReserveAmmoLimit;
         private int ReserveAmmoLimit => reserveAmmoCapEnabled ? Mathf.Max(1, maxReserveAmmo) : int.MaxValue;
 
         public event Action<int, int> OnAmmoChanged;
@@ -500,20 +519,42 @@ namespace Deadlight.Player
 
         public int AddAmmo(int amount)
         {
+            return AddAmmoToSlot(activeSlot, amount);
+        }
+
+        public int AddAmmoToSlot(int slot, int amount)
+        {
+            if (!HasWeaponInSlot(slot))
+            {
+                return 0;
+            }
+
             int requested = Mathf.Max(0, amount);
-            int before = reserveAmmo;
-            long unclampedReserve = (long)reserveAmmo + requested;
-            reserveAmmo = unclampedReserve >= ReserveAmmoLimit
+            if (requested == 0)
+            {
+                return 0;
+            }
+
+            int before = slotReserve[slot];
+            long unclampedReserve = (long)slotReserve[slot] + requested;
+            slotReserve[slot] = unclampedReserve >= ReserveAmmoLimit
                 ? ReserveAmmoLimit
                 : (int)unclampedReserve;
-            int added = reserveAmmo - before;
 
-            if (added > 0)
+            int added = slotReserve[slot] - before;
+            if (added > 0 && slot == activeSlot)
             {
+                reserveAmmo = slotReserve[slot];
                 OnAmmoChanged?.Invoke(currentAmmo, reserveAmmo);
             }
 
             return added;
+        }
+
+        public bool TryAddAmmoToSlot(int slot, int amount, out int added)
+        {
+            added = AddAmmoToSlot(slot, amount);
+            return added > 0;
         }
 
         public void SetWeapon(WeaponData weapon)

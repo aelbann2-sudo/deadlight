@@ -168,7 +168,7 @@ namespace Deadlight.Systems
                 case PickupType.Wood:
                 case PickupType.Chemicals:
                 case PickupType.Electronics:
-                    if (GameManager.Instance == null || GameManager.Instance.CraftingEnabled)
+                    if (GameManager.Instance != null && GameManager.Instance.CraftingEnabled)
                     {
                         if (ResourceManager.Instance != null)
                         {

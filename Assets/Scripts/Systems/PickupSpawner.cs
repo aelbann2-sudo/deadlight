@@ -138,8 +138,8 @@ namespace Deadlight.Systems
                 return type;
             }
 
-            bool craftingEnabled = GameManager.Instance == null || GameManager.Instance.CraftingEnabled;
-            return craftingEnabled ? type : PickupType.Points;
+            // Legacy crafting pickups are fully retired in campaign.
+            return PickupType.Points;
         }
 
         public static bool IsCraftingPickup(PickupType type)

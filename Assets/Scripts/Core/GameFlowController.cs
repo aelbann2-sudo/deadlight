@@ -196,10 +196,7 @@ namespace Deadlight.Core
             SpawnTypeScattered(PickupType.Health, GetPickupCount(healthPickupsByNight, nightIdx), playerPos, usedPositions);
             int baseAmmoPickupCount = GetPickupCount(ammoPickupsByNight, nightIdx);
             SpawnTypeScattered(PickupType.Ammo, GetAdjustedAmmoPickupCount(baseAmmoPickupCount), playerPos, usedPositions);
-            SpawnTypeScattered(PickupType.Scrap, GetPickupCount(scrapPickupsByNight, nightIdx), playerPos, usedPositions);
-            SpawnTypeScattered(PickupType.Wood, GetPickupCount(woodPickupsByNight, nightIdx), playerPos, usedPositions);
-            SpawnTypeScattered(PickupType.Chemicals, GetPickupCount(chemicalsPickupsByNight, nightIdx), playerPos, usedPositions);
-            SpawnTypeScattered(PickupType.Electronics, GetPickupCount(electronicsPickupsByNight, nightIdx), playerPos, usedPositions);
+            // Legacy crafting pickups are retired for campaign; keep only combat-relevant drops.
         }
 
         private int GetPickupCount(int[] perNight, int nightIdx)
@@ -412,11 +409,6 @@ namespace Deadlight.Core
                     OnStatusMessage?.Invoke($"Day Phase - Level {lvl}, Night {nwl}");
                     break;
                 case GameState.NightPhase:
-                    if (IsCraftingEnabled() && CraftingSystem.Instance != null)
-                    {
-                        CraftingSystem.Instance.FinalizeDayPrep();
-                    }
-
                     dayContestedDropState = DayContestedDropState.Inactive;
                     dayContestedDropStateUntil = float.PositiveInfinity;
                     CleanupDayObjects();
@@ -673,10 +665,6 @@ namespace Deadlight.Core
             activeContestedDropCrate = null;
             OnContestedDropStateChanged?.Invoke(dayContestedDropState, 0f);
 
-            if (IsCraftingEnabled())
-            {
-                CraftingSystem.Instance?.NotifyContestedDropSecured();
-            }
             OnStatusMessage?.Invoke("Contested drop secured. Bonus supplies acquired.");
             RadioTransmissions.Instance?.ShowMessage("RADIO: Drop secured. Excellent work.", 2.5f);
         }
@@ -957,11 +945,6 @@ namespace Deadlight.Core
 
             int nightIdx = Mathf.Clamp(night - 1, 0, Mathf.Max(0, nightDurationsByNight.Length - 1));
             dayNightCycle.SetNightDuration(nightDurationsByNight.Length > 0 ? nightDurationsByNight[nightIdx] : 120f);
-        }
-
-        private bool IsCraftingEnabled()
-        {
-            return GameManager.Instance != null && GameManager.Instance.CraftingEnabled;
         }
 
     }

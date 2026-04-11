@@ -1000,13 +1000,6 @@ namespace Deadlight.Core
                 damageMultiplier /= objectiveBuff;
             }
 
-            if (CraftingSystem.Instance != null)
-            {
-                healthMultiplier *= CraftingSystem.Instance.GetNightEnemyHealthMultiplier();
-                speedMultiplier *= CraftingSystem.Instance.GetNightEnemySpeedMultiplier();
-                damageMultiplier *= CraftingSystem.Instance.GetNightEnemyDamageMultiplier();
-            }
-
             if (!isDaySkirmish && GameManager.Instance != null)
             {
                 float penalty = Mathf.Max(1f, GameManager.Instance.CurrentNightEnemyPenaltyMultiplier);

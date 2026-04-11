@@ -75,7 +75,7 @@ namespace Deadlight.Core
         [SerializeField, Range(1f, 2f)] private float missedObjectiveEnemyPenaltyMultiplier = 1.2f;
         [SerializeField, Range(0.2f, 1f)] private float missedObjectiveCarryoverPenaltyMultiplier = 0.75f;
         [Header("Feature Toggles")]
-        [SerializeField] private bool enableCrafting = true;
+        [SerializeField] private bool enableCrafting = false;
 
         private const float DefaultFixedDeltaTime = 0.02f;
 
@@ -95,7 +95,7 @@ namespace Deadlight.Core
             !startNewRunAfterGameSceneLoad &&
             !autoStartWhenGameSceneLoads &&
             (!startupIntroShown || startupIntroInProgress);
-        public bool CraftingEnabled => enableCrafting;
+        public bool CraftingEnabled => false;
         public float RunStartTime { get; private set; }
         public float InterLevelPointCarryRatio => interLevelPointCarryRatio;
         public bool WillRetryCurrentStepOnAdvance => repeatCurrentNightOnAdvance;
@@ -850,20 +850,10 @@ namespace Deadlight.Core
                 new GameObject("RunModifierSystem").AddComponent<RunModifierSystem>();
             }
 
-            if (enableCrafting)
+            var crafting = FindFirstObjectByType<CraftingSystem>();
+            if (crafting != null)
             {
-                if (FindFirstObjectByType<CraftingSystem>() == null)
-                {
-                    new GameObject("CraftingSystem").AddComponent<CraftingSystem>();
-                }
-            }
-            else
-            {
-                var crafting = FindFirstObjectByType<CraftingSystem>();
-                if (crafting != null)
-                {
-                    Destroy(crafting.gameObject);
-                }
+                Destroy(crafting.gameObject);
             }
 
             var narrativeManager = FindFirstObjectByType<NarrativeManager>();
