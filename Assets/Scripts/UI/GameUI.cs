@@ -52,6 +52,7 @@ namespace Deadlight.UI
         private readonly List<Text> _upgradeLabels = new List<Text>();
         private readonly List<Button> _upgradeBuyButtons = new List<Button>();
         private PointsSystem _observedPointsSystem;
+        private PlayerShooting _observedPlayerShooting;
         private const int SupplyButtonCount = 4;
         private const int HealCost = 50;
         private const int AmmoRefillCost = 30;
@@ -145,6 +146,7 @@ namespace Deadlight.UI
             }
 
             UnhookPointsSystemEvents();
+            UnhookPlayerShootingEvents();
         }
 
         private void Update()
@@ -235,6 +237,7 @@ namespace Deadlight.UI
                 if (cg == null) cg = p.AddComponent<CanvasGroup>();
                 cg.alpha = 0f;
             }
+            UnhookPlayerShootingEvents();
             _resumeGameplayOnGuideClose = false;
         }
 
@@ -249,6 +252,7 @@ namespace Deadlight.UI
             HidePanel(_gameOverPanel);
             HidePanel(_victoryPanel);
             HidePanel(_leaderboardPanel);
+            UnhookPlayerShootingEvents();
             _resumeGameplayOnGuideClose = false;
         }
 
@@ -1376,9 +1380,16 @@ namespace Deadlight.UI
 
         private void BuyAmmoRefill()
         {
+            if (!NeedsAmmo(out var shooting))
+            {
+                RadioTransmissions.Instance?.ShowMessage("Ammo reserve is full.", 2.2f);
+                RefreshShop();
+                return;
+            }
+
             if (PointsSystem.Instance == null || !PointsSystem.Instance.CanAfford(AmmoRefillCost)) return;
             if (!PointsSystem.Instance.SpendPoints(AmmoRefillCost, "Ammo Refill")) return;
-            GameObject.Find("Player")?.GetComponent<PlayerShooting>()?.AddAmmo(60);
+            shooting.AddAmmo(60);
             RefreshShop();
         }
 
@@ -1420,6 +1431,11 @@ namespace Deadlight.UI
 
         private void UpdateShopDisplay()
         {
+            if (_dawnShopPanel != null && _dawnShopPanel.activeSelf)
+            {
+                HookPlayerShootingEvents();
+            }
+
             if (_shopPointsText != null && PointsSystem.Instance != null)
                 _shopPointsText.text = $"Points: {PointsSystem.Instance.CurrentPoints}";
 
@@ -1445,11 +1461,12 @@ namespace Deadlight.UI
 
             int progressionNight = GameManager.Instance?.CurrentNight ?? 1;
             bool needsHeal = NeedsMedkits(out var medkits);
+            bool needsAmmo = NeedsAmmo(out _);
             bool needsGrenade = NeedsGrenades(out _);
             bool needsMolotov = NeedsMolotovs(out _);
             bool canHeal = needsHeal && PointsSystem.Instance != null && PointsSystem.Instance.CanAfford(HealCost);
             UpdateSupplyButton(0, HealCost, canHeal);
-            UpdateSupplyButton(1, AmmoRefillCost);
+            UpdateSupplyButton(1, AmmoRefillCost, needsAmmo);
             UpdateSupplyButton(2, GrenadeRefillCost, needsGrenade);
             UpdateSupplyButton(3, MolotovRefillCost, needsMolotov);
 
@@ -1474,6 +1491,12 @@ namespace Deadlight.UI
             {
                 var lbl = _shopBuyButtons[3].GetComponentInChildren<Text>();
                 if (lbl != null) lbl.text = needsMolotov ? $"Molotov +1 ({MolotovRefillCost})" : "Molotovs Full";
+            }
+
+            if (_shopBuyButtons.Count > 1)
+            {
+                var lbl = _shopBuyButtons[1].GetComponentInChildren<Text>();
+                if (lbl != null) lbl.text = needsAmmo ? $"Ammo Refill ({AmmoRefillCost})" : "Ammo Full";
             }
 
             WeaponType[] wts = { WeaponType.SMG, WeaponType.SniperRifle, WeaponType.AssaultRifle, WeaponType.GrenadeLauncher, WeaponType.Flamethrower };
@@ -1533,6 +1556,13 @@ namespace Deadlight.UI
             return medkits != null && medkits.HasCapacity();
         }
 
+        private bool NeedsAmmo(out PlayerShooting shooting)
+        {
+            var player = GameObject.Find("Player");
+            shooting = player != null ? player.GetComponent<PlayerShooting>() : null;
+            return shooting != null && shooting.ReserveAmmoSpace > 0;
+        }
+
         private bool CanPurchaseGrenadeRefill(out ThrowableSystem throwable)
         {
             if (!NeedsGrenades(out throwable)) return false;
@@ -1577,6 +1607,7 @@ namespace Deadlight.UI
 
         private void OnContinueToNextNight()
         {
+            UnhookPlayerShootingEvents();
             HidePanel(_dawnShopPanel);
             Time.timeScale = 1f;
             GameManager.Instance?.AdvanceToNextNight();
@@ -1721,6 +1752,11 @@ namespace Deadlight.UI
             HookPointsSystemEvents();
             HideAllPanelsFade();
 
+            if (state == GameState.DawnPhase)
+            {
+                HookPlayerShootingEvents();
+            }
+
             switch (state)
             {
                 case GameState.MainMenu:
@@ -1791,6 +1827,62 @@ namespace Deadlight.UI
         }
 
         private void OnPointsChanged(int _)
+        {
+            if (_dawnShopPanel != null && _dawnShopPanel.activeSelf)
+            {
+                UpdateShopDisplay();
+            }
+        }
+
+        private void HookPlayerShootingEvents()
+        {
+            var current = GetPlayerShooting();
+            if (_observedPlayerShooting == current)
+            {
+                return;
+            }
+
+            UnhookPlayerShootingEvents();
+            _observedPlayerShooting = current;
+            if (_observedPlayerShooting != null)
+            {
+                _observedPlayerShooting.OnAmmoChanged += OnPlayerAmmoChanged;
+                _observedPlayerShooting.OnWeaponChanged += OnPlayerWeaponChanged;
+            }
+        }
+
+        private void UnhookPlayerShootingEvents()
+        {
+            if (_observedPlayerShooting == null)
+            {
+                return;
+            }
+
+            _observedPlayerShooting.OnAmmoChanged -= OnPlayerAmmoChanged;
+            _observedPlayerShooting.OnWeaponChanged -= OnPlayerWeaponChanged;
+            _observedPlayerShooting = null;
+        }
+
+        private static PlayerShooting GetPlayerShooting()
+        {
+            var player = GameObject.FindGameObjectWithTag("Player");
+            if (player == null)
+            {
+                player = GameObject.Find("Player");
+            }
+
+            return player != null ? player.GetComponent<PlayerShooting>() : null;
+        }
+
+        private void OnPlayerAmmoChanged(int _, int __)
+        {
+            if (_dawnShopPanel != null && _dawnShopPanel.activeSelf)
+            {
+                UpdateShopDisplay();
+            }
+        }
+
+        private void OnPlayerWeaponChanged(WeaponData _)
         {
             if (_dawnShopPanel != null && _dawnShopPanel.activeSelf)
             {
