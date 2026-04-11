@@ -14,6 +14,9 @@ namespace Deadlight.Systems
         [SerializeField] private float healthDropChance = 0.10f;
         [SerializeField] private float pointsDropChance = 0.10f;
         [SerializeField] private float powerupDropChance = 0.03f;
+        [SerializeField] private int ammoReserveSoftTarget = 140;
+        [SerializeField] private int ammoReserveHardTarget = 300;
+        [SerializeField, Range(0f, 1f)] private float minAmmoDropMultiplierAtHighReserve = 0.15f;
 
         [Header("Pickup Values")]
         [SerializeField] private int ammoAmount = 15;
@@ -37,8 +40,11 @@ namespace Deadlight.Systems
         {
             float roll = Random.value;
             float cumulative = 0f;
+            float ammoMultiplier = GetAmmoDropChanceMultiplier();
+            float effectiveAmmoDropChance = ammoDropChance * ammoMultiplier;
+            float effectivePointsDropChance = pointsDropChance + (ammoDropChance - effectiveAmmoDropChance);
 
-            cumulative += ammoDropChance;
+            cumulative += effectiveAmmoDropChance;
             if (roll < cumulative)
             {
                 SpawnPickup(position, PickupType.Ammo);
@@ -52,7 +58,7 @@ namespace Deadlight.Systems
                 return;
             }
 
-            cumulative += pointsDropChance;
+            cumulative += effectivePointsDropChance;
             if (roll < cumulative)
             {
                 SpawnPickup(position, PickupType.Points);
@@ -64,6 +70,39 @@ namespace Deadlight.Systems
             {
                 SpawnPickup(position, PickupType.Powerup);
             }
+        }
+
+        private float GetAmmoDropChanceMultiplier()
+        {
+            var player = GameObject.FindGameObjectWithTag("Player");
+            if (player == null)
+            {
+                player = GameObject.Find("Player");
+            }
+
+            var shooting = player != null ? player.GetComponent<PlayerShooting>() : null;
+            if (shooting == null)
+            {
+                return 1f;
+            }
+
+            float reserve = shooting.ReserveAmmo;
+            float soft = Mathf.Max(1f, ammoReserveSoftTarget);
+            float hard = Mathf.Max(soft + 1f, ammoReserveHardTarget);
+            float floor = Mathf.Clamp01(minAmmoDropMultiplierAtHighReserve);
+
+            if (reserve <= soft)
+            {
+                return 1f;
+            }
+
+            if (reserve >= hard)
+            {
+                return floor;
+            }
+
+            float t = Mathf.InverseLerp(soft, hard, reserve);
+            return Mathf.Lerp(1f, floor, t);
         }
 
         public void SpawnPickup(Vector3 position, PickupType type)
@@ -282,14 +321,19 @@ namespace Deadlight.Systems
             }
 
             bool didCollect = false;
+            int displayAmount = Mathf.Max(1, Mathf.RoundToInt(value));
 
             switch (type)
             {
                 case PickupType.Ammo:
                     if (shooting != null)
                     {
-                        shooting.AddAmmo((int)value);
-                        didCollect = true;
+                        int added = shooting.AddAmmo(Mathf.Max(1, Mathf.RoundToInt(value)));
+                        if (added > 0)
+                        {
+                            displayAmount = added;
+                            didCollect = true;
+                        }
                     }
                     break;
 
@@ -346,7 +390,7 @@ namespace Deadlight.Systems
             }
 
             consumed = true;
-            UI.GameplayHelpSystem.Instance?.ShowPickup(type, Mathf.Max(1, Mathf.RoundToInt(value)));
+            UI.GameplayHelpSystem.Instance?.ShowPickup(type, displayAmount);
 
             var clip = Audio.ProceduralAudioGenerator.GeneratePickup();
             if (clip != null)

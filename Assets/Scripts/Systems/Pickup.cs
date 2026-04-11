@@ -155,8 +155,12 @@ namespace Deadlight.Systems
                     var shooting = player.GetComponent<PlayerShooting>();
                     if (shooting != null)
                     {
-                        shooting.AddAmmo(amount);
-                        consumed = true;
+                        int added = shooting.AddAmmo(amount);
+                        if (added > 0)
+                        {
+                            displayAmount = added;
+                            consumed = true;
+                        }
                     }
                     break;
 

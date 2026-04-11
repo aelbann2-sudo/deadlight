@@ -38,6 +38,10 @@ namespace Deadlight.UI
             public const string Powerup = "powerup";
             public const string BlueprintToken = "blueprint_token";
             public const string Armor = "armor";
+            public const string Grenade = "grenade";
+            public const string Molotov = "molotov";
+            public const string Shotgun = "shotgun";
+            public const string Medkit = "medkit";
             public const string LoreIntel = "lore_intel";
         }
 
@@ -93,6 +97,26 @@ namespace Deadlight.UI
                 "Armor",
                 "Vests and helmets absorb incoming damage before your health does.",
                 "Absorbs incoming damage."),
+            [ItemIds.Grenade] = new GameplayHelpEntry(
+                ItemIds.Grenade,
+                "Grenade",
+                "Explosive utility. Throw with Q to clear clustered enemies.",
+                "Explosive utility."),
+            [ItemIds.Molotov] = new GameplayHelpEntry(
+                ItemIds.Molotov,
+                "Molotov",
+                "Incendiary utility. Throw with G to deny space and burn enemies over time.",
+                "Area burn utility."),
+            [ItemIds.Shotgun] = new GameplayHelpEntry(
+                ItemIds.Shotgun,
+                "Shotgun",
+                "Close-range powerhouse added to your loadout when a slot is free.",
+                "New weapon acquired."),
+            [ItemIds.Medkit] = new GameplayHelpEntry(
+                ItemIds.Medkit,
+                "Medkit",
+                "Stored healing charge. Use with C to channel and recover a large chunk of health.",
+                "Stored emergency heal."),
             [ItemIds.LoreIntel] = new GameplayHelpEntry(
                 ItemIds.LoreIntel,
                 "Intel Document",
@@ -187,6 +211,7 @@ namespace Deadlight.UI
             builder.AppendLine("- Health: instant heal on pickup.");
             builder.AppendLine("- Ammo: adds reserve ammo.");
             builder.AppendLine("- Grenade / Molotov: throw with Q/G, refill at dawn.");
+            builder.AppendLine("- Level 4 drops can include grenade, molotov, medkit, and shotgun rewards.");
             builder.AppendLine("- Medkit: buy/store (max 5), use with C (2.5s).");
             builder.AppendLine("- Points: shop currency.");
             builder.AppendLine("- Powerup: temporary combat buff.");
