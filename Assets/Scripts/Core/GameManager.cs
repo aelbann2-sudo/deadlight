@@ -95,7 +95,7 @@ namespace Deadlight.Core
             !startNewRunAfterGameSceneLoad &&
             !autoStartWhenGameSceneLoads &&
             (!startupIntroShown || startupIntroInProgress);
-        public bool CraftingEnabled => enableCrafting;
+        public bool CraftingEnabled => false;
         public float RunStartTime { get; private set; }
         public float InterLevelPointCarryRatio => interLevelPointCarryRatio;
         public bool WillRetryCurrentStepOnAdvance => repeatCurrentNightOnAdvance;
@@ -329,11 +329,12 @@ namespace Deadlight.Core
                 LevelManager.Instance.ResetAllSpawnPoints();
             }
 
+            RadioTransmissions.Instance?.ResetRuntimeState();
+            StoryEventManager.Instance?.ResetSession();
+
             if (NarrativeManager.Instance != null)
             {
-                NarrativeManager.Instance.ClearQueue();
-                NarrativeManager.Instance.ResetPlayedDialogues();
-                NarrativeManager.Instance.TriggerDialogue(DialogueTriggerType.GameStart, currentNight);
+                NarrativeManager.Instance.ResetRuntimeStateForNewRun(clearPlayedDialogues: true);
             }
 
             StoryObjective.Instance?.ResetStoryProgress();
@@ -369,6 +370,8 @@ namespace Deadlight.Core
         public void StartNightPhase()
         {
             ChangeState(GameState.NightPhase);
+
+            FirstCombatHintController.NotifyAfterNightPhaseEntered();
 
             var waveManager = FindFirstObjectByType<WaveManager>();
             if (waveManager != null && !waveManager.IsSpawning && waveManager.EnemiesRemaining <= 0)
@@ -847,20 +850,10 @@ namespace Deadlight.Core
                 new GameObject("RunModifierSystem").AddComponent<RunModifierSystem>();
             }
 
-            if (enableCrafting)
+            var crafting = FindFirstObjectByType<CraftingSystem>();
+            if (crafting != null)
             {
-                if (FindFirstObjectByType<CraftingSystem>() == null)
-                {
-                    new GameObject("CraftingSystem").AddComponent<CraftingSystem>();
-                }
-            }
-            else
-            {
-                var crafting = FindFirstObjectByType<CraftingSystem>();
-                if (crafting != null)
-                {
-                    Destroy(crafting.gameObject);
-                }
+                Destroy(crafting.gameObject);
             }
 
             var narrativeManager = FindFirstObjectByType<NarrativeManager>();
@@ -893,6 +886,16 @@ namespace Deadlight.Core
             if (FindFirstObjectByType<StoryEventManager>() == null)
             {
                 new GameObject("StoryEventManager").AddComponent<StoryEventManager>();
+            }
+
+            if (FindFirstObjectByType<FirstCombatHintController>() == null)
+            {
+                new GameObject("FirstCombatHintController").AddComponent<FirstCombatHintController>();
+            }
+
+            if (FindFirstObjectByType<SupportMarkerGuidanceController>() == null)
+            {
+                new GameObject("SupportMarkerGuidanceController").AddComponent<SupportMarkerGuidanceController>();
             }
 
             if (FindFirstObjectByType<StoryObjective>() == null)
@@ -1398,6 +1401,7 @@ namespace Deadlight.Core
                 repeatCurrentNightOnAdvance = true;
                 RadioTransmissions.Instance?.ShowMessage(
                     "Objective missed. One retry granted before forced advance.", 4.2f);
+                TriggerObjectivePenaltyFeedback(severe: false);
                 return true;
             }
 
@@ -1405,6 +1409,7 @@ namespace Deadlight.Core
             QueueObjectiveMissPenalty();
             RadioTransmissions.Instance?.ShowMessage(
                 "Objective missed again. Forced advance with penalties applied.", 4.8f);
+            TriggerObjectivePenaltyFeedback(severe: true);
             return false;
         }
 
@@ -1432,11 +1437,28 @@ namespace Deadlight.Core
                 queuedEnemyPenaltyNights--;
                 RadioTransmissions.Instance?.ShowMessage(
                     "Penalty active: enemies are stronger this night.", 3.6f);
+                TriggerObjectivePenaltyFeedback(severe: false);
             }
             else
             {
                 objectivePenaltyActiveForCurrentNight = false;
             }
+        }
+
+        private static void TriggerObjectivePenaltyFeedback(bool severe)
+        {
+            float audioVolume = severe ? 0.2f : 0.12f;
+            float tensionAmount = severe ? 0.18f : 0.1f;
+            float tensionHold = severe ? 2.2f : 1.4f;
+
+            AudioManager.Instance?.PlaySFX("alarm_siren", audioVolume);
+            AudioManager.Instance?.SignalCombatPeak(tensionAmount, tensionHold);
+
+            Color flashColor = severe
+                ? new Color(0.5f, 0.08f, 0.05f, 0.26f)
+                : new Color(0.38f, 0.08f, 0.05f, 0.16f);
+            float flashDuration = severe ? 0.28f : 0.2f;
+            GameEffects.Instance?.FlashScreen(flashColor, flashDuration);
         }
 
         private float ConsumeProjectedCarryoverRatio()

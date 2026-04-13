@@ -113,6 +113,7 @@ namespace Deadlight.Systems
         private bool finalizedForCurrentNight;
         private bool nightBenefitsApplied;
         private float nightStartedAt = -999f;
+        private bool craftingEnabled;
 
         private Canvas craftingCanvas;
         private GameObject panelRoot;
@@ -122,7 +123,7 @@ namespace Deadlight.Systems
         {
             CraftingRecipeId.AmmoCache,
             CraftingRecipeId.FieldMed,
-            CraftingRecipeId.TacticalPrep
+            CraftingRecipeId.ShockBeacon
         };
 
         private void Awake()
@@ -134,6 +135,14 @@ namespace Deadlight.Systems
             }
 
             Instance = this;
+            craftingEnabled = GameManager.Instance != null && GameManager.Instance.CraftingEnabled;
+            if (!craftingEnabled)
+            {
+                Instance = null;
+                Destroy(gameObject);
+                return;
+            }
+
             BuildRecipes();
             ResetDayCraftingState();
             CreateUI();
@@ -141,6 +150,11 @@ namespace Deadlight.Systems
 
         private void Start()
         {
+            if (!craftingEnabled)
+            {
+                return;
+            }
+
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.OnGameStateChanged += HandleGameStateChanged;
@@ -150,6 +164,16 @@ namespace Deadlight.Systems
 
         private void OnDestroy()
         {
+            if (Instance == this)
+            {
+                Instance = null;
+            }
+
+            if (!craftingEnabled)
+            {
+                return;
+            }
+
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.OnGameStateChanged -= HandleGameStateChanged;
@@ -158,6 +182,11 @@ namespace Deadlight.Systems
 
         private void Update()
         {
+            if (!craftingEnabled)
+            {
+                return;
+            }
+
             if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameState.DayPhase)
             {
                 if (isPanelVisible)
@@ -179,13 +208,18 @@ namespace Deadlight.Systems
 
             if (Input.GetKeyDown(KeyCode.Alpha1)) Craft(CraftingRecipeId.AmmoCache);
             if (Input.GetKeyDown(KeyCode.Alpha2)) Craft(CraftingRecipeId.FieldMed);
-            if (Input.GetKeyDown(KeyCode.Alpha3)) Craft(CraftingRecipeId.TacticalPrep);
+            if (Input.GetKeyDown(KeyCode.Alpha3)) Craft(CraftingRecipeId.ShockBeacon);
 
             RefreshPanelText();
         }
 
         public bool CanCraft(CraftingRecipeId recipeId)
         {
+            if (!craftingEnabled)
+            {
+                return false;
+            }
+
             if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameState.DayPhase)
             {
                 return false;
@@ -211,6 +245,11 @@ namespace Deadlight.Systems
 
         public bool Craft(CraftingRecipeId recipeId)
         {
+            if (!craftingEnabled)
+            {
+                return false;
+            }
+
             if (!recipes.TryGetValue(recipeId, out var recipe))
             {
                 return false;
@@ -218,14 +257,14 @@ namespace Deadlight.Systems
 
             if (!CanCraft(recipeId))
             {
-                ShowCraftingStatus($"Cannot craft {recipe.displayName}.");
+                ShowCraftingStatus($"Cannot prepare {recipe.displayName}.");
                 RefreshPanelText();
                 return false;
             }
 
             if (ResourceManager.Instance == null || !ResourceManager.Instance.SpendResources(recipe.costs))
             {
-                ShowCraftingStatus($"Missing resources for {recipe.displayName}.");
+                ShowCraftingStatus($"Missing requirements for {recipe.displayName}.");
                 RefreshPanelText();
                 return false;
             }
@@ -235,18 +274,28 @@ namespace Deadlight.Systems
 
             ApplyRecipeToPendingPrep(recipeId);
 
-            ShowCraftingStatus($"Crafted {recipe.displayName}. {recipe.nightEffectDescription}");
+            ShowCraftingStatus($"Prepared {recipe.displayName}. {recipe.nightEffectDescription}");
             RefreshPanelText();
             return true;
         }
 
         public Dictionary<CraftingRecipeId, int> GetRecipeState()
         {
+            if (!craftingEnabled)
+            {
+                return new Dictionary<CraftingRecipeId, int>();
+            }
+
             return new Dictionary<CraftingRecipeId, int>(craftedToday);
         }
 
         public void FinalizeDayPrep()
         {
+            if (!craftingEnabled)
+            {
+                return;
+            }
+
             if (finalizedForCurrentNight)
             {
                 return;
@@ -280,51 +329,63 @@ namespace Deadlight.Systems
 
         public void NotifyResourceCollected(ResourceType type, int amount, Vector3 worldPos)
         {
-            if (!IsHintResource(type))
+            if (!craftingEnabled)
             {
                 return;
             }
 
-            float now = Time.time;
-            if (hintCooldowns.TryGetValue(type, out var cooldownUntil) && now < cooldownUntil)
-            {
-                return;
-            }
-
-            hintCooldowns[type] = now + 2.2f;
-
-            string hint = GetResourceHint(type);
-            string text = $"+{amount} {type}  ({hint})";
-
-            if (FloatingTextManager.Instance != null)
-            {
-                FloatingTextManager.Instance.SpawnText(text, worldPos + Vector3.up * 1.1f, new Color(0.7f, 0.95f, 1f), 1.4f, 16);
-            }
+            // Legacy crafting collectible hints are intentionally hidden from on-screen UI.
+            return;
         }
 
         public void NotifyContestedDropSecured()
         {
+            if (!craftingEnabled)
+            {
+                return;
+            }
+
             contestedDropSecuredToday = true;
         }
 
         public float GetNightEnemySpeedMultiplier()
         {
+            if (!craftingEnabled)
+            {
+                return 1f;
+            }
+
             return Mathf.Clamp(activeNightPrep.enemySpeedMultiplier, 0.5f, 1f);
         }
 
         public float GetNightEnemyHealthMultiplier()
         {
+            if (!craftingEnabled)
+            {
+                return 1f;
+            }
+
             return Mathf.Clamp(activeNightPrep.enemyHealthMultiplier, 0.5f, 1.25f);
         }
 
         public float GetNightEnemyDamageMultiplier()
         {
+            if (!craftingEnabled)
+            {
+                return 1f;
+            }
+
             float penalty = GetCurrentPenaltyDamageMultiplier();
             return Mathf.Clamp(activeNightPrep.enemyDamageMultiplier * penalty, 0.5f, 1.5f);
         }
 
         public float GetCurrentPenaltyDamageMultiplier()
         {
+            if (!craftingEnabled)
+            {
+                return 1f;
+            }
+
             if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameState.NightPhase)
             {
                 return 1f;
@@ -348,6 +409,11 @@ namespace Deadlight.Systems
 
         private void HandleGameStateChanged(GameState state)
         {
+            if (!craftingEnabled)
+            {
+                return;
+            }
+
             if (state == GameState.DayPhase)
             {
                 ResetDayCraftingState();
@@ -376,6 +442,11 @@ namespace Deadlight.Systems
 
         private void ApplyNightStartBenefitsOnce()
         {
+            if (!craftingEnabled)
+            {
+                return;
+            }
+
             if (nightBenefitsApplied)
             {
                 return;
@@ -402,6 +473,11 @@ namespace Deadlight.Systems
 
         private void BuildRecipes()
         {
+            if (!craftingEnabled)
+            {
+                return;
+            }
+
             recipes.Clear();
             recipes[CraftingRecipeId.AmmoCache] = new CraftingRecipeDefinition(
                 CraftingRecipeId.AmmoCache,
@@ -410,7 +486,8 @@ namespace Deadlight.Systems
                 2,
                 new List<ResourceAmount>
                 {
-                    new ResourceAmount(ResourceType.Salvage, 3)
+                    new ResourceAmount(ResourceType.Scrap, 4),
+                    new ResourceAmount(ResourceType.Wood, 2)
                 });
 
             recipes[CraftingRecipeId.FieldMed] = new CraftingRecipeDefinition(
@@ -420,18 +497,19 @@ namespace Deadlight.Systems
                 2,
                 new List<ResourceAmount>
                 {
-                    new ResourceAmount(ResourceType.Salvage, 2),
-                    new ResourceAmount(ResourceType.TechParts, 1)
+                    new ResourceAmount(ResourceType.Chemicals, 2),
+                    new ResourceAmount(ResourceType.Wood, 1)
                 });
 
-            recipes[CraftingRecipeId.TacticalPrep] = new CraftingRecipeDefinition(
-                CraftingRecipeId.TacticalPrep,
-                "Tactical Prep",
-                $"Night enemies -{Mathf.RoundToInt((1f - weakpointEnemyHealthMultiplier) * 100f)}% HP and -{Mathf.RoundToInt((1f - shockBeaconEnemySpeedMultiplier) * 100f)}% speed.",
+            recipes[CraftingRecipeId.ShockBeacon] = new CraftingRecipeDefinition(
+                CraftingRecipeId.ShockBeacon,
+                "Shock Beacon",
+                $"Night enemies -{Mathf.RoundToInt((1f - shockBeaconEnemySpeedMultiplier) * 100f)}% speed.",
                 1,
                 new List<ResourceAmount>
                 {
-                    new ResourceAmount(ResourceType.TechParts, 3)
+                    new ResourceAmount(ResourceType.Electronics, 1),
+                    new ResourceAmount(ResourceType.BlueprintToken, 1)
                 });
 
             foreach (var id in recipeOrder)
@@ -442,6 +520,11 @@ namespace Deadlight.Systems
 
         private void ResetDayCraftingState()
         {
+            if (!craftingEnabled)
+            {
+                return;
+            }
+
             foreach (var id in recipeOrder)
             {
                 craftedToday[id] = 0;
@@ -459,6 +542,11 @@ namespace Deadlight.Systems
 
         private void ApplyRecipeToPendingPrep(CraftingRecipeId recipeId)
         {
+            if (!craftingEnabled)
+            {
+                return;
+            }
+
             switch (recipeId)
             {
                 case CraftingRecipeId.AmmoCache:
@@ -484,26 +572,55 @@ namespace Deadlight.Systems
 
         private int GetCraftCount(CraftingRecipeId recipeId)
         {
+            if (!craftingEnabled)
+            {
+                return 0;
+            }
+
             return craftedToday.TryGetValue(recipeId, out var count) ? count : 0;
         }
 
         private bool IsHintResource(ResourceType type)
         {
-            return type == ResourceType.Salvage || type == ResourceType.TechParts;
+            if (!craftingEnabled)
+            {
+                return false;
+            }
+
+            return type == ResourceType.Scrap ||
+                   type == ResourceType.Wood ||
+                   type == ResourceType.Chemicals ||
+                   type == ResourceType.Electronics ||
+                   type == ResourceType.Salvage ||
+                   type == ResourceType.TechParts;
         }
 
         private string GetResourceHint(ResourceType type)
         {
+            if (!craftingEnabled)
+            {
+                return string.Empty;
+            }
+
             return type switch
             {
-                ResourceType.Salvage => "Ammo Cache / Field Med",
-                ResourceType.TechParts => "Field Med / Tactical Prep",
-                _ => "Crafting"
+                ResourceType.Scrap => "Ammo Cache / Weakpoint Intel",
+                ResourceType.Wood => "Ammo Cache / Field Med",
+                ResourceType.Chemicals => "Field Med / Shock Beacon",
+                ResourceType.Electronics => "Weakpoint Intel / Shock Beacon",
+                ResourceType.Salvage => "Ammo Cache / Weakpoint Intel",
+                ResourceType.TechParts => "Weakpoint Intel / Shock Beacon",
+                _ => "Prep"
             };
         }
 
         private void ShowDuskSummary(NightPrepSnapshot snapshot)
         {
+            if (!craftingEnabled)
+            {
+                return;
+            }
+
             var summary = BuildDuskSummary(snapshot);
             ShowCraftingStatus(summary);
 
@@ -515,6 +632,11 @@ namespace Deadlight.Systems
 
         private string BuildDuskSummary(NightPrepSnapshot snapshot)
         {
+            if (!craftingEnabled)
+            {
+                return string.Empty;
+            }
+
             var pieces = new List<string>();
 
             if (snapshot.ammoReserveGrant > 0)
@@ -550,7 +672,7 @@ namespace Deadlight.Systems
             if (pieces.Count == 0)
             {
                 return snapshot.securedDrop
-                    ? "Dusk Report: No crafted prep, but drop secured."
+                    ? "Dusk Report: No prep completed, but drop secured."
                     : "Dusk Report: No prep completed.";
             }
 
@@ -559,6 +681,11 @@ namespace Deadlight.Systems
 
         private void ShowCraftingStatus(string text)
         {
+            if (!craftingEnabled)
+            {
+                return;
+            }
+
             if (FloatingTextManager.Instance == null)
             {
                 return;
@@ -571,7 +698,12 @@ namespace Deadlight.Systems
 
         private void CreateUI()
         {
-            var canvasObj = new GameObject("CraftingUICanvas");
+            if (!craftingEnabled)
+            {
+                return;
+            }
+
+            var canvasObj = new GameObject("PrepUICanvas");
             canvasObj.transform.SetParent(transform, false);
             craftingCanvas = canvasObj.AddComponent<Canvas>();
             craftingCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -580,7 +712,7 @@ namespace Deadlight.Systems
             canvasObj.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1920, 1080);
             canvasObj.AddComponent<GraphicRaycaster>();
 
-            panelRoot = new GameObject("CraftingPanel");
+            panelRoot = new GameObject("PrepPanel");
             panelRoot.transform.SetParent(craftingCanvas.transform, false);
             var panelRect = panelRoot.AddComponent<RectTransform>();
             panelRect.anchorMin = new Vector2(0f, 0f);
@@ -621,6 +753,11 @@ namespace Deadlight.Systems
 
         private void SetPanelVisible(bool visible)
         {
+            if (!craftingEnabled)
+            {
+                return;
+            }
+
             isPanelVisible = visible;
             if (panelRoot != null)
             {
@@ -630,14 +767,19 @@ namespace Deadlight.Systems
 
         private void RefreshPanelText()
         {
+            if (!craftingEnabled)
+            {
+                return;
+            }
+
             if (panelText == null)
             {
                 return;
             }
 
             var sb = new StringBuilder();
-            sb.AppendLine("DAY CRAFTING [C]");
-            sb.AppendLine("Craft now to affect tonight.");
+            sb.AppendLine("DAY PREP [C]");
+            sb.AppendLine("Prepare now to affect tonight.");
             sb.AppendLine();
 
             foreach (var id in recipeOrder)
@@ -670,11 +812,16 @@ namespace Deadlight.Systems
 
         private string GetRecipeKeyLabel(CraftingRecipeId id)
         {
+            if (!craftingEnabled)
+            {
+                return string.Empty;
+            }
+
             return id switch
             {
                 CraftingRecipeId.AmmoCache => "1",
                 CraftingRecipeId.FieldMed => "2",
-                CraftingRecipeId.TacticalPrep => "3",
+                CraftingRecipeId.ShockBeacon => "3",
                 _ => "?"
             };
         }

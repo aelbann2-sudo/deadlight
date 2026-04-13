@@ -7,8 +7,8 @@ namespace Deadlight.Player
     public class PlayerController : MonoBehaviour
     {
         [Header("Movement Settings")]
-        [SerializeField] private float moveSpeed = 2.5f;
-        [SerializeField] private float sprintMultiplier = 1.5f;
+        [SerializeField] private float moveSpeed = 3.1f;
+        [SerializeField] private float sprintMultiplier = 1.25f;
         [SerializeField] private float sprintStaminaCost = 20f;
         [SerializeField] private float staminaRegenRate = 15f;
 
@@ -39,6 +39,7 @@ namespace Deadlight.Player
         private AudioClip[] footstepClips;
         private float footstepTimer;
         private float footstepInterval = 0.35f;
+        private int footstepStepIndex;
 
         public float MoveSpeed => moveSpeed;
         public float CurrentStamina => currentStamina;
@@ -74,8 +75,9 @@ namespace Deadlight.Player
         {
             footstepSource = gameObject.AddComponent<AudioSource>();
             footstepSource.playOnAwake = false;
-            footstepSource.volume = 0.25f;
+            footstepSource.volume = 0.16f;
             footstepSource.spatialBlend = 0f;
+            footstepSource.dopplerLevel = 0f;
 
             try
             {
@@ -99,13 +101,21 @@ namespace Deadlight.Player
         private void HandleFootsteps()
         {
             if (footstepClips == null || footstepSource == null) return;
-            if (moveInput.magnitude < 0.1f || isDodging)
+            float currentSpeed = rb != null ? rb.linearVelocity.magnitude : moveInput.magnitude;
+            if (currentSpeed < 0.05f || isDodging)
             {
                 footstepTimer = 0f;
                 return;
             }
 
-            float interval = isSprinting ? footstepInterval * 0.6f : footstepInterval;
+            float maxExpectedSpeed = Mathf.Max(0.01f, moveSpeed * Mathf.Max(1f, sprintMultiplier));
+            float speedRatio = Mathf.Clamp01(currentSpeed / maxExpectedSpeed);
+            float interval = footstepInterval * Mathf.Lerp(1.2f, 0.62f, speedRatio);
+            if (isSprinting)
+            {
+                interval *= 0.86f;
+            }
+
             footstepTimer += Time.deltaTime;
             if (footstepTimer >= interval)
             {
@@ -113,8 +123,23 @@ namespace Deadlight.Player
                 var clip = footstepClips[Random.Range(0, footstepClips.Length)];
                 if (clip != null)
                 {
-                    footstepSource.pitch = Random.Range(0.9f, 1.1f);
-                    footstepSource.PlayOneShot(clip, isSprinting ? 0.35f : 0.2f);
+                    bool isLeftStep = (footstepStepIndex++ % 2) == 0;
+                    float stepVolume = Mathf.Lerp(0.08f, 0.2f, speedRatio);
+                    if (isSprinting)
+                    {
+                        stepVolume += 0.04f;
+                    }
+
+                    if (!isLeftStep)
+                    {
+                        stepVolume *= 0.92f;
+                    }
+
+                    footstepSource.pitch = Random.Range(0.9f, 1.04f) + (isSprinting ? 0.02f : 0f);
+                    footstepSource.panStereo = isLeftStep
+                        ? Random.Range(-0.08f, -0.02f)
+                        : Random.Range(0.02f, 0.08f);
+                    footstepSource.PlayOneShot(clip, stepVolume);
                 }
             }
         }
@@ -256,7 +281,7 @@ namespace Deadlight.Player
         }
         
         private float speedMultiplier = 1f;
-        private float baseMoveSpeed = 2.5f;
+        private float baseMoveSpeed = 3.1f;
         
         public void ApplySpeedMultiplier(float multiplier)
         {

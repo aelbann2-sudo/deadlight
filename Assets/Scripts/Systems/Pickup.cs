@@ -1,4 +1,5 @@
 using UnityEngine;
+using Deadlight.Core;
 using Deadlight.Player;
 
 namespace Deadlight.Systems
@@ -154,8 +155,12 @@ namespace Deadlight.Systems
                     var shooting = player.GetComponent<PlayerShooting>();
                     if (shooting != null)
                     {
-                        shooting.AddAmmo(amount);
-                        consumed = true;
+                        int added = shooting.AddAmmo(amount);
+                        if (added > 0)
+                        {
+                            displayAmount = added;
+                            consumed = true;
+                        }
                     }
                     break;
 
@@ -163,10 +168,28 @@ namespace Deadlight.Systems
                 case PickupType.Wood:
                 case PickupType.Chemicals:
                 case PickupType.Electronics:
-                    if (PointsSystem.Instance != null)
+                    if (GameManager.Instance != null && GameManager.Instance.CraftingEnabled)
+                    {
+                        if (ResourceManager.Instance != null)
+                        {
+                            ResourceType resourceType = pickupType switch
+                            {
+                                PickupType.Scrap => ResourceType.Scrap,
+                                PickupType.Wood => ResourceType.Wood,
+                                PickupType.Chemicals => ResourceType.Chemicals,
+                                PickupType.Electronics => ResourceType.Electronics,
+                                _ => ResourceType.Scrap
+                            };
+
+                            ResourceManager.Instance.AddResource(resourceType, Mathf.Max(1, amount));
+                            CraftingSystem.Instance?.NotifyResourceCollected(resourceType, Mathf.Max(1, amount), transform.position);
+                            consumed = true;
+                        }
+                    }
+                    else if (PointsSystem.Instance != null)
                     {
                         int bonusPoints = Mathf.Max(1, amount);
-                        PointsSystem.Instance.AddPoints(bonusPoints, "Converted Pickup");
+                        PointsSystem.Instance.AddPoints(bonusPoints, "Resource Pickup");
                         displayType = PickupType.Points;
                         displayAmount = bonusPoints;
                         consumed = true;

@@ -38,6 +38,10 @@ namespace Deadlight.UI
             public const string Powerup = "powerup";
             public const string BlueprintToken = "blueprint_token";
             public const string Armor = "armor";
+            public const string Grenade = "grenade";
+            public const string Molotov = "molotov";
+            public const string Shotgun = "shotgun";
+            public const string Medkit = "medkit";
             public const string LoreIntel = "lore_intel";
         }
 
@@ -53,26 +57,6 @@ namespace Deadlight.UI
                 "Ammo",
                 "Adds reserve ammunition for your weapons. Reload with R when the magazine runs dry.",
                 "Adds reserve ammo."),
-            [ItemIds.Scrap] = new GameplayHelpEntry(
-                ItemIds.Scrap,
-                "Legacy Scrap",
-                "Legacy crafting material from older runs. In the current build it is auto-converted to points.",
-                "Auto-converts to points."),
-            [ItemIds.Wood] = new GameplayHelpEntry(
-                ItemIds.Wood,
-                "Legacy Wood",
-                "Legacy crafting material from older runs. In the current build it is auto-converted to points.",
-                "Auto-converts to points."),
-            [ItemIds.Chemicals] = new GameplayHelpEntry(
-                ItemIds.Chemicals,
-                "Legacy Chemicals",
-                "Legacy crafting material from older runs. In the current build it is auto-converted to points.",
-                "Auto-converts to points."),
-            [ItemIds.Electronics] = new GameplayHelpEntry(
-                ItemIds.Electronics,
-                "Legacy Electronics",
-                "Legacy crafting material from older runs. In the current build it is auto-converted to points.",
-                "Auto-converts to points."),
             [ItemIds.Points] = new GameplayHelpEntry(
                 ItemIds.Points,
                 "Points",
@@ -83,16 +67,31 @@ namespace Deadlight.UI
                 "Powerup",
                 "Activates a random temporary combat bonus such as Double Damage, Speed Boost, Infinite Ammo, or Invincibility.",
                 "Random temporary buff."),
-            [ItemIds.BlueprintToken] = new GameplayHelpEntry(
-                ItemIds.BlueprintToken,
-                "Blueprint Token",
-                "Legacy token from earlier crafting builds. Not required in the current core loop.",
-                "Legacy item."),
             [ItemIds.Armor] = new GameplayHelpEntry(
                 ItemIds.Armor,
                 "Armor",
                 "Vests and helmets absorb incoming damage before your health does.",
                 "Absorbs incoming damage."),
+            [ItemIds.Grenade] = new GameplayHelpEntry(
+                ItemIds.Grenade,
+                "Grenade",
+                "Explosive utility. Throw with Q to clear clustered enemies.",
+                "Explosive utility."),
+            [ItemIds.Molotov] = new GameplayHelpEntry(
+                ItemIds.Molotov,
+                "Molotov",
+                "Incendiary utility. Throw with G to deny space and burn enemies over time.",
+                "Area burn utility."),
+            [ItemIds.Shotgun] = new GameplayHelpEntry(
+                ItemIds.Shotgun,
+                "Shotgun",
+                "Close-range powerhouse added to your loadout when a slot is free.",
+                "New weapon acquired."),
+            [ItemIds.Medkit] = new GameplayHelpEntry(
+                ItemIds.Medkit,
+                "Medkit",
+                "Stored healing charge. Use with C to channel and recover a large chunk of health.",
+                "Stored emergency heal."),
             [ItemIds.LoreIntel] = new GameplayHelpEntry(
                 ItemIds.LoreIntel,
                 "Intel Document",
@@ -106,10 +105,10 @@ namespace Deadlight.UI
             {
                 PickupType.Health => ItemIds.Health,
                 PickupType.Ammo => ItemIds.Ammo,
-                PickupType.Scrap => ItemIds.Points,
-                PickupType.Wood => ItemIds.Points,
-                PickupType.Chemicals => ItemIds.Points,
-                PickupType.Electronics => ItemIds.Points,
+                PickupType.Scrap => string.Empty,
+                PickupType.Wood => string.Empty,
+                PickupType.Chemicals => string.Empty,
+                PickupType.Electronics => string.Empty,
                 PickupType.Points => ItemIds.Points,
                 PickupType.Powerup => ItemIds.Powerup,
                 _ => string.Empty
@@ -188,14 +187,12 @@ namespace Deadlight.UI
             builder.AppendLine("- Health: instant heal on pickup.");
             builder.AppendLine("- Ammo: adds reserve ammo.");
             builder.AppendLine("- Grenade / Molotov: throw with Q/G, refill at dawn.");
+            builder.AppendLine("- Level 4 drops can include grenade, molotov, medkit, and shotgun rewards.");
             builder.AppendLine("- Medkit: buy/store (max 5), use with C (2.5s).");
             builder.AppendLine("- Points: shop currency.");
             builder.AppendLine("- Powerup: temporary combat buff.");
             builder.AppendLine("- Armor: vest/helmet absorb damage first.");
             builder.AppendLine("- Intel Documents: journal lore pickups.");
-            builder.AppendLine();
-            builder.AppendLine("<b>Crafting Status</b>");
-            builder.Append("Legacy crafting materials auto-convert to points in the current build.");
             return builder.ToString();
         }
 
@@ -288,6 +285,11 @@ namespace Deadlight.UI
 
         public void ShowItem(string itemId, int amount = 0)
         {
+            if (IsLegacyCollectibleItem(itemId))
+            {
+                return;
+            }
+
             if (!GameplayGuideContent.TryGetEntry(itemId, out _))
             {
                 return;
@@ -308,6 +310,15 @@ namespace Deadlight.UI
             {
                 displayRoutine = StartCoroutine(ProcessQueue());
             }
+        }
+
+        private static bool IsLegacyCollectibleItem(string itemId)
+        {
+            return itemId == GameplayGuideContent.ItemIds.Scrap ||
+                   itemId == GameplayGuideContent.ItemIds.Wood ||
+                   itemId == GameplayGuideContent.ItemIds.Chemicals ||
+                   itemId == GameplayGuideContent.ItemIds.Electronics ||
+                   itemId == GameplayGuideContent.ItemIds.BlueprintToken;
         }
 
         private void HandleGameStateChanged(GameState newState)
