@@ -1250,7 +1250,6 @@ namespace Deadlight.UI
         {
             int highest = GetHighestUnlockedLevel();
             highest = Mathf.Clamp(highest, 1, levelMapNames.Length);
-            int selectableCap = GetSelectableLevelCap();
 
             if (_mainMenuProgressText != null)
                 _mainMenuProgressText.text = $"Level {highest:00} ready: {levelObjectiveSummaries[highest - 1]}";
