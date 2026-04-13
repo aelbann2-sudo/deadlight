@@ -48,7 +48,7 @@ namespace Deadlight.Core
         [SerializeField] private int maxNights = 12;
         [SerializeField] private bool isPaused;
         [Header("Playable Scope")]
-        [SerializeField, Range(1, TotalLevels)] private int playableLevelCap = 2;
+        [SerializeField, Range(1, TotalLevels)] private int playableLevelCap = TotalLevels;
 
         public const int NightsPerLevel = 3;
         public const int TotalLevels = 4;

@@ -146,25 +146,25 @@ namespace Deadlight.UI
         public static string GetRulesText()
         {
             return "<b>Campaign Scope</b>\n" +
-                   "- Deliverable 2: playable Levels 1-2.\n" +
-                   "- Route: Town Center -> Suburban.\n" +
-                   "- Levels 3-4 are marked COMING SOON for next deliverables.\n\n" +
+                   "- Four playable levels.\n" +
+                   "- Route: Town Center -> Suburban -> Industrial -> Research.\n" +
+                   "- Each sector unlocks after the previous one is cleared.\n\n" +
                    "<b>Core Loop</b>\n" +
                    "- Each level has 3 day/night steps.\n" +
                    "- Day: complete objective + loot.\n" +
                    "- Night: survive all waves until dawn.\n" +
                    "- Dawn: shop, refill, upgrade, redeploy.\n\n" +
                    "<b>Run End</b>\n" +
-                   "- Win this build by clearing Level 2, Night 3.\n" +
+                   "- Win by clearing the final Research deployment.\n" +
                    "- Player death ends the run.";
         }
 
         public static string GetSystemsText()
         {
             return "<b>Prototype Coverage</b>\n" +
-                   "- Level Design: handcrafted Town Center and Suburban lanes, flanks, and objective routes.\n" +
+                   "- Level Design: district-specific routes, landmarks, chokepoints, and objective lanes across all four maps.\n" +
                    "- Player Guidance: intro briefing, objective tracker, guide, and pickup callouts.\n" +
-                   "- System Balance: pressure escalates from Level 1, Night 1 to Level 2, Night 3.\n" +
+                   "- System Balance: pressure escalates from Level 1, Night 1 through the final Research sector.\n" +
                    "- Progression: dawn upgrades and weapon access progress through the run.\n" +
                    "- Rewards: kills, objective clears, and crates grant spendable points.\n\n" +
                    "<b>Objective Miss Rule</b>\n" +

@@ -87,7 +87,7 @@ namespace Deadlight.Level.MapBuilders
                 sr.sortingOrder = 4;
                 sr.color = new Color(0.5f, 0.34f, 0.22f);
                 var col = bench.AddComponent<BoxCollider2D>();
-                col.size = new Vector2(0.9f, 0.35f);
+                MapFootprintCollider.ApplyCustomSpriteFootprint(col, sr.sprite, bench.transform.localScale, new Vector2(0.9f, 0.35f));
                 RegisterPlacement(pos, new Vector2(0.9f, 0.35f));
             }
 
