@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 891430ddcbd604fbc812d41fcf372486, type: 3}
+  m_Name: Shotgun
+  m_EditorClassIdentifier: Deadlight::Deadlight.Data.WeaponData
+  weaponName: Shotgun
+  description: Devastating at close range. Fires multiple pellets.
+  weaponType: 1
+  icon: {fileID: 0}
+  prefab: {fileID: 0}
+  damage: 8
+  fireRate: 0.8
+  range: 12
+  bulletSpeed: 25
+  magazineSize: 6
+  reloadTime: 2.5
+  spread: 15
+  pelletsPerShot: 8
+  isAutomatic: 0
+  fireSound: {fileID: 0}
+  reloadSound: {fileID: 0}
+  emptySound: {fileID: 0}
+  muzzleFlashPrefab: {fileID: 0}
+  bulletTrailPrefab: {fileID: 0}
+  impactEffectPrefab: {fileID: 0}
+  nightRequired: 1
+  pointCost: 100

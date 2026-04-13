@@ -375,7 +375,7 @@ namespace Deadlight.Core
                 rmObj.transform.SetParent(managersParent);
                 rmObj.AddComponent<Systems.ResourceManager>();
 
-                bool craftingEnabled = GameManager.Instance == null || GameManager.Instance.CraftingEnabled;
+                bool craftingEnabled = GameManager.Instance != null && GameManager.Instance.CraftingEnabled;
                 if (craftingEnabled)
                 {
                     var csObj = new GameObject("CraftingSystem");

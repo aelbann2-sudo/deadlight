@@ -24,6 +24,7 @@ namespace Deadlight.Player
         [Header("Ammo")]
         [SerializeField] private int currentAmmo;
         [SerializeField] private int reserveAmmo;
+        [SerializeField] private bool reserveAmmoCapEnabled = false;
         [SerializeField] private int maxReserveAmmo = 200;
 
         [Header("State")]
@@ -39,12 +40,36 @@ namespace Deadlight.Player
         public WeaponData CurrentWeapon => currentWeapon;
         public int CurrentAmmo => currentAmmo;
         public int ReserveAmmo => reserveAmmo;
+        public int MaxReserveAmmo => ReserveAmmoLimit;
+        public int ReserveAmmoSpace => reserveAmmoCapEnabled
+            ? Mathf.Max(0, ReserveAmmoLimit - reserveAmmo)
+            : int.MaxValue;
         public bool IsReloading => isReloading;
         public bool CanFire => !isReloading && currentAmmo > 0 && Time.time >= lastFireTime + (currentWeapon?.fireRate ?? 0.5f);
         public int ActiveSlot => activeSlot;
         public int SlotCount => MaxWeaponSlots;
         public WeaponData GetSlotWeapon(int slot) =>
             (slot >= 0 && slot < weaponSlots.Length) ? weaponSlots[slot] : null;
+        public bool HasWeaponInSlot(int slot) =>
+            slot >= 0 && slot < weaponSlots.Length && weaponSlots[slot] != null;
+        public int GetSlotCurrentAmmo(int slot) =>
+            HasWeaponInSlot(slot) ? slotAmmo[slot] : 0;
+        public int GetSlotReserveAmmo(int slot) =>
+            HasWeaponInSlot(slot) ? slotReserve[slot] : 0;
+        public int GetSlotReserveAmmoSpace(int slot)
+        {
+            if (!HasWeaponInSlot(slot))
+            {
+                return 0;
+            }
+
+            return reserveAmmoCapEnabled
+                ? Mathf.Max(0, ReserveAmmoLimit - slotReserve[slot])
+                : int.MaxValue;
+        }
+        public bool IsSlotReserveFull(int slot) =>
+            HasWeaponInSlot(slot) && reserveAmmoCapEnabled && slotReserve[slot] >= ReserveAmmoLimit;
+        private int ReserveAmmoLimit => reserveAmmoCapEnabled ? Mathf.Max(1, maxReserveAmmo) : int.MaxValue;
 
         public event Action<int, int> OnAmmoChanged;
         public event Action OnWeaponFired;
@@ -74,6 +99,13 @@ namespace Deadlight.Player
                     audioSource = gameObject.AddComponent<AudioSource>();
                 }
             }
+
+            audioSource.playOnAwake = false;
+            audioSource.spatialBlend = 0.2f;
+            audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
+            audioSource.minDistance = 1f;
+            audioSource.maxDistance = 14f;
+            audioSource.dopplerLevel = 0f;
 
             GenerateProceduralSounds();
             InitializeWeapon();
@@ -121,7 +153,7 @@ namespace Deadlight.Player
             {
                 int magBonus = PlayerUpgrades.Instance != null ? PlayerUpgrades.Instance.MagazineBonus : 0;
                 currentAmmo = currentWeapon.magazineSize + magBonus;
-                reserveAmmo = currentWeapon.magazineSize * 3;
+                reserveAmmo = Mathf.Clamp(currentWeapon.magazineSize * 3, 0, ReserveAmmoLimit);
                 activeSlot = 0;
                 weaponSlots[0] = currentWeapon;
                 slotAmmo[0] = currentAmmo;
@@ -267,6 +299,7 @@ namespace Deadlight.Player
             SpawnBullet();
 
             PlaySound(shootSound ?? currentWeapon.fireSound);
+            AudioManager.Instance?.SignalCombatPeak(GetCombatPeakAmount(), 0.55f);
             OnWeaponFired?.Invoke();
             OnAmmoChanged?.Invoke(currentAmmo, reserveAmmo);
             EmitLowAmmoWarningIfNeeded();
@@ -356,6 +389,7 @@ namespace Deadlight.Player
             isReloading = true;
             OnReloadStarted?.Invoke();
             PlaySound(reloadSound ?? currentWeapon.reloadSound);
+            AudioManager.Instance?.SignalCombatPeak(0.015f, 0.2f);
 
             yield return new WaitForSeconds(currentWeapon.reloadTime);
 
@@ -374,16 +408,153 @@ namespace Deadlight.Player
 
         private void PlaySound(AudioClip clip)
         {
-            if (clip != null && audioSource != null)
+            if (clip == null)
             {
-                audioSource.PlayOneShot(clip);
+                return;
+            }
+
+            float volumeScale = 0.62f;
+            float pitch = 1f;
+            float pitchJitter = 0.03f;
+
+            bool isShot = clip == shootSound || (currentWeapon != null && clip == currentWeapon.fireSound);
+            bool isReload = clip == reloadSound || (currentWeapon != null && clip == currentWeapon.reloadSound);
+
+            if (isShot)
+            {
+                volumeScale = GetCurrentWeaponLoudness();
+                pitch = GetCurrentWeaponPitch();
+                pitchJitter = 0.03f;
+            }
+            else if (isReload)
+            {
+                volumeScale = 0.45f;
+                pitch = 0.96f;
+                pitchJitter = 0.035f;
+            }
+            else if (clip == emptyClickSound)
+            {
+                volumeScale = 0.26f;
+                pitch = 1.03f;
+                pitchJitter = 0.03f;
+            }
+
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySFXAtPosition(clip, transform.position, volumeScale, pitch, pitchJitter);
+                return;
+            }
+
+            if (audioSource != null)
+            {
+                audioSource.pitch = pitch + UnityEngine.Random.Range(-pitchJitter, pitchJitter);
+                audioSource.PlayOneShot(clip, volumeScale);
             }
         }
 
-        public void AddAmmo(int amount)
+        private float GetCurrentWeaponLoudness()
         {
-            reserveAmmo = Mathf.Min(reserveAmmo + amount, maxReserveAmmo);
-            OnAmmoChanged?.Invoke(currentAmmo, reserveAmmo);
+            if (currentWeapon == null)
+            {
+                return 0.62f;
+            }
+
+            float loudness = 0.62f;
+            if (currentWeapon.pelletsPerShot > 1)
+            {
+                loudness = 0.86f;
+            }
+            else if (currentWeapon.isAutomatic)
+            {
+                loudness = 0.56f;
+            }
+            else if (currentWeapon.damage >= 40f)
+            {
+                loudness = 0.72f;
+            }
+
+            loudness += Mathf.Clamp01((currentWeapon.damage - 18f) / 80f) * 0.06f;
+            return Mathf.Clamp(loudness, 0.38f, 0.95f);
+        }
+
+        private float GetCurrentWeaponPitch()
+        {
+            if (currentWeapon == null)
+            {
+                return 1f;
+            }
+
+            if (currentWeapon.pelletsPerShot > 1)
+            {
+                return 0.92f;
+            }
+
+            if (currentWeapon.isAutomatic)
+            {
+                return 1.015f;
+            }
+
+            return 1f;
+        }
+
+        private float GetCombatPeakAmount()
+        {
+            if (currentWeapon == null)
+            {
+                return 0.05f;
+            }
+
+            if (currentWeapon.pelletsPerShot > 1)
+            {
+                return 0.1f;
+            }
+
+            if (currentWeapon.isAutomatic)
+            {
+                return 0.04f;
+            }
+
+            return 0.06f;
+        }
+
+        public int AddAmmo(int amount)
+        {
+            return AddAmmoToSlot(activeSlot, amount);
+        }
+
+        public int AddAmmoToSlot(int slot, int amount)
+        {
+            if (!HasWeaponInSlot(slot))
+            {
+                return 0;
+            }
+
+            int requested = Mathf.Max(0, amount);
+            if (requested == 0)
+            {
+                return 0;
+            }
+
+            int before = slotReserve[slot];
+            long unclampedReserve = (long)slotReserve[slot] + requested;
+            slotReserve[slot] = unclampedReserve >= ReserveAmmoLimit
+                ? ReserveAmmoLimit
+                : (int)unclampedReserve;
+
+            int added = slotReserve[slot] - before;
+            if (added > 0 && slot == activeSlot)
+            {
+                reserveAmmo = slotReserve[slot];
+                OnAmmoChanged?.Invoke(currentAmmo, reserveAmmo);
+            }
+
+            return added;
+        }
+
+        public bool TryAddAmmoToSlot(int slot, int amount, out int added)
+        {
+            added = AddAmmoToSlot(slot, amount);
+            return added > 0;
         }
 
         public void SetWeapon(WeaponData weapon)
@@ -396,7 +567,7 @@ namespace Deadlight.Player
             if (weapon != null)
             {
                 int defaultReserve = weapon.magazineSize * 3;
-                reserveAmmo = Mathf.Max(reserveAmmo, defaultReserve);
+                reserveAmmo = Mathf.Clamp(Mathf.Max(reserveAmmo, defaultReserve), 0, ReserveAmmoLimit);
                 currentAmmo = weapon.magazineSize;
                 slotAmmo[0] = currentAmmo;
                 slotReserve[0] = reserveAmmo;
@@ -428,7 +599,7 @@ namespace Deadlight.Player
 
             reserveMagazines = Mathf.Max(1, reserveMagazines);
             currentAmmo = weapon.magazineSize;
-            reserveAmmo = Mathf.Clamp(weapon.magazineSize * reserveMagazines, 0, maxReserveAmmo);
+            reserveAmmo = Mathf.Clamp(weapon.magazineSize * reserveMagazines, 0, ReserveAmmoLimit);
             weaponSlots[0] = weapon;
             slotAmmo[0] = currentAmmo;
             slotReserve[0] = reserveAmmo;
@@ -494,7 +665,7 @@ namespace Deadlight.Player
 
             weaponSlots[slot] = weapon;
             slotAmmo[slot] = weapon.magazineSize;
-            slotReserve[slot] = weapon.magazineSize * 3;
+            slotReserve[slot] = Mathf.Clamp(weapon.magazineSize * 3, 0, ReserveAmmoLimit);
 
             if (switchToWeapon)
             {

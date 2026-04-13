@@ -42,6 +42,7 @@ namespace Deadlight.Systems
         [SerializeField] private int bonusPointsPerNight = 50;
 
         private List<PointsEntry> pointsHistory = new List<PointsEntry>();
+        private bool lastNightObjectiveCompleted;
 
         public int CurrentPoints => currentPoints;
         public int TotalEarned => totalPointsEarned;
@@ -95,10 +96,22 @@ namespace Deadlight.Systems
 
         private void HandleGameStateChanged(GameState newState)
         {
+            if (newState == GameState.NightPhase)
+            {
+                CacheNightObjectiveState();
+                return;
+            }
+
             if (newState == GameState.DawnPhase)
             {
+                if (GameManager.Instance != null && GameManager.Instance.WillRetryCurrentStepOnAdvance)
+                {
+                    return;
+                }
+
                 nightsSurvived++;
-                AddPoints(pointsPerNightSurvived + (bonusPointsPerNight * nightsSurvived), "Night Survived");
+                int dawnReward = pointsPerNightSurvived + (bonusPointsPerNight * nightsSurvived) + GetNightCompletionBonus();
+                AddPoints(dawnReward, "Night Survived");
                 GradeCurrentNight();
             }
 
@@ -123,11 +136,39 @@ namespace Deadlight.Systems
             enemiesKilled++;
         }
 
+        private int GetNightCompletionBonus()
+        {
+            if (!lastNightObjectiveCompleted)
+            {
+                return 0;
+            }
+
+            var waveManager = WaveManager.Instance;
+            if (waveManager?.CurrentNightConfig != null)
+            {
+                return Mathf.Max(0, waveManager.CurrentNightConfig.completionBonus);
+            }
+
+            int night = GameManager.Instance != null ? GameManager.Instance.CurrentNight : Mathf.Max(1, nightsSurvived);
+            var generatedConfig = NightConfig.CreateForNight(Mathf.Max(1, night));
+            int bonus = generatedConfig != null ? Mathf.Max(0, generatedConfig.completionBonus) : 0;
+            if (generatedConfig != null)
+            {
+                Destroy(generatedConfig);
+            }
+            return bonus;
+        }
+
         private void HandleNightChanged(int _)
         {
             ResolvePlayerCombatSubscriptions();
             shotsFired = 0;
             hitsLanded = 0;
+        }
+
+        private void CacheNightObjectiveState()
+        {
+            lastNightObjectiveCompleted = StoryObjective.Instance != null && StoryObjective.Instance.IsComplete;
         }
 
         public void AddPoints(int amount, string source = "Unknown")
@@ -147,6 +188,12 @@ namespace Deadlight.Systems
 
         public bool SpendPoints(int amount, string purpose = "Purchase")
         {
+            if (amount <= 0)
+            {
+                Debug.LogWarning($"[PointsSystem] Refusing invalid spend amount: {amount} ({purpose})");
+                return false;
+            }
+
             if (amount > currentPoints)
             {
                 Debug.Log($"[PointsSystem] Cannot spend {amount} points. Only have {currentPoints}");
@@ -167,6 +214,11 @@ namespace Deadlight.Systems
 
         public bool CanAfford(int amount)
         {
+            if (amount < 0)
+            {
+                return false;
+            }
+
             return currentPoints >= amount;
         }
 
@@ -232,6 +284,7 @@ namespace Deadlight.Systems
             shotsFired = 0;
             hitsLanded = 0;
             highestNightGrade = "D";
+            lastNightObjectiveCompleted = false;
             pointsHistory.Clear();
 
             OnPointsChanged?.Invoke(currentPoints);
@@ -289,7 +342,7 @@ namespace Deadlight.Systems
                 speedScore = Mathf.Clamp01(1f - cycle.NormalizedTime);
             }
 
-            bool objectiveDone = StoryObjective.Instance != null && StoryObjective.Instance.IsComplete;
+            bool objectiveDone = lastNightObjectiveCompleted;
 
             var result = RunGradingSystem.ComputeNightGrade(new NightRunStats
             {

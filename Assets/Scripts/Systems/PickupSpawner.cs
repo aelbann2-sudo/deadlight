@@ -14,13 +14,15 @@ namespace Deadlight.Systems
         [SerializeField] private float healthDropChance = 0.10f;
         [SerializeField] private float pointsDropChance = 0.10f;
         [SerializeField] private float powerupDropChance = 0.03f;
+        [SerializeField] private int ammoReserveSoftTarget = 140;
+        [SerializeField] private int ammoReserveHardTarget = 300;
+        [SerializeField, Range(0f, 1f)] private float minAmmoDropMultiplierAtHighReserve = 0.15f;
 
         [Header("Pickup Values")]
         [SerializeField] private int ammoAmount = 15;
         [SerializeField] private float healthAmount = 25f;
         [SerializeField] private int pointsAmount = 50;
         [SerializeField] private int scrapAmount = 2;
-        [SerializeField] private int woodAmount = 2;
         [SerializeField] private int chemicalsAmount = 1;
         [SerializeField] private int electronicsAmount = 1;
 
@@ -38,8 +40,11 @@ namespace Deadlight.Systems
         {
             float roll = Random.value;
             float cumulative = 0f;
+            float ammoMultiplier = GetAmmoDropChanceMultiplier();
+            float effectiveAmmoDropChance = ammoDropChance * ammoMultiplier;
+            float effectivePointsDropChance = pointsDropChance + (ammoDropChance - effectiveAmmoDropChance);
 
-            cumulative += ammoDropChance;
+            cumulative += effectiveAmmoDropChance;
             if (roll < cumulative)
             {
                 SpawnPickup(position, PickupType.Ammo);
@@ -53,7 +58,7 @@ namespace Deadlight.Systems
                 return;
             }
 
-            cumulative += pointsDropChance;
+            cumulative += effectivePointsDropChance;
             if (roll < cumulative)
             {
                 SpawnPickup(position, PickupType.Points);
@@ -65,6 +70,39 @@ namespace Deadlight.Systems
             {
                 SpawnPickup(position, PickupType.Powerup);
             }
+        }
+
+        private float GetAmmoDropChanceMultiplier()
+        {
+            var player = GameObject.FindGameObjectWithTag("Player");
+            if (player == null)
+            {
+                player = GameObject.Find("Player");
+            }
+
+            var shooting = player != null ? player.GetComponent<PlayerShooting>() : null;
+            if (shooting == null)
+            {
+                return 1f;
+            }
+
+            float reserve = shooting.ReserveAmmo;
+            float soft = Mathf.Max(1f, ammoReserveSoftTarget);
+            float hard = Mathf.Max(soft + 1f, ammoReserveHardTarget);
+            float floor = Mathf.Clamp01(minAmmoDropMultiplierAtHighReserve);
+
+            if (reserve <= soft)
+            {
+                return 1f;
+            }
+
+            if (reserve >= hard)
+            {
+                return floor;
+            }
+
+            float t = Mathf.InverseLerp(soft, hard, reserve);
+            return Mathf.Lerp(1f, floor, t);
         }
 
         public void SpawnPickup(Vector3 position, PickupType type)
@@ -95,7 +133,13 @@ namespace Deadlight.Systems
 
         public static PickupType SanitizePickupType(PickupType type)
         {
-            return IsCraftingPickup(type) ? PickupType.Points : type;
+            if (!IsCraftingPickup(type))
+            {
+                return type;
+            }
+
+            // Legacy crafting pickups are fully retired in campaign.
+            return PickupType.Points;
         }
 
         public static bool IsCraftingPickup(PickupType type)
@@ -112,6 +156,10 @@ namespace Deadlight.Systems
             {
                 PickupType.Ammo => new Color(1f, 0.85f, 0.2f),
                 PickupType.Health => new Color(1f, 0.3f, 0.3f),
+                PickupType.Scrap => new Color(0.55f, 0.85f, 1f),
+                PickupType.Wood => new Color(0.72f, 0.58f, 0.35f),
+                PickupType.Chemicals => new Color(0.45f, 1f, 0.85f),
+                PickupType.Electronics => new Color(0.45f, 0.75f, 1f),
                 PickupType.Points => new Color(0.3f, 1f, 0.4f),
                 PickupType.Powerup => new Color(0.7f, 0.3f, 1f),
                 _ => Color.white
@@ -120,11 +168,14 @@ namespace Deadlight.Systems
 
         private float GetPickupValue(PickupType type)
         {
-            type = SanitizePickupType(type);
             return type switch
             {
                 PickupType.Ammo => ammoAmount,
                 PickupType.Health => healthAmount,
+                PickupType.Scrap => scrapAmount,
+                PickupType.Wood => Mathf.Max(1, scrapAmount),
+                PickupType.Chemicals => chemicalsAmount,
+                PickupType.Electronics => electronicsAmount,
                 PickupType.Points => pointsAmount,
                 PickupType.Powerup => 1f,
                 _ => 0f
@@ -270,14 +321,19 @@ namespace Deadlight.Systems
             }
 
             bool didCollect = false;
+            int displayAmount = Mathf.Max(1, Mathf.RoundToInt(value));
 
             switch (type)
             {
                 case PickupType.Ammo:
                     if (shooting != null)
                     {
-                        shooting.AddAmmo((int)value);
-                        didCollect = true;
+                        int added = shooting.AddAmmo(Mathf.Max(1, Mathf.RoundToInt(value)));
+                        if (added > 0)
+                        {
+                            displayAmount = added;
+                            didCollect = true;
+                        }
                     }
                     break;
 
@@ -285,6 +341,28 @@ namespace Deadlight.Systems
                     if (playerHealth != null)
                     {
                         playerHealth.Heal(value);
+                        didCollect = true;
+                    }
+                    break;
+
+                case PickupType.Scrap:
+                case PickupType.Wood:
+                case PickupType.Chemicals:
+                case PickupType.Electronics:
+                    if (ResourceManager.Instance != null)
+                    {
+                        int amount = Mathf.Max(1, Mathf.RoundToInt(value));
+                        ResourceType resourceType = type switch
+                        {
+                            PickupType.Scrap => ResourceType.Scrap,
+                            PickupType.Wood => ResourceType.Wood,
+                            PickupType.Chemicals => ResourceType.Chemicals,
+                            PickupType.Electronics => ResourceType.Electronics,
+                            _ => ResourceType.Scrap
+                        };
+
+                        ResourceManager.Instance.AddResource(resourceType, amount);
+                        CraftingSystem.Instance?.NotifyResourceCollected(resourceType, amount, transform.position);
                         didCollect = true;
                     }
                     break;
@@ -312,7 +390,7 @@ namespace Deadlight.Systems
             }
 
             consumed = true;
-            UI.GameplayHelpSystem.Instance?.ShowPickup(type, Mathf.Max(1, Mathf.RoundToInt(value)));
+            UI.GameplayHelpSystem.Instance?.ShowPickup(type, displayAmount);
 
             var clip = Audio.ProceduralAudioGenerator.GeneratePickup();
             if (clip != null)

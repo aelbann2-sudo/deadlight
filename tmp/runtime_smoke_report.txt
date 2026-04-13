@@ -1,0 +1,24 @@
+Deadlight — Deliverable 2 runtime smoke checklist
+================================================
+Fill in after a teammate runs the SAME build you will submit (Windows .exe or Unity Play Mode).
+
+Date:
+Build / commit:
+Tester:
+
+Core loop
+---------
+[ ] Main menu loads; Levels 1–2 selectable; Levels 3–4 show coming soon / locked as designed
+[ ] Level 1: day → night → dawn → shop → advance night without soft-lock
+[ ] Contested drop: broadcast → land → secure OR expire without console errors
+[ ] Level 1 Night 3 complete → Level complete panel → Deploy next OR return to menu
+[ ] Level 2: starts with fresh baseline (pistol, reset upgrades/points per design)
+
+Combat / UI
+-----------
+[ ] Objective HUD + markers readable during motion
+[ ] Four weapon slots: buy adds to empty slot; no duplicate type purchase
+[ ] Win path: clear all playable D2 content → victory screen
+
+Notes / failures:
+--------------------------------------------------

@@ -80,13 +80,6 @@
 
     \vfill
 
-    \begin{figure}[H]
-        \centering
-        \includegraphics[width=0.74\textwidth]{../Assets/Resources/MenuPreviews/TownCenter.png}
-    \end{figure}
-
-    \vfill
-
     {\large April 2026\par}
 \end{titlepage}
 \clearpage
@@ -98,13 +91,13 @@
 
 \section{Project Overview}
 
-Deliverable 2 presents a playable Unity prototype of \textit{Deadlight}. The current submission includes \textbf{Levels 1 and 2}, which together cover six playable nights across two districts. This gives a focused slice of the planned game while keeping the work appropriate for a mid-project milestone.
+Deliverable 2 presents a playable Unity prototype of \textit{Deadlight}. The submission covers \textbf{Levels 1 and 2} (Town Center and Suburban): six campaign nights total. \textbf{Levels~3 and~4 are not completed yet} and are planned for \textbf{Deliverable~3}.
 
-The core loop has three phases. During the day, the player explores the map, follows objectives, and gathers resources. At night, the player defends against zombie waves as the pressure increases. At dawn, the player receives points and rewards, then uses the shop to buy weapons, armor, ammunition, healing, and upgrades before the next cycle. This structure connects exploration, combat, and progression in a clear way.
+The core loop has three phases. \textbf{Day:} explore, follow objectives, and gather resources. \textbf{Night:} defend against escalating waves. \textbf{Dawn:} collect rewards and open the shop for weapons, armor, ammunition, healing, and upgrades before the next cycle. There is also a short \textbf{transition} into night controlled by \texttt{DayNightCycle} before waves begin. Although \texttt{GameState.Transition} exists for UI handling, \texttt{GameManager} stays in \texttt{DayPhase} until \texttt{StartNightPhase} begins the night. This structure keeps exploration, combat, and progression connected.
 
-The main goal of this iteration was to make \textbf{preparation matter}. In earlier versions, the day phase risked feeling like a pause between combat sections. In the current build, daytime choices affect the following night through objective rewards, contested drops, and resource management. As a result, the player can clearly see how exploration and preparation shape survival. The build also gives more narrative context through radio messages, environmental details, and mission events connected to EVAC Command, Project Lazarus, Dr.~Chen, and Subject~23.
+\textbf{Preparation} is central: objective rewards, contested drops, and resource choices carry into the next night, so scavenging and shopping are part of survival, not downtime. Radio, environment, and missions carry the fiction of EVAC Command, Project Lazarus, Dr.~Chen, and Subject~23.
 
-Table~\ref{tab:rubric} maps the submission to the deliverable criteria. The following sections discuss level design, narrative, systems, progression, testing, technical implementation, and planned work for Deliverable~3.
+Table~\ref{tab:rubric} summarizes how the build meets the criteria. The body of the report follows the same order: level design and guidance, narrative, systems, progression, testing, technical notes, then Deliverable~3 plans.
 
 \begin{figure}[H]
     \centering
@@ -119,44 +112,62 @@ Table~\ref{tab:rubric} maps the submission to the deliverable criteria. The foll
         \includegraphics[width=\linewidth]{../Assets/Resources/MenuPreviews/Suburban.png}
         \caption{Level 2: Suburban district. This area expands the route, increases pressure, and continues the campaign.}
     \end{subfigure}
-    \caption{Playable Deliverable 2 route. The current prototype intentionally focuses on Levels 1 and 2, while later areas are reserved for future deliverables.}
+    \caption{Playable Deliverable 2 route. The prototype completes Levels 1 and 2 only; Levels~3 and~4 are not finished in this milestone and are scheduled for Deliverable~3.}
 \end{figure}
 
-\section{Deliverable 2 Criteria Coverage (Point-by-Point)}\label{sec:rubric}
+\section{Criteria Coverage}\label{sec:rubric}
 
 \begin{table}[H]
     \centering
+    \begingroup
     \small
-    \begin{tabularx}{\textwidth}{>{\raggedright\bfseries\arraybackslash}p{0.26\textwidth} Y Y}
+    \renewcommand{\arraystretch}{1.2}
+    \setlength{\tabcolsep}{7pt}
+    \begin{tabularx}{\textwidth}{>{\raggedright\bfseries\arraybackslash}p{0.24\textwidth} Y Y}
         \toprule
         Rubric Point & What Is Implemented in the Prototype & How It Is Demonstrated In-Game \\
         \midrule
         Level design and player guidance &
         Two authored spaces (Town Center and Suburban) with route structure, landmark sequencing, and objective-based navigation. &
         Objective HUD + mission markers + support markers (drops and nearest enemy) direct movement while preserving optional exploration paths. \\
+        \addlinespace[0.25em]
         Narrative and world-building &
         Mission-aligned radio beats, story objectives, lore pickups, and start/end framing tied to the Lazarus arc. &
         Each night advances plot context (evac failure, quarantine intent, Lazarus evidence) instead of isolated wave survival. \\
+        \addlinespace[0.25em]
         Systems and game balance &
         Day-night-dawn loop with connected economy (points, ammo, health, armor, utility, upgrades), plus escalation by night. &
         Better day execution produces stronger night readiness; weak preparation produces measurable combat pressure, including map-wide contested drop decisions. \\
+        \addlinespace[0.25em]
         Progression and rewards &
         Six-night campaign slice with unlock-based level access, reward pacing, and level-specific challenge identity. &
         Level 2 unlocks after Level 1 completion; a dedicated level-complete panel shows summary stats and supports either deploy-next or return-to-menu flow. \\
+        \addlinespace[0.25em]
         Testing and iteration &
         Iterative tuning from playtest feedback and PlayMode validation around objective flow, pickup clarity, and phase transitions. &
         UI callouts, objective readability, and communication pacing were revised based on observed confusion points. \\
         \bottomrule
     \end{tabularx}
-    \caption{Line-by-line Deliverable 2 coverage summary. Each rubric point is mapped to implemented systems and observable runtime behavior.}
+    \endgroup
+    \caption{How each criterion maps to implemented systems and observable behavior in the prototype.}
     \label{tab:rubric}
 \end{table}
 
+\noindent The sections below expand each row in turn.
+
 \section{Level Design and Player Guidance}\label{sec:level}
 
-The two playable districts were designed to guide movement, control pacing, and support the survival loop. The goal was to make the spaces readable without removing player freedom. Instead of relying only on tutorial text, the game uses route structure, landmarks, mission prompts, and changes in pace between exploration and combat to guide the player.
+The two playable districts were designed to guide movement, control pacing, and support the survival loop while still leaving room for player choice. Instead of relying only on tutorial text, the game uses route structure, landmarks, mission prompts, and changes in pace between exploration and combat to guide the player.
 
 Level~1 introduces the campaign. Its main path leads the player through clear landmarks such as the crash site, the military checkpoint, and the hospital. These locations are visually distinct, so the player can follow the route without becoming lost. Level~2 keeps the same general structure, but it is more open and exposed. This makes navigation, looting, and defense planning more demanding.
+
+\noindent\textbf{Latest onboarding iteration (Level~1).}
+\begin{itemize}
+    \item Day~1 guidance follows a fixed order: objective guidance appears first, then drop guidance appears only after objective completion.
+    \item The first drop instruction asks the player to follow the marker; the hold-to-loot instruction appears only when the player is near the crate.
+    \item Night~1 combat guidance is tied to first visible hostiles, with spaced prompts to prevent message stacking.
+    \item Early pressure is controlled for onboarding: Night~1 uses one-by-one enemy pressure and reduced enemy speed in Level~1 before normal pacing resumes.
+\end{itemize}
 
 The difficulty curve is intentional. Level~1 teaches the basic day--night rhythm and the preparation loop. Level~2 expects the player to apply that knowledge under more pressure. The increase in difficulty comes from level layout and encounter spacing as well as stronger enemy pressure.
 
@@ -185,7 +196,7 @@ The design aims to balance guidance and freedom. Optional loot and lore are stil
 
 The narrative design follows a play-first approach. Story information is delivered during movement, scavenging, defense, and mission completion rather than through long cutscenes. This keeps the pace of the game steady while still giving the player enough context to understand the situation.
 
-In the Deliverable 2 build, the player takes the role of a survivor of a failed evacuation attempt. Across six nights, the player receives updates from EVAC Command while moving through two unsafe districts in search of supplies, information, and a route to extraction. As the run continues, the radio dialogue and mission structure reveal more about Project Lazarus, Dr.~Chen, and Subject~23. This gives the prototype a clearer story arc than a simple wave-survival mode.
+In the Deliverable 2 build, the player takes the role of a survivor of a failed evacuation attempt. Across six nights, the player receives updates from EVAC Command while moving through two unsafe districts in search of supplies, information, and a route to extraction. As the run continues, the radio dialogue and mission structure reveal more about Project Lazarus, Dr.~Chen, and Subject~23. This gives the prototype an explicit story arc alongside combat survival.
 
 Delivery uses several channels:
 
@@ -209,21 +220,26 @@ The main plot remains understandable even if the player skips optional lore, whi
 
 \begin{table}[H]
     \centering
+    \begingroup
     \small
-    \begin{tabularx}{\textwidth}{>{\bfseries}p{0.14\textwidth} Y}
+    \renewcommand{\arraystretch}{1.18}
+    \setlength{\tabcolsep}{7pt}
+    \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{0.17\textwidth} Y}
         \toprule
-        Segment & Narrative / mission thrust (Deliverable 2 slice) \\
+        Segment & Narrative and mission thrust \\
         \midrule
         L1 N1--N3 & Establish failed evacuation and EVAC Command as the voice of order; introduce Project Lazarus through early radio beats and objectives tied to the crash site, checkpoint, and clinic chain. \\
+        \addlinespace[0.25em]
         L2 N1--N3 & Escalate quarantine and Lazarus evidence in the suburban district; reinforce that scavenging and night survival directly support the extraction fantasy. \\
         \bottomrule
     \end{tabularx}
+    \endgroup
     \caption{High-level narrative coverage by campaign segment. Beats are delivered primarily through radio, story objectives, and optional lore rather than long cutscenes.}
 \end{table}
 
 \section{Systems Design and Game Balance}\label{sec:systems}
 
-The systems in Deliverable~2 are built around the connection between daytime preparation and nighttime survival. The player manages points, health, armor, ammunition, utility items, and weapon access. Resources are limited enough that trade-offs matter, and the interface is designed to make gains and losses easy to notice.
+Systems connect \textbf{daytime preparation} to \textbf{nighttime survival}. The player manages points, health, armor, ammunition, utility items, and weapon access. Trade-offs stay visible: pickup callouts, HUD counts, and phase changes signal what was gained or spent.
 
 Daytime play supports four goals:
 
@@ -236,13 +252,14 @@ Daytime play supports four goals:
 
 Strong daytime play gives the player better equipment, more healing, and a safer start at night. Weak daytime play creates a harder and riskier defense phase. This link between day and night is meant to be clear so that players can understand the results of their decisions.
 
-Balance depends not only on enemy tuning, but also on how clearly the game explains threats and available options before the night begins. Rewards, missions, resources, and danger all work together so that planning is rewarded more than guesswork.
+Balance depends not only on enemy tuning, but also on how clearly the game explains threats and available options before the night begins. Rewards, missions, resources, and danger work together so that planning matters more than guesswork.
 
 \noindent\textbf{Key systems decisions.}
 \begin{itemize}
     \item Pickup callouts and HUD counts show what changed after looting or shopping.
     \item Objective results, scavenging, and shop buys all feed into how survivable the night feels.
-    \item Missed day objectives can strengthen the next night and reduce how many points carry forward; radio and summary UI explain this so the rule is visible, not hidden.
+    \item Level~1 onboarding pacing is intentionally softer: first-night enemy speed and spawn cadence are reduced for readability, then campaign pacing returns to normal on later nights.
+    \item Missed day objectives use a \textbf{retry-first} rule: by default the player gets \textbf{one repeat of the same campaign night} (\texttt{maxObjectiveRetriesPerStep} $= 1$ in \texttt{GameManager}) before a forced advance, so a single miss does \textbf{not} immediately jump difficulty---it replays the step. After retries are exhausted, a \textbf{queued} enemy-strength penalty (default $1.2\times$) is consumed when the campaign night index next advances (\texttt{GameManager} / \texttt{WaveManager}). Radio and summary UI distinguish retry from penalty. Moving to Level~2 after Level~1 applies a full reset of points, upgrades, armor, throwables, and loadout via \texttt{GameManager.StartNextLevel} (Section~\ref{sec:progression}).
     \item Pickup flow emphasizes combat items (ammo, health, utility, points) to limit inventory clutter.
 \end{itemize}
 
@@ -277,20 +294,20 @@ Balance depends not only on enemy tuning, but also on how clearly the game expla
         arrow/.style={-{Latex[length=1.8mm]}, semithick, draw=deadgray}
     ]
         \node[box] (day) {Day};
-        \node[box, right=of day] (dusk) {Dusk};
-        \node[accent, right=of dusk] (night) {Night};
+        \node[box, right=of day] (transition) {Transition};
+        \node[accent, right=of transition] (night) {Night};
         \node[box, right=of night] (rw) {Rewards};
         \node[box, right=of rw] (shop) {Shop};
 
-        \draw[arrow] (day) -- (dusk);
-        \draw[arrow] (dusk) -- (night);
+        \draw[arrow] (day) -- (transition);
+        \draw[arrow] (transition) -- (night);
         \draw[arrow] (night) -- (rw);
         \draw[arrow] (rw) -- (shop);
         \draw[arrow] (shop.east) -- ++(0.35,0) |- (day.north);
     \end{tikzpicture}
 
     \vspace{0.45em}
-    {\footnotesize Day: objectives, scavenging, contested drops \textbullet{} Night: wave pressure tied to prep \textbullet{} Rewards: points, gear, grades \textbullet{} Shop: spend before the next day.}
+    {\footnotesize Day: objectives, scavenging, contested drops \textbullet{} Transition: \texttt{DayNightCycle} handoff into \texttt{NightPhase} (manager in \texttt{DayPhase} until night starts) \textbullet{} Night: wave pressure tied to prep \textbullet{} Rewards: points, pickups, objectives \textbullet{} Shop: spend before the next day.}
     \caption{Core loop for Deliverable~2. Sections~\ref{sec:systems} and~\ref{sec:progression} describe this structure in full.}
 \end{figure}
 
@@ -299,28 +316,36 @@ The table below lists default values from the code and ScriptableObjects. Design
 
 \begin{table}[H]
     \centering
+    \begingroup
     \small
-    \begin{tabularx}{\textwidth}{>{\bfseries}p{0.28\textwidth} Y}
+    \renewcommand{\arraystretch}{1.2}
+    \setlength{\tabcolsep}{7pt}
+    \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{0.24\textwidth} Y}
         \toprule
         Parameter & Role in the prototype \\
         \midrule
-        Night survived payout & Base \texttt{pointsPerNightSurvived} $= 100$ plus scaling \texttt{bonusPointsPerNight} $\times$ nights survived (default $50$ per stack in \texttt{PointsSystem}). \\
-        Dawn milestones & Clearing nights 1--3 on a level grants milestone stipends of $+100$, $+150$, and $+200$ points (\texttt{ProgressionManager}). \\
+        Night survived payout & Base \texttt{pointsPerNightSurvived} $= 100$ plus scaling \texttt{bonusPointsPerNight} $\times$ \texttt{nightsSurvived} (default $50$ per stack in \texttt{PointsSystem}); \texttt{nightsSurvived} increments each dawn, including objective-retry loops that repeat the same campaign night. \\
+        \addlinespace[0.25em]
+        Dawn milestones & \texttt{ProgressionManager} awards stipends when a milestone row matches the surviving night index (defaults: nights $1$--$3$ at $+100$, $+150$, $+200$). Milestones reset on new-level setup; add rows for nights $4$--$6$ in Unity if Level~2 should receive the same stipend cadence. \\
+        \addlinespace[0.25em]
         Contested drops & Timed pickups grant tiered point bundles ($+110$ / $+170$ / $+260$) plus ammo and healing, with drop locations scattered across the map (\texttt{GameFlowController}, \texttt{SupplyCrate}). \\
-        Objective miss penalty & Missed day objectives can strengthen the next night (default enemy multiplier $1.2\times$) and stack penalties on points carried to the next level (default $0.75$ per stack). Radio messages announce this when it applies (\texttt{GameManager}). \\
+        \addlinespace[0.25em]
+        Objective miss penalty & Default flow (\texttt{GameManager}): one \textbf{retry of the same campaign night} if a day objective is missed (\texttt{maxObjectiveRetriesPerStep} $= 1$); after a forced advance, a \textbf{queued} $1.2\times$ enemy multiplier is consumed on the next night index advance (\texttt{WaveManager} scales waves with \texttt{CurrentNightEnemyPenaltyMultiplier}). Radio and UI separate retry from penalty. \texttt{StartNextLevel} clears miss queues and resets session points, so there is \textbf{no} partial point carry between maps on the playable inter-level path (carryover helpers exist in code but are not wired into that reset). \\
+        \addlinespace[0.25em]
         Weapon shop tiers & Dawn shop weapon purchases begin at night gates (SMG/Sniper at N2+, Assault Rifle/Grenade Launcher at N3+, Flamethrower at N4+); shotgun is no longer sold in the dawn weapon list (\texttt{GameUI}). \\
         \bottomrule
     \end{tabularx}
+    \endgroup
     \caption{Representative balance anchors as implemented in the Deliverable 2 codebase. Exact shop prices are set per-weapon in the Unity inspector rather than duplicated here.}
 \end{table}
 
 \section{Progression Systems and Rewards}\label{sec:progression}
 
-Progression works on two timescales. In the short term, each day--night--dawn cycle gives the player new resources, points, objectives, and shop decisions. Over the full six-night slice, the player also experiences level unlocks, stronger pressure, and movement from Town Center to Suburban.
+Progression works on two scales. \textbf{Within a night:} day prep, night combat, dawn rewards, and the shop. \textbf{Across the slice:} six nights from Town Center to Suburban, new unlocks, and rising pressure until the playable campaign endpoint.
 
-Rewards combine player improvement with concrete items and points. As the run continues, the player improves their routing and judgment while also earning weapons, armor, mission rewards, contested drop rewards, and upgrades. Story discoveries also act as rewards, even when the direct combat reward is small.
+Rewards come from both player improvement and concrete items. As the run continues, the player improves their routing and judgment while also earning weapons, armor, mission rewards, contested drop rewards, and upgrades. Story discoveries also act as rewards, even when the direct combat reward is small.
 
-Including Level~2 is important because it gives the prototype a sense of continuity beyond a single map. After Level~1 is cleared, Level~2 becomes available and the next deployment is shown through the level-complete panel and menu flow. This makes progression more visible while keeping each level readable as its own slice.
+Level~2 matters for pacing: it proves the menu and \texttt{StartNextLevel} path (level-complete panel, optional return to main menu, then deployment) and shows that each map can be tuned as its own slice while still reading as one campaign.
 
 \begin{figure}[H]
     \centering
@@ -360,8 +385,8 @@ Including Level~2 is important because it gives the prototype a sense of continu
             \toprule
             \textbf{\#} & \textbf{Beat} & \textbf{What changes for the player} \\
             \midrule
-            1 & L1 Night 1 & Starter loadout and supply shop use; first milestone stipend; learn day--night rhythm. \\
-            2 & L1 Night 2 & SMG and assault rifle tier; noticeably higher night pressure. \\
+            1 & L1 Night 1 & Pistol baseline; dawn shop and pickups add weapons to open slots; first milestone stipend; learn day--night rhythm. \\
+            2 & L1 Night 2 & SMG and sniper rifle unlock at the dawn shop (night~$2$); assault rifle and grenade launcher remain night~$3$+; higher night pressure. \\
             3 & L1 Night 3 & Level~1 clear; \textbf{Level~2} unlocks and the next deployment is surfaced to the player. \\
             4 & L2 Night 1 & New district layout; story and objective context escalate. \\
             5 & L2 Night 2 & Faster threats, tighter routes, larger risk--reward on mistakes. \\
@@ -377,7 +402,7 @@ Including Level~2 is important because it gives the prototype a sense of continu
 \begin{itemize}
     \item Level~2 requires Level~1 completion, so campaign order remains explicit.
     \item Progression is communicated through the level-complete screen, next-deployment text, and the main menu flow.
-    \item Each day--night step closes with spend-and-prepare feedback; clearing a level grants a larger milestone.
+    \item Each day--night step closes with dawn feedback and the shop; default milestone stipends step up across the first three campaign nights when matching \texttt{ProgressionManager} rows exist (balance table, Section~\ref{sec:systems}).
     \item Fresh starts per level avoid muddying balance with leftover stats from the previous map.
 \end{itemize}
 
@@ -386,13 +411,13 @@ Including Level~2 is important because it gives the prototype a sense of continu
     \begin{subfigure}[t]{0.48\textwidth}
         \centering
         \includegraphics[width=\linewidth]{d2_fig_level1_complete.png}
-        \caption{Level 1 completion screen showing the next deployment and carryover summary.}
+        \caption{Level 1 completion panel: stats, next deployment, and explicit reset of points, upgrades, and purchased loadout before Level~2.}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{0.48\textwidth}
         \centering
         \includegraphics[width=\linewidth]{d2_fig_level2_briefing.png}
-        \caption{Level 2 briefing screen presenting the next district and its objective.}
+        \caption{Level 2 daytime play after deployment: fresh score and pistol baseline, suburban objectives, and four-slot weapon HUD.}
     \end{subfigure}
 
     \vspace{0.6em}
@@ -402,33 +427,44 @@ Including Level~2 is important because it gives the prototype a sense of continu
         \includegraphics[width=\linewidth]{d2_fig_victory.png}
         \caption{Final victory screen after clearing all playable Deliverable 2 content.}
     \end{subfigure}
-    \caption{Progression and campaign communication in the current build. These screens help communicate advancement, next-step goals, and final completion.}
+    \caption{Progression and campaign communication in the Deliverable 2 build. These screens show advancement, next-step goals, and final completion.}
 \end{figure}
 
 \section{Testing and Iteration}\label{sec:testing}
 
-Testing and iteration were based on two main sources: observing how people played and checking core systems in Unity Play Mode. When players were confused, we treated that as a problem in the build rather than simply a matter of preference. Early testing showed that the overall premise was understandable, but some story beats and system links were not always clear at first. In response, the team improved radio lines, mission text, HUD markers, pickup hints, reward messages, and dusk summaries.
+Testing and iteration came from two main sources: observing how people played and checking core systems in Unity Play Mode. When players were confused, we treated that as a design problem. Early testing showed that the overall premise was understandable, but some story beats and system links were easy to miss. In response, the team improved radio lines, mission text, HUD markers, pickup hints, reward messages, and summaries around the day-to-night transition.
 
-Later work focused on making the rules fair and readable. The systems needed to function correctly, but they also needed to be understood quickly enough for players to make informed decisions. For that reason, much of the iteration focused on when the game gives feedback and how clearly that feedback is presented.
+Later work focused on making the rules fair and readable. The systems needed to function correctly, but they also needed to be understood quickly enough for players to make informed decisions. For that reason, much of the iteration focused on message order, prompt timing, and how clearly feedback is presented.
 
-Two examples show this process clearly. First, some testers saw the objective text but missed the world marker or the related COMMS line during busier moments. To fix this, the objective title, status line, and radio channel labeling were simplified, and support markers were added for drops and nearest enemy direction. Second, some players understood that they had earned points, but did not immediately understand why later nights felt harder after poor daytime performance. To address this, the dusk and penalty messaging was revised so the game more clearly states when missed objectives will strengthen the next night or reduce carryover value. A related UI pass also removed transient level-complete congratulation overlays and kept completion details in the dedicated summary panel.
+The latest pass focused on communication timing. COMMS playback was stabilized to reduce cases where messages were cut off by overlapping events. Day~1 objective and drop teaching was moved to staged on-screen prompts, and Night~1 aim/fire prompts were tied to visible enemy contact instead of stacked startup lines.
+
+Two examples show this process clearly. First, some testers saw the objective text but missed the world marker or the related COMMS line during busier moments. To fix this, the objective title, status line, and radio channel labeling were simplified, and support markers were added for drops and nearest enemy direction. Second, some players understood that they had earned points, but did not immediately understand why later nights felt harder after poor daytime performance. To address this, transition-phase and penalty messaging was revised so the game more clearly states the \textbf{retry} rule, when a \textbf{queued} enemy boost applies on a \textbf{later} night, and any linked penalty summary. A related UI pass also removed transient level-complete congratulation overlays and kept completion details in the dedicated summary panel.
 
 \begin{table}[H]
     \centering
+    \begingroup
     \small
-    \begin{tabularx}{\textwidth}{>{\bfseries}p{0.29\textwidth} Y}
+    \renewcommand{\arraystretch}{1.2}
+    \setlength{\tabcolsep}{7pt}
+    \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{0.24\textwidth} Y}
         \toprule
         Validation Area & Evidence Included in the Current Prototype \\
         \midrule
         Objective readability & Objective title/status presentation and marker behavior were iterated to reduce overlap and missed-task confusion. \\
+        \addlinespace[0.25em]
         Narrative readability & Speaker/channel labeling and compact COMMS presentation were revised for faster recognition during combat. \\
+        \addlinespace[0.25em]
         Resource clarity & Pickup purpose hints and reward messaging were added to reduce confusion after looting. \\
-        Balance response & Night escalation and objective penalties were tuned so players can see how day choices affect night difficulty. \\
+        \addlinespace[0.25em]
+        Balance response & Night escalation and objective handling (retry of the same night, then queued penalty nights) were tuned so players can see how day choices affect night difficulty. \\
+        \addlinespace[0.25em]
         Progression behavior & Level completion panel flow (deploy next vs. return to menu), unlock gating, and manual next-level selection were tested to ensure predictable campaign flow. \\
+        \addlinespace[0.25em]
         Regression safety & Narrative playtest notes and local PlayMode checks were used to re-verify phase transitions and core loop stability. \\
         \bottomrule
     \end{tabularx}
-        \caption{Testing and iteration summary for Deliverable 2. Local PlayMode checks were used as regression evidence for the systems-focused prototype slice.}
+    \endgroup
+    \caption{Testing and iteration summary for Deliverable 2. Local Play Mode checks were used as regression evidence for phase transitions and the core loop.}
 \end{table}
 
 \noindent\textbf{Key testing practices.}
@@ -445,47 +481,49 @@ Sessions used a short, repeatable format:
     \item \textbf{Who:} classmates and informal testers with mixed experience in action and survival games.
     \item \textbf{Task:} start a fresh Level~1 run; complete at least one full day--night--dawn loop; try a story objective; open the shop at dawn; stop when stuck or after twenty minutes.
     \item \textbf{Method:} think-aloud on the first loop when possible; note hesitation, mis-clicks, and misread HUD text without coaching mid-task.
-    \item \textbf{Notes:} time to understand the objective, whether the world marker was seen, confusion after contested drops, and whether dusk summaries answered ``what did I earn?''
+    \item \textbf{Notes:} time to understand the objective, whether the world marker was seen, confusion after contested drops, and whether end-of-day transition summaries answered ``what did I earn?''
     \item \textbf{Changes:} one fix category per iteration (for example comms clarity versus marker overlap) before re-testing.
 \end{itemize}
 
 \section{Technical Notes}\label{sec:technical}
 
-Several Unity systems were important to this iteration:
+The prototype relies on these Unity systems:
 
 \begin{itemize}
     \item \textbf{Game flow and campaign state:} \texttt{GameManager} and \texttt{GameFlowController} coordinate the day, night, dawn, and level transition structure.
-    \item \textbf{Mission guidance:} \texttt{StoryObjective}, the objective HUD, and objective markers provide in-world direction without relying on a heavy tutorial layer; support markers also track drops and nearest enemy direction.
+    \item \textbf{Mission guidance:} \texttt{StoryObjective}, objective HUD, and objective markers are combined with staged guidance controllers for objective, drop, and first-contact combat onboarding.
     \item \textbf{Narrative support:} radio updates, mission scripting, and lore systems support layered story delivery across the run.
-    \item \textbf{Balance and preparation systems:} \texttt{SupplyCrate}, \texttt{Pickup}, \texttt{PointsSystem}, and the wave balancing path connect day preparation to night pressure; contested and helicopter drops now use map-scattered spawn placement.
-    \item \textbf{Current feature gating:} crafting hooks exist in code but are disabled in this Deliverable 2 build (\texttt{enableCrafting = false}) to keep the prototype loop clean and readable.
+    \item \textbf{COMMS reliability:} \texttt{NarrativeManager} queue processing and interrupt handling were updated to reduce premature message overrides.
+    \item \textbf{Balance and preparation systems:} \texttt{SupplyCrate}, \texttt{Pickup}, \texttt{PointsSystem}, and the wave balancing path connect day preparation to night pressure; contested and helicopter drops use map-scattered spawn placement.
+    \item \textbf{Weapon loadout:} \texttt{PlayerShooting} supports four weapon slots with hotkey switching; the shop fills empty slots rather than selling duplicate types already carried.
+    \item \textbf{Feature scope:} crafting hooks exist in code but are disabled in this Deliverable 2 build (\texttt{enableCrafting = false}) to keep the prototype loop clean and readable.
     \item \textbf{Submission structure:} the Deliverable 2 package is organized around the Unity project, the standalone build output used for evaluation, and this written PDF report.
 \end{itemize}
 
-\paragraph{Build verification and limits.}
-The team smoke-tested phase transitions, unlock flow, and HUD readability in Unity Play Mode and in the standalone submission build. Crafting remains off (\texttt{enableCrafting = false}) to keep this milestone focused. Levels~3 and~4 appear as menu art only and are \textbf{not} playable in Deliverable~2.
+\paragraph{Build notes and limits.}
+Before submission, the team rechecked phase transitions, unlock flow, and HUD readability in Unity Play Mode. The final package also requires the standalone Windows build described in the course brief. Crafting remains off (\texttt{enableCrafting = false}) to keep this milestone focused. Levels~3 and~4 are \textbf{not} completed yet and are \textbf{not} playable in Deliverable~2; they are planned for Deliverable~3 (menu previews may exist, but there is no finished campaign for those districts in this submission).
 
 \paragraph{In-engine figures.}
-These captures are from the same Deliverable~2 build as the submission. They document the HUD, a daytime objective beat, combat feedback, and the dawn shop.
+These screenshots come from the current Deliverable~2 evaluation build. They show the four-slot HUD, daytime scavenging, night combat, the dawn shop, and level-to-level flow.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.92\textwidth]{d2_fig_hud.png}
-    \caption{Objective text, distance cue to the target, and COMMS during daytime play.}
+    \caption{Objective panel, navigation cues, and loadout strip (four weapon slots) during daytime play.}
     \label{fig:d2hud}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.92\textwidth]{d2_fig_daytime.png}
-    \caption{Daytime exploration at an objective site: loadout panel, health, and mission status.}
+    \caption{Daytime scavenging: loot interaction, contested-drop feedback in COMMS, and multi-slot loadout.}
     \label{fig:d2daytime}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.92\textwidth]{d2_fig_combat.png}
-    \caption{Combat encounter: hostiles counter, objective, score, and point feedback on the HUD.}
+    \caption{Night combat: wave indicator, hostiles count, objective status, score, and weapon slots.}
     \label{fig:d2combat}
 \end{figure}
 
@@ -498,7 +536,7 @@ These captures are from the same Deliverable~2 build as the submission. They doc
 
 \section{Upcoming Development (Deliverable 3)}\label{sec:upcoming}
 
-The next stage of development extends the Deliverable~2 baseline into a full four-level campaign:
+The next stage of development extends Deliverable~2 into a full four-level campaign:
 
 \begin{itemize}
     \item \textbf{Content:} make \textbf{Levels~3 and~4} (Industrial and Research) playable end-to-end; tune late-campaign waves and the \textbf{final encounter}.
@@ -511,8 +549,8 @@ The next stage of development extends the Deliverable~2 baseline into a full fou
 
 \section{Conclusion}\label{sec:conclusion}
 
-Deliverable~2 moves the project from a basic survival prototype to a more complete playable slice. The build shows clearer level flow, stronger player guidance, better integration between story and mechanics, and a more visible progression structure across two linked maps.
+Deliverable~2 delivers a coherent slice: guided level flow, fiction tied to missions and radio, systems that reward preparation, and visible progression across Town Center and Suburban.
 
-The most important result of this milestone is that the mechanics now support the intended setting and player experience. The player is not only surviving waves, but also exploring, following mission leads, responding to radio updates, and seeing how preparation affects later combat. This gives the prototype a stronger sense of coherence and provides a solid base for Deliverable~3.
+Together, those elements support the intended experience: survival through waves, exploration, mission leads, radio context, and measurable consequences of daytime choices. That combination sets up the four-level campaign planned for Deliverable~3.
 
 \end{document}

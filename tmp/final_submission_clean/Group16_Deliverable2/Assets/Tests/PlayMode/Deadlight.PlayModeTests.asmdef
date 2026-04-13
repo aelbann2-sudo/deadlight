@@ -1,0 +1,19 @@
+{
+    "name": "Deadlight.PlayModeTests",
+    "rootNamespace": "Deadlight.Tests.PlayMode",
+    "references": [
+        "Deadlight"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}
