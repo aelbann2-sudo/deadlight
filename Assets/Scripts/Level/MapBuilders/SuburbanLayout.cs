@@ -102,6 +102,9 @@ namespace Deadlight.Level.MapBuilders
         private static readonly Rect SchoolDrive = CreateRect(-10.5f, -5.5f, 2.4f, 8f);
         private static readonly Rect HospitalLot = CreateRect(10.5f, -11.3f, 8.4f, 5.8f);
         private static readonly Rect HospitalDrive = CreateRect(10.5f, -5.5f, 2.4f, 8f);
+        private static readonly Rect CommunityGreenPlaza = CreateRect(0f, 12f, 10f, 4.6f);
+        private static readonly Rect CommunityGreenSpine = CreateRect(0f, 12f, 2.6f, 9.2f);
+        private static readonly Rect CommunityGreenApron = CreateRect(0f, 8.1f, 6.2f, 2.2f);
 
         private const float MainRoadHalfWidth = 2.4f;
         private const float CollectorHalfWidth = 1.6f;
@@ -156,7 +159,10 @@ namespace Deadlight.Level.MapBuilders
                 Contains(SchoolLot, pos) ||
                 Contains(SchoolDrive, pos) ||
                 Contains(HospitalLot, pos) ||
-                Contains(HospitalDrive, pos))
+                Contains(HospitalDrive, pos) ||
+                Contains(CommunityGreenPlaza, pos) ||
+                Contains(CommunityGreenSpine, pos) ||
+                Contains(CommunityGreenApron, pos))
             {
                 return true;
             }

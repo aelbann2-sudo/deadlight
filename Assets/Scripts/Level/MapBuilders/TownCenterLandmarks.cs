@@ -85,6 +85,11 @@ namespace Deadlight.Level.MapBuilders
             checkpoint.SetParent(parent);
             checkpoint.position = position;
 
+            var booth = CreateSpriteObject(checkpoint, "GuardBooth", ProceduralSpriteGenerator.CreateGarageSprite(0), new Vector3(-2.3f, 0.3f, 0f), 5);
+            booth.transform.localScale = new Vector3(0.95f, 0.9f, 1f);
+            var boothCollider = booth.AddComponent<BoxCollider2D>();
+            MapFootprintCollider.ApplySpriteFootprint(boothCollider, booth.GetComponent<SpriteRenderer>().sprite, booth.transform.localScale, 0.9f, 0.9f);
+
             var searchlight = new GameObject("Searchlight");
             searchlight.transform.SetParent(checkpoint);
             searchlight.transform.localPosition = new Vector3(1.8f, 0.7f, 0f);
@@ -92,6 +97,9 @@ namespace Deadlight.Level.MapBuilders
 
             var ammo = CreateSpriteObject(checkpoint, "AmmoCase", ProceduralSpriteGenerator.CreateCrateSprite(), new Vector3(-2f, -1f, 0f), 4);
             ammo.GetComponent<SpriteRenderer>().color = new Color(0.38f, 0.48f, 0.3f);
+
+            var barrier = CreateSpriteObject(checkpoint, "Barrier", ProceduralSpriteGenerator.CreateCrateSprite(), new Vector3(0.2f, -0.7f, 0f), 4);
+            barrier.transform.localScale = new Vector3(1.25f, 0.45f, 1f);
 
             CreateSpriteObject(checkpoint, "CheckpointPost", CreateCheckpointPostSprite(), new Vector3(2.4f, -0.2f, 0f), 4);
         }
@@ -102,14 +110,17 @@ namespace Deadlight.Level.MapBuilders
             station.SetParent(parent);
             station.position = position;
 
-            var canopy = CreateSpriteObject(station, "Canopy", CreateCanopySprite(), Vector3.zero, 6);
+            var canopy = CreateSpriteObject(station, "Canopy", CreateCanopySprite(), new Vector3(-0.4f, 0.7f, 0f), 6);
+            canopy.transform.localScale = new Vector3(0.9f, 0.9f, 1f);
             var canopyCollider = canopy.AddComponent<BoxCollider2D>();
             MapFootprintCollider.ApplyCenteredFootprint(canopyCollider, new Vector2(3f, 1.5f), 0.82f, 0.22f, 0.02f, 0.28f);
 
-            var sign = CreateSpriteObject(station, "NeonSign", CreateNeonSignSprite(), new Vector3(0f, 1.5f, 0f), 7);
+            var sign = CreateSpriteObject(station, "NeonSign", CreateNeonSignSprite(), new Vector3(-2.9f, 0.8f, 0f), 7);
             sign.AddComponent<FlickeringLight>();
 
-            CreateSpriteObject(station, "FuelPump", CreateFuelPumpSprite(), new Vector3(-1f, -0.8f, 0f), 5);
+            CreateSpriteObject(station, "FuelPump", CreateFuelPumpSprite(), new Vector3(-1.3f, -0.8f, 0f), 5);
+            CreateSpriteObject(station, "FuelPump", CreateFuelPumpSprite(), new Vector3(-0.1f, -0.8f, 0f), 5);
+            CreateSpriteObject(station, "ParkedCar", ProceduralSpriteGenerator.CreateCarSprite(1), new Vector3(2.1f, 0.9f, 0f), 5);
         }
 
         private static void CreateDiner(Transform parent, Vector3 position)

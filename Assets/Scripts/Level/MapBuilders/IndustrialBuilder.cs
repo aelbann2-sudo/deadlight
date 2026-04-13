@@ -107,6 +107,7 @@ namespace Deadlight.Level.MapBuilders
             BuildSouthDocks();
             BuildLabApproach();
             BuildMaintenanceYard();
+            BuildCentralLogisticsHub();
             BuildCenterRoadDetails();
             BuildNorthParkingLot();
             BuildEastServiceArea();
@@ -247,22 +248,36 @@ namespace Deadlight.Level.MapBuilders
             TrySpawnBarrel(yard, new Vector3(2f, -11.8f, 0f), false);
         }
 
+        private void BuildCentralLogisticsHub()
+        {
+            var hub = CreateDistrictRoot("CentralLogisticsHub");
+            Color shedColor = new Color(0.66f, 0.68f, 0.72f);
+
+            SpawnServiceShed(hub, new Vector3(-4.4f, 0.8f, 0f), new Vector2(3.4f, 1.9f), shedColor, 1);
+            SpawnServiceShed(hub, new Vector3(4.4f, -0.8f, 0f), new Vector2(3.3f, 1.8f), shedColor, 2);
+
+            TrySpawnCrate(hub, new Vector3(-1.7f, 1.7f, 0f));
+            TrySpawnCrate(hub, new Vector3(1.9f, -1.7f, 0f));
+            TrySpawnCrate(hub, new Vector3(-0.8f, -2.3f, 0f));
+            TrySpawnCrate(hub, new Vector3(0.8f, 2.3f, 0f));
+            TrySpawnBarrel(hub, new Vector3(-2.2f, -1.6f, 0f), false);
+            TrySpawnBarrel(hub, new Vector3(2.3f, 1.6f, 0f), false);
+            TrySpawnDumpster(hub, new Vector3(0f, 3.4f, 0f));
+            TrySpawnDumpster(hub, new Vector3(0f, -3.4f, 0f));
+        }
+
         private void BuildCenterRoadDetails()
         {
             var center = CreateDistrictRoot("CenterRoadDetails");
-            SpawnPipeRack(center, new Vector3(0f, 11.2f, 0f), 14f, false);
-            SpawnPipeRack(center, new Vector3(0f, -10.5f, 0f), 12f, false);
+            SpawnPipeRack(center, new Vector3(0f, 8.6f, 0f), 10f, false);
+            SpawnPipeRack(center, new Vector3(0f, -8.3f, 0f), 9f, false);
 
-            TrySpawnCrate(center, new Vector3(-4.8f, 2.8f, 0f));
-            TrySpawnCrate(center, new Vector3(6.1f, -2.8f, 0f));
-            TrySpawnCrate(center, new Vector3(-7.5f, -1.4f, 0f));
-            TrySpawnCrate(center, new Vector3(8.2f, 1.2f, 0f));
-            TrySpawnBarrel(center, new Vector3(-1.2f, 3.1f, 0f), false);
-            TrySpawnBarrel(center, new Vector3(2.2f, -2.9f, 0f), false);
-            TrySpawnBarrel(center, new Vector3(-5.6f, -3.5f, 0f), true);
-            TrySpawnBarrel(center, new Vector3(5.8f, 3.7f, 0f), false);
-            TrySpawnDumpster(center, new Vector3(-3f, -4.8f, 0f));
-            TrySpawnDumpster(center, new Vector3(3.5f, 5.2f, 0f));
+            TrySpawnCrate(center, new Vector3(-6.2f, 4f, 0f));
+            TrySpawnCrate(center, new Vector3(6.2f, -4f, 0f));
+            TrySpawnCrate(center, new Vector3(-6.9f, -4.1f, 0f));
+            TrySpawnCrate(center, new Vector3(6.9f, 4.1f, 0f));
+            TrySpawnBarrel(center, new Vector3(-0.9f, 4.9f, 0f), false);
+            TrySpawnBarrel(center, new Vector3(1f, -4.8f, 0f), false);
         }
 
         private void BuildNorthParkingLot()
