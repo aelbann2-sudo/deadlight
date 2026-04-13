@@ -878,8 +878,8 @@ namespace Deadlight.UI
         {
             BuildAmmoPurchaseSection();
 
-            float y = -250f;
-            const int h = 56;
+            float y = -282f;
+            const int h = 64;
             AddWeaponShopItem("SMG", "Fast fire rate", 150, 2, WeaponType.SMG, ref y, h);
             AddWeaponShopItem("Sniper Rifle", "High damage, long range", 250, 2, WeaponType.SniperRifle, ref y, h);
             AddWeaponShopItem("Assault Rifle", "Balanced auto", 200, 3, WeaponType.AssaultRifle, ref y, h);
@@ -905,8 +905,8 @@ namespace Deadlight.UI
             float y = -58f;
             for (int slot = 0; slot < AmmoSlotCount; slot++)
             {
-                AddAmmoPurchaseRow(slot, y, 40);
-                y -= 44f;
+                AddAmmoPurchaseRow(slot, y, 48);
+                y -= 52f;
             }
         }
 
@@ -928,8 +928,8 @@ namespace Deadlight.UI
             title.verticalOverflow = VerticalWrapMode.Truncate;
 
             var status = UIFactory.CreateTextAt(root.transform, "Status", "",
-                UITheme.FontCaption, UITheme.TextMuted,
-                new Vector2(0f, 1f), new Vector2(14f, -24f), new Vector2(340f, 14f),
+                UITheme.FontCaption, UITheme.TextSecondary,
+                new Vector2(0f, 1f), new Vector2(14f, -27f), new Vector2(340f, 16f),
                 TextAnchor.UpperLeft);
             status.horizontalOverflow = HorizontalWrapMode.Overflow;
             status.verticalOverflow = VerticalWrapMode.Truncate;
@@ -969,8 +969,8 @@ namespace Deadlight.UI
                 TextAnchor.MiddleLeft, FontStyle.Bold);
 
             UIFactory.CreateTextAt(root.transform, "Desc", $"{desc}  ·  {cost} pts",
-                UITheme.FontSmall + 1, UITheme.TextMuted,
-                new Vector2(0f, 0.5f), new Vector2(14f, -12f), new Vector2(320f, 16f),
+                UITheme.FontCaption, UITheme.TextSecondary,
+                new Vector2(0f, 0.5f), new Vector2(14f, -13f), new Vector2(320f, 18f),
                 TextAnchor.MiddleLeft);
 
             var weaponType = wt;
@@ -1056,8 +1056,8 @@ namespace Deadlight.UI
                 TextAnchor.MiddleLeft, FontStyle.Bold);
 
             UIFactory.CreateTextAt(root.transform, "Desc", $"{desc}  ·  {cost} pts",
-                UITheme.FontSmall + 1, UITheme.TextMuted,
-                new Vector2(0f, 0.5f), new Vector2(14f, -12f), new Vector2(320f, 16f),
+                UITheme.FontCaption, UITheme.TextSecondary,
+                new Vector2(0f, 0.5f), new Vector2(14f, -13f), new Vector2(320f, 18f),
                 TextAnchor.MiddleLeft);
 
             var t = tier;
