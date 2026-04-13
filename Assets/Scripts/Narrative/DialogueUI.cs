@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 using System.Collections;
 using Deadlight.UI;
 using Deadlight.Core;
@@ -11,8 +10,8 @@ namespace Deadlight.Narrative
     {
         [Header("UI References")]
         [SerializeField] private GameObject dialoguePanel;
-        [SerializeField] private TextMeshProUGUI speakerNameText;
-        [SerializeField] private TextMeshProUGUI dialogueText;
+        [SerializeField] private Text speakerNameText;
+        [SerializeField] private Text dialogueText;
         [SerializeField] private Image speakerPortrait;
         [SerializeField] private Image backgroundImage;
         
@@ -28,7 +27,7 @@ namespace Deadlight.Narrative
         
         [Header("Skip Indicator")]
         [SerializeField] private GameObject skipIndicator;
-        [SerializeField] private TextMeshProUGUI skipText;
+        [SerializeField] private Text skipText;
 
         [Header("Visual Theme")]
         [SerializeField] private Vector2 panelSize = new Vector2(1480f, 220f);
@@ -62,7 +61,7 @@ namespace Deadlight.Narrative
         private Image topAccentImage;
         private Image channelTagBackground;
         private Image speakerTagBackground;
-        private TextMeshProUGUI channelText;
+        private Text channelText;
         private bool builtRuntimePanel;
 
         private void Awake()
@@ -331,13 +330,13 @@ namespace Deadlight.Narrative
             channelRt.anchorMax = Vector2.one;
             channelRt.offsetMin = new Vector2(4f, 1f);
             channelRt.offsetMax = new Vector2(-4f, -1f);
-            channelText = channelObj.AddComponent<TextMeshProUGUI>();
+            channelText = channelObj.AddComponent<Text>();
             channelText.text = "COMMS";
-            channelText.fontSize = 11f;
-            channelText.fontStyle = FontStyles.Bold;
+            channelText.fontSize = 11;
+            channelText.fontStyle = FontStyle.Bold;
             channelText.color = UITheme.AccentGold;
-            channelText.alignment = TextAlignmentOptions.Center;
-            channelText.textWrappingMode = TextWrappingModes.NoWrap;
+            channelText.alignment = TextAnchor.MiddleCenter;
+            channelText.horizontalOverflow = HorizontalWrapMode.Overflow;
             channelText.raycastTarget = false;
 
             var speakerTag = new GameObject("SpeakerTag");
@@ -359,13 +358,13 @@ namespace Deadlight.Narrative
             speakerRt.anchorMax = Vector2.one;
             speakerRt.offsetMin = new Vector2(8f, 1f);
             speakerRt.offsetMax = new Vector2(-8f, -1f);
-            speakerNameText = speakerObj.AddComponent<TextMeshProUGUI>();
+            speakerNameText = speakerObj.AddComponent<Text>();
             speakerNameText.text = "EVAC COMMAND";
-            speakerNameText.fontSize = 18f;
-            speakerNameText.fontStyle = FontStyles.Bold;
+            speakerNameText.fontSize = 18;
+            speakerNameText.fontStyle = FontStyle.Bold;
             speakerNameText.color = UITheme.AccentBlue;
-            speakerNameText.alignment = TextAlignmentOptions.Left;
-            speakerNameText.textWrappingMode = TextWrappingModes.NoWrap;
+            speakerNameText.alignment = TextAnchor.MiddleLeft;
+            speakerNameText.horizontalOverflow = HorizontalWrapMode.Overflow;
             speakerNameText.raycastTarget = false;
 
             var bodyObj = new GameObject("DialogueText");
@@ -375,12 +374,13 @@ namespace Deadlight.Narrative
             bodyRt.anchorMax = Vector2.one;
             bodyRt.offsetMin = new Vector2(22f, 24f);
             bodyRt.offsetMax = new Vector2(-22f, -62f);
-            dialogueText = bodyObj.AddComponent<TextMeshProUGUI>();
-            dialogueText.fontSize = 36f;
+            dialogueText = bodyObj.AddComponent<Text>();
+            dialogueText.fontSize = 22;
             dialogueText.color = dialogueTextColor;
-            dialogueText.alignment = TextAlignmentOptions.TopLeft;
-            dialogueText.textWrappingMode = TextWrappingModes.Normal;
-            dialogueText.lineSpacing = 6f;
+            dialogueText.alignment = TextAnchor.UpperLeft;
+            dialogueText.horizontalOverflow = HorizontalWrapMode.Wrap;
+            dialogueText.verticalOverflow = VerticalWrapMode.Overflow;
+            dialogueText.lineSpacing = 1.2f;
             dialogueText.text = string.Empty;
             dialogueText.raycastTarget = false;
 
@@ -392,13 +392,13 @@ namespace Deadlight.Narrative
             skipRt.pivot = new Vector2(1f, 0f);
             skipRt.anchoredPosition = new Vector2(-16f, 10f);
             skipRt.sizeDelta = new Vector2(430f, 24f);
-            skipText = skipIndicator.AddComponent<TextMeshProUGUI>();
+            skipText = skipIndicator.AddComponent<Text>();
             skipText.text = "SPACE / CLICK: REVEAL OR ADVANCE";
-            skipText.fontSize = 20f;
-            skipText.fontStyle = FontStyles.Bold;
+            skipText.fontSize = 14;
+            skipText.fontStyle = FontStyle.Bold;
             skipText.color = hintColor;
-            skipText.alignment = TextAlignmentOptions.Right;
-            skipText.textWrappingMode = TextWrappingModes.NoWrap;
+            skipText.alignment = TextAnchor.MiddleRight;
+            skipText.horizontalOverflow = HorizontalWrapMode.Overflow;
             skipText.raycastTarget = false;
 
             if (speakerPortrait == null)
@@ -449,28 +449,28 @@ namespace Deadlight.Narrative
             if (dialogueText != null)
             {
                 dialogueText.color = appliedBodyColor;
-                dialogueText.fontSize = compactLayoutActive ? 20f : 36f;
-                dialogueText.lineSpacing = compactLayoutActive ? 1f : 6f;
-                dialogueText.textWrappingMode = TextWrappingModes.Normal;
+                dialogueText.fontSize = compactLayoutActive ? 14 : 22;
+                dialogueText.lineSpacing = compactLayoutActive ? 1f : 1.2f;
+                dialogueText.horizontalOverflow = HorizontalWrapMode.Wrap;
             }
 
             if (channelText != null)
             {
-                channelText.fontSize = compactLayoutActive ? 11f : 14f;
-                channelText.fontStyle = FontStyles.Bold;
+                channelText.fontSize = compactLayoutActive ? 11 : 13;
+                channelText.fontStyle = FontStyle.Bold;
             }
 
             if (speakerNameText != null)
             {
-                speakerNameText.fontSize = compactLayoutActive ? 14f : 24f;
-                speakerNameText.fontStyle = FontStyles.Bold;
+                speakerNameText.fontSize = compactLayoutActive ? 13 : 18;
+                speakerNameText.fontStyle = FontStyle.Bold;
             }
 
             if (skipText != null)
             {
                 skipText.color = appliedHintColor;
-                skipText.fontSize = compactLayoutActive ? 10f : 20f;
-                skipText.fontStyle = FontStyles.Bold;
+                skipText.fontSize = compactLayoutActive ? 10 : 14;
+                skipText.fontStyle = FontStyle.Bold;
                 skipText.text = compactLayoutActive ? "SPACE / CLICK" : "SPACE / CLICK: REVEAL OR ADVANCE";
             }
         }
