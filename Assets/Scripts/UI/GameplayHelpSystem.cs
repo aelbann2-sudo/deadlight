@@ -128,13 +128,13 @@ namespace Deadlight.UI
                    "Left Click Fire\n" +
                    "R Reload\n" +
                    "1 / 2 / 3 / 4 / Wheel Swap weapon\n" +
-                   "Left Shift Sprint\n" +
-                   "Space Dodge\n\n" +
+                   "Left Shift Sprint (speed boost)\n" +
+                   "Space Dodge roll (quick acceleration burst, 0.8s cooldown)\n\n" +
                    "<b>Utility</b>\n" +
                    "Q Throw grenade\n" +
                    "G Throw molotov\n" +
                    "C Use stored medkit (2.5s channel)\n" +
-                   "F Interact / secure objectives\n\n" +
+                   "F Hold to loot crates / secure objectives (1.5s hold)\n\n" +
                    "<b>Interface</b>\n" +
                    "J Open journal\n" +
                    "[ and ] Cycle journal pages\n" +
