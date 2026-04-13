@@ -134,7 +134,8 @@ namespace Deadlight.UI
                    "Q Throw grenade\n" +
                    "G Throw molotov\n" +
                    "C Use stored medkit (2.5s channel)\n" +
-                   "F Hold to loot crates / secure objectives (1.5s hold)\n\n" +
+                   "F Tap to interact / secure day objectives\n" +
+                   "F Hold (1.5s) to loot supply crates\n\n" +
                    "<b>Interface</b>\n" +
                    "J Open journal\n" +
                    "[ and ] Cycle journal pages\n" +
