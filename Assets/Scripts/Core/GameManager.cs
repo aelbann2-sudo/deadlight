@@ -74,10 +74,7 @@ namespace Deadlight.Core
         [SerializeField, Min(0)] private int maxObjectiveRetriesPerStep = 1;
         [SerializeField, Range(1f, 2f)] private float missedObjectiveEnemyPenaltyMultiplier = 1.2f;
         [SerializeField, Range(0.2f, 1f)] private float missedObjectiveCarryoverPenaltyMultiplier = 0.75f;
-        [Header("Feature Toggles")]
-        [SerializeField] private bool enableCrafting = false;
-
-        private const float DefaultFixedDeltaTime = 0.02f;
+private const float DefaultFixedDeltaTime = 0.02f;
 
         public GameState CurrentState => currentState;
         public MapType SelectedMap => selectedMap;

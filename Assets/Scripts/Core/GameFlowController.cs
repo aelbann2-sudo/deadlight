@@ -71,8 +71,7 @@ namespace Deadlight.Core
         [SerializeField] private float contestedBroadcastDuration = 5f;
         [SerializeField] private float contestedSecureHoldTime = 3.5f;
         [SerializeField] private float contestedExpiryTime = 14f;
-        [SerializeField] private float contestedDropRadius = 7f;
-        [SerializeField, Range(0f, 1f)] private float contestedDropChancePerDay = 0.6f;
+[SerializeField, Range(0f, 1f)] private float contestedDropChancePerDay = 0.6f;
         [SerializeField] private int maxActiveDayCrates = 2;
         private DayContestedDropState dayContestedDropState = DayContestedDropState.Inactive;
         private bool dayContestedDropSpawned;
