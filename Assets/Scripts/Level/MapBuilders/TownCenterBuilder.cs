@@ -71,10 +71,12 @@ namespace Deadlight.Level.MapBuilders
 
             Vector3[] benchPositions =
             {
-                new Vector3(-4.5f, 0f, 0f),
-                new Vector3(4.5f, 0f, 0f),
-                new Vector3(0f, -4.5f, 0f),
-                new Vector3(0f, 4.5f, 0f)
+                new Vector3(-3.2f, 0f, 0f),
+                new Vector3(3.2f, 0f, 0f),
+                new Vector3(-1.9f, 2.5f, 0f),
+                new Vector3(1.9f, 2.5f, 0f),
+                new Vector3(-1.9f, -2.5f, 0f),
+                new Vector3(1.9f, -2.5f, 0f)
             };
 
             foreach (Vector3 pos in benchPositions)
@@ -82,21 +84,22 @@ namespace Deadlight.Level.MapBuilders
                 var bench = new GameObject("Bench");
                 bench.transform.SetParent(plaza);
                 bench.transform.position = pos;
+                bench.transform.localScale = new Vector3(1.05f, 0.55f, 1f);
                 var sr = bench.AddComponent<SpriteRenderer>();
                 sr.sprite = ProceduralSpriteGenerator.CreateCrateSprite();
                 sr.sortingOrder = 4;
                 sr.color = new Color(0.5f, 0.34f, 0.22f);
                 var col = bench.AddComponent<BoxCollider2D>();
-                MapFootprintCollider.ApplyCustomSpriteFootprint(col, sr.sprite, bench.transform.localScale, new Vector2(0.9f, 0.35f));
-                RegisterPlacement(pos, new Vector2(0.9f, 0.35f));
+                MapFootprintCollider.ApplyCustomSpriteFootprint(col, sr.sprite, bench.transform.localScale, new Vector2(1f, 0.4f));
+                RegisterPlacement(pos, new Vector2(1f, 0.4f));
             }
 
             Vector3[] planterPositions =
             {
-                new Vector3(-5.5f, -5.5f, 0f),
-                new Vector3(5.5f, -5.5f, 0f),
-                new Vector3(-5.5f, 5.5f, 0f),
-                new Vector3(5.5f, 5.5f, 0f)
+                new Vector3(-3.1f, 3.2f, 0f),
+                new Vector3(3.1f, 3.2f, 0f),
+                new Vector3(-3.1f, -3.2f, 0f),
+                new Vector3(3.1f, -3.2f, 0f)
             };
 
             foreach (Vector3 pos in planterPositions)
@@ -109,10 +112,10 @@ namespace Deadlight.Level.MapBuilders
 
             Vector3[] coverPositions =
             {
-                new Vector3(-2.5f, 3f, 0f),
-                new Vector3(2.5f, 3f, 0f),
-                new Vector3(-2.5f, -3f, 0f),
-                new Vector3(2.5f, -3f, 0f)
+                new Vector3(-4f, 1.4f, 0f),
+                new Vector3(4f, -1.4f, 0f),
+                new Vector3(-0.8f, 3.3f, 0f),
+                new Vector3(0.8f, -3.3f, 0f)
             };
 
             foreach (Vector3 pos in coverPositions)
@@ -382,12 +385,18 @@ namespace Deadlight.Level.MapBuilders
 
         private void BuildCheckpointBlock(Transform block, Vector3 center, Color tint)
         {
-            SpawnBuilding(block, center + new Vector3(2.1f, 1.9f, 0f), new Vector2(1.8f, 2.1f), 2, ShiftTint(tint, -0.06f), "Barracks");
+            SpawnBuilding(block, center + new Vector3(2f, 1.5f, 0f), new Vector2(2f, 2.1f), 2, ShiftTint(tint, -0.06f), "Barracks");
 
             Color fenceTint = new Color(0.5f, 0.47f, 0.42f);
-            SpawnFence(block, center + new Vector3(-2.8f, 0f, 0f), center + new Vector3(0.8f, 0f, 0f), fenceTint);
-            SpawnBarrel(block, center + new Vector3(-1.4f, 1.4f, 0f), false);
-            SpawnBarrel(block, center + new Vector3(-1.1f, -1.5f, 0f), false);
+            SpawnFence(block, center + new Vector3(-2.8f, 1.1f, 0f), center + new Vector3(0.6f, 1.1f, 0f), fenceTint);
+            SpawnFence(block, center + new Vector3(-2.8f, -1.1f, 0f), center + new Vector3(-0.5f, -1.1f, 0f), fenceTint);
+            SpawnBarrel(block, center + new Vector3(-1.7f, 1.8f, 0f), false);
+            SpawnBarrel(block, center + new Vector3(-1.5f, -1.8f, 0f), false);
+            SpawnCrate(block, center + new Vector3(-1.3f, 0.1f, 0f), false);
+            if (TryPlace(center + new Vector3(0.2f, -0.2f, 0f), new Vector2(0.3f, 0.3f)))
+            {
+                SpawnStreetPost(block, center + new Vector3(0.2f, -0.2f, 0f));
+            }
         }
 
         private void BuildCrashCorridorBlock(Transform block, Vector3 center, Color tint)
@@ -479,7 +488,7 @@ namespace Deadlight.Level.MapBuilders
                         continue;
                     }
 
-                    if (Random.value < 0.55f)
+                    if (Random.value < 0.72f)
                     {
                         continue;
                     }
@@ -490,7 +499,7 @@ namespace Deadlight.Level.MapBuilders
                         SpawnDumpster(connectors, coverPos, false);
                     }
 
-                    if (Random.value > 0.5f)
+                    if (Random.value > 0.7f)
                     {
                         Vector3 barrelPos = midpoint + new Vector3(Random.Range(-1.4f, -0.7f), -1.1f, 0f);
                         if (TryPlace(barrelPos, new Vector2(0.65f, 0.65f)))
@@ -673,8 +682,13 @@ namespace Deadlight.Level.MapBuilders
             {
                 for (float y = -hh + spacing; y < hh; y += spacing)
                 {
+                    if (Mathf.Abs(x) < 15f && Mathf.Abs(y) < 15f)
+                    {
+                        continue;
+                    }
+
                     Vector3 corner = new Vector3(x + 2f, y + 2f, 0f);
-                    if (TownCenterLayout.IsCentralPlaza(corner) || Random.value > 0.45f)
+                    if (TownCenterLayout.IsCentralPlaza(corner) || Random.value > 0.25f)
                     {
                         continue;
                     }

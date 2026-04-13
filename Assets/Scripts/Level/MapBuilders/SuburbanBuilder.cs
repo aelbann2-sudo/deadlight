@@ -93,6 +93,7 @@ namespace Deadlight.Level.MapBuilders
             BuildDetachedHomes();
             BuildNeighborhoodEdges();
             BuildUtilityLots();
+            BuildCommunityGreen();
             ScatterCenterTrees();
             PlaceRoadCars();
             PlaceStreetPosts();
@@ -175,6 +176,59 @@ namespace Deadlight.Level.MapBuilders
             TrySpawnDumpster(lots, new Vector3(32.5f, 0.4f, 0f));
             TrySpawnDumpster(lots, new Vector3(31.5f, -22.6f, 0f));
             TrySpawnBarrel(lots, new Vector3(27.8f, 0.7f, 0f));
+        }
+
+        private void BuildCommunityGreen()
+        {
+            var green = CreateDistrictRoot("CommunityGreen");
+            Color benchColor = new Color(0.63f, 0.46f, 0.28f);
+
+            Vector3[] treeSpots =
+            {
+                new Vector3(-4.2f, 15.1f, 0f),
+                new Vector3(4.2f, 15.1f, 0f),
+                new Vector3(-4.1f, 8.9f, 0f),
+                new Vector3(4.1f, 8.8f, 0f),
+            };
+
+            foreach (Vector3 pos in treeSpots)
+            {
+                TrySpawnTree(green, pos);
+            }
+
+            Vector3[] benchSpots =
+            {
+                new Vector3(-2f, 9.7f, 0f),
+                new Vector3(2f, 9.7f, 0f),
+                new Vector3(0f, 14.5f, 0f),
+            };
+
+            foreach (Vector3 pos in benchSpots)
+            {
+                if (!TryPlace(pos, new Vector2(1f, 0.55f)))
+                {
+                    continue;
+                }
+
+                GameObject bench = SpawnCrate(green, pos, false);
+                bench.transform.localScale = new Vector3(1.1f, 0.55f, 1f);
+                bench.GetComponent<SpriteRenderer>().color = benchColor;
+            }
+
+            if (TryPlace(new Vector3(0f, 12f, 0f), new Vector2(1f, 1f)))
+            {
+                SpawnRock(green, new Vector3(0f, 12f, 0f), false);
+            }
+
+            if (TryPlace(new Vector3(-0.4f, 8.6f, 0f), new Vector2(0.35f, 0.35f)))
+            {
+                SpawnStreetPost(green, new Vector3(-0.4f, 8.6f, 0f));
+            }
+
+            if (TryPlace(new Vector3(0.4f, 8.6f, 0f), new Vector2(0.35f, 0.35f)))
+            {
+                SpawnStreetPost(green, new Vector3(0.4f, 8.6f, 0f));
+            }
         }
 
         private void PlaceRoadCars()
