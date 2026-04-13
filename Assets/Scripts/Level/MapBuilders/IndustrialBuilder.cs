@@ -152,7 +152,7 @@ namespace Deadlight.Level.MapBuilders
         private void BuildWestSalvageYard()
         {
             var yard = CreateDistrictRoot("WestSalvageYard");
-            Color fenceColor = new Color(0.54f, 0.55f, 0.5f);
+            Color fenceColor = new Color(0.72f, 0.74f, 0.7f);
 
             SpawnFence(yard, new Vector3(-29f, 14.5f, 0f), new Vector3(-19f, 14.5f, 0f), fenceColor);
             SpawnFence(yard, new Vector3(-29f, -2.5f, 0f), new Vector3(-26f, -2.5f, 0f), fenceColor);
@@ -176,7 +176,7 @@ namespace Deadlight.Level.MapBuilders
         private void BuildEastProcessYard()
         {
             var yard = CreateDistrictRoot("EastProcessYard");
-            Color fenceColor = new Color(0.56f, 0.56f, 0.51f);
+            Color fenceColor = new Color(0.73f, 0.74f, 0.7f);
 
             SpawnFence(yard, new Vector3(19f, 14.8f, 0f), new Vector3(29f, 14.8f, 0f), fenceColor);
             SpawnFence(yard, new Vector3(19f, -2.5f, 0f), new Vector3(22f, -2.5f, 0f), fenceColor);
@@ -203,7 +203,7 @@ namespace Deadlight.Level.MapBuilders
         private void BuildSouthDocks()
         {
             var docks = CreateDistrictRoot("SouthDocks");
-            Color fenceColor = new Color(0.54f, 0.55f, 0.5f);
+            Color fenceColor = new Color(0.72f, 0.74f, 0.7f);
 
             SpawnDockPlatform(docks, new Vector3(-23.5f, -23.8f, 0f), new Vector2(6.8f, 1.7f));
             SpawnFence(docks, new Vector3(-30f, -27.8f, 0f), new Vector3(-17f, -27.8f, 0f), fenceColor);
@@ -220,7 +220,7 @@ namespace Deadlight.Level.MapBuilders
         private void BuildLabApproach()
         {
             var lab = CreateDistrictRoot("LabApproach");
-            Color fenceColor = new Color(0.56f, 0.57f, 0.52f);
+            Color fenceColor = new Color(0.73f, 0.75f, 0.72f);
 
             SpawnFence(lab, new Vector3(-8f, -25.2f, 0f), new Vector3(-8f, -31.8f, 0f), fenceColor);
             SpawnFence(lab, new Vector3(8f, -25.2f, 0f), new Vector3(8f, -31.8f, 0f), fenceColor);
@@ -298,7 +298,7 @@ namespace Deadlight.Level.MapBuilders
         private void BuildSoutheastScrapPile()
         {
             var scrap = CreateDistrictRoot("SoutheastScrap");
-            Color fenceColor = new Color(0.54f, 0.55f, 0.5f);
+            Color fenceColor = new Color(0.72f, 0.74f, 0.7f);
 
             SpawnFence(scrap, new Vector3(17f, -27.8f, 0f), new Vector3(29f, -27.8f, 0f), fenceColor);
 

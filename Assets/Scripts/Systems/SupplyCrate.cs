@@ -74,7 +74,7 @@ namespace Deadlight.Systems
 
             if (promptText != null)
             {
-                promptText.text = "[F] Secure Drop";
+                promptText.text = "Hold F to Secure Drop";
                 promptText.color = new Color(1f, 0.85f, 0.35f);
             }
 
@@ -841,8 +841,8 @@ namespace Deadlight.Systems
             pRect.anchoredPosition = new Vector2(0, 80);
             pRect.sizeDelta = new Vector2(200, 30);
             promptText = promptObj.AddComponent<Text>();
-            string tierLabel = tier == CrateTier.Legendary ? "[F] LEGENDARY" :
-                               tier == CrateTier.Rare ? "[F] Rare Crate" : "[F] Loot";
+            string tierLabel = tier == CrateTier.Legendary ? "Hold F — LEGENDARY" :
+                               tier == CrateTier.Rare ? "Hold F — Rare Crate" : "Hold F to Loot";
             promptText.text = tierLabel;
             promptText.font = font;
             promptText.fontSize = 22;

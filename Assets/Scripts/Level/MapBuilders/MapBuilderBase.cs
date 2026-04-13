@@ -301,7 +301,7 @@ namespace Deadlight.Level.MapBuilders
             if (hasCollider)
             {
                 var col = obj.AddComponent<BoxCollider2D>();
-                col.size = new Vector2(length, 0.28f);
+                col.size = new Vector2(length, 0.55f);
             }
 
             if (registerPlacement)
@@ -354,19 +354,28 @@ namespace Deadlight.Level.MapBuilders
             }
 
             const int width = 32;
-            const int height = 12;
+            const int height = 16;
             var texture = new Texture2D(width, height);
             texture.filterMode = FilterMode.Point;
             var pixels = new Color[width * height];
-            Color rail = new Color(0.66f, 0.68f, 0.7f);
-            Color post = new Color(0.44f, 0.46f, 0.5f);
+            // Transparent background
+            for (int i = 0; i < pixels.Length; i++) pixels[i] = Color.clear;
+            Color rail = new Color(0.82f, 0.84f, 0.88f);
+            Color post = new Color(0.55f, 0.58f, 0.65f);
+            Color shadow = new Color(0.25f, 0.27f, 0.3f, 0.6f);
 
-            FillRect(pixels, width, 0, 1, 4, 10, post);
-            FillRect(pixels, width, width - 4, 1, 4, 10, post);
-            FillRect(pixels, width, 3, 3, width - 6, 2, rail);
-            FillRect(pixels, width, 3, 7, width - 6, 2, rail);
-            FillRect(pixels, width, 8, 0, 2, height, post);
-            FillRect(pixels, width, width - 10, 0, 2, height, post);
+            // Shadow strip at bottom
+            FillRect(pixels, width, 0, 0, width, 2, shadow);
+            // End posts (full height, bright)
+            FillRect(pixels, width, 0, 2, 4, height - 2, post);
+            FillRect(pixels, width, width - 4, 2, 4, height - 2, post);
+            // Mid posts
+            FillRect(pixels, width, 9, 2, 3, height - 2, post);
+            FillRect(pixels, width, width - 12, 2, 3, height - 2, post);
+            // Top rail (bright)
+            FillRect(pixels, width, 4, height - 4, width - 8, 3, rail);
+            // Bottom rail
+            FillRect(pixels, width, 4, 4, width - 8, 3, rail);
 
             texture.SetPixels(pixels);
             texture.Apply();
