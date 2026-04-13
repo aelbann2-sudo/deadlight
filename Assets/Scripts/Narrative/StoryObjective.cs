@@ -252,9 +252,9 @@ namespace Deadlight.Narrative
                 return;
             }
 
-            int currentLevel = GameManager.Instance != null ? GameManager.Instance.CurrentNight : currentBeat.Night;
-            completedDayLeads.Add(currentLevel);
-            completedBeats.Add(new StoryBeatRecord(currentLevel, currentBeat.DayTitle, currentBeat.JournalSummary));
+            int currentNight = GameManager.Instance != null ? GameManager.Instance.CurrentNight : currentBeat.Night;
+            completedDayLeads.Add(currentNight);
+            completedBeats.Add(new StoryBeatRecord(currentNight, currentBeat.DayTitle, currentBeat.JournalSummary));
 
             if (PointsSystem.Instance != null && currentBeat.RewardPoints > 0)
             {

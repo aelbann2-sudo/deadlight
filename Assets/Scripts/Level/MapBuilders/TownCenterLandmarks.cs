@@ -52,7 +52,11 @@ namespace Deadlight.Level.MapBuilders
             var heliBody = CreateSpriteObject(crashSite, "HelicopterBody", CreateHelicopterSprite(), Vector3.zero, 5);
             heliBody.transform.rotation = Quaternion.Euler(0f, 0f, 25f);
             var bodyCollider = heliBody.AddComponent<BoxCollider2D>();
-            bodyCollider.size = new Vector2(3f, 1.2f);
+            MapFootprintCollider.ApplyCustomSpriteFootprint(
+                bodyCollider,
+                heliBody.GetComponent<SpriteRenderer>().sprite,
+                heliBody.transform.localScale,
+                new Vector2(3f, 1.2f));
 
             var fireEffect = new GameObject("Fire");
             fireEffect.transform.SetParent(crashSite);

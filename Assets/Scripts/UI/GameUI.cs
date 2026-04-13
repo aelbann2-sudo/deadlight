@@ -69,10 +69,10 @@ namespace Deadlight.UI
 
         // ── Campaign data ─────────────────────────────────────
         private static readonly string[] levelSubtitles = { "Crash Evidence", "Shelter Records", "Lazarus Breach", "Containment Finale" };
-        private static readonly string[] levelMapNames = { "Town Center", "Suburban Evacuation", "Industrial District", "Research Facility" };
+        private static readonly string[] levelMapNames = { "Town Center", "Suburban Outskirts", "Industrial District", "Research Complex" };
         private static readonly string[] levelStageLabels = { "3 objective nights", "3 objective nights", "3 objective nights", "3 nights + boss finale" };
         private static readonly string[] levelPreviewKeys = { "TownCenter", "Suburban", "Industrial", "Research" };
-        private const int MaxSelectableLevel = 2;
+        private const int MaxSelectableLevel = GameManager.TotalLevels;
         private static readonly string[] levelObjectiveSummaries = {
             "Recover Flight 7's black box.",
             "Recover the shelter evacuation records.",
@@ -295,7 +295,7 @@ namespace Deadlight.UI
                 TextAnchor.UpperLeft);
 
             UIFactory.CreateTextAt(left.transform, "Body",
-                "Deliverable 2 build includes playable Levels 1-2 (six objective nights total). Levels 3-4 are marked COMING SOON for next deliverables.",
+                "Four playable districts, twelve objective nights, and a final containment push now make up the full campaign route.",
                 UITheme.FontBody, UITheme.TextSecondary,
                 new Vector2(0f, 1f), new Vector2(26f, -148f), new Vector2(480f, 80f),
                 TextAnchor.UpperLeft);
@@ -317,7 +317,7 @@ namespace Deadlight.UI
                 new Vector2(500f, 86f), ShowCampaignMap);
 
             UIFactory.CreateActionButton(left.transform, "MapBtn", "Level Select",
-                "Play Levels 1-2 now, preview upcoming levels.",
+                "Deploy to any unlocked level and preview the full route.",
                 UITheme.AccentGold, new Vector2(0f, 1f), new Vector2(24f, -442f),
                 new Vector2(500f, 86f), ShowCampaignMap);
 
@@ -347,7 +347,7 @@ namespace Deadlight.UI
                 TextAnchor.UpperLeft, FontStyle.Bold);
 
             UIFactory.CreateTextAt(right.transform, "RouteDesc",
-                "Levels 1-2 are playable now with six objective nights total. Levels 3-4 are upcoming for the next deliverables.",
+                "Campaign route spans four playable levels with escalating objectives and a final boss sector.",
                 UITheme.FontBody, UITheme.TextSecondary,
                 new Vector2(0f, 1f), new Vector2(24f, -72f), new Vector2(900f, 48f),
                 TextAnchor.UpperLeft);
@@ -436,7 +436,7 @@ namespace Deadlight.UI
                 TextAnchor.UpperLeft, FontStyle.Bold);
 
             UIFactory.CreateTextAt(_mapSelectPanel.transform, "Desc",
-                "Levels 1-2 are playable in this prototype. Levels 3-4 are marked COMING SOON for next deliverables.",
+                "Select any unlocked level. Clear the active sector to unlock the next deployment.",
                 UITheme.FontBody, UITheme.TextSecondary,
                 new Vector2(0f, 1f), new Vector2(54f, -158f), new Vector2(720f, 48f),
                 TextAnchor.UpperLeft);
@@ -1172,34 +1172,32 @@ namespace Deadlight.UI
                 _mainMenuProgressText.text = $"Level {highest:00} ready: {levelObjectiveSummaries[highest - 1]}";
 
             if (_mapSelectProgressText != null)
-                _mapSelectProgressText.text = $"Unlocked through Level {highest:00}. Levels 3 to 4 are COMING SOON (next deliverables).";
+                _mapSelectProgressText.text = $"Highest unlocked level: {highest:00}. Clear the active sector to unlock the next.";
 
             foreach (var row in _campaignRouteRows)
             {
-                bool upcoming = row.Level > MaxSelectableLevel;
-                bool unlocked = !upcoming && IsLevelUnlocked(row.Level);
+                bool unlocked = IsLevelUnlocked(row.Level);
                 bool ready = unlocked && row.Level == highest;
-                row.StatusText.text = ready ? "READY" : unlocked ? "UNLOCKED" : upcoming ? "COMING SOON" : "LOCKED";
+                row.StatusText.text = ready ? "READY" : unlocked ? "UNLOCKED" : "LOCKED";
                 row.StatusBackground.color = ready
                     ? UITheme.Darken(UITheme.AccentGreen, 0.35f)
-                    : unlocked ? UITheme.BgLight : upcoming ? UITheme.Darken(UITheme.AccentBlue, 0.55f) : UITheme.Darken(UITheme.AccentRed, 0.5f);
+                    : unlocked ? UITheme.BgLight : UITheme.Darken(UITheme.AccentRed, 0.5f);
             }
 
             foreach (var card in _campaignCards)
             {
-                bool upcoming = card.Level > MaxSelectableLevel;
-                bool unlocked = !upcoming && IsLevelUnlocked(card.Level);
+                bool unlocked = IsLevelUnlocked(card.Level);
                 bool ready = unlocked && card.Level == highest;
 
                 if (card.Button != null) card.Button.interactable = unlocked;
                 if (card.StatusText != null)
                 {
-                    card.StatusText.text = ready ? "READY" : unlocked ? "UNLOCKED" : upcoming ? "COMING SOON" : "LOCKED";
+                    card.StatusText.text = ready ? "READY" : unlocked ? "UNLOCKED" : "LOCKED";
                     card.StatusText.color = unlocked ? UITheme.TextPrimary : UITheme.TextMuted;
                 }
                 if (card.ActionText != null)
                 {
-                    card.ActionText.text = unlocked ? "DEPLOY" : upcoming ? "COMING SOON" : $"COMPLETE L{Mathf.Max(1, card.Level - 1)}";
+                    card.ActionText.text = unlocked ? "DEPLOY" : $"COMPLETE L{Mathf.Max(1, card.Level - 1)}";
                     card.ActionText.color = unlocked ? UITheme.TextPrimary : UITheme.TextMuted;
                 }
                 if (card.PreviewImage != null)
@@ -1607,10 +1605,10 @@ namespace Deadlight.UI
                 bool hasNextPlayableLevel = next > level && next <= levelCap;
                 string nextMap = hasNextPlayableLevel
                     ? levelMapNames[Mathf.Clamp(next - 1, 0, levelMapNames.Length - 1)]
-                    : "No further playable levels in this build";
+                    : "Campaign complete";
                 string nextObj = hasNextPlayableLevel
                     ? levelObjectiveSummaries[Mathf.Clamp(next - 1, 0, levelObjectiveSummaries.Length - 1)]
-                    : "This prototype currently ends after the completed playable route.";
+                    : "All four sectors are secure. Stand by for the final debrief.";
                 string nextDeploymentText = hasNextPlayableLevel
                     ? $"Level {next} - {nextMap}"
                     : nextMap;

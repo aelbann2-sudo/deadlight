@@ -303,9 +303,10 @@ namespace Deadlight.Narrative
             }
 
             MapType map = boundGameManager != null ? boundGameManager.SelectedMap : MapType.TownCenter;
-            int night = boundGameManager != null ? boundGameManager.CurrentNight : 1;
+            int level = boundGameManager != null ? boundGameManager.CurrentLevel : 1;
+            int nightWithinLevel = boundGameManager != null ? boundGameManager.NightWithinLevel : 1;
             string stateLabel = boundGameManager != null ? boundGameManager.CurrentState.ToString() : "Unknown";
-            headerText.text = $"FIELD JOURNAL // {GetMapLabel(map)} // LEVEL {night} // {stateLabel.ToUpperInvariant()}";
+            headerText.text = $"FIELD JOURNAL // {GetMapLabel(map)} // LEVEL {level} // NIGHT {nightWithinLevel} // {stateLabel.ToUpperInvariant()}";
 
             objectiveText.text = BuildObjectiveSection();
             storyLogText.text = BuildStoryLog();
@@ -338,8 +339,12 @@ namespace Deadlight.Narrative
             for (int i = 0; i < records.Count; i++)
             {
                 StoryBeatRecord record = records[i];
+                int level = GameManager.GetLevelForNight(record.Night);
+                int nightWithinLevel = GameManager.GetNightWithinLevel(record.Night);
                 builder.Append("Level ");
-                builder.Append(record.Night);
+                builder.Append(level);
+                builder.Append(", Night ");
+                builder.Append(nightWithinLevel);
                 builder.Append(": ");
                 builder.AppendLine(record.Title);
                 builder.AppendLine(record.Summary);
