@@ -1,0 +1,155 @@
+Deliverable 3: Final Game Prototype and
+Showcase Presentation (40%)
+Submission Deadline: April 17th, 11:59 PM on Brightspace
+•
+•
+
+Submission Format: One submission per team, clearly labeled (e.g.,
+GroupName_Deliverable3.zip).
+Team-Based Submission: Each team must submit a single deliverable that represents
+their completed game and showcase presentation.
+
+Deliverable 3: Final Game Prototype and Showcase Presentation (40%) marks the
+culmination of your work throughout the course. By this stage, you have already laid a strong
+foundation through Deliverable 1 and Deliverable 2, focusing on conceptual frameworks (fun,
+flow, engagement; MDA; player types), core and meta gameplay loops, paper prototyping, level
+design, narrative, systems balance, and progression mechanics. Now, you will refine your
+project further by integrating art, aesthetics, and sound design, performing extensive
+playtesting and iteration, and bringing your final game to a polished state ready for a
+broader audience.
+Your final submission begins with a completed, fully functional Unity prototype that
+demonstrates cohesive implementation of all design elements introduced earlier. You should
+illustrate how your level design has matured, showing nuanced pacing, intuitive player guidance,
+and a suitable balance between challenge and exploration. The narrative design should feel
+immersive and coherent, with well-integrated lore, dialogue, and world-building that enhance
+the overall gameplay experience. Resource and progression systems must be well-balanced,
+supporting players’ motivations through carefully calibrated risk-reward mechanics, leveling
+schemes, or unlockable content.
+An essential evolution at this stage is your art, aesthetics, and sound design. Even if you are
+using placeholders or partial assets, your submission should show a clear aesthetic direction—
+demonstrating thoughtful choices in user interface (UI) layouts, visual style, and music or sound
+effects to heighten engagement. This refinement includes ensuring consistent visual feedback for
+player actions, cohesive color schemes for environments and characters, and audio cues that
+reinforce gameplay moments (such as success, danger, or discovery).
+Your submission must also include evidence of robust playtesting and iteration,
+summarizing how you gathered feedback from class peers, testers, or your own observations,
+and how this feedback led you to adjust mechanics, rework level design, or refine progression
+balances. If any parts of the game proved particularly challenging—such as a boss encounter or
+a puzzle sequence—describe the design changes you made to achieve fairness, maintain tension,
+or foster a sense of accomplishment. Additionally, highlight any debugging or performance
+optimizations you performed to improve stability and responsiveness.
+
+To showcase your final prototype, record a short video presentation that provides an
+overview of your game’s premise, its core systems, and its most compelling gameplay moments.
+This video should be submitted to the course Dropbox in lieu of a live, in-class presentation.
+The recording should concisely illustrate how players interact with your game, the visual and
+auditory atmosphere you have crafted, and the overall user experience you aim to deliver.
+Ensure the video offers a clear walkthrough or demonstration of key features, allowing viewers
+to appreciate the progression from your early concepts to the polished state you have now
+achieved.
+Finally, compile all necessary Unity project files (again including only the Assets, Packages, and
+ProjectSettings directories) along with a functional Windows build, ensuring that instructors
+and peers can access and play your game without additional software. Organize your
+submission into a single .zip file, clearly labeled with your group or individual name. Doublecheck that your final build runs smoothly and that you have removed any extraneous files to
+avoid bloated archives. Submit both the .zip file and your showcase video to the designated
+Dropbox link by the stated deadline.
+With this final deliverable, you bring together every element of game design explored in the
+course, reflecting on how the theoretical concepts of fun, flow, engagement, player motivations,
+and iterative refinement have shaped your final product. Your completed prototype and
+recorded demonstration should embody a cohesive, polished experience—one that merges
+thoughtful design, functional mechanics, artistic flair, and a deep awareness of player feedback
+into a game you can confidently share and evaluate.
+
+What to Submit in Deliverable 3
+In this final submission, you will bring together every aspect of your game design and
+development progress:
+1. Game Prototype (Unity Project & Executable):
+Provide a fully functional Unity project containing only the necessary folders—
+Assets, Packages, and ProjectSettings—so that your instructors can open and review the
+game if needed.
+Alongside the project files, include a Windows build (an .exe and accompanying Data
+folder) that allows reviewers to play your final game without requiring the Unity Editor.
+Make sure the build runs smoothly, with no missing assets or critical bugs.
+2. PDF Documentation:
+Submit a brief but comprehensive report (5–10 pages) explaining the final state of your
+game. Summarize the evolution of your design from initial concepts to final polish,
+referencing the core principles covered throughout the course:
+• Art, Aesthetics, & Sound Design: Describe your choices in visuals, UI, and audio.
+• Narrative & Systems Integration: Show how lore, story elements, and mechanics
+work together.
+• Progression & Balance: Highlight your leveling or rewards systems and how
+you’ve balanced them.
+• Playtesting & Iteration: Demonstrate how feedback influenced final refinements.
+
+•
+
+Technical Implementation: Provide an overview of notable Unity features, scripts,
+or design patterns.
+3. Showcase Presentation (Recorded Video):
+Instead of an in-person demo, you must submit a short video (3–5 minutes) that
+presents your final prototype. This recording should succinctly show:
+• The game’s core premise and setting.
+• A guided walkthrough of key gameplay features (movement, combat, puzzlesolving, etc.).
+• Visual or audio highlights (animations, sound effects, user interface).
+• Any unique selling points or polished moments that differentiate your game.
+Package all items (project folder, Windows build, PDF report, and video file or link) into a
+single .zip archive labeled appropriately (e.g., GroupName_Deliverable3.zip) and upload it to the
+course Dropbox by the specified due date. Double-check that your files are accessible, that the
+game build is fully operational, and that your video can be viewed without issue.
+
+Rubric for Deliverable 3: Final Game Prototype and Showcase
+Presentation (40%)
+Criterion
+Unity
+Implementation &
+Polish
+Art, Aesthetics &
+Sound Design
+Narrative &
+Systems
+Integration
+Playtesting &
+Iteration
+
+Presentation &
+Documentation
+
+Description
+Evaluates the stability and completeness of the final build.
+Looks for well-structured Unity project files, minimal bugs,
+and a smooth gameplay experience. Considers technical
+complexity and finishing touches (e.g., performance
+optimizations).
+Assesses visual coherence (color schemes,
+character/environment design), interface clarity, and effective
+use of music or sound effects. Focuses on how well these
+elements enhance immersion and overall player experience.
+Reviews the cohesion between story/lore and gameplay
+mechanics. Expects balanced resource or progression
+systems that align with the narrative context. Considers how
+effectively all subsystems (e.g., AI, puzzles) work together.
+Examines the extent to which feedback has been
+incorporated. Looks for improvements since previous
+deliverables, evidence of user testing, and documentation of
+iterative design changes that enhance player engagement and
+clarity.
+Considers the clarity, organization, and completeness of the
+PDF report. Evaluates the recorded showcase video’s
+effectiveness in demonstrating core gameplay elements,
+visual style, and overall appeal. Reflects on professionalism
+and coherence.
+
+Total Points Available: 100 (40% of overall course grade)
+
+Points
+0-20
+
+0-20
+
+0-20
+
+0-20
+
+0-20
+
+

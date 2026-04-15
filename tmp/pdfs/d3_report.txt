@@ -1,0 +1,614 @@
+CS4483B / 9541 Game Design
+
+Deadlight: Survival After Dark
+Final Game Prototype and Showcase Report (Deliverable 3)
+Group 16
+Simranjeet Singh
+Abdelrahman El Banna
+Koroush Emari
+Ashraf Esam Mahdi
+
+Submission Scope:
+Playable Length:
+Project Type:
+Report Focus:
+
+Final four-level campaign prototype and submission package
+Twelve campaign nights across four districts + final boss gate
+Top-down zombie survival game in Unity
+Art/audio polish, narrative-systems cohesion, balance, testing, technical implementation
+
+April 2026
+
+Contents
+1 Project Overview
+
+1
+
+2 Criteria Coverage
+
+2
+
+3 Art, Aesthetics, and Sound Design
+
+2
+
+3.1
+
+Visual Direction and Level Identity . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+2
+
+3.2
+
+UI Aesthetics and Readability . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+3
+
+3.3
+
+Audio Atmosphere and Feedback . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+3
+
+4 Narrative and Systems Integration
+
+4
+
+4.1
+
+Campaign Narrative Arc . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+4
+
+4.2
+
+Narrative Delivery Channels . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+4
+
+5 Progression and Balance
+
+5
+
+5.1
+
+Campaign Progression Model . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+5
+
+5.2
+
+Balance Levers in the Main Branch . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+5
+
+5.3
+
+Final Boss Integration . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+5
+
+6 Playtesting and Iteration
+
+6
+
+6.1
+
+Runtime Verification . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+6
+
+6.2
+
+Iteration Evidence from Main-Branch History . . . . . . . . . . . . . . . . . . . . . .
+
+6
+
+7 Technical Implementation
+7.1
+
+Submission Readiness (Deliverable 3 Requirements)
+
+8 Conclusion
+
+7
+. . . . . . . . . . . . . . . . . .
+
+7
+8
+
+1
+
+Project Overview
+
+Deliverable 3 consolidates the project into a full campaign prototype built around four playable
+districts: Town Center, Suburban Outskirts, Industrial District, and Research Complex.
+The runtime campaign now spans 12 nights total (3 nights per level), with a final victory condition
+that requires defeating Subject 23 in the final Research segment.
+The gameplay loop remains intentionally consistent and readable:
+ Day: follow objectives, scavenge resources, and prepare loadout/economy.
+ Night: survive escalating waves with mutation and pacing pressure.
+ Dawn: convert performance into progression via rewards, shopping, and upgrades.
+
+Across Deliverable 3, this loop is no longer a two-level slice; it is implemented as a full route with
+level identity, progression handoff, and a terminal encounter gate. The final branch requires both
+night completion and boss elimination before the run can resolve as victory.
+The report follows the deliverable rubric directly: Unity implementation and polish, art/aesthetics/sound,
+narrative and systems integration, progression and balance, playtesting/iteration, and technical
+implementation with submission readiness.
+
+1
+
+2
+
+Criteria Coverage
+
+Rubric Criterion
+
+Implemented in the Final Prototype
+
+Demonstrated In-Game / In
+Project Evidence
+
+Unity Implementation
+& Polish
+
+Full campaign flow (4 levels, 12
+nights), level transitions, final
+boss-gated ending, runtime map
+generation, and integrated
+UI/gameflow systems.
+
+Campaign order and level
+progression state, final-boss
+requirement before victory,
+defensive programming around
+transitions, and tested runtime
+systems.
+
+Art, Aesthetics &
+Sound Design
+
+District-specific visual identities,
+unified UI design tokens, level
+accent palettes, and layered
+procedural music/SFX with
+dynamic tension mixing.
+
+Map-specific tint/layout grammar,
+campaign UI accenting per level,
+day/night/boss audio states, voice
+ducking, and threat-responsive mix
+behavior.
+
+Narrative & Systems
+Integration
+
+Story arcs and objective chains are
+authored per district; radio, lore
+triggers, and objective locations are
+synchronized with progression and
+combat phases.
+
+12-night radio progression,
+level-specific story beats
+(Lazarus/Subject 23 arc), narrative
+world triggers tied to landmark
+positions and mission flow.
+
+Playtesting &
+Iteration
+
+Structured runtime PlayMode
+coverage plus targeted UX iteration
+on onboarding, HUD/shop clarity,
+dialogue readability, and
+progression edge cases.
+
+Committed iteration history (Apr
+2–7), concrete feedback-to-fix
+examples, and passing PlayMode
+regression checks for day/night
+flow, loadouts, transitions, and
+economy behavior.
+
+Presentation &
+Documentation
+
+Submission-oriented docs,
+packaging scripts, and a final report
+format aligned with course
+submission requirements.
+
+Consolidated report structure,
+explicit checklist for Unity
+files/build/video, and showcase
+narrative that maps prototype
+features to rubric goals.
+
+Table 1. Deliverable 3 rubric mapping: implementation scope, in-game behavior, and report
+evidence.
+
+3
+
+Art, Aesthetics, and Sound Design
+
+3.1
+
+Visual Direction and Level Identity
+
+The final prototype uses district-specific visual grammar rather than a single repeated map skin.
+Each level has distinct geometry density, path logic, and color treatment:
+ Town Center (L1): balanced grid-like navigation with readable open lanes.
+ Suburban (L2): wider open spaces and lower cover density to emphasize exposure and
+routing decisions.
+ Industrial (L3): tighter corridor pressure and denser obstacle routing.
+
+2
+
+ Research (L4): high-density containment layout designed as the most constrained final
+arena.
+
+This map-level differentiation is reinforced through per-map configuration values (layout type, density, spawn composition, tint palettes), then surfaced in route progression and objective anchoring.
+District
+
+Visual / Spatial Identity in Deliverable 3
+
+Town Center
+
+Balanced streets and lanes for onboarding readability, objective routing, and early
+combat literacy.
+
+Suburban
+Outskirts
+
+More open ground with lower natural cover to increase exposure management and
+movement planning.
+
+Industrial
+District
+
+Corridor-heavy density, tighter intersections, and obstacle pressure that punish
+poor pathing under threat.
+
+Research
+Complex
+
+Tight containment geometry and high-intensity pacing tuned for final-stage
+objective and boss flow.
+
+Table 1: Level-specific visual direction and pacing identity across the four-level campaign.
+
+3.2
+
+UI Aesthetics and Readability
+
+UI styling is centralized using shared theme tokens: dark background hierarchy, high-contrast text
+tiers, and level accent colors mapped to campaign order (L1 green, L2 yellow-green, L3 amber, L4
+red). This keeps menus, overlays, panels, and progression displays visually consistent while still
+signaling stage identity.
+Recent UI iteration in main branch focuses on readability and action clarity:
+ fixed weapon-shop subtitle contrast and panel clipping,
+ clearer guide text for interaction controls,
+ simplified and more robust dialogue rendering,
+ consistent campaign route communication in guide/menu overlays.
+
+Two player-facing polish outcomes are especially important. First, after the locked-state button
+visuals and subtitle contrast were fixed in the dawn shop, players were less likely to read unavailable
+purchases as bugs and could more quickly infer unlock timing. Second, after Level 1 onboarding
+hints were added for first combat contact, new players entered the night loop with less hesitation
+and needed fewer facilitator prompts.
+
+3.3
+
+Audio Atmosphere and Feedback
+
+Audio design combines procedural generation with runtime adaptive mixing:
+ phase-aware music states (menu/day/night/dawn/boss),
+ ambient layering and crossfades,
+
+3
+
+ dynamic tension model (base + transient spikes),
+ voice ducking to keep comms legible during high-pressure moments,
+ procedural SFX library (weapons, pickups, alarms, radio static, helicopter cues).
+
+The system escalates intensity by context rather than static playback only. For example, night
+tension increases by campaign depth, boss state enforces a higher tension floor, and communication
+events trigger temporary ducking and threat peaks. This creates a more coherent sensory arc across
+day exploration, combat escalation, and final-stage urgency.
+A concrete audio iteration example came from combat readability feedback: earlier sessions showed
+that some radio instructions were getting masked during high-action moments. The reactive mix
+now ducks music beneath voice lines and then restores tension immediately after delivery, which
+preserved urgency while improving instruction legibility during pressure.
+
+4
+
+Narrative and Systems Integration
+
+4.1
+
+Campaign Narrative Arc
+
+Narrative is implemented as map-specific objective arcs instead of disconnected flavor text. Each
+district has a 3-beat chain with location anchors, mission intent, and completion narration, culminating in the Research final stand against Subject 23.
+Segment
+
+Narrative + Systems Coupling
+
+L1: Town
+Center
+
+Establishes Flight 7 crash, checkpoint evidence, and Lazarus hospital linkage while
+teaching objective tracking and day/night structure.
+
+L2: Suburban
+
+Escalates civilian abandonment and transfer evidence through shelter/clinic beats
+while increasing route exposure and pressure handling demands.
+
+L3: Industrial
+
+Connects command intent and Lazarus origin data to denser corridor combat,
+introducing stronger mutation pressure and late-campaign pacing.
+
+L4: Research
+
+Final containment narrative: recover credentials/data, arm beacon, then survive
+final stage and defeat Subject 23 before victory can trigger.
+
+Table 2: Narrative progression is tied to objective landmarks, not separated from gameplay.
+
+4.2
+
+Narrative Delivery Channels
+
+Integration relies on multiple coordinated channels:
+ night-indexed radio transmissions across all 12 nights,
+ objective text and completion state updates,
+ map-specific lore trigger sets and landmark interactions,
+ world-building events placed at meaningful traversal nodes,
+
+4
+
+ endgame gating logic that enforces narrative closure through gameplay action.
+
+This structure ensures that story progression aligns with what the player is doing mechanically:
+route traversal reveals context, night survival reinforces stakes, and final combat resolves both
+systems and narrative arc.
+
+5
+
+Progression and Balance
+
+5.1
+
+Campaign Progression Model
+
+Progression now operates on a complete 4-level timeline:
+ Total scope: 12 nights (3 per level),
+ Level order: Town Center → Suburban → Industrial → Research,
+ Victory gate: final night completion plus Subject 23 defeat.
+Level
+
+Night Range
+
+Progression Purpose
+
+L1 Town Center
+
+1–3
+
+Core loop onboarding, route literacy, and initial Lazarus
+context.
+
+L2 Suburban
+
+4–6
+
+Increased exposure management and objective pressure
+under broader spaces.
+
+L3 Industrial
+
+7–9
+
+Corridor escalation, stronger mutation pressure, and deep
+narrative reveal.
+
+L4 Research
+
+10–12
+
+Final objective chain and Subject 23 gate before victory can
+resolve.
+
+Table 3: Deliverable 3 progression timeline: full 12-night campaign with final boss-gated completion.
+
+5.2
+
+Balance Levers in the Main Branch
+
+5.3
+
+Final Boss Integration
+
+Deliverable 3 completion is explicitly protected from premature victory:
+ final campaign night checks whether Subject 23 is defeated,
+ if not defeated, the boss is forced to spawn and reminder comms are shown,
+ victory can only resolve after boss-death registration in the final segment.
+
+This ensures progression closure is mechanical and verifiable, not only UI-driven.
+
+5
+
+Balance Lever
+
+Main-Branch Behavior
+
+Night pacing and wave
+pressure
+
+Night configs scale wave count, base enemy count, spawn interval, and
+enemy multipliers by campaign night/level; Level 1 speed remains
+deliberately reduced for onboarding readability.
+
+Objective miss handling
+
+Retry-first rule (one repeat for missed objective step), then queued
+enemy penalty on later advance, with explicit summary messaging at
+dawn.
+
+Adaptive safety valves
+
+Enemy count and spawn interval adapt to current player health bands
+to reduce unwinnable spikes while preserving escalation identity.
+
+Economy cadence
+
+Night survival + milestone bonuses + objective rewards feed dawn
+purchases; progression messages expose retry/penalty context to
+maintain fairness legibility.
+
+Weapon progression gates
+
+Dawn shop weapon gates by progression night (SMG/Sniper N2+,
+AR/GL N3+, Flamethrower N4+) with ownership checks and
+affordability constraints.
+
+Contested risk/reward
+events
+
+Day-phase contested supply drops begin at configured campaign
+depth, then run through broadcast/descent/secure/resolve/expire
+states with timed reward tradeoffs.
+
+Table 4: Progression and balance controls used in the final prototype runtime.
+
+6
+
+Playtesting and Iteration
+
+6.1
+
+Runtime Verification
+
+The repository includes PlayMode test suites that target gameplay-critical behavior:
+ DaytimePrepRuntimeTests for prep rules, contested drops, and soft-penalty behavior,
+ WeaponLoadoutRuntimeTests for four-slot loadout limits and rejection of overflow states,
+ LevelTransitionResetRuntimeTests for inter-level reset correctness (points, upgrades, and
+loadout),
+ regression checks for loot and emergency-drop systems.
+
+Recorded test artifacts in the repo show passing PlayMode runs for these runtime checks, used as
+regression evidence while integrating campaign-level changes.
+Manual playtesting used short repeated sessions (fresh Level 1 start, one full day–night–dawn loop,
+then focused note-taking on confusion points). Each pass targeted one issue category before retesting.
+
+6.2
+
+Iteration Evidence from Main-Branch History
+
+Main-branch commits from April 2–7 show a tight feedback loop: identify one observed confusion
+point, apply a targeted fix, then re-test with the same core loop.
+
+6
+
+Observed Playtest
+Feedback
+
+Implemented Main-Branch
+Change
+
+Player-Facing Result
+
+First-time players
+hesitated at initial
+night contact and
+escalation cues.
+
+Added Level 1 on-screen
+zombie onboarding hints
+(a782b18).
+
+Faster day-to-night transition with fewer
+facilitator prompts.
+
+Players interpreted
+locked shop options
+as UI malfunction.
+
+Fixed armor tab layout and
+lock-state visuals
+(7ffc90c), plus four-slot
+HUD strip updates
+(288f1ea).
+
+Clearer purchase affordance and fewer
+mistaken buy attempts at dawn.
+
+Players did not
+always connect
+daytime misses to
+later-night pressure
+changes.
+
+Enforced explicit retry-first
+then queued-penalty flow
+and related messaging
+(7cf1528).
+
+Consequences became easier to understand
+and felt more fair.
+
+Table 5: Concrete feedback-to-fix-to-impact examples from recent main-branch iteration.
+
+7
+
+Technical Implementation
+
+The final prototype is organized around four cooperating runtime pillars:
+ GameManager: campaign state, level/night indexing, progression transitions, and final victory
+logic.
+ GameFlowController: phase orchestration, day objectives, contested drops, and lifecycle
+events.
+ WaveManager: wave sequencing, enemy composition, adaptive scaling, and boss conditions.
+ GameUI + objective systems: route communication, shop gating, and player-facing clarity.
+
+District identity and pacing are data-driven through map-specific layout configs (landmarks, density, traversal, and per-night threat values), enabling targeted tuning without rewriting core loop
+logic.
+
+7.1
+
+Submission Readiness (Deliverable 3 Requirements)
+
+To align with course submission instructions, the deliverable package should include:
+ Unity project folders: Assets, Packages, ProjectSettings,
+ functional Windows build (.exe + Data folder),
+ this final PDF report,
+ recorded showcase video (3–5 minutes) covering premise, core systems, gameplay highlights,
+and polish points.
+
+7
+
+8
+
+Conclusion
+
+Deliverable 3 transitions Deadlight from a mid-project slice into a coherent full-campaign prototype.
+The main branch now demonstrates complete route progression, integrated narrative-systems flow,
+district-level visual/aesthetic identity, adaptive combat balance, and final-boss-gated completion.
+Most importantly, the final prototype reflects iterative design rather than one-pass implementation: guidance, readability, pacing, and transition robustness were repeatedly refined to produce a
+playable and assessable final build suitable for submission and showcase.
+The strongest lesson from this phase is that readability is part of core design, not optional polish.
+Short feedback loops (one observed confusion point, one targeted fix, one re-test pass) consistently
+produced the largest gains in both system trust and player confidence.
+For player experience, this meant a clearer run-level story: players can more quickly understand
+what happened, why it happened, and what to do next. That clarity improved confidence in both
+moment-to-moment decisions and long-range campaign planning, which was a central outcome goal
+for this milestone.
+
+8
+
+

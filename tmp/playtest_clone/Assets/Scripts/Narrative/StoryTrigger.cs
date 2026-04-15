@@ -16,6 +16,7 @@ namespace Deadlight.Narrative
         [SerializeField] private bool requireDayPhase = false;
         [SerializeField] private int minimumNight = 1;
         [SerializeField] private int maximumNight = 5;
+        [SerializeField] private bool useLevelRelativeNightRange = false;
         
         [Header("Interaction")]
         [SerializeField] private bool requireInteraction = false;
@@ -102,7 +103,13 @@ namespace Deadlight.Narrative
             if (hasTriggered && triggerOnce) return false;
 
             int currentNight = Core.GameManager.Instance?.CurrentNight ?? 1;
-            if (currentNight < minimumNight || currentNight > maximumNight) return false;
+            int nightForRange = currentNight;
+            if (useLevelRelativeNightRange)
+            {
+                nightForRange = Core.GameManager.GetNightWithinLevel(currentNight);
+            }
+
+            if (nightForRange < minimumNight || nightForRange > maximumNight) return false;
 
             if (requireNightPhase || requireDayPhase)
             {
@@ -145,7 +152,8 @@ namespace Deadlight.Narrative
             bool nightOnly = false,
             int minNightValue = 1,
             int maxNightValue = 5,
-            bool requireUse = false)
+            bool requireUse = false,
+            bool levelRelativeNightRange = false)
         {
             triggerId = id;
             triggerOnce = once;
@@ -154,6 +162,7 @@ namespace Deadlight.Narrative
             minimumNight = minNightValue;
             maximumNight = Mathf.Max(minNightValue, maxNightValue);
             requireInteraction = requireUse;
+            useLevelRelativeNightRange = levelRelativeNightRange;
         }
 
         private void OnDrawGizmos()
@@ -189,7 +198,7 @@ namespace Deadlight.Narrative
             string info = $"{TriggerId}\n" +
                          $"Dialogue: {(dialogueToPlay != null ? dialogueToPlay.name : "None")}\n" +
                          $"Once: {triggerOnce}\n" +
-                         $"Nights: {minimumNight}-{maximumNight}";
+                         $"Nights: {minimumNight}-{maximumNight} ({(useLevelRelativeNightRange ? "level-relative" : "campaign-relative")})";
             UnityEditor.Handles.Label(transform.position + Vector3.up, info);
             #endif
         }

@@ -112,7 +112,14 @@ namespace Deadlight.Narrative
 
             var trigger = triggerObj.AddComponent<StoryTrigger>();
             trigger.SetDialogue(CreateDialogue(spec));
-            trigger.ConfigureRuntime(spec.Id, once: true, dayOnly: true, minNightValue: spec.MinNight, maxNightValue: spec.MaxNight, requireUse: false);
+            trigger.ConfigureRuntime(
+                spec.Id,
+                once: true,
+                dayOnly: true,
+                minNightValue: spec.MinNight,
+                maxNightValue: spec.MaxNight,
+                requireUse: false,
+                levelRelativeNightRange: true);
         }
 
         private static DialogueData CreateDialogue(TriggerSpec spec)
