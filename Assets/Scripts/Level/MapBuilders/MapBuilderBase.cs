@@ -12,6 +12,7 @@ namespace Deadlight.Level.MapBuilders
         protected float boundW;  // usable half-width (inside perimeter)
         protected float boundH;  // usable half-height
         protected readonly List<Rect> occupiedAreas = new List<Rect>();
+        private static Sprite cachedFenceSprite;
         private System.Func<int, int, int> getTileType;
 
         public virtual bool OwnsLandmarks => false;
@@ -267,14 +268,51 @@ namespace Deadlight.Level.MapBuilders
             if (registerPlacement)
             {
                 var col = obj.AddComponent<BoxCollider2D>();
-                col.size = new Vector2(1.5f, 0.7f);
+                MapFootprintCollider.ApplyCustomSpriteFootprint(col, sr.sprite, obj.transform.localScale, new Vector2(1.5f, 0.7f));
             }
             return obj;
         }
 
         protected GameObject SpawnFence(Transform parent, Vector3 from, Vector3 to, Color tint, bool hasCollider = true, bool registerPlacement = true)
         {
-            return null;
+            Vector3 midpoint = Clamp((from + to) * 0.5f);
+            Vector3 delta = to - from;
+            float length = delta.magnitude;
+            if (length <= Mathf.Epsilon)
+            {
+                return null;
+            }
+
+            var obj = new GameObject("Fence");
+            obj.transform.SetParent(parent);
+            obj.transform.position = midpoint;
+            obj.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg);
+
+            Sprite sprite = GetFenceSprite();
+            var visual = new GameObject("Visual");
+            visual.transform.SetParent(obj.transform, false);
+            visual.transform.localScale = new Vector3(length / sprite.bounds.size.x, 1f, 1f);
+
+            var sr = visual.AddComponent<SpriteRenderer>();
+            sr.sprite = sprite;
+            sr.color = tint;
+            sr.sortingOrder = Mathf.RoundToInt(-midpoint.y * 2f) + 1;
+
+            if (hasCollider)
+            {
+                var col = obj.AddComponent<BoxCollider2D>();
+                col.size = new Vector2(length, 0.55f);
+            }
+
+            if (registerPlacement)
+            {
+                Vector2 footprint = Mathf.Abs(delta.x) >= Mathf.Abs(delta.y)
+                    ? new Vector2(length, 0.45f)
+                    : new Vector2(0.45f, length);
+                RegisterPlacement(midpoint, footprint);
+            }
+
+            return obj;
         }
 
         protected GameObject SpawnDumpster(Transform parent, Vector3 pos, bool registerPlacement = true)
@@ -306,6 +344,54 @@ namespace Deadlight.Level.MapBuilders
                 if (Vector3.Distance(pos, e) < minDist) return true;
             }
             return false;
+        }
+
+        private static Sprite GetFenceSprite()
+        {
+            if (cachedFenceSprite != null)
+            {
+                return cachedFenceSprite;
+            }
+
+            const int width = 32;
+            const int height = 16;
+            var texture = new Texture2D(width, height);
+            texture.filterMode = FilterMode.Point;
+            var pixels = new Color[width * height];
+            // Transparent background
+            for (int i = 0; i < pixels.Length; i++) pixels[i] = Color.clear;
+            Color rail = new Color(0.82f, 0.84f, 0.88f);
+            Color post = new Color(0.55f, 0.58f, 0.65f);
+            Color shadow = new Color(0.25f, 0.27f, 0.3f, 0.6f);
+
+            // Shadow strip at bottom
+            FillRect(pixels, width, 0, 0, width, 2, shadow);
+            // End posts (full height, bright)
+            FillRect(pixels, width, 0, 2, 4, height - 2, post);
+            FillRect(pixels, width, width - 4, 2, 4, height - 2, post);
+            // Mid posts
+            FillRect(pixels, width, 9, 2, 3, height - 2, post);
+            FillRect(pixels, width, width - 12, 2, 3, height - 2, post);
+            // Top rail (bright)
+            FillRect(pixels, width, 4, height - 4, width - 8, 3, rail);
+            // Bottom rail
+            FillRect(pixels, width, 4, 4, width - 8, 3, rail);
+
+            texture.SetPixels(pixels);
+            texture.Apply();
+            cachedFenceSprite = Sprite.Create(texture, new Rect(0f, 0f, width, height), new Vector2(0.5f, 0.5f), 16f);
+            return cachedFenceSprite;
+        }
+
+        private static void FillRect(Color[] pixels, int width, int x, int y, int rectWidth, int rectHeight, Color color)
+        {
+            for (int row = y; row < y + rectHeight; row++)
+            {
+                for (int col = x; col < x + rectWidth; col++)
+                {
+                    pixels[row * width + col] = color;
+                }
+            }
         }
 
     }

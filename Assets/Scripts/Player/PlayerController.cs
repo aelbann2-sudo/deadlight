@@ -7,8 +7,8 @@ namespace Deadlight.Player
     public class PlayerController : MonoBehaviour
     {
         [Header("Movement Settings")]
-        [SerializeField] private float moveSpeed = 2.5f;
-        [SerializeField] private float sprintMultiplier = 1.5f;
+        [SerializeField] private float moveSpeed = 3.1f;
+        [SerializeField] private float sprintMultiplier = 1.25f;
         [SerializeField] private float sprintStaminaCost = 20f;
         [SerializeField] private float staminaRegenRate = 15f;
 
@@ -281,7 +281,7 @@ namespace Deadlight.Player
         }
         
         private float speedMultiplier = 1f;
-        private float baseMoveSpeed = 2.5f;
+        private float baseMoveSpeed = 3.1f;
         
         public void ApplySpeedMultiplier(float multiplier)
         {

@@ -38,6 +38,10 @@ namespace Deadlight.UI
             public const string Powerup = "powerup";
             public const string BlueprintToken = "blueprint_token";
             public const string Armor = "armor";
+            public const string Grenade = "grenade";
+            public const string Molotov = "molotov";
+            public const string Shotgun = "shotgun";
+            public const string Medkit = "medkit";
             public const string LoreIntel = "lore_intel";
         }
 
@@ -53,26 +57,6 @@ namespace Deadlight.UI
                 "Ammo",
                 "Adds reserve ammunition for your weapons. Reload with R when the magazine runs dry.",
                 "Adds reserve ammo."),
-            [ItemIds.Scrap] = new GameplayHelpEntry(
-                ItemIds.Scrap,
-                "Scrap",
-                "Salvage resource recovered from crates and field pickups.",
-                "Resource pickup."),
-            [ItemIds.Wood] = new GameplayHelpEntry(
-                ItemIds.Wood,
-                "Wood",
-                "Recovered building material used in run progression systems.",
-                "Resource pickup."),
-            [ItemIds.Chemicals] = new GameplayHelpEntry(
-                ItemIds.Chemicals,
-                "Chemicals",
-                "Recovered material found in supply crates and objective rewards.",
-                "Resource pickup."),
-            [ItemIds.Electronics] = new GameplayHelpEntry(
-                ItemIds.Electronics,
-                "Electronics",
-                "Recovered component used by advanced progression rewards.",
-                "Resource pickup."),
             [ItemIds.Points] = new GameplayHelpEntry(
                 ItemIds.Points,
                 "Points",
@@ -83,16 +67,31 @@ namespace Deadlight.UI
                 "Powerup",
                 "Activates a random temporary combat bonus such as Double Damage, Speed Boost, Infinite Ammo, or Invincibility.",
                 "Random temporary buff."),
-            [ItemIds.BlueprintToken] = new GameplayHelpEntry(
-                ItemIds.BlueprintToken,
-                "Blueprint Token",
-                "Special token awarded from high-tier supply drops.",
-                "Special resource."),
             [ItemIds.Armor] = new GameplayHelpEntry(
                 ItemIds.Armor,
                 "Armor",
                 "Vests and helmets absorb incoming damage before your health does.",
                 "Absorbs incoming damage."),
+            [ItemIds.Grenade] = new GameplayHelpEntry(
+                ItemIds.Grenade,
+                "Grenade",
+                "Explosive utility. Throw with Q to clear clustered enemies.",
+                "Explosive utility."),
+            [ItemIds.Molotov] = new GameplayHelpEntry(
+                ItemIds.Molotov,
+                "Molotov",
+                "Incendiary utility. Throw with G to deny space and burn enemies over time.",
+                "Area burn utility."),
+            [ItemIds.Shotgun] = new GameplayHelpEntry(
+                ItemIds.Shotgun,
+                "Shotgun",
+                "Close-range powerhouse added to your loadout when a slot is free.",
+                "New weapon acquired."),
+            [ItemIds.Medkit] = new GameplayHelpEntry(
+                ItemIds.Medkit,
+                "Medkit",
+                "Stored healing charge. Use with C to channel and recover a large chunk of health.",
+                "Stored emergency heal."),
             [ItemIds.LoreIntel] = new GameplayHelpEntry(
                 ItemIds.LoreIntel,
                 "Intel Document",
@@ -106,10 +105,10 @@ namespace Deadlight.UI
             {
                 PickupType.Health => ItemIds.Health,
                 PickupType.Ammo => ItemIds.Ammo,
-                PickupType.Scrap => ItemIds.Points,
-                PickupType.Wood => ItemIds.Points,
-                PickupType.Chemicals => ItemIds.Points,
-                PickupType.Electronics => ItemIds.Points,
+                PickupType.Scrap => string.Empty,
+                PickupType.Wood => string.Empty,
+                PickupType.Chemicals => string.Empty,
+                PickupType.Electronics => string.Empty,
                 PickupType.Points => ItemIds.Points,
                 PickupType.Powerup => ItemIds.Powerup,
                 _ => string.Empty
@@ -129,13 +128,14 @@ namespace Deadlight.UI
                    "Left Click Fire\n" +
                    "R Reload\n" +
                    "1 / 2 / 3 / 4 / Wheel Swap weapon\n" +
-                   "Left Shift Sprint\n" +
-                   "Space Dodge\n\n" +
+                   "Left Shift Sprint (speed boost)\n" +
+                   "Space Dodge roll (quick acceleration burst, 0.8s cooldown)\n\n" +
                    "<b>Utility</b>\n" +
                    "Q Throw grenade\n" +
                    "G Throw molotov\n" +
                    "C Use stored medkit (2.5s channel)\n" +
-                   "F Interact / secure objectives\n\n" +
+                   "F Tap to interact / secure day objectives\n" +
+                   "F Hold (1.5s) to loot supply crates\n\n" +
                    "<b>Interface</b>\n" +
                    "J Open journal\n" +
                    "[ and ] Cycle journal pages\n" +
@@ -146,24 +146,25 @@ namespace Deadlight.UI
         public static string GetRulesText()
         {
             return "<b>Campaign Scope</b>\n" +
-                   "- Final prototype: playable Levels 1-4.\n" +
-                   "- Route: Town Center -> Suburban -> Industrial -> Research.\n\n" +
+                   "- Four playable levels.\n" +
+                   "- Route: Town Center -> Suburban -> Industrial -> Research.\n" +
+                   "- Each sector unlocks after the previous one is cleared.\n\n" +
                    "<b>Core Loop</b>\n" +
                    "- Each level has 3 day/night steps.\n" +
                    "- Day: complete objective + loot.\n" +
                    "- Night: survive all waves until dawn.\n" +
                    "- Dawn: shop, refill, upgrade, redeploy.\n\n" +
                    "<b>Run End</b>\n" +
-                   "- Win this build by clearing Level 4, Night 3.\n" +
+                   "- Win by clearing the final Research deployment.\n" +
                    "- Player death ends the run.";
         }
 
         public static string GetSystemsText()
         {
             return "<b>Prototype Coverage</b>\n" +
-                   "- Level Design: Town Center, Suburban, Industrial, and Research objective routes.\n" +
+                   "- Level Design: district-specific routes, landmarks, chokepoints, and objective lanes across all four maps.\n" +
                    "- Player Guidance: intro briefing, objective tracker, guide, and pickup callouts.\n" +
-                   "- System Balance: pressure escalates from Level 1, Night 1 to Level 4, Night 3.\n" +
+                   "- System Balance: pressure escalates from Level 1, Night 1 through the final Research sector.\n" +
                    "- Progression: dawn upgrades and weapon access progress through the run.\n" +
                    "- Rewards: kills, objective clears, and crates grant spendable points.\n\n" +
                    "<b>Objective Miss Rule</b>\n" +
@@ -187,6 +188,7 @@ namespace Deadlight.UI
             builder.AppendLine("- Health: instant heal on pickup.");
             builder.AppendLine("- Ammo: adds reserve ammo.");
             builder.AppendLine("- Grenade / Molotov: throw with Q/G, refill at dawn.");
+            builder.AppendLine("- Level 4 drops can include grenade, molotov, medkit, and shotgun rewards.");
             builder.AppendLine("- Medkit: buy/store (max 5), use with C (2.5s).");
             builder.AppendLine("- Points: shop currency.");
             builder.AppendLine("- Powerup: temporary combat buff.");
@@ -284,6 +286,11 @@ namespace Deadlight.UI
 
         public void ShowItem(string itemId, int amount = 0)
         {
+            if (IsLegacyCollectibleItem(itemId))
+            {
+                return;
+            }
+
             if (!GameplayGuideContent.TryGetEntry(itemId, out _))
             {
                 return;
@@ -304,6 +311,15 @@ namespace Deadlight.UI
             {
                 displayRoutine = StartCoroutine(ProcessQueue());
             }
+        }
+
+        private static bool IsLegacyCollectibleItem(string itemId)
+        {
+            return itemId == GameplayGuideContent.ItemIds.Scrap ||
+                   itemId == GameplayGuideContent.ItemIds.Wood ||
+                   itemId == GameplayGuideContent.ItemIds.Chemicals ||
+                   itemId == GameplayGuideContent.ItemIds.Electronics ||
+                   itemId == GameplayGuideContent.ItemIds.BlueprintToken;
         }
 
         private void HandleGameStateChanged(GameState newState)

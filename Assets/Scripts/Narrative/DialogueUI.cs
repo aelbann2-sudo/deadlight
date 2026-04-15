@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 using System.Collections;
 using Deadlight.UI;
 using Deadlight.Core;
@@ -9,221 +8,86 @@ namespace Deadlight.Narrative
 {
     public class DialogueUI : MonoBehaviour
     {
-        [Header("UI References")]
-        [SerializeField] private GameObject dialoguePanel;
-        [SerializeField] private TextMeshProUGUI speakerNameText;
-        [SerializeField] private TextMeshProUGUI dialogueText;
-        [SerializeField] private Image speakerPortrait;
-        [SerializeField] private Image backgroundImage;
-        
         [Header("Typewriter Effect")]
         [SerializeField] private bool useTypewriterEffect = true;
-        [SerializeField] private float typewriterSpeed = 0.03f;
-        [SerializeField] private AudioClip typewriterSound;
-        [SerializeField] private AudioSource typewriterAudioSource;
-        
+        [SerializeField] private float typewriterSpeed = 0.025f;
+
         [Header("Animation")]
-        [SerializeField] private float fadeInDuration = 0.3f;
+        [SerializeField] private float fadeInDuration = 0.25f;
         [SerializeField] private float fadeOutDuration = 0.2f;
-        
-        [Header("Skip Indicator")]
-        [SerializeField] private GameObject skipIndicator;
-        [SerializeField] private TextMeshProUGUI skipText;
 
-        [Header("Visual Theme")]
-        [SerializeField] private Vector2 panelSize = new Vector2(1480f, 220f);
-        [SerializeField] private Vector2 panelOffset = new Vector2(0f, 36f);
-        [SerializeField] private bool useCompactGameplayLayout = true;
-        [SerializeField] private Vector2 compactGameplayPanelSize = new Vector2(740f, 108f);
-        [SerializeField] private Vector2 compactGameplayPanelOffset = new Vector2(0f, 84f);
-        [SerializeField] private bool forceCommsSpeaker = false;
-        [SerializeField] private Color panelColor = new Color(0.03f, 0.05f, 0.09f, 0.90f);
-        [SerializeField] private Color innerPanelColor = new Color(0.08f, 0.11f, 0.17f, 0.92f);
-        [SerializeField] private Color dialogueTextColor = new Color(0.94f, 0.96f, 0.99f, 1f);
-        [SerializeField] private Color hintColor = new Color(0.72f, 0.78f, 0.88f, 0.82f);
-        [SerializeField] private Color compactPanelColor = new Color(0.03f, 0.04f, 0.06f, 0.45f);
-        [SerializeField] private Color compactInnerPanelColor = new Color(0.06f, 0.08f, 0.11f, 0.32f);
-        [SerializeField] private Color compactDialogueTextColor = new Color(0.95f, 0.95f, 0.90f, 1f);
-        [SerializeField] private Color compactHintColor = new Color(0.70f, 0.76f, 0.84f, 0.92f);
-
+        // Runtime-built UI nodes
+        private GameObject dialoguePanel;
         private CanvasGroup canvasGroup;
+        private Text speakerLabel;   // "COMMS / EVAC COMMAND / ALERT"
+        private Text bodyText;       // main dialogue line
+        private Text skipHint;       // "SPACE to advance"
+        private Image topAccent;
+
         private Coroutine typewriterCoroutine;
-        private bool isTyping = false;
-        private string currentFullText = "";
+        private bool isTyping;
+        private string currentFullText = string.Empty;
+        private bool builtUI;
 
-        private RectTransform panelRect;
-        private RectTransform channelTagRect;
-        private RectTransform speakerTagRect;
-        private RectTransform dialogueBodyRect;
-        private RectTransform skipRect;
-        private bool compactLayoutActive;
-
-        private Image innerPanelBackground;
-        private Image topAccentImage;
-        private Image channelTagBackground;
-        private Image speakerTagBackground;
-        private TextMeshProUGUI channelText;
-        private bool builtRuntimePanel;
+        // Compact panel dims (used during gameplay)
+        private const float PanelW   = 720f;
+        private const float PanelH   = 96f;
+        private const float PanelY   = 80f;   // pixels above bottom edge
 
         private void Awake()
         {
-            EnsureRuntimeUI();
-
-            if (dialoguePanel != null)
-            {
-                canvasGroup = dialoguePanel.GetComponent<CanvasGroup>();
-                if (canvasGroup == null)
-                {
-                    canvasGroup = dialoguePanel.AddComponent<CanvasGroup>();
-                }
-            }
-
-            ApplyVisualTheme();
+            BuildUI();
             HideDialogue(true);
 
             if (GameManager.Instance != null)
-            {
                 GameManager.Instance.OnGameStateChanged += OnGameStateChanged;
-            }
         }
 
         private void OnDestroy()
         {
             if (GameManager.Instance != null)
-            {
                 GameManager.Instance.OnGameStateChanged -= OnGameStateChanged;
-            }
         }
 
         private void Update()
         {
             if (isTyping && (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0)))
-            {
                 CompleteTypewriter();
-            }
         }
+
+        // ── Public API ─────────────────────────────────────────────────────────
 
         public void ShowDialogue(DialogueData dialogue)
         {
             if (dialoguePanel == null) return;
 
-            EnsureRuntimeUI();
-            ApplyLayoutForState();
-            ApplyVisualTheme();
+            string speaker  = BuildSpeakerLabel(dialogue.SpeakerName);
+            Color  accent   = SpeakerAccent(speaker);
+
+            speakerLabel.text  = speaker;
+            speakerLabel.color = accent;
+            topAccent.color    = UITheme.WithAlpha(accent, 0.85f);
+            bodyText.text      = string.Empty;
 
             dialoguePanel.SetActive(true);
-
-            string rawSpeaker = forceCommsSpeaker ? "COMMS" : dialogue.SpeakerName;
-            string speaker = FormatSpeakerName(rawSpeaker);
-            string channel = ResolveChannelLabel(speaker);
-            Color speakerAccent = ResolveSpeakerAccent(speaker);
-            Color channelAccent = ResolveChannelAccent(channel, speakerAccent);
-
-            if (speakerNameText != null)
-            {
-                speakerNameText.text = speaker;
-                speakerNameText.color = speakerAccent;
-            }
-
-            if (speakerPortrait != null)
-            {
-                if (!forceCommsSpeaker && !compactLayoutActive && dialogue.SpeakerPortrait != null)
-                {
-                    speakerPortrait.sprite = dialogue.SpeakerPortrait;
-                    speakerPortrait.gameObject.SetActive(true);
-                }
-                else
-                {
-                    speakerPortrait.gameObject.SetActive(false);
-                }
-            }
-
-            if (channelText != null)
-            {
-                channelText.text = channel;
-                channelText.color = channelAccent;
-            }
-
-            if (channelTagBackground != null)
-            {
-                float alpha = compactLayoutActive ? 0.26f : 0.22f;
-                channelTagBackground.color = UITheme.WithAlpha(channelAccent, alpha);
-            }
-
-            if (speakerTagBackground != null && speakerNameText != null)
-            {
-                float alpha = compactLayoutActive ? 0.22f : 0.18f;
-                speakerTagBackground.color = UITheme.WithAlpha(speakerNameText.color, alpha);
-            }
-
-            if (topAccentImage != null)
-            {
-                topAccentImage.color = UITheme.WithAlpha(channelAccent, 0.95f);
-            }
-
-            if (skipIndicator != null)
-            {
-                // In compact gameplay mode the prompt adds clutter; input still works without the text hint.
-                skipIndicator.SetActive(!compactLayoutActive);
-            }
+            if (typewriterCoroutine != null) StopCoroutine(typewriterCoroutine);
 
             StartCoroutine(FadeIn());
         }
 
         public void DisplayLine(DialogueLine line)
         {
-            if (dialogueText == null) return;
+            if (bodyText == null) return;
 
-            if (typewriterCoroutine != null)
-            {
-                StopCoroutine(typewriterCoroutine);
-            }
+            currentFullText  = line.text;
+            bodyText.text    = string.Empty;
 
-            currentFullText = line.text;
-            dialogueText.text = string.Empty;
+            if (typewriterCoroutine != null) StopCoroutine(typewriterCoroutine);
 
             if (useTypewriterEffect)
-            {
                 typewriterCoroutine = StartCoroutine(TypewriterEffect(line.text));
-            }
             else
-            {
-                dialogueText.text = line.text;
-            }
-        }
-
-        private IEnumerator TypewriterEffect(string text)
-        {
-            isTyping = true;
-            dialogueText.text = "";
-
-            foreach (char c in text)
-            {
-                dialogueText.text += c;
-
-                if (typewriterSound != null && typewriterAudioSource != null && c != ' ')
-                {
-                    typewriterAudioSource.pitch = Random.Range(0.9f, 1.1f);
-                    typewriterAudioSource.PlayOneShot(typewriterSound);
-                }
-
-                yield return new WaitForSeconds(typewriterSpeed);
-            }
-
-            isTyping = false;
-        }
-
-        private void CompleteTypewriter()
-        {
-            if (!isTyping) return;
-
-            if (typewriterCoroutine != null)
-            {
-                StopCoroutine(typewriterCoroutine);
-            }
-
-            dialogueText.text = currentFullText;
-            isTyping = false;
+                bodyText.text = line.text;
         }
 
         public void HideDialogue(bool immediate = false)
@@ -239,10 +103,7 @@ namespace Deadlight.Narrative
             if (immediate)
             {
                 dialoguePanel.SetActive(false);
-                if (canvasGroup != null)
-                {
-                    canvasGroup.alpha = 0f;
-                }
+                if (canvasGroup != null) canvasGroup.alpha = 0f;
             }
             else
             {
@@ -250,486 +111,46 @@ namespace Deadlight.Narrative
             }
         }
 
-        private void EnsureRuntimeUI()
+        public void SetTypewriterSpeed(float speed) => typewriterSpeed = Mathf.Max(0.005f, speed);
+        public void SetUseTypewriter(bool use)       => useTypewriterEffect = use;
+
+        // ── Internal helpers ───────────────────────────────────────────────────
+
+        private void OnGameStateChanged(GameState _) { /* layout is fixed-compact; nothing to adjust */ }
+
+        private void CompleteTypewriter()
         {
-            if (dialoguePanel != null && speakerNameText != null && dialogueText != null && skipText != null)
-            {
-                return;
-            }
-
-            if (builtRuntimePanel && dialoguePanel != null)
-            {
-                return;
-            }
-
-            var canvasRoot = new GameObject("DialogueCanvas");
-            canvasRoot.transform.SetParent(transform, false);
-
-            var runtimeCanvas = canvasRoot.AddComponent<Canvas>();
-            runtimeCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            runtimeCanvas.sortingOrder = 240;
-
-            var scaler = canvasRoot.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920f, 1080f);
-            scaler.matchWidthOrHeight = 0.5f;
-            canvasRoot.AddComponent<GraphicRaycaster>();
-
-            dialoguePanel = new GameObject("DialoguePanel");
-            dialoguePanel.transform.SetParent(canvasRoot.transform, false);
-            var panelRt = dialoguePanel.AddComponent<RectTransform>();
-            panelRt.anchorMin = panelRt.anchorMax = new Vector2(0.5f, 0f);
-            panelRt.pivot = new Vector2(0.5f, 0f);
-            panelRt.anchoredPosition = panelOffset;
-            panelRt.sizeDelta = panelSize;
-
-            backgroundImage = dialoguePanel.AddComponent<Image>();
-            backgroundImage.color = panelColor;
-            backgroundImage.raycastTarget = false;
-            canvasGroup = dialoguePanel.AddComponent<CanvasGroup>();
-
-            var inner = new GameObject("InnerPanel");
-            inner.transform.SetParent(dialoguePanel.transform, false);
-            var innerRt = inner.AddComponent<RectTransform>();
-            innerRt.anchorMin = Vector2.zero;
-            innerRt.anchorMax = Vector2.one;
-            innerRt.offsetMin = new Vector2(12f, 10f);
-            innerRt.offsetMax = new Vector2(-12f, -10f);
-            var innerImage = inner.AddComponent<Image>();
-            innerImage.color = innerPanelColor;
-            innerImage.raycastTarget = false;
-            innerPanelBackground = innerImage;
-
-            var topLine = new GameObject("TopAccent");
-            topLine.transform.SetParent(inner.transform, false);
-            var topLineRt = topLine.AddComponent<RectTransform>();
-            topLineRt.anchorMin = new Vector2(0f, 1f);
-            topLineRt.anchorMax = new Vector2(1f, 1f);
-            topLineRt.pivot = new Vector2(0.5f, 1f);
-            topLineRt.anchoredPosition = Vector2.zero;
-            topLineRt.sizeDelta = new Vector2(0f, 3f);
-            topAccentImage = topLine.AddComponent<Image>();
-            topAccentImage.color = UITheme.WithAlpha(UITheme.AccentBlue, 0.95f);
-            topAccentImage.raycastTarget = false;
-
-            var channelTag = new GameObject("ChannelTag");
-            channelTag.transform.SetParent(inner.transform, false);
-            var channelTagRt = channelTag.AddComponent<RectTransform>();
-            channelTagRt.anchorMin = new Vector2(0f, 1f);
-            channelTagRt.anchorMax = new Vector2(0f, 1f);
-            channelTagRt.pivot = new Vector2(0f, 1f);
-            channelTagRt.anchoredPosition = new Vector2(14f, -8f);
-            channelTagRt.sizeDelta = new Vector2(86f, 20f);
-            channelTagBackground = channelTag.AddComponent<Image>();
-            channelTagBackground.color = UITheme.WithAlpha(UITheme.AccentGold, 0.25f);
-            channelTagBackground.raycastTarget = false;
-
-            var channelObj = new GameObject("ChannelLabel");
-            channelObj.transform.SetParent(channelTag.transform, false);
-            var channelRt = channelObj.AddComponent<RectTransform>();
-            channelRt.anchorMin = Vector2.zero;
-            channelRt.anchorMax = Vector2.one;
-            channelRt.offsetMin = new Vector2(4f, 1f);
-            channelRt.offsetMax = new Vector2(-4f, -1f);
-            channelText = channelObj.AddComponent<TextMeshProUGUI>();
-            channelText.text = "COMMS";
-            channelText.fontSize = 11f;
-            channelText.fontStyle = FontStyles.Bold;
-            channelText.color = UITheme.AccentGold;
-            channelText.alignment = TextAlignmentOptions.Center;
-            channelText.textWrappingMode = TextWrappingModes.NoWrap;
-            channelText.raycastTarget = false;
-
-            var speakerTag = new GameObject("SpeakerTag");
-            speakerTag.transform.SetParent(inner.transform, false);
-            var speakerTagRt = speakerTag.AddComponent<RectTransform>();
-            speakerTagRt.anchorMin = new Vector2(0f, 1f);
-            speakerTagRt.anchorMax = new Vector2(0f, 1f);
-            speakerTagRt.pivot = new Vector2(0f, 1f);
-            speakerTagRt.anchoredPosition = new Vector2(106f, -8f);
-            speakerTagRt.sizeDelta = new Vector2(320f, 20f);
-            speakerTagBackground = speakerTag.AddComponent<Image>();
-            speakerTagBackground.color = UITheme.WithAlpha(UITheme.AccentBlue, 0.22f);
-            speakerTagBackground.raycastTarget = false;
-
-            var speakerObj = new GameObject("SpeakerName");
-            speakerObj.transform.SetParent(speakerTag.transform, false);
-            var speakerRt = speakerObj.AddComponent<RectTransform>();
-            speakerRt.anchorMin = Vector2.zero;
-            speakerRt.anchorMax = Vector2.one;
-            speakerRt.offsetMin = new Vector2(8f, 1f);
-            speakerRt.offsetMax = new Vector2(-8f, -1f);
-            speakerNameText = speakerObj.AddComponent<TextMeshProUGUI>();
-            speakerNameText.text = "EVAC COMMAND";
-            speakerNameText.fontSize = 18f;
-            speakerNameText.fontStyle = FontStyles.Bold;
-            speakerNameText.color = UITheme.AccentBlue;
-            speakerNameText.alignment = TextAlignmentOptions.Left;
-            speakerNameText.textWrappingMode = TextWrappingModes.NoWrap;
-            speakerNameText.raycastTarget = false;
-
-            var bodyObj = new GameObject("DialogueText");
-            bodyObj.transform.SetParent(inner.transform, false);
-            var bodyRt = bodyObj.AddComponent<RectTransform>();
-            bodyRt.anchorMin = Vector2.zero;
-            bodyRt.anchorMax = Vector2.one;
-            bodyRt.offsetMin = new Vector2(22f, 24f);
-            bodyRt.offsetMax = new Vector2(-22f, -62f);
-            dialogueText = bodyObj.AddComponent<TextMeshProUGUI>();
-            dialogueText.fontSize = 36f;
-            dialogueText.color = dialogueTextColor;
-            dialogueText.alignment = TextAlignmentOptions.TopLeft;
-            dialogueText.textWrappingMode = TextWrappingModes.Normal;
-            dialogueText.lineSpacing = 6f;
-            dialogueText.text = string.Empty;
-            dialogueText.raycastTarget = false;
-
-            skipIndicator = new GameObject("SkipIndicator");
-            skipIndicator.transform.SetParent(inner.transform, false);
-            var skipRt = skipIndicator.AddComponent<RectTransform>();
-            skipRt.anchorMin = new Vector2(1f, 0f);
-            skipRt.anchorMax = new Vector2(1f, 0f);
-            skipRt.pivot = new Vector2(1f, 0f);
-            skipRt.anchoredPosition = new Vector2(-16f, 10f);
-            skipRt.sizeDelta = new Vector2(430f, 24f);
-            skipText = skipIndicator.AddComponent<TextMeshProUGUI>();
-            skipText.text = "SPACE / CLICK: REVEAL OR ADVANCE";
-            skipText.fontSize = 20f;
-            skipText.fontStyle = FontStyles.Bold;
-            skipText.color = hintColor;
-            skipText.alignment = TextAlignmentOptions.Right;
-            skipText.textWrappingMode = TextWrappingModes.NoWrap;
-            skipText.raycastTarget = false;
-
-            if (speakerPortrait == null)
-            {
-                var portraitObj = new GameObject("SpeakerPortrait");
-                portraitObj.transform.SetParent(inner.transform, false);
-                var portraitRt = portraitObj.AddComponent<RectTransform>();
-                portraitRt.anchorMin = new Vector2(1f, 1f);
-                portraitRt.anchorMax = new Vector2(1f, 1f);
-                portraitRt.pivot = new Vector2(1f, 1f);
-                portraitRt.anchoredPosition = new Vector2(-20f, -18f);
-                portraitRt.sizeDelta = new Vector2(68f, 68f);
-                speakerPortrait = portraitObj.AddComponent<Image>();
-                speakerPortrait.color = UITheme.WithAlpha(UITheme.TextPrimary, 0.2f);
-                speakerPortrait.gameObject.SetActive(false);
-            }
-
-            builtRuntimePanel = true;
-            CacheRuntimeLayoutReferences();
-            ApplyLayoutForState();
+            if (!isTyping) return;
+            if (typewriterCoroutine != null) StopCoroutine(typewriterCoroutine);
+            bodyText.text = currentFullText;
+            isTyping = false;
         }
 
-        private void ApplyVisualTheme()
+        private IEnumerator TypewriterEffect(string text)
         {
-            ApplyLayoutForState();
+            isTyping      = true;
+            bodyText.text = string.Empty;
 
-            Color appliedPanelColor = compactLayoutActive ? compactPanelColor : panelColor;
-            Color appliedInnerColor = compactLayoutActive ? compactInnerPanelColor : innerPanelColor;
-            Color appliedBodyColor = compactLayoutActive ? compactDialogueTextColor : dialogueTextColor;
-            Color appliedHintColor = compactLayoutActive ? compactHintColor : hintColor;
-
-            if (backgroundImage != null)
+            foreach (char c in text)
             {
-                backgroundImage.color = appliedPanelColor;
+                bodyText.text += c;
+                yield return new WaitForSeconds(typewriterSpeed);
             }
 
-            if (innerPanelBackground != null)
-            {
-                innerPanelBackground.color = appliedInnerColor;
-            }
-
-            if (topAccentImage != null)
-            {
-                Color accent = compactLayoutActive ? UITheme.AccentGold : UITheme.AccentBlue;
-                topAccentImage.color = UITheme.WithAlpha(accent, compactLayoutActive ? 0.68f : 0.95f);
-            }
-
-            if (dialogueText != null)
-            {
-                dialogueText.color = appliedBodyColor;
-                dialogueText.fontSize = compactLayoutActive ? 20f : 36f;
-                dialogueText.lineSpacing = compactLayoutActive ? 1f : 6f;
-                dialogueText.textWrappingMode = TextWrappingModes.Normal;
-            }
-
-            if (channelText != null)
-            {
-                channelText.fontSize = compactLayoutActive ? 11f : 14f;
-                channelText.fontStyle = FontStyles.Bold;
-            }
-
-            if (speakerNameText != null)
-            {
-                speakerNameText.fontSize = compactLayoutActive ? 14f : 24f;
-                speakerNameText.fontStyle = FontStyles.Bold;
-            }
-
-            if (skipText != null)
-            {
-                skipText.color = appliedHintColor;
-                skipText.fontSize = compactLayoutActive ? 10f : 20f;
-                skipText.fontStyle = FontStyles.Bold;
-                skipText.text = compactLayoutActive ? "SPACE / CLICK" : "SPACE / CLICK: REVEAL OR ADVANCE";
-            }
-        }
-
-        private void OnGameStateChanged(GameState _)
-        {
-            ApplyLayoutForState();
-        }
-
-        private void CacheRuntimeLayoutReferences()
-        {
-            if (panelRect == null && dialoguePanel != null)
-            {
-                panelRect = dialoguePanel.GetComponent<RectTransform>();
-            }
-
-            if (channelTagRect == null && channelText != null && channelText.transform.parent != null)
-            {
-                channelTagRect = channelText.transform.parent.GetComponent<RectTransform>();
-            }
-
-            if (speakerTagRect == null && speakerNameText != null && speakerNameText.transform.parent != null)
-            {
-                speakerTagRect = speakerNameText.transform.parent.GetComponent<RectTransform>();
-            }
-
-            if (dialogueBodyRect == null && dialogueText != null)
-            {
-                dialogueBodyRect = dialogueText.rectTransform;
-            }
-
-            if (skipRect == null && skipIndicator != null)
-            {
-                skipRect = skipIndicator.GetComponent<RectTransform>();
-            }
-        }
-
-        private void ApplyLayoutForState()
-        {
-            CacheRuntimeLayoutReferences();
-
-            if (panelRect == null)
-            {
-                return;
-            }
-
-            bool shouldUseCompact = useCompactGameplayLayout &&
-                                    GameManager.Instance != null &&
-                                    GameManager.Instance.IsGameplayState;
-            compactLayoutActive = shouldUseCompact;
-
-            if (shouldUseCompact)
-            {
-                // Keep COMMS centered above the bottom HUD so it never fights with loadout/ammo panel.
-                panelRect.anchorMin = new Vector2(0.5f, 0f);
-                panelRect.anchorMax = new Vector2(0.5f, 0f);
-                panelRect.pivot = new Vector2(0.5f, 0f);
-                panelRect.anchoredPosition = compactGameplayPanelOffset;
-                panelRect.sizeDelta = compactGameplayPanelSize;
-
-                if (channelTagRect != null)
-                {
-                    channelTagRect.anchoredPosition = new Vector2(14f, -11f);
-                    channelTagRect.sizeDelta = new Vector2(86f, 20f);
-                }
-
-                if (speakerTagRect != null)
-                {
-                    speakerTagRect.anchoredPosition = new Vector2(106f, -11f);
-                    speakerTagRect.sizeDelta = new Vector2(360f, 20f);
-                }
-
-                if (dialogueBodyRect != null)
-                {
-                    dialogueBodyRect.offsetMin = new Vector2(16f, 16f);
-                    dialogueBodyRect.offsetMax = new Vector2(-16f, -36f);
-                }
-
-                if (skipRect != null)
-                {
-                    skipRect.anchoredPosition = new Vector2(-12f, 6f);
-                    skipRect.sizeDelta = new Vector2(210f, 14f);
-                }
-            }
-            else
-            {
-                panelRect.anchorMin = new Vector2(0.5f, 0f);
-                panelRect.anchorMax = new Vector2(0.5f, 0f);
-                panelRect.pivot = new Vector2(0.5f, 0f);
-                panelRect.anchoredPosition = panelOffset;
-                panelRect.sizeDelta = panelSize;
-
-                if (channelTagRect != null)
-                {
-                    channelTagRect.anchoredPosition = new Vector2(18f, -14f);
-                    channelTagRect.sizeDelta = new Vector2(140f, 30f);
-                }
-
-                if (speakerTagRect != null)
-                {
-                    speakerTagRect.anchoredPosition = new Vector2(166f, -14f);
-                    speakerTagRect.sizeDelta = new Vector2(540f, 40f);
-                }
-
-                if (dialogueBodyRect != null)
-                {
-                    dialogueBodyRect.offsetMin = new Vector2(22f, 24f);
-                    dialogueBodyRect.offsetMax = new Vector2(-22f, -62f);
-                }
-
-                if (skipRect != null)
-                {
-                    skipRect.anchoredPosition = new Vector2(-16f, 10f);
-                    skipRect.sizeDelta = new Vector2(430f, 24f);
-                }
-            }
-        }
-
-        private static string FormatSpeakerName(string speakerName)
-        {
-            if (string.IsNullOrWhiteSpace(speakerName))
-            {
-                return "COMMS";
-            }
-
-            string normalized = speakerName.Trim();
-            string key = normalized.ToLowerInvariant();
-
-            if (key.Contains("evac") && key.Contains("command"))
-            {
-                return "EVAC COMMAND";
-            }
-
-            if (key.Contains("comms") || key.Contains("radio"))
-            {
-                return "COMMS";
-            }
-
-            if (key.Contains("intercept"))
-            {
-                return "INTERCEPT";
-            }
-
-            if (key.Contains("alert") || key.Contains("warning"))
-            {
-                return "ALERT";
-            }
-
-            if (key.Contains("guide") || key.Contains("tip"))
-            {
-                return "GUIDE";
-            }
-
-            return normalized.ToUpperInvariant();
-        }
-
-        private static string ResolveChannelLabel(string speakerName)
-        {
-            if (string.IsNullOrWhiteSpace(speakerName))
-            {
-                return "COMMS";
-            }
-
-            string key = speakerName.ToLowerInvariant();
-            if (key.Contains("alert") || key.Contains("warning"))
-            {
-                return "ALERT";
-            }
-
-            if (key.Contains("intercept"))
-            {
-                return "INTERCEPT";
-            }
-
-            if (key.Contains("medic") || key.Contains("pilot") || key.Contains("survivor"))
-            {
-                return "FIELD";
-            }
-
-            if (key.Contains("guide") || key.Contains("tip"))
-            {
-                return "GUIDE";
-            }
-
-            return "COMMS";
-        }
-
-        private static Color ResolveChannelAccent(string channel, Color fallback)
-        {
-            if (string.IsNullOrWhiteSpace(channel))
-            {
-                return fallback;
-            }
-
-            return channel.ToUpperInvariant() switch
-            {
-                "ALERT" => UITheme.AccentRed,
-                "INTERCEPT" => UITheme.AccentPurple,
-                "FIELD" => UITheme.AccentGreen,
-                "GUIDE" => UITheme.AccentBlue,
-                _ => UITheme.AccentGold
-            };
-        }
-
-        private static Color ResolveSpeakerAccent(string speakerName)
-        {
-            if (string.IsNullOrEmpty(speakerName))
-            {
-                return UITheme.AccentBlue;
-            }
-
-            string key = speakerName.ToLowerInvariant();
-            if (key.Contains("alert") || key.Contains("warning"))
-            {
-                return UITheme.AccentRed;
-            }
-
-            if (key.Contains("intercept"))
-            {
-                return UITheme.AccentPurple;
-            }
-
-            if (key.Contains("pilot"))
-            {
-                return UITheme.AccentOrange;
-            }
-
-            if (key.Contains("medic") || key.Contains("you"))
-            {
-                return UITheme.AccentGreen;
-            }
-
-            if (key.Contains("command") || key.Contains("radio"))
-            {
-                return UITheme.AccentGold;
-            }
-
-            if (key.Contains("comms"))
-            {
-                return UITheme.AccentGold;
-            }
-
-            return UITheme.AccentBlue;
+            isTyping = false;
         }
 
         private IEnumerator FadeIn()
         {
             if (canvasGroup == null) yield break;
-
-            float elapsed = 0f;
             canvasGroup.alpha = 0f;
-
+            float elapsed = 0f;
             while (elapsed < fadeInDuration)
             {
                 elapsed += Time.unscaledDeltaTime;
-                canvasGroup.alpha = Mathf.Lerp(0f, 1f, elapsed / fadeInDuration);
+                canvasGroup.alpha = Mathf.Clamp01(elapsed / fadeInDuration);
                 yield return null;
             }
-
             canvasGroup.alpha = 1f;
         }
 
@@ -740,29 +161,156 @@ namespace Deadlight.Narrative
                 dialoguePanel.SetActive(false);
                 yield break;
             }
-
+            float start   = canvasGroup.alpha;
             float elapsed = 0f;
-            float startAlpha = canvasGroup.alpha;
-
             while (elapsed < fadeOutDuration)
             {
                 elapsed += Time.unscaledDeltaTime;
-                canvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, elapsed / fadeOutDuration);
+                canvasGroup.alpha = Mathf.Lerp(start, 0f, elapsed / fadeOutDuration);
                 yield return null;
             }
-
             canvasGroup.alpha = 0f;
             dialoguePanel.SetActive(false);
         }
 
-        public void SetTypewriterSpeed(float speed)
+        // ── UI construction ────────────────────────────────────────────────────
+
+        private void BuildUI()
         {
-            typewriterSpeed = Mathf.Max(0.01f, speed);
+            if (builtUI) return;
+            builtUI = true;
+
+            Font font = UIFactory.GetFont();
+
+            // ── Canvas ──────────────────────────────────────────────────────────
+            var canvasGO = new GameObject("DialogueCanvas");
+            canvasGO.transform.SetParent(transform, false);
+
+            var canvas = canvasGO.AddComponent<Canvas>();
+            canvas.renderMode    = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder  = 240;
+
+            var scaler = canvasGO.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode        = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920f, 1080f);
+            scaler.matchWidthOrHeight  = 0.5f;
+            canvasGO.AddComponent<GraphicRaycaster>();
+
+            // ── Outer panel ─────────────────────────────────────────────────────
+            dialoguePanel = new GameObject("DialoguePanel");
+            dialoguePanel.transform.SetParent(canvasGO.transform, false);
+
+            var rt = dialoguePanel.AddComponent<RectTransform>();
+            rt.anchorMin       = new Vector2(0.5f, 0f);
+            rt.anchorMax       = new Vector2(0.5f, 0f);
+            rt.pivot           = new Vector2(0.5f, 0f);
+            rt.anchoredPosition = new Vector2(0f, PanelY);
+            rt.sizeDelta       = new Vector2(PanelW, PanelH);
+
+            var bg = dialoguePanel.AddComponent<Image>();
+            bg.color = new Color(0.04f, 0.06f, 0.10f, 0.93f);
+            bg.raycastTarget = false;
+
+            canvasGroup       = dialoguePanel.AddComponent<CanvasGroup>();
+            canvasGroup.alpha = 0f;
+
+            // ── Gold top accent line ─────────────────────────────────────────────
+            var accentGO = new GameObject("TopAccent");
+            accentGO.transform.SetParent(dialoguePanel.transform, false);
+            var accentRt = accentGO.AddComponent<RectTransform>();
+            accentRt.anchorMin       = new Vector2(0f, 1f);
+            accentRt.anchorMax       = new Vector2(1f, 1f);
+            accentRt.pivot           = new Vector2(0.5f, 1f);
+            accentRt.anchoredPosition = Vector2.zero;
+            accentRt.sizeDelta       = new Vector2(0f, 2f);
+            topAccent                = accentGO.AddComponent<Image>();
+            topAccent.color          = UITheme.WithAlpha(UITheme.AccentGold, 0.85f);
+            topAccent.raycastTarget  = false;
+
+            // ── Speaker label (top-left, small) ─────────────────────────────────
+            var speakerGO = new GameObject("SpeakerLabel");
+            speakerGO.transform.SetParent(dialoguePanel.transform, false);
+            var speakerRt = speakerGO.AddComponent<RectTransform>();
+            speakerRt.anchorMin       = new Vector2(0f, 1f);
+            speakerRt.anchorMax       = new Vector2(1f, 1f);
+            speakerRt.pivot           = new Vector2(0f, 1f);
+            speakerRt.anchoredPosition = new Vector2(16f, -8f);
+            speakerRt.sizeDelta       = new Vector2(-32f, 22f);
+            speakerLabel              = speakerGO.AddComponent<Text>();
+            speakerLabel.font         = font;
+            speakerLabel.text         = "COMMS";
+            speakerLabel.fontSize     = 13;
+            speakerLabel.fontStyle    = FontStyle.Bold;
+            speakerLabel.color        = UITheme.AccentGold;
+            speakerLabel.alignment    = TextAnchor.MiddleLeft;
+            speakerLabel.horizontalOverflow = HorizontalWrapMode.Overflow;
+            speakerLabel.verticalOverflow   = VerticalWrapMode.Overflow;
+            speakerLabel.raycastTarget      = false;
+
+            // ── Body text (main dialogue line) ───────────────────────────────────
+            var bodyGO = new GameObject("BodyText");
+            bodyGO.transform.SetParent(dialoguePanel.transform, false);
+            var bodyRt = bodyGO.AddComponent<RectTransform>();
+            bodyRt.anchorMin       = Vector2.zero;
+            bodyRt.anchorMax       = Vector2.one;
+            bodyRt.offsetMin       = new Vector2(16f, 10f);
+            bodyRt.offsetMax       = new Vector2(-16f, -32f);
+            bodyText               = bodyGO.AddComponent<Text>();
+            bodyText.font          = font;
+            bodyText.text          = string.Empty;
+            bodyText.fontSize      = 18;
+            bodyText.fontStyle     = FontStyle.Normal;
+            bodyText.color         = new Color(0.94f, 0.95f, 0.97f, 1f);
+            bodyText.alignment     = TextAnchor.MiddleLeft;
+            bodyText.horizontalOverflow = HorizontalWrapMode.Wrap;
+            bodyText.verticalOverflow   = VerticalWrapMode.Overflow;
+            bodyText.lineSpacing        = 1.15f;
+            bodyText.raycastTarget      = false;
+
+            // ── Skip hint (bottom-right, tiny) ───────────────────────────────────
+            var hintGO = new GameObject("SkipHint");
+            hintGO.transform.SetParent(dialoguePanel.transform, false);
+            var hintRt = hintGO.AddComponent<RectTransform>();
+            hintRt.anchorMin       = new Vector2(1f, 0f);
+            hintRt.anchorMax       = new Vector2(1f, 0f);
+            hintRt.pivot           = new Vector2(1f, 0f);
+            hintRt.anchoredPosition = new Vector2(-14f, 7f);
+            hintRt.sizeDelta       = new Vector2(260f, 18f);
+            skipHint               = hintGO.AddComponent<Text>();
+            skipHint.font          = font;
+            skipHint.text          = "SPACE / CLICK  ADVANCE";
+            skipHint.fontSize      = 10;
+            skipHint.fontStyle     = FontStyle.Bold;
+            skipHint.color         = new Color(0.55f, 0.62f, 0.72f, 0.75f);
+            skipHint.alignment     = TextAnchor.LowerRight;
+            skipHint.horizontalOverflow = HorizontalWrapMode.Overflow;
+            skipHint.raycastTarget      = false;
         }
 
-        public void SetUseTypewriter(bool use)
+        // ── Speaker colour helpers ──────────────────────────────────────────────
+
+        private static string BuildSpeakerLabel(string raw)
         {
-            useTypewriterEffect = use;
+            if (string.IsNullOrWhiteSpace(raw)) return "COMMS";
+            string k = raw.Trim().ToLowerInvariant();
+            if (k.Contains("evac") || k.Contains("command")) return "EVAC COMMAND";
+            if (k.Contains("alert") || k.Contains("warning")) return "ALERT";
+            if (k.Contains("intercept"))                       return "INTERCEPT";
+            if (k.Contains("guide") || k.Contains("tip"))      return "GUIDE";
+            if (k.Contains("medic"))                           return "MEDIC";
+            if (k.Contains("pilot"))                           return "PILOT";
+            return raw.Trim().ToUpperInvariant();
+        }
+
+        private static Color SpeakerAccent(string speaker)
+        {
+            string k = speaker.ToLowerInvariant();
+            if (k.Contains("alert"))     return UITheme.AccentRed;
+            if (k.Contains("intercept")) return UITheme.AccentPurple;
+            if (k.Contains("medic"))     return UITheme.AccentGreen;
+            if (k.Contains("pilot"))     return UITheme.AccentOrange;
+            if (k.Contains("guide"))     return UITheme.AccentBlue;
+            return UITheme.AccentGold;   // COMMS / EVAC COMMAND default
         }
     }
 }

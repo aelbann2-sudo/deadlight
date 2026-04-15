@@ -17,6 +17,7 @@ namespace Deadlight.Level.MapBuilders
             BuildPerimeterGuardPosts();
             BuildCorridorEquipment();
             BuildQuadrantFill();
+            BuildCampusGreens();
             ScatterLabDebris();
         }
 
@@ -124,14 +125,10 @@ namespace Deadlight.Level.MapBuilders
 
             Vector3[] barrelPositions =
             {
-                new Vector3(-7.5f, 0f, 0f),
-                new Vector3(7.5f, 0f, 0f),
-                new Vector3(0f, 7.5f, 0f),
-                new Vector3(0f, -7.5f, 0f),
-                new Vector3(-18f, 18f, 0f),
-                new Vector3(18f, 18f, 0f),
-                new Vector3(-18f, -18f, 0f),
-                new Vector3(18f, -18f, 0f)
+                new Vector3(-8.5f, 0f, 0f),
+                new Vector3(8.5f, 0f, 0f),
+                new Vector3(0f, 10.5f, 0f),
+                new Vector3(0f, -10.5f, 0f),
             };
 
             foreach (var pos in barrelPositions)
@@ -139,12 +136,10 @@ namespace Deadlight.Level.MapBuilders
                 SpawnBarrel(hazards, pos, explosive: true);
             }
 
-            SpawnCrate(hazards, new Vector3(-4f, 4.5f, 0f));
-            SpawnCrate(hazards, new Vector3(4f, -4.5f, 0f));
-            SpawnCrate(hazards, new Vector3(-20f, 4f, 0f));
-            SpawnCrate(hazards, new Vector3(20f, -4f, 0f));
-            SpawnDumpster(hazards, new Vector3(-24f, 12f, 0f));
-            SpawnDumpster(hazards, new Vector3(24f, -12f, 0f));
+            SpawnCrate(hazards, new Vector3(-4.5f, 4.2f, 0f));
+            SpawnCrate(hazards, new Vector3(4.5f, -4.2f, 0f));
+            SpawnRock(hazards, new Vector3(-18f, 17f, 0f), false);
+            SpawnRock(hazards, new Vector3(18f, -17f, 0f), false);
         }
 
         private void BuildPerimeterGuardPosts()
@@ -170,30 +165,18 @@ namespace Deadlight.Level.MapBuilders
             var equipment = new GameObject("CorridorEquipment").transform;
             equipment.SetParent(root);
 
-            SpawnCrate(equipment, new Vector3(-6f, 12f, 0f));
-            SpawnCrate(equipment, new Vector3(6f, 12f, 0f));
-            SpawnCrate(equipment, new Vector3(-6f, -12f, 0f));
-            SpawnCrate(equipment, new Vector3(6f, -12f, 0f));
+            SpawnCrate(equipment, new Vector3(-8f, 14f, 0f));
+            SpawnCrate(equipment, new Vector3(8f, 14f, 0f));
+            SpawnCrate(equipment, new Vector3(-8f, -14f, 0f));
+            SpawnCrate(equipment, new Vector3(8f, -14f, 0f));
 
-            SpawnCrate(equipment, new Vector3(-12f, 6f, 0f));
-            SpawnCrate(equipment, new Vector3(-12f, -6f, 0f));
-            SpawnCrate(equipment, new Vector3(12f, 6f, 0f));
-            SpawnCrate(equipment, new Vector3(12f, -6f, 0f));
+            SpawnDumpster(equipment, new Vector3(-14f, 8f, 0f));
+            SpawnDumpster(equipment, new Vector3(14f, -8f, 0f));
 
-            SpawnDumpster(equipment, new Vector3(-8f, 18f, 0f));
-            SpawnDumpster(equipment, new Vector3(8f, 18f, 0f));
-            SpawnDumpster(equipment, new Vector3(-8f, -18f, 0f));
-            SpawnDumpster(equipment, new Vector3(8f, -18f, 0f));
-
-            SpawnBarrel(equipment, new Vector3(-12f, 15f, 0f), explosive: false);
-            SpawnBarrel(equipment, new Vector3(12f, 15f, 0f), explosive: false);
-            SpawnBarrel(equipment, new Vector3(-12f, -15f, 0f), explosive: false);
-            SpawnBarrel(equipment, new Vector3(12f, -15f, 0f), explosive: false);
-
+            SpawnBarrel(equipment, new Vector3(-13f, 14.5f, 0f), explosive: false);
+            SpawnBarrel(equipment, new Vector3(13f, -14.5f, 0f), explosive: false);
             SpawnBarrel(equipment, new Vector3(-15f, 0f, 0f), explosive: false);
             SpawnBarrel(equipment, new Vector3(15f, 0f, 0f), explosive: false);
-            SpawnBarrel(equipment, new Vector3(0f, 15f, 0f), explosive: false);
-            SpawnBarrel(equipment, new Vector3(0f, -15f, 0f), explosive: false);
         }
 
         private void BuildQuadrantFill()
@@ -201,45 +184,71 @@ namespace Deadlight.Level.MapBuilders
             var fill = new GameObject("QuadrantFill").transform;
             fill.SetParent(root);
 
-            SpawnCar(fill, new Vector3(-16f, 24f, 0f), 0f);
-            SpawnCar(fill, new Vector3(16f, 24f, 0f), 180f);
-            SpawnCar(fill, new Vector3(-16f, -24f, 0f), 0f);
-            SpawnCar(fill, new Vector3(16f, -24f, 0f), 180f);
-            SpawnCar(fill, new Vector3(-24f, 16f, 0f), 90f);
-            SpawnCar(fill, new Vector3(24f, -16f, 0f), 90f);
+            SpawnCar(fill, new Vector3(-17f, 24f, 0f), 0f);
+            SpawnCar(fill, new Vector3(18f, -24f, 0f), 180f);
+            SpawnCar(fill, new Vector3(-24f, 15f, 0f), 90f);
+            SpawnCar(fill, new Vector3(24f, -15f, 0f), 90f);
 
             SpawnCrate(fill, new Vector3(-22f, 22f, 0f));
-            SpawnCrate(fill, new Vector3(22f, 22f, 0f));
-            SpawnCrate(fill, new Vector3(-22f, -22f, 0f));
-            SpawnCrate(fill, new Vector3(22f, -22f, 0f));
-            SpawnCrate(fill, new Vector3(-15f, 22f, 0f));
-            SpawnCrate(fill, new Vector3(15f, -22f, 0f));
+            SpawnCrate(fill, new Vector3(21f, -22f, 0f));
+            SpawnCrate(fill, new Vector3(-15f, 20f, 0f));
+            SpawnCrate(fill, new Vector3(15f, -20f, 0f));
 
             SpawnDumpster(fill, new Vector3(-20f, 8f, 0f));
-            SpawnDumpster(fill, new Vector3(20f, -8f, 0f));
-            SpawnDumpster(fill, new Vector3(-14f, -20f, 0f));
             SpawnDumpster(fill, new Vector3(14f, 20f, 0f));
 
-            SpawnBarrel(fill, new Vector3(-26f, 22f, 0f), explosive: true);
-            SpawnBarrel(fill, new Vector3(26f, -22f, 0f), explosive: true);
-            SpawnBarrel(fill, new Vector3(-22f, 8f, 0f), explosive: false);
-            SpawnBarrel(fill, new Vector3(22f, -8f, 0f), explosive: false);
-            SpawnBarrel(fill, new Vector3(-26f, -6f, 0f), explosive: false);
-            SpawnBarrel(fill, new Vector3(26f, 6f, 0f), explosive: false);
+            SpawnBarrel(fill, new Vector3(-24f, -8f, 0f), explosive: false);
+            SpawnBarrel(fill, new Vector3(23f, 7f, 0f), explosive: false);
 
-            SpawnRock(fill, new Vector3(-26f, 26f, 0f));
-            SpawnRock(fill, new Vector3(26f, 26f, 0f));
-            SpawnRock(fill, new Vector3(-26f, -26f, 0f));
-            SpawnRock(fill, new Vector3(26f, -26f, 0f));
+            SpawnRock(fill, new Vector3(-27f, 25f, 0f));
+            SpawnRock(fill, new Vector3(27f, -25f, 0f));
             SpawnRock(fill, new Vector3(-16f, -8f, 0f));
             SpawnRock(fill, new Vector3(16f, 8f, 0f));
 
-            SpawnTree(fill, new Vector3(-30f, 24f, 0f));
+            SpawnTree(fill, new Vector3(-30f, 23f, 0f));
             SpawnTree(fill, new Vector3(30f, 24f, 0f));
             SpawnTree(fill, new Vector3(-30f, -24f, 0f));
-            SpawnTree(fill, new Vector3(30f, -24f, 0f));
-            SpawnTree(fill, new Vector3(-30f, 0f, 0f));
-            SpawnTree(fill, new Vector3(30f, 0f, 0f));
+            SpawnTree(fill, new Vector3(30f, -23f, 0f));
+        }
+
+        private void BuildCampusGreens()
+        {
+            var greens = new GameObject("CampusGreens").transform;
+            greens.SetParent(root);
+
+            Vector3[] treePositions =
+            {
+                new Vector3(-28f, 28f, 0f),
+                new Vector3(28f, 28f, 0f),
+                new Vector3(-28f, -28f, 0f),
+                new Vector3(28f, -28f, 0f),
+                new Vector3(-33f, 2f, 0f),
+                new Vector3(33f, -2f, 0f),
+            };
+
+            foreach (Vector3 pos in treePositions)
+            {
+                if (!IsRoad(pos) && TryPlace(pos, new Vector2(0.9f, 0.9f)))
+                {
+                    SpawnTree(greens, pos, false);
+                }
+            }
+
+            Vector3[] rockPositions =
+            {
+                new Vector3(-30f, 30f, 0f),
+                new Vector3(30f, 30f, 0f),
+                new Vector3(-30f, -30f, 0f),
+                new Vector3(30f, -30f, 0f),
+            };
+
+            foreach (Vector3 pos in rockPositions)
+            {
+                if (!IsRoad(pos) && TryPlace(pos, new Vector2(0.8f, 0.8f)))
+                {
+                    SpawnRock(greens, pos, false);
+                }
+            }
         }
 
         private void ScatterLabDebris()
@@ -251,8 +260,6 @@ namespace Deadlight.Level.MapBuilders
             {
                 new Vector3(-20f, 0.8f, 0f),
                 new Vector3(20f, -0.8f, 0f),
-                new Vector3(0f, 20f, 0f),
-                new Vector3(0f, -20f, 0f)
             };
 
             foreach (var pos in carPositions)

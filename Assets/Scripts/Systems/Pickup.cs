@@ -155,8 +155,12 @@ namespace Deadlight.Systems
                     var shooting = player.GetComponent<PlayerShooting>();
                     if (shooting != null)
                     {
-                        shooting.AddAmmo(amount);
-                        consumed = true;
+                        int added = shooting.AddAmmo(amount);
+                        if (added > 0)
+                        {
+                            displayAmount = added;
+                            consumed = true;
+                        }
                     }
                     break;
 
@@ -164,7 +168,7 @@ namespace Deadlight.Systems
                 case PickupType.Wood:
                 case PickupType.Chemicals:
                 case PickupType.Electronics:
-                    if (GameManager.Instance == null || GameManager.Instance.CraftingEnabled)
+                    if (GameManager.Instance != null && GameManager.Instance.CraftingEnabled)
                     {
                         if (ResourceManager.Instance != null)
                         {

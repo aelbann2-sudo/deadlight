@@ -48,7 +48,11 @@ namespace Deadlight.Level.MapBuilders
 
             var canopy = CreateSpriteObject(station, "Canopy", CreateCanopySprite(), new Vector3(-1.4f, 0.2f, 0f), 6);
             var canopyCollider = canopy.AddComponent<BoxCollider2D>();
-            canopyCollider.size = new Vector2(2.8f, 1.2f);
+            MapFootprintCollider.ApplyCustomSpriteFootprint(
+                canopyCollider,
+                canopy.GetComponent<SpriteRenderer>().sprite,
+                canopy.transform.localScale,
+                new Vector2(2.8f, 1.2f));
 
             var store = CreateSpriteObject(station, "Store", CreateGasStoreSprite(), new Vector3(2f, 0.1f, 0f), 5);
             var storeCollider = store.AddComponent<BoxCollider2D>();
@@ -56,11 +60,19 @@ namespace Deadlight.Level.MapBuilders
 
             var pumpA = CreateSpriteObject(station, "FuelPump", CreateFuelPumpSprite(), new Vector3(-2f, -1f, 0f), 5);
             var pumpACol = pumpA.AddComponent<BoxCollider2D>();
-            pumpACol.size = new Vector2(0.5f, 0.8f);
+            MapFootprintCollider.ApplyCustomSpriteFootprint(
+                pumpACol,
+                pumpA.GetComponent<SpriteRenderer>().sprite,
+                pumpA.transform.localScale,
+                new Vector2(0.5f, 0.8f));
 
             var pumpB = CreateSpriteObject(station, "FuelPump", CreateFuelPumpSprite(), new Vector3(-0.8f, -1f, 0f), 5);
             var pumpBCol = pumpB.AddComponent<BoxCollider2D>();
-            pumpBCol.size = new Vector2(0.5f, 0.8f);
+            MapFootprintCollider.ApplyCustomSpriteFootprint(
+                pumpBCol,
+                pumpB.GetComponent<SpriteRenderer>().sprite,
+                pumpB.transform.localScale,
+                new Vector2(0.5f, 0.8f));
 
             CreateSpriteObject(station, "NeonSign", CreateGasPriceSignSprite(), new Vector3(3.5f, 1.35f, 0f), 6);
         }
@@ -73,11 +85,19 @@ namespace Deadlight.Level.MapBuilders
 
             var swing = CreateSpriteObject(playground, "SwingSet", CreateSwingSetSprite(), new Vector3(-1.7f, 0f, 0f), 5);
             var swingCollider = swing.AddComponent<BoxCollider2D>();
-            swingCollider.size = new Vector2(1.8f, 1.7f);
+            MapFootprintCollider.ApplyCustomSpriteFootprint(
+                swingCollider,
+                swing.GetComponent<SpriteRenderer>().sprite,
+                swing.transform.localScale,
+                new Vector2(1.8f, 1.7f));
 
             var slide = CreateSpriteObject(playground, "Slide", CreateSlideSprite(), new Vector3(1.6f, -0.1f, 0f), 5);
             var slideCollider = slide.AddComponent<BoxCollider2D>();
-            slideCollider.size = new Vector2(1.2f, 1.8f);
+            MapFootprintCollider.ApplyCustomSpriteFootprint(
+                slideCollider,
+                slide.GetComponent<SpriteRenderer>().sprite,
+                slide.transform.localScale,
+                new Vector2(1.2f, 1.8f));
 
             CreateSpriteObject(playground, "Bench", CreateBenchSprite(), new Vector3(0f, -1.8f, 0f), 4);
         }
@@ -97,7 +117,11 @@ namespace Deadlight.Level.MapBuilders
             var court = CreateSpriteObject(school, "BasketballCourt", CreateCourtSprite(), new Vector3(2.2f, -0.9f, 0f), 4);
             court.transform.localScale = new Vector3(0.9f, 0.9f, 1f);
             var courtCollider = court.AddComponent<BoxCollider2D>();
-            courtCollider.size = new Vector2(1.8f, 1.2f);
+            MapFootprintCollider.ApplyCustomSpriteFootprint(
+                courtCollider,
+                court.GetComponent<SpriteRenderer>().sprite,
+                court.transform.localScale,
+                new Vector2(1.8f, 1.2f));
 
             CreateSpriteObject(school, "Flag", CreateFlagPoleSprite(), new Vector3(0f, 1.6f, 0f), 6);
         }
@@ -117,7 +141,11 @@ namespace Deadlight.Level.MapBuilders
             var ambulance = CreateSpriteObject(hospital, "Ambulance", CreateAmbulanceSprite(), new Vector3(-2.3f, -1.2f, 0f), 5);
             ambulance.transform.rotation = Quaternion.Euler(0f, 0f, 4f);
             var ambulanceCollider = ambulance.AddComponent<BoxCollider2D>();
-            ambulanceCollider.size = new Vector2(2.4f, 1f);
+            MapFootprintCollider.ApplyCustomSpriteFootprint(
+                ambulanceCollider,
+                ambulance.GetComponent<SpriteRenderer>().sprite,
+                ambulance.transform.localScale,
+                new Vector2(2.4f, 1f));
         }
 
         private static void CreateSchoolBus(Transform parent, Vector3 position)
@@ -125,7 +153,11 @@ namespace Deadlight.Level.MapBuilders
             var bus = CreateSpriteObject(parent, "SchoolBus", CreateSchoolBusSprite(), position, 5);
             bus.transform.rotation = Quaternion.Euler(0f, 0f, -4f);
             var collider = bus.AddComponent<BoxCollider2D>();
-            collider.size = new Vector2(3f, 1.1f);
+            MapFootprintCollider.ApplyCustomSpriteFootprint(
+                collider,
+                bus.GetComponent<SpriteRenderer>().sprite,
+                bus.transform.localScale,
+                new Vector2(3f, 1.1f));
 
             CreateSpriteObject(parent, "BusStop", CreateSchoolStopSprite(), position + new Vector3(3f, 0.5f, 0f), 5);
         }
@@ -135,7 +167,11 @@ namespace Deadlight.Level.MapBuilders
             var bus = CreateSpriteObject(parent, "AbandonedBus", CreateAbandonedBusSprite(), position, 5);
             bus.transform.rotation = Quaternion.Euler(0f, 0f, 7f);
             var collider = bus.AddComponent<BoxCollider2D>();
-            collider.size = new Vector2(3.8f, 1.3f);
+            MapFootprintCollider.ApplyCustomSpriteFootprint(
+                collider,
+                bus.GetComponent<SpriteRenderer>().sprite,
+                bus.transform.localScale,
+                new Vector2(3.8f, 1.3f));
 
             var debrisA = CreateSpriteObject(bus.transform, "Debris_0", ProceduralSpriteGenerator.CreateRockSprite(), new Vector3(-2.4f, -0.5f, 0f), 4);
             debrisA.transform.localScale = new Vector3(0.6f, 0.6f, 1f);
@@ -152,11 +188,19 @@ namespace Deadlight.Level.MapBuilders
 
             var table = CreateSpriteObject(center, "PicnicTable", CreatePicnicTableSprite(), new Vector3(0f, -0.6f, 0f), 5);
             var tableCollider = table.AddComponent<BoxCollider2D>();
-            tableCollider.size = new Vector2(1.8f, 0.7f);
+            MapFootprintCollider.ApplyCustomSpriteFootprint(
+                tableCollider,
+                table.GetComponent<SpriteRenderer>().sprite,
+                table.transform.localScale,
+                new Vector2(1.8f, 0.7f));
 
             var mailbox = CreateSpriteObject(center, "Mailbox", CreateMailboxSprite(), new Vector3(-1.7f, 0.2f, 0f), 5);
             var mailboxCollider = mailbox.AddComponent<BoxCollider2D>();
-            mailboxCollider.size = new Vector2(0.35f, 0.8f);
+            MapFootprintCollider.ApplyCustomSpriteFootprint(
+                mailboxCollider,
+                mailbox.GetComponent<SpriteRenderer>().sprite,
+                mailbox.transform.localScale,
+                new Vector2(0.35f, 0.8f));
 
             CreateSpriteObject(center, "SwingSet", CreateSwingSetSprite(), new Vector3(1.7f, 0.6f, 0f), 5);
         }
