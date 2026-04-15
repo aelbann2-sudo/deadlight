@@ -122,6 +122,7 @@ namespace Deadlight.Core
         private bool nightOneFirstSpawnDelayConsumed;
         private bool bossSpawned;
         private bool miniBossSpawned;
+        private bool finalBossDefeatedThisNight;
 
         private void Awake()
         {
@@ -274,6 +275,7 @@ namespace Deadlight.Core
             isSpawning = false;
             bossSpawned = false;
             miniBossSpawned = false;
+            finalBossDefeatedThisNight = false;
             OnEnemyCountChanged?.Invoke(enemiesRemaining);
 
             LoadNightConfig();
@@ -621,7 +623,7 @@ namespace Deadlight.Core
             return 1f;
         }
 
-        private void SpawnEnemy(Vector3? overrideSpawnPosition = null, SpawnType? forcedSpawnType = null)
+        private void SpawnEnemy(Vector3? overrideSpawnPosition = null, SpawnType? forcedSpawnType = null, bool forceBossSpawn = false)
         {
             EnsureRuntimeDefaults();
 
@@ -646,22 +648,26 @@ namespace Deadlight.Core
             int maxNights = GameManager.Instance?.MaxNights ?? 12;
             int level = GameManager.GetLevelForNight(nightNum);
             bool isLastNight = GameManager.IsLastNightOfLevel(nightNum);
+            bool isFinalCampaignNight = nightNum >= maxNights;
             bool isDaySkirmish = GameManager.Instance?.CurrentState == GameState.DayPhase;
             var spawnType = forcedSpawnType ?? SelectSpawnType(nightNum, isDaySkirmish);
             bool hasForcedSpawnType = forcedSpawnType.HasValue;
 
-            bool shouldSpawnMiniBoss = !hasForcedSpawnType &&
+            bool shouldSpawnMiniBoss = !forceBossSpawn &&
+                                       !hasForcedSpawnType &&
                                        level >= 2 && isLastNight &&
                                        currentWave >= (currentNightConfig?.waveCount ?? 3) &&
+                                       !isFinalCampaignNight &&
                                        !isDaySkirmish &&
                                        !miniBossSpawned;
 
-            bool shouldSpawnBoss = !hasForcedSpawnType &&
-                                   nightNum >= maxNights &&
+            bool shouldSpawnBoss = forceBossSpawn ||
+                                   (!hasForcedSpawnType &&
+                                   isFinalCampaignNight &&
                                    spawnType == SpawnType.Tank &&
                                    currentWave >= (currentNightConfig?.waveCount ?? 3) &&
                                    !isDaySkirmish &&
-                                   !bossSpawned;
+                                   !bossSpawned);
 
             if (shouldSpawnMiniBoss)
             {
@@ -1219,8 +1225,44 @@ namespace Deadlight.Core
             }
         }
 
-        public void RegisterEnemyDeath()
+        public bool IsFinalBossDefeatedForCurrentNight()
         {
+            int currentNight = GameManager.Instance?.CurrentNight ?? 1;
+            int maxNights = GameManager.Instance?.MaxNights ?? 12;
+            bool isFinalLevelNight = GameManager.GetLevelForNight(currentNight) >= GameManager.TotalLevels;
+            if (currentNight < maxNights || !isFinalLevelNight)
+            {
+                return true;
+            }
+
+            return finalBossDefeatedThisNight;
+        }
+
+        public void EnsureFinalBossSpawnedForCurrentNight()
+        {
+            if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameState.NightPhase)
+            {
+                return;
+            }
+
+            int currentNight = GameManager.Instance.CurrentNight;
+            int maxNights = GameManager.Instance.MaxNights;
+            bool isFinalLevelNight = GameManager.GetLevelForNight(currentNight) >= GameManager.TotalLevels;
+            if (currentNight < maxNights || !isFinalLevelNight || bossSpawned || finalBossDefeatedThisNight)
+            {
+                return;
+            }
+
+            SpawnEnemy(forcedSpawnType: SpawnType.Tank, forceBossSpawn: true);
+        }
+
+        public void RegisterEnemyDeath(bool wasFinalBoss = false)
+        {
+            if (wasFinalBoss)
+            {
+                finalBossDefeatedThisNight = true;
+            }
+
             enemiesRemaining = Mathf.Max(0, enemiesRemaining - 1);
             totalEnemiesKilled++;
             OnEnemyKilled?.Invoke(totalEnemiesKilled);
@@ -1244,6 +1286,16 @@ namespace Deadlight.Core
                         "RADIO: Daylight drill complete. Proceed to the orange objective marker.",
                         dayOneTutorialRadioDuration);
                 }
+            }
+
+            if (wasFinalBoss &&
+                GameManager.Instance != null &&
+                GameManager.Instance.CurrentState == GameState.NightPhase &&
+                GameManager.Instance.CurrentNight >= GameManager.Instance.MaxNights &&
+                GameManager.GetLevelForNight(GameManager.Instance.CurrentNight) >= GameManager.TotalLevels)
+            {
+                // Final campaign completion is tied to defeating Subject 23.
+                GameManager.Instance.OnNightSurvived();
             }
         }
 

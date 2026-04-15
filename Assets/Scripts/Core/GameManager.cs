@@ -123,6 +123,7 @@ private const float DefaultFixedDeltaTime = 0.02f;
         private bool objectivePenaltyActiveForCurrentNight;
         private int queuedEnemyPenaltyNights;
         private int queuedCarryoverPenaltyStacks;
+        private bool finalBossReminderShownThisNight;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void EnsureRuntimeGameManager()
@@ -366,6 +367,7 @@ private const float DefaultFixedDeltaTime = 0.02f;
 
         public void StartNightPhase()
         {
+            finalBossReminderShownThisNight = false;
             ChangeState(GameState.NightPhase);
 
             FirstCombatHintController.NotifyAfterNightPhaseEntered();
@@ -392,6 +394,26 @@ private const float DefaultFixedDeltaTime = 0.02f;
 
             if (currentNight >= maxNights)
             {
+                bool requiresFinalBoss = CurrentLevel >= TotalLevels;
+                var waveManager = WaveManager.Instance != null
+                    ? WaveManager.Instance
+                    : FindFirstObjectByType<WaveManager>();
+                if (requiresFinalBoss)
+                {
+                    if (waveManager == null)
+                    {
+                        ShowFinalBossReminder();
+                        return;
+                    }
+
+                    if (!waveManager.IsFinalBossDefeatedForCurrentNight())
+                    {
+                        waveManager.EnsureFinalBossSpawnedForCurrentNight();
+                        ShowFinalBossReminder();
+                        return;
+                    }
+                }
+
                 UnlockNextLevel();
                 ChangeState(GameState.Victory);
                 return;
@@ -438,6 +460,34 @@ private const float DefaultFixedDeltaTime = 0.02f;
         {
             if (currentNight >= maxNights)
             {
+                bool requiresFinalBoss = CurrentLevel >= TotalLevels;
+                if (requiresFinalBoss)
+                {
+                    var waveManager = WaveManager.Instance != null
+                        ? WaveManager.Instance
+                        : FindFirstObjectByType<WaveManager>();
+                    if (waveManager == null)
+                    {
+                        ShowFinalBossReminder();
+                        if (currentState != GameState.NightPhase)
+                        {
+                            ChangeState(GameState.NightPhase);
+                        }
+                        return;
+                    }
+
+                    if (!waveManager.IsFinalBossDefeatedForCurrentNight())
+                    {
+                        waveManager.EnsureFinalBossSpawnedForCurrentNight();
+                        ShowFinalBossReminder();
+                        if (currentState != GameState.NightPhase)
+                        {
+                            ChangeState(GameState.NightPhase);
+                        }
+                        return;
+                    }
+                }
+
                 ChangeState(GameState.Victory);
                 return;
             }
@@ -492,6 +542,20 @@ private const float DefaultFixedDeltaTime = 0.02f;
             player.GetComponent<ThrowableSystem>()?.ResetInventory();
         }
 
+        private void ShowFinalBossReminder()
+        {
+            if (finalBossReminderShownThisNight)
+            {
+                return;
+            }
+
+            finalBossReminderShownThisNight = true;
+            RadioTransmissions.Instance?.ShowMessage(
+                "FINAL OBJECTIVE: Eliminate Subject 23 to complete Level 4.",
+                4f,
+                bypassCooldown: true);
+        }
+
         public float GetProjectedCarryoverRatio()
         {
             float ratio = Mathf.Clamp01(interLevelPointCarryRatio);
@@ -505,6 +569,11 @@ private const float DefaultFixedDeltaTime = 0.02f;
 
         public void OnPlayerDeath()
         {
+            if (currentState == GameState.Victory)
+            {
+                return;
+            }
+
             ChangeState(GameState.GameOver);
         }
 
@@ -1478,6 +1547,7 @@ private const float DefaultFixedDeltaTime = 0.02f;
             objectivePenaltyActiveForCurrentNight = false;
             queuedEnemyPenaltyNights = 0;
             queuedCarryoverPenaltyStacks = 0;
+            finalBossReminderShownThisNight = false;
         }
 
         private bool HasInteractiveDawnUI()
