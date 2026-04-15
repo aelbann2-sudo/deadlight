@@ -24,6 +24,7 @@ namespace Deadlight.Player
         [Header("Ammo")]
         [SerializeField] private int currentAmmo;
         [SerializeField] private int reserveAmmo;
+        [SerializeField] private bool reserveAmmoCapEnabled = false;
         [SerializeField] private int maxReserveAmmo = 200;
 
         [Header("State")]
@@ -39,12 +40,36 @@ namespace Deadlight.Player
         public WeaponData CurrentWeapon => currentWeapon;
         public int CurrentAmmo => currentAmmo;
         public int ReserveAmmo => reserveAmmo;
+        public int MaxReserveAmmo => ReserveAmmoLimit;
+        public int ReserveAmmoSpace => reserveAmmoCapEnabled
+            ? Mathf.Max(0, ReserveAmmoLimit - reserveAmmo)
+            : int.MaxValue;
         public bool IsReloading => isReloading;
         public bool CanFire => !isReloading && currentAmmo > 0 && Time.time >= lastFireTime + (currentWeapon?.fireRate ?? 0.5f);
         public int ActiveSlot => activeSlot;
         public int SlotCount => MaxWeaponSlots;
         public WeaponData GetSlotWeapon(int slot) =>
             (slot >= 0 && slot < weaponSlots.Length) ? weaponSlots[slot] : null;
+        public bool HasWeaponInSlot(int slot) =>
+            slot >= 0 && slot < weaponSlots.Length && weaponSlots[slot] != null;
+        public int GetSlotCurrentAmmo(int slot) =>
+            HasWeaponInSlot(slot) ? slotAmmo[slot] : 0;
+        public int GetSlotReserveAmmo(int slot) =>
+            HasWeaponInSlot(slot) ? slotReserve[slot] : 0;
+        public int GetSlotReserveAmmoSpace(int slot)
+        {
+            if (!HasWeaponInSlot(slot))
+            {
+                return 0;
+            }
+
+            return reserveAmmoCapEnabled
+                ? Mathf.Max(0, ReserveAmmoLimit - slotReserve[slot])
+                : int.MaxValue;
+        }
+        public bool IsSlotReserveFull(int slot) =>
+            HasWeaponInSlot(slot) && reserveAmmoCapEnabled && slotReserve[slot] >= ReserveAmmoLimit;
+        private int ReserveAmmoLimit => reserveAmmoCapEnabled ? Mathf.Max(1, maxReserveAmmo) : int.MaxValue;
 
         public event Action<int, int> OnAmmoChanged;
         public event Action OnWeaponFired;
@@ -128,7 +153,7 @@ namespace Deadlight.Player
             {
                 int magBonus = PlayerUpgrades.Instance != null ? PlayerUpgrades.Instance.MagazineBonus : 0;
                 currentAmmo = currentWeapon.magazineSize + magBonus;
-                reserveAmmo = currentWeapon.magazineSize * 3;
+                reserveAmmo = Mathf.Clamp(currentWeapon.magazineSize * 3, 0, ReserveAmmoLimit);
                 activeSlot = 0;
                 weaponSlots[0] = currentWeapon;
                 slotAmmo[0] = currentAmmo;
@@ -492,10 +517,44 @@ namespace Deadlight.Player
             return 0.06f;
         }
 
-        public void AddAmmo(int amount)
+        public int AddAmmo(int amount)
         {
-            reserveAmmo = Mathf.Min(reserveAmmo + amount, maxReserveAmmo);
-            OnAmmoChanged?.Invoke(currentAmmo, reserveAmmo);
+            return AddAmmoToSlot(activeSlot, amount);
+        }
+
+        public int AddAmmoToSlot(int slot, int amount)
+        {
+            if (!HasWeaponInSlot(slot))
+            {
+                return 0;
+            }
+
+            int requested = Mathf.Max(0, amount);
+            if (requested == 0)
+            {
+                return 0;
+            }
+
+            int before = slotReserve[slot];
+            long unclampedReserve = (long)slotReserve[slot] + requested;
+            slotReserve[slot] = unclampedReserve >= ReserveAmmoLimit
+                ? ReserveAmmoLimit
+                : (int)unclampedReserve;
+
+            int added = slotReserve[slot] - before;
+            if (added > 0 && slot == activeSlot)
+            {
+                reserveAmmo = slotReserve[slot];
+                OnAmmoChanged?.Invoke(currentAmmo, reserveAmmo);
+            }
+
+            return added;
+        }
+
+        public bool TryAddAmmoToSlot(int slot, int amount, out int added)
+        {
+            added = AddAmmoToSlot(slot, amount);
+            return added > 0;
         }
 
         public void SetWeapon(WeaponData weapon)
@@ -508,7 +567,7 @@ namespace Deadlight.Player
             if (weapon != null)
             {
                 int defaultReserve = weapon.magazineSize * 3;
-                reserveAmmo = Mathf.Max(reserveAmmo, defaultReserve);
+                reserveAmmo = Mathf.Clamp(Mathf.Max(reserveAmmo, defaultReserve), 0, ReserveAmmoLimit);
                 currentAmmo = weapon.magazineSize;
                 slotAmmo[0] = currentAmmo;
                 slotReserve[0] = reserveAmmo;
@@ -540,7 +599,7 @@ namespace Deadlight.Player
 
             reserveMagazines = Mathf.Max(1, reserveMagazines);
             currentAmmo = weapon.magazineSize;
-            reserveAmmo = Mathf.Clamp(weapon.magazineSize * reserveMagazines, 0, maxReserveAmmo);
+            reserveAmmo = Mathf.Clamp(weapon.magazineSize * reserveMagazines, 0, ReserveAmmoLimit);
             weaponSlots[0] = weapon;
             slotAmmo[0] = currentAmmo;
             slotReserve[0] = reserveAmmo;
@@ -606,7 +665,7 @@ namespace Deadlight.Player
 
             weaponSlots[slot] = weapon;
             slotAmmo[slot] = weapon.magazineSize;
-            slotReserve[slot] = weapon.magazineSize * 3;
+            slotReserve[slot] = Mathf.Clamp(weapon.magazineSize * 3, 0, ReserveAmmoLimit);
 
             if (switchToWeapon)
             {

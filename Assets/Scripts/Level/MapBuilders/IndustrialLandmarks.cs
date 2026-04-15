@@ -28,7 +28,11 @@ namespace Deadlight.Level.MapBuilders
             var body = CreateSpriteObject(crash, "HelicopterBody", CreateHelicopterSprite(), Vector3.zero, 6);
             body.transform.rotation = Quaternion.Euler(0f, 0f, 18f);
             var bodyCollider = body.AddComponent<BoxCollider2D>();
-            bodyCollider.size = new Vector2(3.1f, 1.3f);
+            MapFootprintCollider.ApplyCustomSpriteFootprint(
+                bodyCollider,
+                body.GetComponent<SpriteRenderer>().sprite,
+                body.transform.localScale,
+                new Vector2(3.1f, 1.3f));
 
             var fire = new GameObject("Fire");
             fire.transform.SetParent(crash);
@@ -82,7 +86,11 @@ namespace Deadlight.Level.MapBuilders
 
             var pump = CreateSpriteObject(depot, "FuelPump", CreateFuelPumpSprite(), new Vector3(-2.6f, -1f, 0f), 6);
             var pumpCol = pump.AddComponent<BoxCollider2D>();
-            pumpCol.size = new Vector2(0.5f, 0.9f);
+            MapFootprintCollider.ApplyCustomSpriteFootprint(
+                pumpCol,
+                pump.GetComponent<SpriteRenderer>().sprite,
+                pump.transform.localScale,
+                new Vector2(0.5f, 0.9f));
 
             CreateSpriteObject(depot, "HazardSign", CreateHazardSignSprite(), new Vector3(2.9f, -0.2f, 0f), 7);
         }

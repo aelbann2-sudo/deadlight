@@ -3,11 +3,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using Deadlight.Core;
 using Deadlight.Player;
+using Deadlight.Data;
+using Deadlight.Visuals;
 
 namespace Deadlight.Systems
 {
     public enum CrateTier { Common, Rare, Legendary }
-    public enum CrateContents { Ammo, Health, Points, Powerup, Armor }
+    public enum CrateContents { Ammo, Health, Points, Powerup, Armor, Grenade, Molotov, Shotgun, Medkit }
 
     public class SupplyCrate : MonoBehaviour
     {
@@ -72,7 +74,7 @@ namespace Deadlight.Systems
 
             if (promptText != null)
             {
-                promptText.text = "[F] Secure Drop";
+                promptText.text = "Hold F to Secure Drop";
                 promptText.color = new Color(1f, 0.85f, 0.35f);
             }
 
@@ -135,9 +137,23 @@ namespace Deadlight.Systems
             var playerObj = GameObject.Find("Player");
             var health = playerObj?.GetComponent<PlayerHealth>();
             var shooting = playerObj?.GetComponent<PlayerShooting>();
+            var throwable = playerObj?.GetComponent<ThrowableSystem>();
+            var medkits = playerObj?.GetComponent<PlayerMedkitSystem>();
 
             float healthPct = health != null ? health.HealthPercentage : 1f;
-            float ammoPct = shooting != null ? (float)shooting.ReserveAmmo / 200f : 1f;
+            int reserveAmmo = shooting != null ? shooting.ReserveAmmo : 0;
+            float ammoPressure = GetAmmoPressure01(reserveAmmo);
+            bool advancedDropsUnlocked = (GameManager.Instance?.CurrentLevel ?? 1) >= 4;
+            bool hasShotgun = shooting != null && shooting.HasWeaponType(WeaponType.Shotgun);
+            float grenadePct = throwable != null && throwable.MaxGrenades > 0
+                ? (float)throwable.GrenadeCount / throwable.MaxGrenades
+                : 1f;
+            float molotovPct = throwable != null && throwable.MaxMolotovs > 0
+                ? (float)throwable.MolotovCount / throwable.MaxMolotovs
+                : 1f;
+            float medkitPct = medkits != null && medkits.MaxMedkits > 0
+                ? (float)medkits.MedkitCount / medkits.MaxMedkits
+                : 1f;
 
             if (tier >= CrateTier.Rare && Random.value < 0.20f)
             {
@@ -157,14 +173,119 @@ namespace Deadlight.Systems
             }
 
             if (healthPct < 0.3f) { contents = CrateContents.Health; return; }
-            if (ammoPct < 0.2f) { contents = CrateContents.Ammo; return; }
+            if (reserveAmmo < 50) { contents = CrateContents.Ammo; return; }
             if (healthPct < 0.5f && Random.value < 0.6f) { contents = CrateContents.Health; return; }
-            if (ammoPct < 0.4f && Random.value < 0.6f) { contents = CrateContents.Ammo; return; }
+            if (reserveAmmo < 110 && Random.value < 0.55f) { contents = CrateContents.Ammo; return; }
+            if (advancedDropsUnlocked && !hasShotgun && tier >= CrateTier.Rare && Random.value < 0.08f)
+            {
+                contents = CrateContents.Shotgun;
+                return;
+            }
+            if (advancedDropsUnlocked && throwable != null && grenadePct < 0.25f && Random.value < 0.45f)
+            {
+                contents = CrateContents.Grenade;
+                return;
+            }
+            if (advancedDropsUnlocked && throwable != null && molotovPct < 0.25f && Random.value < 0.40f)
+            {
+                contents = CrateContents.Molotov;
+                return;
+            }
+            if (advancedDropsUnlocked && medkits != null && medkitPct < 0.3f && Random.value < 0.45f)
+            {
+                contents = CrateContents.Medkit;
+                return;
+            }
+
+            float ammoWeight = Mathf.Lerp(0.35f, 0.06f, ammoPressure);
+            float healthWeight = healthPct < 0.75f ? 0.30f : 0.24f;
+            float grenadeWeight = 0f;
+            float molotovWeight = 0f;
+            float shotgunWeight = 0f;
+            float medkitWeight = 0f;
+
+            if (advancedDropsUnlocked)
+            {
+                if (throwable != null)
+                {
+                    grenadeWeight = Mathf.Lerp(0.09f, 0.03f, grenadePct);
+                    molotovWeight = Mathf.Lerp(0.08f, 0.02f, molotovPct);
+                }
+
+                if (!hasShotgun && tier >= CrateTier.Rare)
+                {
+                    shotgunWeight = 0.04f;
+                }
+
+                if (medkits != null)
+                {
+                    medkitWeight = Mathf.Lerp(0.10f, 0.02f, medkitPct);
+                }
+            }
 
             float roll = Random.value;
-            if (roll < 0.35f) contents = CrateContents.Ammo;
-            else if (roll < 0.60f) contents = CrateContents.Health;
-            else contents = CrateContents.Points;
+            float cursor = ammoWeight;
+            if (roll < cursor) { contents = CrateContents.Ammo; return; }
+
+            cursor += healthWeight;
+            if (roll < cursor) { contents = CrateContents.Health; return; }
+
+            cursor += grenadeWeight;
+            if (roll < cursor) { contents = CrateContents.Grenade; return; }
+
+            cursor += molotovWeight;
+            if (roll < cursor) { contents = CrateContents.Molotov; return; }
+
+            cursor += shotgunWeight;
+            if (roll < cursor) { contents = CrateContents.Shotgun; return; }
+
+            cursor += medkitWeight;
+            if (roll < cursor) { contents = CrateContents.Medkit; return; }
+
+            contents = CrateContents.Points;
+        }
+
+        private static float GetAmmoPressure01(int reserveAmmo)
+        {
+            const float lowReserve = 120f;
+            const float highReserve = 320f;
+            return Mathf.InverseLerp(lowReserve, highReserve, reserveAmmo);
+        }
+
+        private static int ScaleAmmoRewardForReserve(int baseAmmo, PlayerShooting shooting)
+        {
+            int amount = Mathf.Max(1, baseAmmo);
+            if (shooting == null)
+            {
+                return amount;
+            }
+
+            int reserve = shooting.ReserveAmmo;
+            float multiplier = 1f;
+
+            if (reserve >= 360)
+            {
+                multiplier = 0.20f;
+            }
+            else if (reserve >= 280)
+            {
+                multiplier = 0.35f;
+            }
+            else if (reserve >= 200)
+            {
+                multiplier = 0.55f;
+            }
+            else if (reserve >= 140)
+            {
+                multiplier = 0.75f;
+            }
+
+            return Mathf.Max(1, Mathf.RoundToInt(amount * multiplier));
+        }
+
+        private int GetUtilityDropAmount()
+        {
+            return tier == CrateTier.Legendary ? 2 : 1;
         }
 
         private void CreateContentsIcon()
@@ -199,6 +320,22 @@ namespace Deadlight.Systems
                 case CrateContents.Armor:
                     iconColor = new Color(0.3f, 0.5f, 0.9f);
                     iconSprite = CreateShieldIcon();
+                    break;
+                case CrateContents.Grenade:
+                    iconColor = new Color(0.55f, 0.85f, 0.45f);
+                    iconSprite = CreateGrenadeIcon();
+                    break;
+                case CrateContents.Molotov:
+                    iconColor = new Color(1f, 0.55f, 0.2f);
+                    iconSprite = CreateMolotovIcon();
+                    break;
+                case CrateContents.Shotgun:
+                    iconColor = new Color(0.95f, 0.95f, 1f);
+                    iconSprite = CreateShotgunIcon();
+                    break;
+                case CrateContents.Medkit:
+                    iconColor = new Color(1f, 0.35f, 0.35f);
+                    iconSprite = CreateMedkitIcon();
                     break;
                 default:
                     iconColor = Color.white;
@@ -300,9 +437,14 @@ namespace Deadlight.Systems
                 {
                     case CrateContents.Ammo:
                         int ammo = Mathf.RoundToInt(Random.Range(20, 50) * nightMult * tierMult);
-                        player?.GetComponent<PlayerShooting>()?.AddAmmo(ammo);
-                        gameplayHelp?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Ammo, ammo);
-                        reward = $"+{ammo} Ammo";
+                        var playerShooting = player?.GetComponent<PlayerShooting>();
+                        int scaledAmmo = ScaleAmmoRewardForReserve(ammo, playerShooting);
+                        int grantedAmmo = playerShooting?.AddAmmo(scaledAmmo) ?? 0;
+                        if (grantedAmmo > 0)
+                        {
+                            gameplayHelp?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Ammo, grantedAmmo);
+                        }
+                        reward = grantedAmmo > 0 ? $"+{grantedAmmo} Ammo" : "Ammo Full";
                         break;
                     case CrateContents.Health:
                         float heal = Random.Range(15f, 35f) * nightMult * tierMult;
@@ -338,6 +480,121 @@ namespace Deadlight.Systems
                             reward = $"Lv{(int)armorTier} Vest!";
                         }
                         gameplayHelp?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Armor, 1);
+                        break;
+                    case CrateContents.Grenade:
+                        var grenadeSystem = player?.GetComponent<ThrowableSystem>();
+                        if (grenadeSystem != null)
+                        {
+                            int beforeGrenades = grenadeSystem.GrenadeCount;
+                            int grenadeGrant = GetUtilityDropAmount();
+                            grenadeSystem.AddGrenades(grenadeGrant);
+                            int gainedGrenades = grenadeSystem.GrenadeCount - beforeGrenades;
+                            if (gainedGrenades > 0)
+                            {
+                                gameplayHelp?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Grenade, gainedGrenades);
+                                reward = $"+{gainedGrenades} Grenade{(gainedGrenades > 1 ? "s" : "")}";
+                            }
+                            else
+                            {
+                                reward = "Grenades Full";
+                            }
+                        }
+                        else
+                        {
+                            reward = "Utility Unavailable";
+                        }
+                        break;
+                    case CrateContents.Molotov:
+                        var molotovSystem = player?.GetComponent<ThrowableSystem>();
+                        if (molotovSystem != null)
+                        {
+                            int beforeMolotovs = molotovSystem.MolotovCount;
+                            int molotovGrant = GetUtilityDropAmount();
+                            molotovSystem.AddMolotovs(molotovGrant);
+                            int gainedMolotovs = molotovSystem.MolotovCount - beforeMolotovs;
+                            if (gainedMolotovs > 0)
+                            {
+                                gameplayHelp?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Molotov, gainedMolotovs);
+                                reward = $"+{gainedMolotovs} Molotov{(gainedMolotovs > 1 ? "s" : "")}";
+                            }
+                            else
+                            {
+                                reward = "Molotovs Full";
+                            }
+                        }
+                        else
+                        {
+                            reward = "Utility Unavailable";
+                        }
+                        break;
+                    case CrateContents.Shotgun:
+                        var shotgunShooting = player?.GetComponent<PlayerShooting>();
+                        if (shotgunShooting == null)
+                        {
+                            reward = "No Weapon System";
+                            break;
+                        }
+
+                        if (!shotgunShooting.HasWeaponType(WeaponType.Shotgun))
+                        {
+                            bool equipped = shotgunShooting.TryAddWeaponToLoadout(WeaponData.CreateShotgun(), false);
+                            if (equipped)
+                            {
+                                gameplayHelp?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Shotgun, 1);
+                                reward = "Shotgun Acquired";
+                            }
+                            else
+                            {
+                                int fallbackAmmo = ScaleAmmoRewardForReserve(40, shotgunShooting);
+                                int gainedFallbackAmmo = shotgunShooting.AddAmmo(fallbackAmmo);
+                                if (gainedFallbackAmmo > 0)
+                                {
+                                    gameplayHelp?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Ammo, gainedFallbackAmmo);
+                                    reward = $"+{gainedFallbackAmmo} Ammo";
+                                }
+                                else
+                                {
+                                    reward = "Loadout Full";
+                                }
+                            }
+                        }
+                        else
+                        {
+                            int shotgunAmmo = ScaleAmmoRewardForReserve(35, shotgunShooting);
+                            int gainedShotgunAmmo = shotgunShooting.AddAmmo(shotgunAmmo);
+                            if (gainedShotgunAmmo > 0)
+                            {
+                                gameplayHelp?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Ammo, gainedShotgunAmmo);
+                                reward = $"+{gainedShotgunAmmo} Ammo";
+                            }
+                            else
+                            {
+                                reward = "Ammo Full";
+                            }
+                        }
+                        break;
+                    case CrateContents.Medkit:
+                        var medkitSystem = player?.GetComponent<PlayerMedkitSystem>();
+                        if (medkitSystem != null)
+                        {
+                            int beforeMedkits = medkitSystem.MedkitCount;
+                            int medkitGrant = GetUtilityDropAmount();
+                            medkitSystem.AddMedkits(medkitGrant);
+                            int gainedMedkits = medkitSystem.MedkitCount - beforeMedkits;
+                            if (gainedMedkits > 0)
+                            {
+                                gameplayHelp?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Medkit, gainedMedkits);
+                                reward = $"+{gainedMedkits} Medkit{(gainedMedkits > 1 ? "s" : "")}";
+                            }
+                            else
+                            {
+                                reward = "Medkits Full";
+                            }
+                        }
+                        else
+                        {
+                            reward = "Medkit System Missing";
+                        }
                         break;
                     default:
                         reward = "Loot!";
@@ -394,11 +651,6 @@ namespace Deadlight.Systems
             int bonusPoints;
             int ammo;
             float heal;
-            int scrap;
-            int wood;
-            int chemicals;
-            int electronics;
-            int blueprintTokens;
 
             switch (tier)
             {
@@ -406,66 +658,100 @@ namespace Deadlight.Systems
                     bonusPoints = 220;
                     ammo = 90;
                     heal = 45f;
-                    scrap = 6;
-                    wood = 5;
-                    chemicals = 3;
-                    electronics = 2;
-                    blueprintTokens = 2;
                     break;
                 case CrateTier.Rare:
                     bonusPoints = 140;
                     ammo = 60;
                     heal = 30f;
-                    scrap = 4;
-                    wood = 3;
-                    chemicals = 2;
-                    electronics = 1;
-                    blueprintTokens = 1;
                     break;
                 default:
                     bonusPoints = 90;
                     ammo = 35;
                     heal = 18f;
-                    scrap = 2;
-                    wood = 1;
-                    chemicals = 1;
-                    electronics = 0;
-                    blueprintTokens = 0;
                     break;
             }
 
             PointsSystem.Instance?.AddPoints(bonusPoints, "Contested Drop");
-            if (ResourceManager.Instance != null)
-            {
-                if (scrap > 0) ResourceManager.Instance.AddResource(ResourceType.Scrap, scrap);
-                if (wood > 0) ResourceManager.Instance.AddResource(ResourceType.Wood, wood);
-                if (chemicals > 0) ResourceManager.Instance.AddResource(ResourceType.Chemicals, chemicals);
-                if (electronics > 0) ResourceManager.Instance.AddResource(ResourceType.Electronics, electronics);
-                if (blueprintTokens > 0) ResourceManager.Instance.AddResource(ResourceType.BlueprintToken, blueprintTokens);
-            }
 
             var playerObj = GameObject.Find("Player");
             var shooting = playerObj != null ? playerObj.GetComponent<PlayerShooting>() : null;
             var health = playerObj != null ? playerObj.GetComponent<PlayerHealth>() : null;
 
-            shooting?.AddAmmo(ammo);
+            int scaledAmmo = ScaleAmmoRewardForReserve(ammo, shooting);
+            int grantedAmmo = shooting?.AddAmmo(scaledAmmo) ?? 0;
             health?.Heal(heal);
+            int grantedGrenades = 0;
+            int grantedMolotovs = 0;
+            int grantedMedkits = 0;
+
+            if ((GameManager.Instance?.CurrentLevel ?? 1) >= 4)
+            {
+                var throwable = playerObj != null ? playerObj.GetComponent<ThrowableSystem>() : null;
+                var medkits = playerObj != null ? playerObj.GetComponent<PlayerMedkitSystem>() : null;
+                if (throwable != null)
+                {
+                    bool grantGrenade = Random.value < 0.5f;
+                    int utilityGrant = tier == CrateTier.Legendary ? 2 : 1;
+                    if (grantGrenade)
+                    {
+                        int before = throwable.GrenadeCount;
+                        throwable.AddGrenades(utilityGrant);
+                        grantedGrenades = throwable.GrenadeCount - before;
+                    }
+                    else
+                    {
+                        int before = throwable.MolotovCount;
+                        throwable.AddMolotovs(utilityGrant);
+                        grantedMolotovs = throwable.MolotovCount - before;
+                    }
+                }
+
+                if (medkits != null && Random.value < 0.45f)
+                {
+                    int medkitGrant = tier == CrateTier.Legendary ? 2 : 1;
+                    int beforeMedkits = medkits.MedkitCount;
+                    medkits.AddMedkits(medkitGrant);
+                    grantedMedkits = medkits.MedkitCount - beforeMedkits;
+                }
+            }
 
             var help = Deadlight.UI.GameplayHelpSystem.Instance;
             help?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Points, bonusPoints);
-            help?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Ammo, ammo);
+            if (grantedAmmo > 0)
+            {
+                help?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Ammo, grantedAmmo);
+            }
+            if (grantedGrenades > 0)
+            {
+                help?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Grenade, grantedGrenades);
+            }
+            if (grantedMolotovs > 0)
+            {
+                help?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Molotov, grantedMolotovs);
+            }
+            if (grantedMedkits > 0)
+            {
+                help?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Medkit, grantedMedkits);
+            }
             help?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Health, Mathf.RoundToInt(heal));
-            if (scrap > 0) help?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Scrap, scrap);
-            if (wood > 0) help?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Wood, wood);
-            if (chemicals > 0) help?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Chemicals, chemicals);
-            if (electronics > 0) help?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.Electronics, electronics);
-            if (blueprintTokens > 0) help?.ShowItem(Deadlight.UI.GameplayGuideContent.ItemIds.BlueprintToken, blueprintTokens);
 
             var directSummary = new StringBuilder("DROP SECURED: ");
-            directSummary.Append($"+{bonusPoints} Points, +{ammo} Ammo, +{Mathf.RoundToInt(heal)} HP");
-            if (scrap > 0 || wood > 0 || chemicals > 0 || electronics > 0 || blueprintTokens > 0)
+            directSummary.Append($"+{bonusPoints} Points, +{grantedAmmo} Ammo, +{Mathf.RoundToInt(heal)} HP");
+            if (grantedGrenades > 0 || grantedMolotovs > 0)
             {
-                directSummary.Append($" | +{scrap} Scrap, +{wood} Wood, +{chemicals} Chemicals, +{electronics} Electronics, +{blueprintTokens} Token");
+                if (grantedGrenades > 0)
+                {
+                    directSummary.Append($", +{grantedGrenades} Grenade{(grantedGrenades == 1 ? string.Empty : "s")}");
+                }
+
+                if (grantedMolotovs > 0)
+                {
+                    directSummary.Append($", +{grantedMolotovs} Molotov{(grantedMolotovs == 1 ? string.Empty : "s")}");
+                }
+            }
+            if (grantedMedkits > 0)
+            {
+                directSummary.Append($", +{grantedMedkits} Medkit{(grantedMedkits == 1 ? string.Empty : "s")}");
             }
             return directSummary.ToString();
         }
@@ -555,8 +841,8 @@ namespace Deadlight.Systems
             pRect.anchoredPosition = new Vector2(0, 80);
             pRect.sizeDelta = new Vector2(200, 30);
             promptText = promptObj.AddComponent<Text>();
-            string tierLabel = tier == CrateTier.Legendary ? "[F] LEGENDARY" :
-                               tier == CrateTier.Rare ? "[F] Rare Crate" : "[F] Loot";
+            string tierLabel = tier == CrateTier.Legendary ? "Hold F — LEGENDARY" :
+                               tier == CrateTier.Rare ? "Hold F — Rare Crate" : "Hold F to Loot";
             promptText.text = tierLabel;
             promptText.font = font;
             promptText.fontSize = 22;
@@ -741,6 +1027,87 @@ namespace Deadlight.Systems
                 for (int x = 8 - hw; x < 8 + hw; x++)
                     if (x >= 0 && x < s) px[y * s + x] = Color.white;
             }
+            tex.SetPixels(px); tex.Apply(); tex.filterMode = FilterMode.Point;
+            return Sprite.Create(tex, new Rect(0, 0, s, s), new Vector2(0.5f, 0.5f), s);
+        }
+
+        private static Sprite CreateGrenadeIcon()
+        {
+            int s = 16;
+            var tex = new Texture2D(s, s);
+            var px = new Color[s * s];
+            for (int i = 0; i < px.Length; i++) px[i] = Color.clear;
+
+            Vector2 center = new Vector2(8f, 9f);
+            for (int y = 0; y < s; y++)
+                for (int x = 0; x < s; x++)
+                    if (Vector2.Distance(new Vector2(x, y), center) <= 4.5f)
+                        px[y * s + x] = Color.white;
+
+            for (int y = 2; y < 5; y++)
+                for (int x = 7; x < 10; x++)
+                    px[y * s + x] = Color.white;
+
+            for (int x = 9; x < 12; x++)
+                px[3 * s + x] = Color.white;
+
+            tex.SetPixels(px); tex.Apply(); tex.filterMode = FilterMode.Point;
+            return Sprite.Create(tex, new Rect(0, 0, s, s), new Vector2(0.5f, 0.5f), s);
+        }
+
+        private static Sprite CreateMolotovIcon()
+        {
+            int s = 16;
+            var tex = new Texture2D(s, s);
+            var px = new Color[s * s];
+            for (int i = 0; i < px.Length; i++) px[i] = Color.clear;
+
+            for (int y = 5; y < 13; y++)
+                for (int x = 6; x < 10; x++)
+                    px[y * s + x] = Color.white;
+
+            for (int y = 3; y < 6; y++)
+                for (int x = 7; x < 9; x++)
+                    px[y * s + x] = Color.white;
+
+            for (int y = 1; y < 4; y++)
+                for (int x = 10; x < 12; x++)
+                    px[y * s + x] = Color.white;
+
+            tex.SetPixels(px); tex.Apply(); tex.filterMode = FilterMode.Point;
+            return Sprite.Create(tex, new Rect(0, 0, s, s), new Vector2(0.5f, 0.5f), s);
+        }
+
+        private static Sprite CreateShotgunIcon()
+        {
+            var icon = ProceduralSpriteGenerator.CreateWeaponIcon(WeaponType.Shotgun);
+            return icon != null ? icon : CreateBulletIcon();
+        }
+
+        private static Sprite CreateMedkitIcon()
+        {
+            int s = 16;
+            var tex = new Texture2D(s, s);
+            var px = new Color[s * s];
+            for (int i = 0; i < px.Length; i++) px[i] = Color.clear;
+
+            for (int y = 3; y < 13; y++)
+            {
+                for (int x = 3; x < 13; x++)
+                {
+                    bool border = x == 3 || x == 12 || y == 3 || y == 12;
+                    px[y * s + x] = border ? new Color(0.85f, 0.2f, 0.2f) : Color.white;
+                }
+            }
+
+            for (int y = 6; y < 10; y++)
+                for (int x = 7; x < 9; x++)
+                    px[y * s + x] = new Color(0.85f, 0.2f, 0.2f);
+
+            for (int y = 7; y < 9; y++)
+                for (int x = 6; x < 10; x++)
+                    px[y * s + x] = new Color(0.85f, 0.2f, 0.2f);
+
             tex.SetPixels(px); tex.Apply(); tex.filterMode = FilterMode.Point;
             return Sprite.Create(tex, new Rect(0, 0, s, s), new Vector2(0.5f, 0.5f), s);
         }

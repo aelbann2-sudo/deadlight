@@ -9,7 +9,6 @@ namespace Deadlight.Narrative
         public static StoryEventManager Instance { get; private set; }
 
         private bool firstKillTriggered;
-        private bool lowHealthTriggered;
         private int killCount;
         private float lowHealthCooldown;
         private int nightsSurvived;
@@ -37,7 +36,6 @@ namespace Deadlight.Narrative
         public void ResetSession()
         {
             firstKillTriggered = false;
-            lowHealthTriggered = false;
             killCount = 0;
             lowHealthCooldown = 0f;
             nightsSurvived = 0;

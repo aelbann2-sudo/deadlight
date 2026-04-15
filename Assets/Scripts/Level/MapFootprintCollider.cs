@@ -31,6 +31,32 @@ namespace Deadlight.Level
             collider.offset = new Vector2(0f, (0.5f - normalizedPivot.y) * spriteSize.y);
         }
 
+        public static void ApplyCustomSpriteFootprint(
+            BoxCollider2D collider,
+            Sprite sprite,
+            Vector3 localScale,
+            Vector2 footprintSize)
+        {
+            if (collider == null)
+            {
+                throw new System.ArgumentNullException(nameof(collider));
+            }
+
+            if (sprite == null)
+            {
+                throw new System.ArgumentNullException(nameof(sprite));
+            }
+
+            Vector2 scale = new Vector2(Mathf.Abs(localScale.x), Mathf.Abs(localScale.y));
+            Vector2 spriteSize = Vector2.Scale(sprite.bounds.size, scale);
+            Vector2 normalizedPivot = new Vector2(
+                sprite.pivot.x / sprite.rect.width,
+                sprite.pivot.y / sprite.rect.height);
+
+            collider.size = footprintSize;
+            collider.offset = new Vector2(0f, (0.5f - normalizedPivot.y) * spriteSize.y);
+        }
+
         public static void ApplyBaseFootprint(
             BoxCollider2D collider,
             Vector2 visualSize,
