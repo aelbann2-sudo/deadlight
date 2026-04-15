@@ -143,7 +143,7 @@ namespace Deadlight.Enemy
                 ? WaveManager.Instance
                 : FindFirstObjectByType<WaveManager>();
             if (waveManager != null)
-                waveManager.RegisterEnemyDeath();
+                waveManager.RegisterEnemyDeath(GetComponent<BossController>() != null);
 
             var pointsSystem = FindFirstObjectByType<PointsSystem>();
             if (pointsSystem != null)
