@@ -101,6 +101,8 @@ Each session cycles through three phases. The \textbf{Day Phase} involves explor
 
 \textbf{Deliverable 3 scope.} Deliverable 2 covered Levels 1 and 2. For Deliverable 3, the team completed Levels 3 and 4 with new maps and story content, added a three-phase boss fight against Subject~23, introduced a run modifier system for replay variation, implemented dynamic audio mixing, added a run-grading and leaderboard system, and performed a full playtesting and balance pass across all twelve nights.
 
+\textbf{Submission contents.} The submission package contains: the Unity project folder (Assets, Packages, and ProjectSettings directories only), a Windows executable build (.exe and Data folder) verified to run without the Unity Editor, this PDF report, and a recorded showcase video (3--5 minutes) covering the game premise, a walkthrough of key systems, and the final boss encounter.
+
 \begin{figure}[H]
   \centering
   \begin{subfigure}[t]{0.48\textwidth}
@@ -119,61 +121,63 @@ Each session cycles through three phases. The \textbf{Day Phase} involves explor
 % ===================================================================
 \section{Art, Aesthetics \& Sound Design}
 
-\subsection{Visual Direction}
+\subsection{Visual Direction and Colour Schemes}
 
-The game uses a muted top-down pixel art style. Building tiles and road surfaces use a desaturated grey-green base. Accent colours are used only where they carry meaning: gold for objectives and supply drops, red for danger, and blue for interactive objects. This keeps the environment easy to read during combat.
+Each map uses a distinct colour palette to give each level a different visual identity. Town Center uses grey road tiles and beige building facades. Suburban adds green vegetation patches and lighter ground tones. Industrial uses a brown earth and dark warehouse palette with coloured storage units as landmarks. Research Facility uses a uniform mid-grey tile scheme with red-roofed institutional buildings at the centre, producing a more enclosed and clinical look. These differences make each level visually recognisable and reinforce the narrative setting of each environment.
 
-\textbf{Procedural sprites.} All character and prop sprites are generated at runtime by \texttt{ProceduralSpriteGenerator}. The player sprite includes armour overlays that change colour based on the equipped vest tier. Enemy sprites share a base zombie shape with per-type colour tints and size variations. The boss spawns at twice the standard enemy scale. Supply crates use three colour codes: \textbf{Common} (brown), \textbf{Rare} (blue), and \textbf{Legendary} (gold), allowing the player to identify crate quality from a distance.
+Across all maps, accent colours are used only where they carry gameplay meaning: gold for objectives and supply drops, red for danger, and blue for interactive objects. This consistency means players can interpret colour as information regardless of which level they are in.
 
-\textbf{Bullet trail.} Each bullet uses an 8-pixel sprite with a bright centre fading to orange at the edge, combined with a \texttt{TrailRenderer} set to fade over 55~ms. This makes projectile direction and speed readable without dedicated art assets.
+\textbf{Procedural sprites.} Character and environment sprites are generated at runtime by \texttt{ProceduralSpriteGenerator}. Enemy sprites share a base zombie shape with per-type colour tints and scale variation handled by \texttt{ZombieAnimator}. Subject~23 scales to 2x at encounter start, making it visually distinct from standard enemies without a separate art asset. Supply crates use three colour codes: \textbf{Common} (brown), \textbf{Rare} (blue), and \textbf{Legendary} (gold), allowing the player to assess value from a distance.
 
-\textbf{Atmosphere.} \texttt{AtmosphereController} applies a colour tint over the scene that shifts between a warm tone during the day and a dark blue during the night, in sync with the day-night timer. \texttt{VFXManager} handles screen shake and muzzle flash effects. \texttt{DecalManager} places blood marks on the ground when enemies are killed. These marks remain visible for the rest of the night, giving areas where combat occurred a distinct appearance.
+\textbf{Bullet trail.} Each bullet uses an 8-pixel sprite with a bright centre fading to orange at the edge, combined with a \texttt{TrailRenderer} set to fade over 55~ms. This makes shot direction and weapon fire rate readable during combat.
 
-\begin{figure}[H]
-  \centering
-  \begin{subfigure}[t]{0.48\textwidth}
-    \includegraphics[width=\textwidth]{d2_fig_level2_briefing.png}
-    \caption{Contested day drop in Level 2. The objective ring, COMMS message, and supply crate are all visible at the same time.}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[t]{0.48\textwidth}
-    \includegraphics[width=\textwidth]{d2_fig_dawn_shop_v2.png}
-    \caption{Dawn Shop after Level 2, Night 1. Points total, consumable row, and tabbed shop panels (Weapons / Upgrades / Armour) are shown.}
-  \end{subfigure}
-\end{figure}
+\textbf{Atmosphere.} \texttt{AtmosphereController} applies a colour tint over the scene that shifts from a warm tone during the day to a dark blue during the night, in sync with the day-night timer. \texttt{VFXManager} handles screen shake on explosions, heavy hits, and the boss entrance. \texttt{DecalManager} places blood marks on the ground that persist until the end of the night, so areas where combat occurred look different from untouched areas.
 
 \begin{figure}[H]
   \centering
   \begin{subfigure}[t]{0.48\textwidth}
     \includegraphics[width=\textwidth]{d3_fig_industrial_overview.png}
-    \caption{Level 3 (Industrial) overview capture generated from the runtime map builder. Wide lanes and dense cover pockets support higher-pressure mid-campaign nights.}
+    \caption{Level 3 (Industrial) map overview. The layout uses wide lanes with cover pockets and colour-coded storage units as landmarks.}
   \end{subfigure}
   \hfill
   \begin{subfigure}[t]{0.48\textwidth}
     \includegraphics[width=\textwidth]{d3_fig_research_overview.png}
-    \caption{Level 4 (Research) overview capture. The layout tightens into corridors and chokepoints around the final objective sector.}
+    \caption{Level 4 (Research Facility) map overview. The uniform grey tile scheme and central red-roofed buildings produce a more enclosed visual tone.}
   \end{subfigure}
 \end{figure}
 
 \subsection{User Interface}
 
-The HUD is divided into five fixed areas on screen:
+The HUD is divided into five fixed areas on screen. These positions remain consistent across all levels and phases so the player does not need to re-learn the layout.
 
 \begin{itemize}[noitemsep]
   \item \textbf{Top-left:} Health bar, armour bar, active objective, and COMMS feed.
   \item \textbf{Top-centre:} Level name and wave number during the night, or phase label during the day.
   \item \textbf{Top-right:} Enemy count and, when a helicopter drop is scheduled, a countdown timer.
-  \item \textbf{Bottom-right:} Weapon slots, active weapon stats, throwable counts, and current ammo.
+  \item \textbf{Bottom-right:} Weapon slots (four hotkeys), active weapon stats, throwable counts, and current ammo.
   \item \textbf{Bottom-left:} Score.
 \end{itemize}
 
-\texttt{UITheme} stores shared fonts, colours, and panel sizes so that all runtime-created panels use the same style. The Dawn shop uses three tabs (Weapons, Upgrades, Armour) with a row of consumable buttons above them.
+\texttt{UITheme} stores shared fonts, colours, and panel sizes so that all runtime-created panels use the same style. The Dawn shop uses three tabs (Weapons, Upgrades, Armour) with a consumable row above them. The consistent dark-background and coloured-button scheme is used in the HUD, the Dawn shop, the Level Complete panel, and the Victory screen.
 
 \subsection{Sound Design}
 
-\texttt{AudioManager} handles five music tracks (menu, day, night, boss, dawn) and crossfades between them over 3.2 seconds when the game state changes. A tension value is updated at runtime based on the current phase (\texttt{dayBaseTension = 0.05}, \texttt{nightBaseTension = 0.28}, \texttt{bossBaseTension = 0.80}). This value is used to adjust music volume, pitch, and ambient level so that the audio mix becomes more intense as waves progress.
+\texttt{AudioManager} handles five music tracks (menu, day, night, boss, dawn) and crossfades between them over 3.2 seconds when the game state changes. A tension value is computed at runtime based on the current phase: 0.05 at day, 0.28 at night, and 0.80 during the boss fight. This value adjusts music volume, pitch, and ambient level, so the audio mix responds to what is happening in the game rather than switching abruptly between fixed tracks.
 
-A pool of ten \texttt{AudioSource} components handles spatial sound effects such as gunfire, enemy sounds, and explosions, with a range of 20 metres. \texttt{ProceduralAudioGenerator} produces pickup and interaction sounds at runtime. When radio dialogue or COMMS messages play, the background music volume is reduced by 24\% so the speech remains audible.
+A pool of ten \texttt{AudioSource} components handles spatial sound effects (gunfire, enemy sounds, explosions) with a 20-metre range. The spatial audio lets the player hear threats from off-screen before seeing them, which supports situational awareness. \texttt{ProceduralAudioGenerator} produces pickup and interaction sounds at runtime. When COMMS messages play, the music volume is reduced by approximately 24\% so the speech is audible. High-priority transmissions apply stronger ducking.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[t]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{d2_fig_level2_briefing.png}
+    \caption{Contested day drop in Level 2. The gold objective ring, COMMS message, and supply crate are visible at the same time.}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[t]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{d2_fig_dawn_shop_v2.png}
+    \caption{Dawn Shop after clearing a night. Points total, consumable row, and tabbed shop panels are shown.}
+  \end{subfigure}
+\end{figure}
 
 % ===================================================================
 %  3. NARRATIVE & SYSTEMS INTEGRATION
@@ -182,7 +186,7 @@ A pool of ten \texttt{AudioSource} components handles spatial sound effects such
 
 \subsection{Story Arc}
 
-The campaign follows a containment story across four levels. Each level takes place in a different environment and advances a distinct part of the narrative.
+The campaign follows a containment story across four levels. Each level advances a distinct part of the narrative.
 
 \begin{tcolorbox}[tableframe]
 \small
@@ -198,46 +202,56 @@ The campaign follows a containment story across four levels. Each level takes pl
 \end{tabularx}
 \end{tcolorbox}
 
+\subsection{Narrative Delivery}
+
+The player can complete every night without reading any story content. All narrative is optional or ambient, delivered through these systems.
+
+\textbf{Radio / COMMS.} \texttt{RadioTransmissions} queues messages from EVAC Command, Dr.~Chen, and survivor voices. A 1.2-second protection window in \texttt{NarrativeManager} prevents new messages from cutting off the one currently playing. Messages appear in a panel above the objective display with a channel label so the source is clear.
+
+\textbf{Story Objectives.} \texttt{StoryObjective} assigns a title, description, and two-phase structure (Day Investigation, then Night Survival) to each of the twelve nights. Completed entries are stored in a list and displayed in \texttt{NarrativeJournalUI}, which the player can open at any time to review progress.
+
+\textbf{Environmental lore.} \texttt{EnvironmentalLore} and \texttt{LorePickup} place optional items (graffiti, lab notes, survivor logs) across each map. These do not affect progression. The Level Complete screen reports a lore count as a secondary metric, such as ``Lore Found: 0/25.''
+
+\textbf{Player voice.} \texttt{PlayerVoice} triggers short audio reactions tied to events (low health, first kill, boss spotted) using procedurally generated clips.
+
+\subsection{Enemy AI Subsystems}
+
+The game uses three enemy AI types that become more common in later levels.
+
+\textbf{Standard enemies} (\texttt{EnemyAI}) use a direct pursuit behaviour with aggression-phase scaling. \texttt{EnemyAggressionPhase} increases enemy movement speed and attack frequency as the night progresses, so early waves in a night are easier than later ones within the same wave set. \texttt{EnemyAffix} attaches per-enemy modifiers (such as armoured, fast, or explosive death) that are activated by the run modifier system in higher-difficulty nights.
+
+\textbf{Spitter enemies} (\texttt{SpitterAI}) maintain distance and fire projectiles at the player. They are introduced in Level 2 and become more common in Levels 3 and 4. Their presence forces the player to manage positioning rather than simply kiting in a circle.
+
+\textbf{Subject~23} (\texttt{BossController}) is a three-phase encounter described in Section~\ref{sec:boss}. The combination of standard enemies, ranged spitters, and the boss in Level 4 Night 3 requires the player to manage multiple threat types simultaneously, which is where the subsystems come together most directly.
+
+\subsection{Narrative Consequences in Gameplay}
+
+Failing a story objective has mechanical effects. A missed \texttt{StoryObjective} adds a 1.2x enemy strength multiplier to the following night and increments a 0.75x carryover-penalty stack. Retry and forced-advance outcomes are announced through separate COMMS messages so the player understands the difference. Contested day drops follow the same pattern: EVAC Command announces the drop by radio, an objective marker shows the location, and the outcome is reported back through COMMS. Every supply event has a matching in-world message.
+
 \begin{figure}[H]
   \centering
   \begin{subfigure}[t]{0.48\textwidth}
     \includegraphics[width=\textwidth]{d3_fig_industrial_lab.png}
-    \caption{Industrial laboratory zone used in Level 3 objective beats and lore discovery paths.}
+    \caption{Industrial laboratory zone used in Level 3 objective beats and lore discovery. The lab props are placed by \texttt{IndustrialLandmarks}.}
   \end{subfigure}
   \hfill
   \begin{subfigure}[t]{0.48\textwidth}
     \includegraphics[width=\textwidth]{d3_fig_research_reactor_yard.png}
-    \caption{Research reactor yard pathing in Level 4, used to pressure player movement during late-night encounters.}
+    \caption{Research reactor yard in Level 4. The open approach paths funnel enemy spawn routes during the final night.}
   \end{subfigure}
 \end{figure}
-
-\subsection{Narrative Delivery}
-
-The player can complete every night without engaging with the story. All narrative content is optional or ambient, delivered through the following systems.
-
-\textbf{Radio / COMMS.} \texttt{RadioTransmissions} queues messages from EVAC Command, Dr.~Chen, and survivor voices. A 1.2-second protection window prevents a new message from interrupting one that is already playing. The message appears in a panel above the objective display with a channel label.
-
-\textbf{Story Objectives.} \texttt{StoryObjective} assigns a title, description, and two-phase structure (Day Investigation, then Night Survival) to each of the twelve campaign nights. Completed entries are stored in a list and displayed in \texttt{NarrativeJournalUI}, which the player can open at any time.
-
-\textbf{Environmental lore.} \texttt{EnvironmentalLore} and \texttt{LorePickup} place optional items such as graffiti, lab notes, and survivor logs across each map. These do not affect progression. The Level Complete screen reports a lore count (for example, ``Lore Found: 0/25'') as a secondary metric.
-
-\textbf{Player voice.} \texttt{PlayerVoice} triggers short audio reactions tied to gameplay events such as low health, a first kill, or seeing the boss. The clips are generated procedurally.
-
-\subsection{Narrative Consequences in Gameplay}
-
-Failing a story objective has mechanical effects. A missed \texttt{StoryObjective} adds a \textbf{1.2x enemy strength multiplier} to the following night and reduces the point carryover into the next level by a \textbf{0.75x penalty}. Both effects are announced through COMMS messages that distinguish between a retry and a forced advance. Contested day drops follow the same pattern: EVAC Command announces the drop by radio, an objective marker shows the location, and the outcome (secured or lost) is reported back through COMMS.
 
 \begin{figure}[H]
   \centering
   \begin{subfigure}[t]{0.48\textwidth}
     \includegraphics[width=\textwidth]{d2_fig_level1_complete.png}
-    \caption{Level Complete panel after Level 1. The next deployment is identified by name, and lore count is shown as a secondary completion metric.}
+    \caption{Level Complete panel after Level 1. The next deployment is named, lore count is shown, and the player chooses to deploy immediately or return to the menu.}
     \label{fig:levelcomplete}
   \end{subfigure}
   \hfill
   \begin{subfigure}[t]{0.48\textwidth}
     \includegraphics[width=\textwidth]{d2_fig_victory.png}
-    \caption{Victory screen after defeating Subject 23. Kill count, points, map name, and leaderboard rank are displayed.}
+    \caption{Victory screen after defeating Subject~23. Kill count, points earned, map name, and leaderboard rank are displayed.}
   \end{subfigure}
 \end{figure}
 
@@ -248,9 +262,7 @@ Failing a story objective has mechanical effects. A missed \texttt{StoryObjectiv
 
 \subsection{Campaign Structure}
 
-The campaign is structured as four levels, each containing three nights. Level access is tracked in \texttt{PlayerPrefs} using two keys (\texttt{Deadlight\_UnlockedLevel} and \texttt{Deadlight\_HighestCompletedLevel}). A player can return to any previously completed level but cannot skip ahead. \texttt{GameManager.IsLevelUnlocked()} enforces this by comparing the requested level against the highest completed level plus one.
-
-Each level starts with a full reset of points, inventory, weapon loadout (pistol only), armour, throwables, and medkits. Within a level, the player builds up resources across three nights and spends them at the Dawn shop between nights.
+The campaign has four levels, each containing three nights. Level access is stored in \texttt{PlayerPrefs} using two keys (\texttt{Deadlight\_UnlockedLevel} and \texttt{Deadlight\_HighestCompletedLevel}). A player can return to any completed level between sessions but cannot skip ahead. Each level starts with a full reset of points, inventory, weapon loadout (pistol only), armour, throwables, and medkits. Within a level, the player builds up resources across three nights and spends them at the Dawn shop.
 
 \subsection{Night Pacing}
 
@@ -270,11 +282,11 @@ Level 4 (N10--12) & 75, 65, 55 & 80, 100, 140 \\
 \end{tabular}
 \end{center}
 
-Day phases become shorter in later levels, reducing preparation time. Night phases become longer, increasing the time the player must hold out against enemies. Enemy statistics are not changed between levels; pacing is handled through duration alone.
+Day phases become shorter in later levels, giving less preparation time. Night phases become longer, increasing the time the player must survive. Enemy statistics are not changed between levels; difficulty is managed through phase duration and resource availability.
 
 \subsection{Adaptive Resource Scaling}
 
-The number of health and ammo pickups spawned each day decreases slightly across levels. Ammo pickup counts are also adjusted at runtime based on the player's current reserve ammo.
+Health and ammo pickup counts decrease slightly across levels and are further adjusted at runtime by the player's current reserve ammo.
 
 \begin{tcolorbox}[tableframe]
 \small
@@ -288,38 +300,38 @@ Ammo pickups (base) & 5 & 5 & 4 & 4 \\
 \end{tabular}
 
 \vspace{6pt}
-\textbf{Ammo pickup count adjustment by reserve ammo:} \\
-Reserve $\geq 320$: no pickups spawned. \quad Reserve $\geq 240$: 25\% of base count. \\
-Reserve $\geq 160$: 50\% of base count. \quad Below 160: full count spawns.
+\textbf{Ammo pickup count by reserve ammo:} \\
+Reserve $\geq 320$: no pickups. \quad Reserve $\geq 240$: 25\% of base. \\
+Reserve $\geq 160$: 50\% of base. \quad Below 160: full count.
 \end{tcolorbox}
 
-Pickups are placed using a 100-attempt scatter algorithm. It biases positions toward the outer 40\% of the map, enforces a minimum 6-unit gap between pickups, rejects positions within 10 units of the player spawn point, and checks all obstacle colliders to avoid placing pickups inside buildings.
+Pickups are placed using a 100-attempt scatter algorithm. It biases positions toward the outer 40\% of the map, enforces a minimum 6-unit gap between pickups, rejects positions within 10 units of the player spawn point, and checks all registered obstacle colliders to avoid placing pickups inside buildings.
 
 \subsection{Supply Crate Tiers and Helicopter Drops}
 
-Crates come in three tiers. The probability of higher tiers increases with the campaign night number.
+Crates use the same three-tier system as visual design: Common (brown), Rare (blue), Legendary (gold). Tier probability increases with night number.
 
 \[
 P(\mathrm{Legendary}) = \min(0.12,\ 0.01 + 0.01 \times \mathrm{night}), \quad
 P(\mathrm{Rare}) = \min(0.35,\ 0.08 + 0.02 \times \mathrm{night})
 \]
 
-Night helicopter drops have a 65\% base spawn chance, reduced if the player's ammo reserve is already high. The drop is scheduled after a 55-second delay with up to 8 seconds of randomisation. Contested day drops trigger at 68\% through the day phase, with a 60\% base chance that is reduced at high ammo reserves.
+Night helicopter drops have a 65\% base spawn chance, reduced when the player's reserve ammo is high. The drop arrives after a 55-second delay with up to 8 seconds of random variation. Contested day drops trigger at 68\% through the day phase with a 60\% base chance.
 
 \subsection{Run Modifier System}
 
-\texttt{RunModifierSystem} applies per-run and per-night modifiers from a set of eight types, including Fast Fragile, Horde Night, Blood Moon, and Glass Cannon. Each modifier changes enemy health, speed, and damage by a defined multiplier. Modifiers are selected using a seed based on the current time and total play time, so runs are not identical but no manual authored content is required beyond the eight definitions.
+\texttt{RunModifierSystem} selects one run modifier at run start from eight types (Fast Fragile, Horde Night, Blood Moon, Glass Cannon, and others). The active modifier changes enemy health, speed, and damage multipliers for the run. A separate nightly world-event roll (Thick Fog, Full Moon, Contamination, Reinforcements) is applied each night. Both are seeded from elapsed play time so runs vary without manually authored per-night scripts.
 
 \subsection{Points Economy}
 
 \begin{itemize}[noitemsep]
-  \item \textbf{Night survived:} 100 base points plus a 50-point bonus per night survived so far.
-  \item \textbf{Contested drop secured:} Common +110, Rare +170, Legendary +260 points, plus loot contents.
-  \item \textbf{Kill streak bonus:} managed by \texttt{KillStreakSystem}.
-  \item \textbf{Inter-level carryover:} 65\% of unspent points carry to the next level, reduced by 0.75x for each missed objective.
+  \item \textbf{Night survived:} 100 base points plus a 50-point bonus per night survived.
+  \item \textbf{Contested drop secured:} Common +90, Rare +140, Legendary +220 points plus loot.
+  \item \textbf{Kill streak bonus:} tracked by \texttt{KillStreakSystem}.
+  \item \textbf{Level transition:} the next level starts fresh with a full equipment reset.
 \end{itemize}
 
-At the end of a run, \texttt{RunGradingSystem} produces a letter grade based on kills, accuracy, and total points. The result is shown on the victory screen alongside a rank from \texttt{LeaderboardManager}.
+\texttt{RunGradingSystem} produces a letter grade based on kills, accuracy, and points at the end of a run. The grade and a leaderboard rank from \texttt{LeaderboardManager} are shown on the victory screen.
 
 % ===================================================================
 %  5. PLAYTESTING & ITERATION
@@ -328,15 +340,16 @@ At the end of a run, \texttt{RunGradingSystem} produces a letter grade based on 
 
 \subsection{Protocol}
 
-Each test session followed the same steps:
+Playtesting was conducted by all four team members across multiple sessions during the D3 development period. One external session was held with a peer from outside the group to get feedback from someone unfamiliar with the build. Each test session followed the same steps:
+
 \begin{enumerate}[noitemsep]
-  \item Start a fresh run from Night 1 without prior knowledge of recent changes.
+  \item Start a fresh run from Night 1 without advance knowledge of recent changes.
   \item Play through one complete day, night, and dawn cycle.
   \item Record observations on objective clarity, resource availability, COMMS timing, and combat feel.
-  \item Address one category of issues before running the next test session, to avoid interference between fixes.
+  \item Address one category of issues before the next session to avoid interference between fixes.
 \end{enumerate}
 
-A PlayMode regression suite in \texttt{DaytimePrepRuntimeTests.cs} covers contested drop secure and expiry flows, pickup behaviour, penalty propagation, and state transitions across day, night, and dawn. A full smoke test was run and passed before the D3 submission.
+A PlayMode regression suite in \texttt{DaytimePrepRuntimeTests.cs} covers contested drop secure and expiry flows, pickup behaviour, penalty propagation, and day/night/dawn state transitions. A full smoke test was run and passed before submission.
 
 \subsection{Changes from Deliverable 2 to Deliverable 3}
 
@@ -346,23 +359,23 @@ A PlayMode regression suite in \texttt{DaytimePrepRuntimeTests.cs} covers contes
 \toprule
 \textbf{Observed problem} & \textbf{Change made} \\
 \midrule
-Players ran out of ammo late in a night with no way to recover & Ammo pickup counts are now reduced at high reserve levels rather than fixed, so there is always some supply available when the player is low. \\
+Players ran out of ammo late in a night with no recovery option & Ammo pickup counts are now reduced at high reserve levels rather than fixed. A supply path is always available when the player is low. \\
 \addlinespace
-Players held onto crates and arrived at Level 4 with too little ammo & Crate spawning is now suppressed when the player's reserve ammo is above 280, encouraging spending at the shop instead. \\
+Players stockpiled crates and arrived at Level 4 under-equipped & Crate spawn counts scale with reserve ammo and are suppressed only at very high reserve, preventing passive stockpiling while keeping drops available when needed. \\
 \addlinespace
-The day phase felt short at higher levels & The contested drop now triggers at 68\% through the day phase instead of 60\%, giving more time for exploration before the drop event. \\
+Day phase felt short at higher levels & The contested drop now triggers at 68\% through the day phase instead of 60\%, giving more time to explore before the timed event starts. \\
 \addlinespace
-The crafting system was confusing and underused & Crafting was disabled (\texttt{enableCrafting = false}). Crafting pickups were replaced with direct health and ammo drops. \\
+Crafting system was confusing and rarely used & \texttt{GameManager.CraftingEnabled} returns false at runtime. Legacy crafting pickups were removed from the day spawn flow and replaced with direct health and ammo drops. \\
 \addlinespace
-COMMS messages were cutting each other off & A 1.2-second protection window was added to the \texttt{NarrativeManager} queue so the current message finishes before the next one plays. \\
+COMMS messages interrupted each other & A 1.2-second protection window was added to the \texttt{NarrativeManager} queue so the current message always finishes before the next one plays. \\
 \addlinespace
-The boss was difficult to survive on first contact & The boss fight was split into three phases: standard pursuit above 60\% health, charge attacks from 60\% to 30\%, and area slams below 30\%. \\
+Boss was difficult to survive on first contact & The boss fight was split into three phases: standard pursuit above 60\% health, charge attacks from 60--30\%, and area slams below 30\%. \\
 \addlinespace
-Levels 3 and 4 had no story content in the D2 build & Story objective beats for nights 7 through 12 were written. Industrial and Research map builders were implemented with map-specific landmarks and lore placements. \\
+Levels 3 and 4 had no story content (D2 scope) & Story objective beats for nights 7--12 were written. Industrial and Research map builders were implemented with level-specific landmarks and lore placements. \\
 \addlinespace
-The 15-second night warning was easy to miss & A low-amplitude screen shake was added alongside the COMMS warning to provide a second signal. \\
+15-second night warning was easy to miss & A low-amplitude screen shake was added alongside the COMMS warning to give a second signal channel. \\
 \addlinespace
-Players sometimes spawned as duplicates after scene reload & \texttt{GameManager.EnsurePlayerExists()} now checks for multiple \texttt{PlayerController} instances on scene load and disables any extras. \\
+Duplicate player spawning after scene reload & \texttt{GameManager.EnsurePlayerExists()} now checks for multiple \texttt{PlayerController} instances on load and disables any extras. \\
 \bottomrule
 \end{tabularx}
 \end{tcolorbox}
@@ -371,12 +384,12 @@ Players sometimes spawned as duplicates after scene reload & \texttt{GameManager
   \centering
   \begin{subfigure}[t]{0.48\textwidth}
     \includegraphics[width=\textwidth]{d2_fig_daytime.png}
-    \caption{Supply crate loot prompt during the day phase. The interaction label appears only when the player is within range.}
+    \caption{Supply crate loot prompt. The interaction label appears only when the player is within range, which was clarified after D2 onboarding feedback.}
   \end{subfigure}
   \hfill
   \begin{subfigure}[t]{0.48\textwidth}
-    \includegraphics[width=\textwidth]{d2_fig_combat.png}
-    \caption{Night combat with accumulated blood decals. Decals remain for the duration of the night.}
+    \includegraphics[width=\textwidth]{d3_user_boss_start.png}
+    \caption{Level 4, Wave 5. Subject~23 (large red sprite, centre) is present alongside standard enemies. The player is using a flamethrower with 4 ammo remaining.}
   \end{subfigure}
 \end{figure}
 
@@ -385,9 +398,23 @@ Players sometimes spawned as duplicates after scene reload & \texttt{GameManager
 % ===================================================================
 \section{Technical Implementation}
 
+\subsection{Build and Project Structure}
+
+The submission includes the Unity project folder with the three required directories: Assets, Packages, and ProjectSettings. The Library and Temp directories are excluded. A Windows build is included in the Builds/Windows folder. The build was verified to launch and run through a full campaign night without the Unity Editor present, with no missing asset errors or critical crashes.
+
+Key performance measures implemented in the build:
+
+\begin{itemize}[noitemsep]
+  \item Audio source pooling (10 pre-allocated sources) avoids per-sound object allocation during high-activity nights.
+  \item Bullet objects are created and destroyed normally; the small per-frame count does not require a full pool, and this was confirmed acceptable during stress testing on Night 12.
+  \item Pickup placement uses early-exit collision checks so the 100-attempt scatter loop exits as soon as a valid position is found rather than always iterating to the maximum.
+  \item \texttt{Time.fixedDeltaTime} is clamped when pausing to prevent physics accumulation on unpause.
+  \item The procedural map rebuild (level transition) happens in a single frame using synchronous instantiation rather than a coroutine, keeping the transition seamless.
+\end{itemize}
+
 \subsection{Architecture}
 
-The project uses a set of singleton manager objects connected through C\# events. All managers are set to persist across scene loads using \texttt{DontDestroyOnLoad}. \texttt{GameManager} uses \texttt{[RuntimeInitializeOnLoadMethod]} to check for and create any missing managers at startup, so the build works correctly even if a manager object is missing from the scene.
+The project uses a set of singleton manager objects that communicate through C\# events. All managers persist across scene loads via \texttt{DontDestroyOnLoad}. \texttt{GameManager} uses \texttt{[RuntimeInitializeOnLoadMethod]} to create any missing managers at startup, so the build functions correctly even if a manager prefab is absent from the scene.
 
 \begin{center}
 \small
@@ -396,11 +423,11 @@ The project uses a set of singleton manager objects connected through C\# events
 \textbf{Manager} & \textbf{Responsibility} \\
 \midrule
 \texttt{GameManager} & State machine, level unlock and reset, player setup \\
-\texttt{GameFlowController} & Day and night flow, pickup and crate spawning, drops \\
+\texttt{GameFlowController} & Day/night flow, pickup and crate spawning, drop scheduling \\
 \texttt{DayNightCycle} & Per-night duration values, timer events \\
-\texttt{WaveManager} & Wave schedules, enemy spawning, boss trigger \\
-\texttt{NarrativeManager} & Dialogue queue, message protection, COMMS output \\
-\texttt{StoryObjective} & Per-night story beats, day and night phase tracking \\
+\texttt{WaveManager} & Wave schedules, enemy spawn calls, boss trigger gate \\
+\texttt{NarrativeManager} & Dialogue queue, interrupt protection, COMMS output \\
+\texttt{StoryObjective} & Per-night story beats, day/night phase tracking \\
 \texttt{AudioManager} & Music crossfade, tension mix, SFX pool, voice ducking \\
 \texttt{ProgressionManager} & Milestone point awards and per-night stipends \\
 \texttt{PointsSystem} & Score tracking and kill-streak multiplier \\
@@ -413,50 +440,51 @@ The project uses a set of singleton manager objects connected through C\# events
 
 \subsection{Game State Machine}
 
-\texttt{GameManager.GameState} defines seven states that represent the full flow of a session.
+\texttt{GameManager.GameState} defines seven states covering the full session flow.
 
 \begin{center}
 \texttt{MainMenu} $\to$ \texttt{DayPhase} $\to$ \texttt{NightPhase} $\to$ \texttt{DawnPhase} $\to$ \texttt{LevelComplete} $\to$ \texttt{Victory} \,/\, \texttt{GameOver}
 \end{center}
 
-Each state change fires the \texttt{OnGameStateChanged} C\# event. Systems such as \texttt{AudioManager}, \texttt{AtmosphereController}, and the UI panels subscribe to this event independently. New systems can respond to state changes without modifying \texttt{GameManager}.
+Each state change fires the \texttt{OnGameStateChanged} C\# event. \texttt{AudioManager}, \texttt{AtmosphereController}, UI panels, and \texttt{GameFlowController} each subscribe independently. Adding a new system that needs to respond to state changes does not require editing \texttt{GameManager}.
 
 \subsection{Procedural Map System}
 
-Each level has a dedicated builder class (\texttt{TownCenterBuilder}, \texttt{SuburbanBuilder}, \texttt{IndustrialBuilder}, \texttt{ResearchBuilder}) that extends \texttt{MapBuilderBase}. These builders place buildings, roads, obstacles, spawn points, and lore props at runtime according to layout rules defined for each map. When the player moves to the next level, \texttt{TestSceneSetup.RebuildMap()} removes the old map and builds the new one within the same scene, so no scene load is needed and all manager state is preserved.
+Each level has a dedicated builder class (\texttt{TownCenterBuilder}, \texttt{SuburbanBuilder}, \texttt{IndustrialBuilder}, \texttt{ResearchBuilder}) extending \texttt{MapBuilderBase}. Each builder places buildings, roads, obstacles, spawn points, and lore props according to map-specific layout and landmark rules. When the player advances to the next level, \texttt{TestSceneSetup.RebuildMap()} removes the previous map and constructs the new one in the same scene without a scene load, so all manager state is preserved across the transition.
 
 \subsection{Boss Fight}
+\label{sec:boss}
 
-\texttt{BossController} runs the Subject~23 encounter across three phases based on health thresholds.
+\texttt{BossController} runs the Subject~23 encounter across three phases.
 
 \begin{itemize}[noitemsep]
   \item \textbf{Phase 1} (above 60\% health): The boss pursues the player using \texttt{SimpleEnemyAI}.
-  \item \textbf{Phase 2} (30\% to 60\% health): The boss adds charge attacks at 12 units per second, dealing 40 damage on contact.
-  \item \textbf{Phase 3} (below 30\% health): The boss adds a seismic slam attack with a 4-unit radius and 30 area damage.
+  \item \textbf{Phase 2} (30--60\% health): The boss adds charge attacks at 12 units per second with 40 damage on contact.
+  \item \textbf{Phase 3} (below 30\% health): The boss adds a seismic slam with a 4-unit radius and 30 area damage.
 \end{itemize}
 
-When the boss is first activated, a coroutine runs a red screen flash and a 0.8-second screen shake, and the music switches to the boss track. The night does not end until \texttt{WaveManager.\-IsFinalBossDefeatedForCurrentNight()} returns true, which prevents the victory state from triggering before the boss is actually defeated.
+When the boss spawns, a coroutine plays a red screen flash, a 0.8-second screen shake, and switches the music to the boss track. The night does not end until \texttt{WaveManager.\-IsFinalBossDefeatedForCurrentNight()} returns true, which prevents the victory state from triggering while the boss is still alive.
 
 \begin{figure}[H]
   \centering
   \begin{subfigure}[t]{0.48\textwidth}
-    \includegraphics[width=\textwidth]{d3_fig_boss_fight.png}
-    \caption{Boss-fight staging capture in the Level 4 main lab. Subject~23 marker and player position are shown in the final-night arena.}
+    \includegraphics[width=\textwidth]{d3_user_boss_phase_push.png}
+    \caption{Level 4 mid-fight. Subject~23 is in Phase 2 (charge attacks active). Standard enemies are also present, requiring the player to manage multiple threats.}
   \end{subfigure}
   \hfill
   \begin{subfigure}[t]{0.48\textwidth}
-    \includegraphics[width=\textwidth]{d2_fig_victory.png}
-    \caption{Post-boss victory panel after Subject 23 defeat, including rank and run statistics.}
+    \includegraphics[width=\textwidth]{d3_user_boss_collapse.png}
+    \caption{Boss defeat state. The objective updates and the COMMS confirms containment before the dawn transition.}
   \end{subfigure}
 \end{figure}
 
-\subsection{Code Patterns Used}
+\subsection{Code Patterns}
 
 \begin{itemize}[noitemsep]
   \item \textbf{Observer pattern:} C\# events are used throughout (\texttt{OnGameStateChanged}, \texttt{OnNight\-Changed}, \texttt{OnContestedDropState\-Changed}, \texttt{OnDayTimerUpdate}, \texttt{OnDawnPhaseStarted}, and others).
-  \item \textbf{Object pooling:} The audio system pre-allocates ten \texttt{AudioSource} components for spatial sound effects instead of creating and destroying them per sound.
-  \item \textbf{Fallback handling:} All managers check for null before acting. The pickup placement function retries up to 100 times and falls back to a corner position if no valid spot is found, so placement never fails silently.
-  \item \textbf{Singleton scope:} \texttt{DontDestroyOnLoad} is used only on manager objects. Enemy, bullet, and pickup objects are created and destroyed normally during gameplay.
+  \item \textbf{Object pooling:} Ten pre-allocated \texttt{AudioSource} components handle spatial SFX to avoid per-sound allocation.
+  \item \textbf{Null safety and fallbacks:} All managers check for null before acting. The pickup placement function retries up to 100 times and falls back to a corner-quadrant position if no valid spot is found, so placement never fails silently.
+  \item \textbf{Singleton scope:} \texttt{DontDestroyOnLoad} is applied only to managers. All gameplay objects are created and destroyed normally during play, keeping memory usage predictable across level transitions.
 \end{itemize}
 
 % ===================================================================
@@ -464,10 +492,10 @@ When the boss is first activated, a coroutine runs a red screen flash and a 0.8-
 % ===================================================================
 \section{Conclusion}
 
-\textit{Deadlight: Survival After Dark} is a complete four-level survival game that covers the core design principles from the course. The MDA framework is present throughout: the mechanics are the wave and economy loop; the dynamics are the risk and reward trade-offs during the day and night phases; and the intended player experience includes tension, exploration, and narrative engagement. The design accounts for different player priorities through adaptive resource scaling, optional lore collection, and a radio-based story arc.
+\textit{Deadlight: Survival After Dark} is a complete four-level survival game built on the design principles covered in the course. The MDA framework applies throughout: the mechanics are the wave and economy loop; the dynamics are the risk and reward decisions during day and night phases; and the intended aesthetic includes tension, exploration, and narrative engagement. The design addresses different player priorities through adaptive resource scaling, optional lore collection, spatial audio for situational awareness, and a radio-based story arc.
 
-The main additions in Deliverable 3 compared to Deliverable 2 are the completion of Levels 3 and 4, the boss encounter in the Research Facility, adaptive resource balancing informed by playtest observations, and the audio and visual polish pass. Each change was made in response to a specific problem identified during testing rather than added speculatively.
+The main additions in Deliverable 3 compared to Deliverable 2 are the completion of Levels 3 and 4 (including their maps, story beats, and enemy configurations), the three-phase boss fight, adaptive resource balancing informed by playtest sessions, and the audio and visual polish pass. Each change in this deliverable was made in response to a specific problem observed during testing.
 
-The game builds and runs as a Windows executable. All systems described in this report are active in the submitted build.
+The Windows build runs without the Unity Editor and was verified to complete a full twelve-night campaign without critical errors. All systems described in this report are active in the submitted build. The recorded showcase video included in the submission covers the game premise, a walkthrough of the day--night--dawn loop, the contested drop system, and the boss encounter.
 
 \end{document}
