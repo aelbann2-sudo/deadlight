@@ -44,9 +44,13 @@ namespace Deadlight.Core
         private const string FirstVisibleZombieStatus = "Aim with the mouse and left click to fire";
         private const string FollowupVisibleZombieStatus = "Keep the cursor on the target and left click to fire";
 
+        private const string MovementControlsStatus = "WASD: Move   Shift: Sprint   Space: Dodge Roll";
+        private const string LootControlsStatus = "Walk up to a crate and hold F to loot it";
+
         private bool offeredForCurrentNight1Step;
         private Coroutine dismissCoroutine;
         private Coroutine visibleZombieHintCoroutine;
+        private Coroutine movementHintCoroutine;
         private WaveManager waveManager;
         private readonly HashSet<int> hintedEnemyInstanceIds = new HashSet<int>();
         private int visibleZombieHintsShown;
@@ -193,6 +197,10 @@ namespace Deadlight.Core
             hintedEnemyInstanceIds.Clear();
             visibleZombieHintsShown = 0;
             HookPlayer();
+
+            if (movementHintCoroutine != null)
+                StopCoroutine(movementHintCoroutine);
+            movementHintCoroutine = StartCoroutine(ShowMovementControlHints());
 
             if (visibleZombieHintCoroutine != null)
             {
@@ -451,11 +459,35 @@ namespace Deadlight.Core
                 StopCoroutine(visibleZombieHintCoroutine);
                 visibleZombieHintCoroutine = null;
             }
+
+            if (movementHintCoroutine != null)
+            {
+                StopCoroutine(movementHintCoroutine);
+                movementHintCoroutine = null;
+            }
+        }
+
+        private IEnumerator ShowMovementControlHints()
+        {
+            var hud = FindFirstObjectByType<GameplayHUD>();
+
+            // Show movement controls immediately so the player knows how to move.
+            hud?.ShowTransientStatus(MovementControlsStatus, 4f);
+            yield return new WaitForSeconds(4.5f);
+
+            // After movement, remind about the loot mechanic before enemies swarm.
+            hud?.ShowTransientStatus(LootControlsStatus, 3.5f);
+            movementHintCoroutine = null;
         }
 
         private void StopAllGuidanceCoroutines()
         {
             StopActiveHintSession();
+            if (movementHintCoroutine != null)
+            {
+                StopCoroutine(movementHintCoroutine);
+                movementHintCoroutine = null;
+            }
         }
 
         private static PlayerShooting FindPlayerShooting()

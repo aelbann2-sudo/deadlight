@@ -75,7 +75,9 @@ namespace Deadlight.Systems
             if (promptText != null)
             {
                 promptText.text = "Hold F to Secure Drop";
-                promptText.color = new Color(1f, 0.85f, 0.35f);
+                // Keep contested-drop prompt white + outline for readability; urgency is
+                // conveyed by the countdown in the prompt text and the pulsing glow.
+                promptText.color = Color.white;
             }
 
             if (contentsIconSr != null)
@@ -379,9 +381,15 @@ namespace Deadlight.Systems
                 if (isContestedDrop && !contestedResolved)
                 {
                     int remaining = Mathf.Max(0, Mathf.CeilToInt(contestedExpirySeconds - contestedLifetime));
-                    promptText.text = $"Hold F Secure ({remaining}s)";
+                    promptText.text = $"Hold F to Secure ({remaining}s)";
                 }
                 promptText.gameObject.SetActive(inRange && !isLooting);
+            }
+
+            // Show the empty bar as soon as the player is in range so the hold requirement is obvious.
+            if (progressBarRoot != null && !isLooted)
+            {
+                progressBarRoot.SetActive(inRange);
             }
 
             if (inRange && Input.GetKey(KeyCode.F) && !isLooted)
@@ -389,12 +397,8 @@ namespace Deadlight.Systems
                 isLooting = true;
                 interactProgress += Time.deltaTime;
 
-                if (progressBarRoot != null)
-                {
-                    progressBarRoot.SetActive(true);
-                    if (progressFill != null)
-                        progressFill.fillAmount = interactProgress / interactionTime;
-                }
+                if (progressFill != null)
+                    progressFill.fillAmount = interactProgress / interactionTime;
 
                 if (interactProgress >= interactionTime)
                     CompleteLoot();
@@ -405,7 +409,8 @@ namespace Deadlight.Systems
                 {
                     isLooting = false;
                     interactProgress = 0f;
-                    if (progressBarRoot != null) progressBarRoot.SetActive(false);
+                    if (progressFill != null)
+                        progressFill.fillAmount = 0f;
                 }
             }
         }
@@ -839,15 +844,24 @@ namespace Deadlight.Systems
             promptObj.transform.SetParent(canvasObj.transform, false);
             var pRect = promptObj.AddComponent<RectTransform>();
             pRect.anchoredPosition = new Vector2(0, 80);
-            pRect.sizeDelta = new Vector2(200, 30);
+            pRect.sizeDelta = new Vector2(220, 28);
             promptText = promptObj.AddComponent<Text>();
             string tierLabel = tier == CrateTier.Legendary ? "Hold F — LEGENDARY" :
                                tier == CrateTier.Rare ? "Hold F — Rare Crate" : "Hold F to Loot";
             promptText.text = tierLabel;
             promptText.font = font;
-            promptText.fontSize = 22;
+            promptText.fontSize = 18;
+            promptText.fontStyle = FontStyle.Bold;
             promptText.alignment = TextAnchor.MiddleCenter;
-            promptText.color = GetTierColor();
+            // White text keeps the prompt readable on every map background. The crate sprite,
+            // glow, and progress bar fill continue to convey tier visually.
+            promptText.color = Color.white;
+            var promptOutline = promptObj.AddComponent<UnityEngine.UI.Outline>();
+            promptOutline.effectColor = new Color(0f, 0f, 0f, 0.9f);
+            promptOutline.effectDistance = new Vector2(1.2f, -1.2f);
+            var promptShadow = promptObj.AddComponent<UnityEngine.UI.Shadow>();
+            promptShadow.effectColor = new Color(0f, 0f, 0f, 0.7f);
+            promptShadow.effectDistance = new Vector2(0f, -1.8f);
             promptObj.SetActive(false);
 
             progressBarRoot = new GameObject("ProgressBar");

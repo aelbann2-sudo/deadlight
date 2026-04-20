@@ -338,20 +338,47 @@ Night helicopter drops have a 65\% base spawn chance, reduced when the player's 
 % ===================================================================
 \section{Playtesting \& Iteration}
 
-\subsection{Protocol}
+\subsection{Feedback Sources and Protocol}
 
-Playtesting was conducted by all four team members across multiple sessions during the D3 development period. One external session was held with a peer from outside the group to get feedback from someone unfamiliar with the build. Each test session followed the same steps:
+Feedback was gathered from three channels during the Deliverable~2 to Deliverable~3 development period:
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Internal team sessions.} All four team members played the build on a rotating schedule. Each member played a fresh run from Night~1 without advance knowledge of the most recent changes, and wrote down issues in a shared iteration log.
+  \item \textbf{Class peer feedback.} The Deliverable~2 submission was reviewed by a classmate outside the group, who returned written feedback on onboarding clarity (see Section~\ref{sec:d2-peer-fb} below). This feedback directly drove interaction-prompt changes that shipped in Deliverable~3.
+  \item \textbf{External tester session.} One session was held with a peer who had never seen the game, to observe first-contact reactions without coaching. The tester was asked to talk through decisions aloud, and the session was logged by a team member sitting out of view.
+\end{itemize}
+
+Each session followed the same protocol:
 
 \begin{enumerate}[noitemsep]
-  \item Start a fresh run from Night 1 without advance knowledge of recent changes.
-  \item Play through one complete day, night, and dawn cycle.
-  \item Record observations on objective clarity, resource availability, COMMS timing, and combat feel.
+  \item Start a fresh run from Night~1 without advance knowledge of recent changes.
+  \item Play through at least one complete day, night, and dawn cycle, and where possible a full level.
+  \item Record observations on objective clarity, resource availability, COMMS timing, combat feel, and any moment where the player was unsure what to do.
   \item Address one category of issues before the next session to avoid interference between fixes.
 \end{enumerate}
 
-A PlayMode regression suite in \texttt{DaytimePrepRuntimeTests.cs} covers contested drop secure and expiry flows, pickup behaviour, penalty propagation, and day/night/dawn state transitions. A full smoke test was run and passed before submission.
+A PlayMode regression suite in \texttt{DaytimePrepRuntimeTests.cs} covers contested drop secure and expiry flows, pickup behaviour, penalty propagation, and day/night/dawn state transitions. A full smoke test was run and passed before submission so that the changes described in this section did not reintroduce regressions.
+
+\subsection{Class Peer Feedback on Deliverable 2}
+\label{sec:d2-peer-fb}
+
+The written feedback on the Deliverable~2 build was positive on overall feel but identified two concrete onboarding gaps:
+
+\begin{tcolorbox}[tableframe]
+\small
+\textit{``One thing that can be improved is when press F to loot object, player needs to have a long press. But this is not instructed clearly. As well as press space to accelerate.''}
+\end{tcolorbox}
+
+The team took both points as valid: the loot interaction is a held action (not a tap), and the Space key triggers a dodge roll, not an ``accelerate.'' Both were failures of communication, not of mechanics. The response, carried into Deliverable~3, was:
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Hold-to-loot clarity (\texttt{SupplyCrate.cs}).} The progress bar now becomes visible as soon as the player enters loot range, rather than only appearing once F is pressed. An empty bar sitting next to the prompt makes the hold requirement self-evident: tapping F no longer looks like it did nothing. The prompt text reads \texttt{Hold F to Loot} or \texttt{Hold F to Secure} for contested drops.
+  \item \textbf{Movement-control hint card (\texttt{FirstCombatHintController.cs}).} At the start of Night~1, before enemies appear, the HUD displays a transient status line: \texttt{WASD: Move \quad Shift: Sprint \quad Space: Dodge Roll}, followed by \texttt{Walk up to a crate and hold F to loot it}. This introduces the two controls the peer tester misread (Space and F) in the player's own vocabulary, before combat begins.
+\end{itemize}
 
 \subsection{Changes from Deliverable 2 to Deliverable 3}
+
+The table below lists the main mechanic, level-design, and progression-balance changes made in response to observed problems. Boss and performance changes have their own subsections below.
 
 \begin{tcolorbox}[tableframe]
 \small
@@ -359,6 +386,10 @@ A PlayMode regression suite in \texttt{DaytimePrepRuntimeTests.cs} covers contes
 \toprule
 \textbf{Observed problem} & \textbf{Change made} \\
 \midrule
+Class peer: hold-to-loot not communicated & Progress bar now appears on proximity, not on key press, so the hold requirement is visible before the player acts (Section~\ref{sec:d2-peer-fb}). \\
+\addlinespace
+Class peer: Space mistaken for ``accelerate'' & Movement-control status card shown on Night~1 start labels Space as \textit{Dodge Roll} and Shift as \textit{Sprint}. \\
+\addlinespace
 Players ran out of ammo late in a night with no recovery option & Ammo pickup counts are now reduced at high reserve levels rather than fixed. A supply path is always available when the player is low. \\
 \addlinespace
 Players stockpiled crates and arrived at Level 4 under-equipped & Crate spawn counts scale with reserve ammo and are suppressed only at very high reserve, preventing passive stockpiling while keeping drops available when needed. \\
@@ -369,22 +400,57 @@ Crafting system was confusing and rarely used & \texttt{GameManager.CraftingEnab
 \addlinespace
 COMMS messages interrupted each other & A 1.2-second protection window was added to the \texttt{NarrativeManager} queue so the current message always finishes before the next one plays. \\
 \addlinespace
-Boss was difficult to survive on first contact & The boss fight was split into three phases: standard pursuit above 60\% health, charge attacks from 60--30\%, and area slams below 30\%. \\
-\addlinespace
 Levels 3 and 4 had no story content (D2 scope) & Story objective beats for nights 7--12 were written. Industrial and Research map builders were implemented with level-specific landmarks and lore placements. \\
 \addlinespace
 15-second night warning was easy to miss & A low-amplitude screen shake was added alongside the COMMS warning to give a second signal channel. \\
-\addlinespace
-Duplicate player spawning after scene reload & \texttt{GameManager.EnsurePlayerExists()} now checks for multiple \texttt{PlayerController} instances on load and disables any extras. \\
 \bottomrule
 \end{tabularx}
 \end{tcolorbox}
+
+\subsection{Boss Encounter Iteration: Fairness, Tension, Accomplishment}
+
+The Subject~23 encounter was the single most-iterated piece of the game. The first playable version used a single stat block with high health and contact damage. Testers reported two problems: the fight felt random on first contact (one-shot deaths without warning), and once the player learned to kite the boss in circles, the tension disappeared completely. The encounter was failing on both \textit{fairness} and \textit{tension}, and there was no resulting sense of accomplishment because the result felt arbitrary.
+
+The team reworked the encounter in three passes, each driven by a specific playtest observation.
+
+\begin{tcolorbox}[tableframe]
+\small
+\begin{tabularx}{\textwidth}{@{} p{2.3cm} p{4cm} X @{}}
+\toprule
+\textbf{Pass} & \textbf{Observation} & \textbf{Design change} \\
+\midrule
+Pass 1 (fairness) & Players were killed without understanding what hit them. & The encounter was split into three phases tied to boss health, with clear visual and audio cues on transitions. Phase 1 (>60\% HP) is pure pursuit, which teaches the boss's movement before any new attack is added. \\
+\addlinespace
+Pass 2 (tension) & Once pursuit was learned, circle-strafing defeated the boss with no risk. & Phase 2 (60--30\% HP) adds charge attacks at 12 units per second that punish kiting a straight line. The player has to break line of sight or dodge-roll to survive. \\
+\addlinespace
+Pass 3 (accomplishment) & The final stretch felt anticlimactic once the boss was low. & Phase 3 (<30\% HP) adds a seismic slam with a 4-unit radius and 30 area damage. This is the boss's loudest move, and it forces one more behaviour shift right before defeat so the last 30\% of the fight is the hardest. Standard enemies and spitters continue to spawn, so the player is managing three threat types at once when the boss finally goes down. \\
+\bottomrule
+\end{tabularx}
+\end{tcolorbox}
+
+Supporting changes made the outcome feel earned rather than random: a red screen flash and 0.8-second screen shake on boss spawn signal a state change, the music switches to the boss track over a crossfade instead of cutting, and the victory state is gated on \texttt{WaveManager.\-IsFinalBossDefeatedForCurrentNight()} so the night cannot end while the boss is still alive. The progression system awards a stipend at Night~12 that guarantees the player enters the fight with at least a baseline loadout, removing the run-ruining cases where a bad Night~11 left the player with no ammo against the boss. The result, confirmed across the final round of playtests, is a fight that kills the player on first attempts but is winnable on the second or third, which is the fairness-plus-accomplishment curve the team was targeting.
+
+\subsection{Debugging and Performance Optimizations}
+
+Several stability and responsiveness issues surfaced during testing and were fixed before submission.
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Duplicate player on scene reload.} Returning to the main menu and starting a new run occasionally produced two \texttt{PlayerController} instances in the scene (one from the persistent managers, one from the new scene). \texttt{GameManager.EnsurePlayerExists()} now checks for multiple instances on load and disables any extras before gameplay resumes.
+  \item \textbf{Physics accumulation on unpause.} The first frame after unpausing previously showed a velocity spike because \texttt{Time.deltaTime} had accumulated while paused. \texttt{Time.fixedDeltaTime} is now clamped on pause and the accumulated delta is discarded on unpause.
+  \item \textbf{Audio allocation spikes during Night 12.} The boss wave triggers many overlapping SFX. A pool of ten pre-allocated \texttt{AudioSource} components now handles spatial sound, which removed the per-sound instantiation cost and eliminated the audible stutter observed during stress testing.
+  \item \textbf{Pickup placement stalls.} The original 100-attempt scatter loop iterated to the maximum every frame when the map was full. It now exits on the first valid position, and falls back to a corner-quadrant placement if no valid spot is found, so placement never fails silently and never stalls the frame.
+  \item \textbf{Level transition hitches.} Procedural map rebuild between levels was originally a coroutine, which produced visible flickers as buildings spawned over several frames. It is now a single-frame synchronous rebuild inside \texttt{TestSceneSetup.RebuildMap()}, and manager state is preserved because the scene itself is not reloaded.
+  \item \textbf{COMMS speech masked by music.} Testers reported missing EVAC messages during loud combat. Music volume is now ducked by approximately 24\% while a COMMS line plays, with stronger ducking for high-priority transmissions.
+  \item \textbf{Night-start warning easy to miss.} The 15-second warning before night was audio-only. A low-amplitude screen shake now plays with it, giving a second signal channel for players focused on looting.
+\end{itemize}
+
+A PlayMode smoke pass covering contested drop secure and expiry, pickup placement, penalty propagation, and day/night/dawn transitions was run after each change to confirm that nothing regressed.
 
 \begin{figure}[H]
   \centering
   \begin{subfigure}[t]{0.48\textwidth}
     \includegraphics[width=\textwidth]{d2_fig_daytime.png}
-    \caption{Supply crate loot prompt. The interaction label appears only when the player is within range, which was clarified after D2 onboarding feedback.}
+    \caption{Supply crate loot prompt. After class peer feedback, the progress bar appears on proximity so the hold-to-loot requirement is visible before the key is pressed.}
   \end{subfigure}
   \hfill
   \begin{subfigure}[t]{0.48\textwidth}
