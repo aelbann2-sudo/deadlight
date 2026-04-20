@@ -304,6 +304,21 @@ namespace Deadlight.Core
             config.timeBetweenWaves = Mathf.Max(3f, 7f - level - (nwl - 1) * 0.5f);
             config.hasBoss = nightNumber >= 12;
             config.completionBonus = 50 + level * 50 + (nwl - 1) * 30;
+
+            // Late-campaign tuning pass:
+            // - Soften Level 4 damage pressure.
+            if (level >= 4)
+            {
+                config.damageMultiplier *= 0.9f;
+            }
+
+            // - Reduce final night volume spike.
+            if (level == 4 && nwl == 3)
+            {
+                config.waveCount = Mathf.Min(config.waveCount, 5);
+                config.baseEnemyCount = Mathf.Min(config.baseEnemyCount, 10);
+            }
+
             ApplyNarrativeDefaults(config, nightNumber, overwrite: true);
             return config;
         }

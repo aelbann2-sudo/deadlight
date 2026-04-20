@@ -1021,6 +1021,12 @@ namespace Deadlight.Core
                 speedMultiplier = Mathf.Lerp(1f, speedMultiplier, daySkirmishSpeedMultiplier);
             }
 
+            // Requested tuning: reduce zombie speed by 15% for Levels 2-4.
+            if (GameManager.Instance != null && GameManager.Instance.CurrentLevel >= 2)
+            {
+                speedMultiplier *= 0.85f;
+            }
+
             speedMultiplier *= EvalIntroEnemySpeedScale();
 
             var enemyHealth = enemy.GetComponent<Enemy.EnemyHealth>();
