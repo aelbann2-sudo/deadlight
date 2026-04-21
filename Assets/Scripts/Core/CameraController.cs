@@ -134,6 +134,24 @@ namespace Deadlight.Core
 
         public void Shake(float duration, float intensity)
         {
+            // Shake calls come from many sources at once: per-bullet impacts, muzzle flashes,
+            // boss charge/slam, explosions, phase transitions. A naive overwrite causes two
+            // bad feels:
+            //   1. Full-auto fire at a big fast target retriggers a 0.05s jitter every frame,
+            //      so the camera never decays — the screen looks permanently shaky.
+            //   2. A big boss-impact shake gets cut short by the next tiny bullet shake, or
+            //      vice versa, which reads as a sudden lurch.
+            // Prefer the stronger ongoing shake, and only extend duration (not intensity)
+            // when weaker shakes keep retriggering.
+            if (shakeDuration > 0f && intensity <= shakeIntensity)
+            {
+                if (duration > shakeDuration)
+                {
+                    shakeDuration = duration;
+                }
+                return;
+            }
+
             shakeDuration = duration;
             shakeIntensity = intensity;
         }

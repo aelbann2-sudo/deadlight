@@ -422,7 +422,11 @@ namespace Deadlight.Level.MapBuilders
             warehouse.transform.localScale = new Vector3(lot.Size.x / 4.6f, lot.Size.y / 2.8f, 1f);
 
             var col = warehouse.AddComponent<BoxCollider2D>();
-            MapFootprintCollider.ApplySpriteFootprint(col, sr.sprite, warehouse.transform.localScale, 0.92f, 0.92f);
+            // Collider is on the same scaled transform as the sprite, so pass Vector3.one
+            // here. BoxCollider2D.size is already multiplied by transform.localScale; feeding
+            // the localScale back into ApplySpriteFootprint would double-scale the collider
+            // and create invisible walls that extend ~30% past the visible building edges.
+            MapFootprintCollider.ApplySpriteFootprint(col, sr.sprite, Vector3.one, 0.92f, 0.92f);
 
             Vector3 doorBase = lot.DockFacesSouth ? new Vector3(0f, -lot.Size.y * 0.42f, 0f) : new Vector3(0f, lot.Size.y * 0.42f, 0f);
             CreateDoor(warehouse.transform, doorBase + new Vector3(-1.4f, 0f, 0f), 1.0f);
@@ -460,7 +464,9 @@ namespace Deadlight.Level.MapBuilders
             shed.transform.localScale = new Vector3(size.x / 4.6f, size.y / 2.8f, 1f);
 
             var col = shed.AddComponent<BoxCollider2D>();
-            MapFootprintCollider.ApplySpriteFootprint(col, sr.sprite, shed.transform.localScale, 0.92f, 0.9f);
+            // See SpawnWarehouse: localScale is already on the transform, so pass Vector3.one
+            // to avoid double-scaling the collider past the visible sprite.
+            MapFootprintCollider.ApplySpriteFootprint(col, sr.sprite, Vector3.one, 0.92f, 0.9f);
 
             CreateDoor(shed.transform, new Vector3(0f, -size.y * 0.4f, 0f), 0.8f);
         }
@@ -488,7 +494,10 @@ namespace Deadlight.Level.MapBuilders
             container.transform.localScale = new Vector3(1.45f, 1.05f, 1f);
 
             var col = container.AddComponent<BoxCollider2D>();
-            MapFootprintCollider.ApplySpriteFootprint(col, sr.sprite, container.transform.localScale, 0.92f, 0.84f);
+            // Shipping containers have a non-unit localScale on the same transform as the
+            // collider, so pass Vector3.one to avoid the footprint helper double-applying
+            // scale. These were the "dark block tile" invisible walls the player noticed.
+            MapFootprintCollider.ApplySpriteFootprint(col, sr.sprite, Vector3.one, 0.92f, 0.84f);
         }
 
         private void SpawnFuelTank(Transform parent, Vector3 pos)
@@ -527,7 +536,9 @@ namespace Deadlight.Level.MapBuilders
             dock.transform.localScale = new Vector3(size.x / 4.5f, size.y / 1.1f, 1f);
 
             var col = dock.AddComponent<BoxCollider2D>();
-            MapFootprintCollider.ApplySpriteFootprint(col, sr.sprite, dock.transform.localScale, 0.94f, 0.9f);
+            // See SpawnWarehouse: dock platform has non-unit localScale on the same transform
+            // as the collider. Pass Vector3.one so the collider matches the visible platform.
+            MapFootprintCollider.ApplySpriteFootprint(col, sr.sprite, Vector3.one, 0.94f, 0.9f);
         }
 
         private void SpawnPipeRack(Transform parent, Vector3 pos, float length, bool vertical)

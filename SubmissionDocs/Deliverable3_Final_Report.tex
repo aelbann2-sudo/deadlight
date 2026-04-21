@@ -344,7 +344,7 @@ Feedback was gathered from three channels during the Deliverable~2 to Deliverabl
 
 \begin{itemize}[noitemsep]
   \item \textbf{Internal team sessions.} All four team members played the build on a rotating schedule. Each member played a fresh run from Night~1 without advance knowledge of the most recent changes, and wrote down issues in a shared iteration log.
-  \item \textbf{Class peer feedback.} The Deliverable~2 submission was reviewed by a classmate outside the group, who returned written feedback on onboarding clarity (see Section~\ref{sec:d2-peer-fb} below). This feedback directly drove interaction-prompt changes that shipped in Deliverable~3.
+  \item \textbf{Teaching assistant feedback.} The Deliverable~2 submission received written feedback from the course TA on onboarding clarity (see Section~\ref{sec:d2-peer-fb} below). This feedback directly drove interaction-prompt changes that shipped in Deliverable~3.
   \item \textbf{External tester session.} One session was held with a peer who had never seen the game, to observe first-contact reactions without coaching. The tester was asked to talk through decisions aloud, and the session was logged by a team member sitting out of view.
 \end{itemize}
 
@@ -359,7 +359,7 @@ Each session followed the same protocol:
 
 A PlayMode regression suite in \texttt{DaytimePrepRuntimeTests.cs} covers contested drop secure and expiry flows, pickup behaviour, penalty propagation, and day/night/dawn state transitions. A full smoke test was run and passed before submission so that the changes described in this section did not reintroduce regressions.
 
-\subsection{Class Peer Feedback on Deliverable 2}
+\subsection{Teaching Assistant Feedback on Deliverable 2}
 \label{sec:d2-peer-fb}
 
 The written feedback on the Deliverable~2 build was positive on overall feel but identified two concrete onboarding gaps:
@@ -373,7 +373,7 @@ The team took both points as valid: the loot interaction is a held action (not a
 
 \begin{itemize}[noitemsep]
   \item \textbf{Hold-to-loot clarity (\texttt{SupplyCrate.cs}).} The progress bar now becomes visible as soon as the player enters loot range, rather than only appearing once F is pressed. An empty bar sitting next to the prompt makes the hold requirement self-evident: tapping F no longer looks like it did nothing. The prompt text reads \texttt{Hold F to Loot} or \texttt{Hold F to Secure} for contested drops.
-  \item \textbf{Movement-control hint card (\texttt{FirstCombatHintController.cs}).} At the start of Night~1, before enemies appear, the HUD displays a transient status line: \texttt{WASD: Move \quad Shift: Sprint \quad Space: Dodge Roll}, followed by \texttt{Walk up to a crate and hold F to loot it}. This introduces the two controls the peer tester misread (Space and F) in the player's own vocabulary, before combat begins.
+  \item \textbf{Movement-control hint card (\texttt{FirstCombatHintController.cs}).} At the start of Night~1, before enemies appear, the HUD displays a transient status line: \texttt{WASD: Move \quad Shift: Sprint \quad Space: Dodge Roll}, followed by \texttt{Walk up to a crate and hold F to loot it}. This introduces the two controls flagged in the TA feedback (Space and F) in the player's own vocabulary, before combat begins.
 \end{itemize}
 
 \subsection{Changes from Deliverable 2 to Deliverable 3}
@@ -386,9 +386,9 @@ The table below lists the main mechanic, level-design, and progression-balance c
 \toprule
 \textbf{Observed problem} & \textbf{Change made} \\
 \midrule
-Class peer: hold-to-loot not communicated & Progress bar now appears on proximity, not on key press, so the hold requirement is visible before the player acts (Section~\ref{sec:d2-peer-fb}). \\
+TA feedback: hold-to-loot not communicated & Progress bar now appears on proximity, not on key press, so the hold requirement is visible before the player acts (Section~\ref{sec:d2-peer-fb}). \\
 \addlinespace
-Class peer: Space mistaken for ``accelerate'' & Movement-control status card shown on Night~1 start labels Space as \textit{Dodge Roll} and Shift as \textit{Sprint}. \\
+TA feedback: Space mistaken for ``accelerate'' & Movement-control status card shown on Night~1 start labels Space as \textit{Dodge Roll} and Shift as \textit{Sprint}. \\
 \addlinespace
 Players ran out of ammo late in a night with no recovery option & Ammo pickup counts are now reduced at high reserve levels rather than fixed. A supply path is always available when the player is low. \\
 \addlinespace
@@ -450,7 +450,7 @@ A PlayMode smoke pass covering contested drop secure and expiry, pickup placemen
   \centering
   \begin{subfigure}[t]{0.48\textwidth}
     \includegraphics[width=\textwidth]{d2_fig_daytime.png}
-    \caption{Supply crate loot prompt. After class peer feedback, the progress bar appears on proximity so the hold-to-loot requirement is visible before the key is pressed.}
+    \caption{Supply crate loot prompt. After TA feedback, the progress bar appears on proximity so the hold-to-loot requirement is visible before the key is pressed.}
   \end{subfigure}
   \hfill
   \begin{subfigure}[t]{0.48\textwidth}

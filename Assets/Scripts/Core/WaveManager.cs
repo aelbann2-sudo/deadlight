@@ -75,6 +75,14 @@ namespace Deadlight.Core
         public bool IsSpawning => isSpawning;
         public bool DayOneTutorialCombatComplete => dayOneTutorialCombatComplete;
         public NightConfig CurrentNightConfig => currentNightConfig;
+        public bool IsNewWaveSpawningStopped => stopSpawningNewWaves;
+
+        /// <summary>
+        /// Set by GameManager at the end of the last night of Levels 1–3 so that once the
+        /// night timer expires, no further waves or mid-wave enemies spawn. The player only
+        /// has to kill the zombies already on screen before the level ends.
+        /// </summary>
+        private bool stopSpawningNewWaves;
 
         public event Action<int> OnWaveStarted;
         public event Action<int> OnWaveCompleted;
@@ -276,9 +284,21 @@ namespace Deadlight.Core
             bossSpawned = false;
             miniBossSpawned = false;
             finalBossDefeatedThisNight = false;
+            stopSpawningNewWaves = false;
             OnEnemyCountChanged?.Invoke(enemiesRemaining);
 
             LoadNightConfig();
+        }
+
+        /// <summary>
+        /// Called by GameManager on the last night of a non-final level when the night timer
+        /// has expired but enemies remain. Stops queuing new waves and ends any in-progress
+        /// wave's spawn loop early so the player only has to finish off the zombies already
+        /// on the map.
+        /// </summary>
+        public void StopSpawningNewWaves()
+        {
+            stopSpawningNewWaves = true;
         }
 
         private void LoadNightConfig()
@@ -384,6 +404,13 @@ namespace Deadlight.Core
                         yield break;
                     }
 
+                    // Night timer expired on the last night of Levels 1–3. Do not start any
+                    // further waves; fall through to the "wait for remaining enemies" loop.
+                    if (stopSpawningNewWaves)
+                    {
+                        break;
+                    }
+
                     currentWave = wave;
                     int waveEnemyCount = CalculateEnemyCount(wave);
                     int waveOverlapThreshold = Mathf.RoundToInt(waveEnemyCount * Mathf.Clamp01(waveOverlapThresholdRatio));
@@ -450,6 +477,13 @@ namespace Deadlight.Core
             for (int i = 0; i < enemyCount; i++)
             {
                 if (GameManager.Instance?.CurrentState != GameState.NightPhase)
+                {
+                    break;
+                }
+
+                // Night timer expired on a Level 1–3 final night: stop mid-wave so the
+                // player only has to kill the zombies already spawned.
+                if (stopSpawningNewWaves)
                 {
                     break;
                 }
