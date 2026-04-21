@@ -421,12 +421,101 @@ private const float DefaultFixedDeltaTime = 0.02f;
 
             if (IsLastNightOfLevel(currentNight))
             {
+                if (CurrentLevel < TotalLevels && !CanAdvanceAfterFinalNightWaveClear())
+                {
+                    BeginFinalNightWaveClearHold();
+                    return;
+                }
+
                 UnlockNextLevel();
                 ChangeState(GameState.LevelComplete);
                 return;
             }
 
             TransitionToDawnPhase();
+        }
+
+        private Coroutine finalNightWaveClearCoroutine;
+
+        // On the last night of Levels 1–3, once the night timer expires we stop queuing new
+        // waves and hold in NightPhase until the player mops up every remaining zombie. Then
+        // we transition to LevelComplete. The final boss night on Level 4 is handled above.
+        private void BeginFinalNightWaveClearHold()
+        {
+            if (finalNightWaveClearCoroutine != null)
+            {
+                return;
+            }
+
+            var waveManager = WaveManager.Instance != null
+                ? WaveManager.Instance
+                : FindFirstObjectByType<WaveManager>();
+            if (waveManager == null)
+            {
+                return;
+            }
+
+            waveManager.StopSpawningNewWaves();
+
+            RadioTransmissions.Instance?.ShowMessage(
+                "Dawn's almost here. No new contacts inbound — clear the stragglers on the street.",
+                5f);
+
+            finalNightWaveClearCoroutine = StartCoroutine(WaitForFinalNightEnemiesCleared(waveManager));
+        }
+
+        private IEnumerator WaitForFinalNightEnemiesCleared(WaveManager waveManager)
+        {
+            while (currentState == GameState.NightPhase)
+            {
+                if (waveManager == null)
+                {
+                    break;
+                }
+
+                if (!waveManager.IsSpawning && waveManager.EnemiesRemaining <= 0)
+                {
+                    break;
+                }
+
+                yield return null;
+            }
+
+            finalNightWaveClearCoroutine = null;
+
+            if (currentState != GameState.NightPhase)
+            {
+                yield break;
+            }
+
+            if (!IsLastNightOfLevel(currentNight))
+            {
+                yield break;
+            }
+
+            UnlockNextLevel();
+            ChangeState(GameState.LevelComplete);
+        }
+
+        private bool CanAdvanceAfterFinalNightWaveClear()
+        {
+            var waveManager = WaveManager.Instance != null
+                ? WaveManager.Instance
+                : FindFirstObjectByType<WaveManager>();
+            if (waveManager == null)
+            {
+                return false;
+            }
+
+            int requiredWaves = Mathf.Max(1, waveManager.CurrentNightConfig != null
+                ? waveManager.CurrentNightConfig.waveCount
+                : 3);
+
+            bool reachedFinalWave = waveManager.CurrentWave >= requiredWaves;
+            bool waveSpawningFinished = !waveManager.IsSpawning;
+            bool allEnemiesCleared = waveManager.EnemiesRemaining <= 0;
+
+            return reachedFinalWave && waveSpawningFinished && allEnemiesCleared;
         }
 
         public void AdvanceToNextNight()
@@ -1356,6 +1445,12 @@ private const float DefaultFixedDeltaTime = 0.02f;
             {
                 StopCoroutine(dawnAdvanceCoroutine);
                 dawnAdvanceCoroutine = null;
+            }
+
+            if (finalNightWaveClearCoroutine != null)
+            {
+                StopCoroutine(finalNightWaveClearCoroutine);
+                finalNightWaveClearCoroutine = null;
             }
 
             ClearObjectiveMissState();
