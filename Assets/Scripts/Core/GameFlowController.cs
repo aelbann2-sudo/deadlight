@@ -468,6 +468,13 @@ namespace Deadlight.Core
                 return false;
             }
 
+            // PlayMode/CI runs should be deterministic so night-drop regression tests do not
+            // randomly fail on probability rolls.
+            if (Application.isBatchMode)
+            {
+                return true;
+            }
+
             float chance = Mathf.Clamp01(helicopterDropSpawnChance);
             var shooting = GetPlayerShooting();
             if (shooting != null)

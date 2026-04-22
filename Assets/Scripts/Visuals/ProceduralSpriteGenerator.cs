@@ -658,6 +658,68 @@ namespace Deadlight.Visuals
             return sprite;
         }
 
+        public static Sprite CreateFuelPumpSprite(int grade = 0)
+        {
+            string key = $"fuelpump_{grade}";
+            if (spriteCache.TryGetValue(key, out Sprite cached)) return cached;
+
+            int width = 12;
+            int height = 24;
+            var texture = new Texture2D(width, height);
+            texture.filterMode = FilterMode.Point;
+            ClearTexture(texture, Color.clear);
+
+            // Fuel-grade band — each pump gets a distinct identifier color so the
+            // player can tell them apart (green regular / yellow mid-grade / red
+            // premium / blue diesel). Used on brand band, LED and display trim.
+            Color gradeColor = grade switch
+            {
+                0 => new Color(0.28f, 0.7f, 0.38f),
+                1 => new Color(0.96f, 0.82f, 0.22f),
+                2 => new Color(0.88f, 0.22f, 0.22f),
+                3 => new Color(0.24f, 0.42f, 0.76f),
+                _ => new Color(0.28f, 0.7f, 0.38f)
+            };
+            Color gradeDark = Color.Lerp(gradeColor, Color.black, 0.35f);
+            Color housing = new Color(0.22f, 0.22f, 0.26f);
+            Color housingLight = new Color(0.36f, 0.36f, 0.42f);
+            Color basePad = new Color(0.14f, 0.14f, 0.16f);
+            Color display = new Color(0.05f, 0.06f, 0.08f);
+            Color lcd = new Color(0.35f, 0.96f, 0.45f);
+            Color hose = new Color(0.08f, 0.08f, 0.1f);
+            Color pumpHead = new Color(0.48f, 0.48f, 0.52f);
+            Color pumpHeadDark = new Color(0.3f, 0.3f, 0.34f);
+
+            DrawRect(texture, 1, 0, 10, 2, basePad);
+
+            DrawRect(texture, 2, 2, 8, 17, housing);
+            DrawRect(texture, 2, 2, 1, 17, housingLight);
+
+            DrawRect(texture, 2, 3, 8, 3, gradeColor);
+            DrawRect(texture, 2, 3, 8, 1, gradeDark);
+
+            DrawRect(texture, 3, 10, 6, 4, display);
+            DrawRect(texture, 4, 11, 1, 2, lcd);
+            DrawRect(texture, 5, 11, 1, 2, lcd);
+            DrawRect(texture, 7, 11, 1, 2, lcd);
+            DrawRect(texture, 8, 11, 1, 2, lcd);
+
+            DrawRect(texture, 2, 15, 8, 1, gradeColor);
+
+            DrawRect(texture, 2, 19, 8, 3, pumpHead);
+            DrawRect(texture, 2, 19, 8, 1, pumpHeadDark);
+            DrawRect(texture, 5, 21, 2, 1, gradeColor);
+
+            DrawRect(texture, 10, 17, 1, 2, hose);
+            DrawRect(texture, 10, 8, 1, 9, hose);
+            DrawRect(texture, 9, 7, 2, 1, hose);
+
+            texture.Apply();
+            var sprite = Sprite.Create(texture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.1f), 16f);
+            spriteCache[key] = sprite;
+            return sprite;
+        }
+
         public static Sprite CreateCarSprite(int variant)
         {
             string key = $"car_{variant}";

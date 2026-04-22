@@ -138,7 +138,6 @@ namespace Deadlight.Systems
                 return type;
             }
 
-            // Legacy crafting pickups are fully retired in campaign.
             return PickupType.Points;
         }
 
@@ -349,20 +348,10 @@ namespace Deadlight.Systems
                 case PickupType.Wood:
                 case PickupType.Chemicals:
                 case PickupType.Electronics:
-                    if (ResourceManager.Instance != null)
+                    if (PointsSystem.Instance != null)
                     {
                         int amount = Mathf.Max(1, Mathf.RoundToInt(value));
-                        ResourceType resourceType = type switch
-                        {
-                            PickupType.Scrap => ResourceType.Scrap,
-                            PickupType.Wood => ResourceType.Wood,
-                            PickupType.Chemicals => ResourceType.Chemicals,
-                            PickupType.Electronics => ResourceType.Electronics,
-                            _ => ResourceType.Scrap
-                        };
-
-                        ResourceManager.Instance.AddResource(resourceType, amount);
-                        CraftingSystem.Instance?.NotifyResourceCollected(resourceType, amount, transform.position);
+                        PointsSystem.Instance.AddPoints(amount, "Resource Pickup");
                         didCollect = true;
                     }
                     break;

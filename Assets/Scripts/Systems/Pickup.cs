@@ -168,25 +168,7 @@ namespace Deadlight.Systems
                 case PickupType.Wood:
                 case PickupType.Chemicals:
                 case PickupType.Electronics:
-                    if (GameManager.Instance != null && GameManager.Instance.CraftingEnabled)
-                    {
-                        if (ResourceManager.Instance != null)
-                        {
-                            ResourceType resourceType = pickupType switch
-                            {
-                                PickupType.Scrap => ResourceType.Scrap,
-                                PickupType.Wood => ResourceType.Wood,
-                                PickupType.Chemicals => ResourceType.Chemicals,
-                                PickupType.Electronics => ResourceType.Electronics,
-                                _ => ResourceType.Scrap
-                            };
-
-                            ResourceManager.Instance.AddResource(resourceType, Mathf.Max(1, amount));
-                            CraftingSystem.Instance?.NotifyResourceCollected(resourceType, Mathf.Max(1, amount), transform.position);
-                            consumed = true;
-                        }
-                    }
-                    else if (PointsSystem.Instance != null)
+                    if (PointsSystem.Instance != null)
                     {
                         int bonusPoints = Mathf.Max(1, amount);
                         PointsSystem.Instance.AddPoints(bonusPoints, "Resource Pickup");

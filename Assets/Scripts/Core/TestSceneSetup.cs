@@ -375,14 +375,6 @@ namespace Deadlight.Core
                 rmObj.transform.SetParent(managersParent);
                 rmObj.AddComponent<Systems.ResourceManager>();
 
-                bool craftingEnabled = GameManager.Instance != null && GameManager.Instance.CraftingEnabled;
-                if (craftingEnabled)
-                {
-                    var csObj = new GameObject("CraftingSystem");
-                    csObj.transform.SetParent(managersParent);
-                    csObj.AddComponent<Systems.CraftingSystem>();
-                }
-
                 var psObj = new GameObject("PointsSystem");
                 psObj.transform.SetParent(managersParent);
                 psObj.AddComponent<Systems.PointsSystem>();
@@ -1384,6 +1376,10 @@ namespace Deadlight.Core
 
     public class PlayerAnimator : MonoBehaviour
     {
+        // Sort by feet (not body center) for top-down depth so the player layers against
+        // props/buildings in a physically believable way.
+        private const float FeetSortOffset = 0.32f;
+
         private SpriteRenderer spriteRenderer;
         private Sprite[] sprites;
         private Rigidbody2D rb;
@@ -1416,7 +1412,10 @@ namespace Deadlight.Core
             UpdateDirection();
             UpdateAnimation();
             if (spriteRenderer != null)
-                spriteRenderer.sortingOrder = Mathf.RoundToInt(-transform.position.y * 2) + 1;
+            {
+                float feetY = transform.position.y - FeetSortOffset;
+                spriteRenderer.sortingOrder = Mathf.RoundToInt(-feetY * 2f) + 1;
+            }
         }
 
         private void UpdateDirection()

@@ -50,6 +50,8 @@ namespace Deadlight.Level.MapBuilders
             debrisB.transform.localScale = new Vector3(0.55f, 0.55f, 1f);
             var crate = CreateSpriteObject(crash, "SupplyCrate", ProceduralSpriteGenerator.CreateCrateSprite(), new Vector3(2.4f, -0.8f, 0f), 5);
             crate.GetComponent<SpriteRenderer>().color = new Color(0.38f, 0.48f, 0.3f);
+            var crateCollider = crate.AddComponent<BoxCollider2D>();
+            MapFootprintCollider.ApplySpriteFootprint(crateCollider, crate.GetComponent<SpriteRenderer>().sprite, Vector3.one, 1f, 1f);
         }
 
         private static void CreateResearchLab(Transform parent, Vector3 position)
@@ -105,9 +107,20 @@ namespace Deadlight.Level.MapBuilders
             var collider = platform.AddComponent<BoxCollider2D>();
             MapFootprintCollider.ApplySpriteFootprint(collider, platform.GetComponent<SpriteRenderer>().sprite, platform.transform.localScale, 0.94f, 0.9f);
 
-            CreateSpriteObject(dock, "DockCrate", ProceduralSpriteGenerator.CreateCrateSprite(), new Vector3(-1.6f, -0.8f, 0f), 6);
-            CreateSpriteObject(dock, "DockCrate", ProceduralSpriteGenerator.CreateCrateSprite(), new Vector3(0f, -0.8f, 0f), 6);
-            CreateSpriteObject(dock, "DockCrate", ProceduralSpriteGenerator.CreateCrateSprite(), new Vector3(1.6f, -0.8f, 0f), 6);
+            // Dock crates are solid cargo — each gets its own collider so the player has to
+            // walk around them instead of passing through.
+            Vector3[] dockCratePositions =
+            {
+                new Vector3(-1.6f, -0.8f, 0f),
+                new Vector3(0f, -0.8f, 0f),
+                new Vector3(1.6f, -0.8f, 0f)
+            };
+            foreach (Vector3 cratePos in dockCratePositions)
+            {
+                var dockCrate = CreateSpriteObject(dock, "DockCrate", ProceduralSpriteGenerator.CreateCrateSprite(), cratePos, 6);
+                var dockCrateCollider = dockCrate.AddComponent<BoxCollider2D>();
+                MapFootprintCollider.ApplySpriteFootprint(dockCrateCollider, dockCrate.GetComponent<SpriteRenderer>().sprite, Vector3.one, 1f, 1f);
+            }
         }
 
         private static void CreateControlOffice(Transform parent, Vector3 position)
@@ -134,9 +147,17 @@ namespace Deadlight.Level.MapBuilders
             var craneCollider = crane.AddComponent<BoxCollider2D>();
             MapFootprintCollider.ApplySpriteFootprint(craneCollider, crane.GetComponent<SpriteRenderer>().sprite, crane.transform.localScale, 0.82f, 0.9f);
 
-            CreateSpriteObject(yard, "Container", CreateContainerSprite(), new Vector3(-1.9f, -1.1f, 0f), 5);
-            CreateSpriteObject(yard, "Container", CreateContainerSprite(), new Vector3(1.9f, -1.1f, 0f), 5);
-            CreateSpriteObject(yard, "Container", CreateContainerSprite(), new Vector3(0f, -0.4f, 0f), 6);
+            var containerA = CreateSpriteObject(yard, "Container", CreateContainerSprite(), new Vector3(-1.9f, -1.1f, 0f), 5);
+            var containerACol = containerA.AddComponent<BoxCollider2D>();
+            MapFootprintCollider.ApplyCustomSpriteFootprint(containerACol, containerA.GetComponent<SpriteRenderer>().sprite, containerA.transform.localScale, new Vector2(1.25f, 0.72f));
+
+            var containerB = CreateSpriteObject(yard, "Container", CreateContainerSprite(), new Vector3(1.9f, -1.1f, 0f), 5);
+            var containerBCol = containerB.AddComponent<BoxCollider2D>();
+            MapFootprintCollider.ApplyCustomSpriteFootprint(containerBCol, containerB.GetComponent<SpriteRenderer>().sprite, containerB.transform.localScale, new Vector2(1.25f, 0.72f));
+
+            var containerC = CreateSpriteObject(yard, "Container", CreateContainerSprite(), new Vector3(0f, -0.4f, 0f), 6);
+            var containerCCol = containerC.AddComponent<BoxCollider2D>();
+            MapFootprintCollider.ApplyCustomSpriteFootprint(containerCCol, containerC.GetComponent<SpriteRenderer>().sprite, containerC.transform.localScale, new Vector2(1.25f, 0.72f));
         }
 
         private static void CreateStreetlights(Transform parent, Vector3[] positions)

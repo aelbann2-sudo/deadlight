@@ -132,6 +132,10 @@ namespace Deadlight.Level.MapBuilders
             pos = Clamp(pos);
             if (registerPlacement)
             {
+                if (!CanPlace(pos, colliderSize))
+                {
+                    return null;
+                }
                 RegisterPlacement(pos, colliderSize);
             }
             var obj = new GameObject(label);
@@ -211,11 +215,10 @@ namespace Deadlight.Level.MapBuilders
             var sr = obj.AddComponent<SpriteRenderer>();
             sr.sprite = ProceduralSpriteGenerator.CreateRockSprite();
             sr.sortingOrder = Mathf.RoundToInt(-pos.y);
-            if (registerPlacement)
-            {
-                var col = obj.AddComponent<CircleCollider2D>();
-                col.radius = 0.3f;
-            }
+            // Alpha-trimmed footprint so the collider matches the visible rock silhouette
+            // — no phantom padding, no gap for the player to slip through.
+            var col = obj.AddComponent<BoxCollider2D>();
+            MapFootprintCollider.ApplySpriteFootprint(col, sr.sprite, Vector3.one, 1f, 1f);
             return obj;
         }
 
@@ -232,6 +235,10 @@ namespace Deadlight.Level.MapBuilders
             var sr = obj.AddComponent<SpriteRenderer>();
             sr.sprite = ProceduralSpriteGenerator.CreateCrateSprite();
             sr.sortingOrder = Mathf.RoundToInt(-pos.y);
+            var col = obj.AddComponent<BoxCollider2D>();
+            // Fit collider to the alpha-trimmed sprite bounds so the collider matches the
+            // crate's visible body exactly (no padding beyond the wood, no gap on top/bottom).
+            MapFootprintCollider.ApplySpriteFootprint(col, sr.sprite, Vector3.one, 1f, 1f);
             return obj;
         }
 
@@ -248,6 +255,9 @@ namespace Deadlight.Level.MapBuilders
             var sr = obj.AddComponent<SpriteRenderer>();
             sr.sprite = ProceduralSpriteGenerator.CreateBarrelSprite(explosive);
             sr.sortingOrder = Mathf.RoundToInt(-pos.y);
+            var col = obj.AddComponent<BoxCollider2D>();
+            // Alpha-trimmed fit: collider exactly matches the barrel body, no padding.
+            MapFootprintCollider.ApplySpriteFootprint(col, sr.sprite, Vector3.one, 1f, 1f);
             return obj;
         }
 
@@ -265,11 +275,12 @@ namespace Deadlight.Level.MapBuilders
             var sr = obj.AddComponent<SpriteRenderer>();
             sr.sprite = ProceduralSpriteGenerator.CreateCarSprite(Random.Range(0, 4));
             sr.sortingOrder = Mathf.RoundToInt(-pos.y);
-            if (registerPlacement)
-            {
-                var col = obj.AddComponent<BoxCollider2D>();
-                MapFootprintCollider.ApplyCustomSpriteFootprint(col, sr.sprite, obj.transform.localScale, new Vector2(1.5f, 0.7f));
-            }
+            // Always add a collider so cars block the player, regardless of whether the
+            // caller has already registered placement (TrySpawnCar passes false). Use the
+            // alpha-trimmed sprite footprint so the collider matches the visible car body
+            // exactly — no invisible padding around the car, no gap to slip past it.
+            var col = obj.AddComponent<BoxCollider2D>();
+            MapFootprintCollider.ApplySpriteFootprint(col, sr.sprite, Vector3.one, 1f, 1f);
             return obj;
         }
 
@@ -330,6 +341,11 @@ namespace Deadlight.Level.MapBuilders
             sr.sortingOrder = Mathf.RoundToInt(-pos.y);
             sr.color = new Color(0.25f, 0.35f, 0.25f);
             obj.transform.localScale = new Vector3(1.3f, 0.9f, 1f);
+            var col = obj.AddComponent<BoxCollider2D>();
+            // Pass Vector3.one so collider.size stays in sprite-local units. Unity then
+            // multiplies by the transform's localScale to produce the world-space size,
+            // which will match the visible sprite exactly (no phantom padding, no gap).
+            MapFootprintCollider.ApplySpriteFootprint(col, sr.sprite, Vector3.one, 1f, 1f);
             return obj;
         }
 
