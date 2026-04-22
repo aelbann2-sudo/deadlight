@@ -1,8 +1,6 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using Deadlight.Systems;
-
 namespace Deadlight.Core
 {
     public class WaveSpawner : MonoBehaviour
@@ -199,17 +197,7 @@ namespace Deadlight.Core
             var ai = enemyObj.AddComponent<Enemy.SimpleEnemyAI>();
             ai.SetAggressive(true);
             float baseSpeedMultiplier = 1f + Mathf.Max(0f, currentWave - 1) * speedIncreasePerWave;
-            float craftingSpeedMultiplier = CraftingSystem.Instance != null
-                ? CraftingSystem.Instance.GetNightEnemySpeedMultiplier()
-                : 1f;
-            ai.ApplySpeedMultiplier(
-                baseSpeedMultiplier * craftingSpeedMultiplier * WaveManager.GetIntroPacingEnemySpeedMultiplier());
-
-            if (CraftingSystem.Instance != null)
-            {
-                health.ApplyHealthMultiplier(CraftingSystem.Instance.GetNightEnemyHealthMultiplier());
-                ai.ApplyDamageMultiplier(CraftingSystem.Instance.GetNightEnemyDamageMultiplier());
-            }
+            ai.ApplySpeedMultiplier(baseSpeedMultiplier * WaveManager.GetIntroPacingEnemySpeedMultiplier());
 
             var hpBar = enemyObj.AddComponent<EnemyHealthBar>();
 

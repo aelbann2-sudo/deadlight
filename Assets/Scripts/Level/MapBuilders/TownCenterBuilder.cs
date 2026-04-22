@@ -38,7 +38,6 @@ namespace Deadlight.Level.MapBuilders
         {
             ReserveSpace(TownCenterLandmarks.CrashSitePosition, new Vector2(8.5f, 4.5f));
             ReserveSpace(TownCenterLandmarks.MilitaryCheckpointPosition, new Vector2(7f, 4.5f));
-            ReserveSpace(TownCenterLandmarks.GasStationPosition, new Vector2(6f, 5f));
             ReserveSpace(TownCenterLandmarks.DinerPosition, new Vector2(5.5f, 4f));
             ReserveSpace(TownCenterLandmarks.SchoolPosition, new Vector2(7.5f, 5.5f));
             ReserveSpace(TownCenterLandmarks.HospitalPosition, new Vector2(7.5f, 5.5f));
@@ -90,7 +89,13 @@ namespace Deadlight.Level.MapBuilders
                 sr.sortingOrder = 4;
                 sr.color = new Color(0.5f, 0.34f, 0.22f);
                 var col = bench.AddComponent<BoxCollider2D>();
-                MapFootprintCollider.ApplyCustomSpriteFootprint(col, sr.sprite, bench.transform.localScale, new Vector2(1f, 0.4f));
+                // The previous explicit (1.0, 0.4) footprint was given in local units but then
+                // scaled again by the bench's transform (1.05, 0.55), producing a collider
+                // wider than the visible bench (1.05 world) yet only 0.22 tall — so the
+                // player could walk "over" it without ever touching the collider.
+                // ApplySpriteFootprint with Vector3.one keeps sizing in sprite-local units;
+                // Unity scales it exactly once, matching the visible crate body precisely.
+                MapFootprintCollider.ApplySpriteFootprint(col, sr.sprite, Vector3.one, 1f, 1f);
                 RegisterPlacement(pos, new Vector2(1f, 0.4f));
             }
 

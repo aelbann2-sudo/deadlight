@@ -422,11 +422,14 @@ namespace Deadlight.Level.MapBuilders
             warehouse.transform.localScale = new Vector3(lot.Size.x / 4.6f, lot.Size.y / 2.8f, 1f);
 
             var col = warehouse.AddComponent<BoxCollider2D>();
-            // Collider is on the same scaled transform as the sprite, so pass Vector3.one
-            // here. BoxCollider2D.size is already multiplied by transform.localScale; feeding
-            // the localScale back into ApplySpriteFootprint would double-scale the collider
-            // and create invisible walls that extend ~30% past the visible building edges.
-            MapFootprintCollider.ApplySpriteFootprint(col, sr.sprite, Vector3.one, 0.92f, 0.92f);
+            // Explicit wall-only footprint (sprite-local units at PPU 16, pivot 0.5,0.18).
+            // The sprite's roof strip (y=24..28) extends the full 72px texture width while
+            // the actual walls are only 64px wide and 20px tall. Alpha-trimmed footprints
+            // would include the roof overhang and produce ~5% horizontal and ~20% vertical
+            // phantom padding around the visible building, so we hard-size the collider
+            // to the walls only and let Unity scale it via transform.localScale.
+            col.size = new Vector2(4.0f, 1.25f);
+            col.offset = new Vector2(0f, 0.439f);
 
             Vector3 doorBase = lot.DockFacesSouth ? new Vector3(0f, -lot.Size.y * 0.42f, 0f) : new Vector3(0f, lot.Size.y * 0.42f, 0f);
             CreateDoor(warehouse.transform, doorBase + new Vector3(-1.4f, 0f, 0f), 1.0f);
@@ -464,9 +467,9 @@ namespace Deadlight.Level.MapBuilders
             shed.transform.localScale = new Vector3(size.x / 4.6f, size.y / 2.8f, 1f);
 
             var col = shed.AddComponent<BoxCollider2D>();
-            // See SpawnWarehouse: localScale is already on the transform, so pass Vector3.one
-            // to avoid double-scaling the collider past the visible sprite.
-            MapFootprintCollider.ApplySpriteFootprint(col, sr.sprite, Vector3.one, 0.92f, 0.9f);
+            // Wall-only footprint — same reasoning as SpawnWarehouse (shared sprite).
+            col.size = new Vector2(4.0f, 1.25f);
+            col.offset = new Vector2(0f, 0.439f);
 
             CreateDoor(shed.transform, new Vector3(0f, -size.y * 0.4f, 0f), 0.8f);
         }
@@ -494,10 +497,12 @@ namespace Deadlight.Level.MapBuilders
             container.transform.localScale = new Vector3(1.45f, 1.05f, 1f);
 
             var col = container.AddComponent<BoxCollider2D>();
-            // Shipping containers have a non-unit localScale on the same transform as the
-            // collider, so pass Vector3.one to avoid the footprint helper double-applying
-            // scale. These were the "dark block tile" invisible walls the player noticed.
-            MapFootprintCollider.ApplySpriteFootprint(col, sr.sprite, Vector3.one, 0.92f, 0.84f);
+            // Exact container body in sprite-local units (PPU 16, pivot 0.5,0.18).
+            // Body opaque region is x=2..37 (36px = 2.25u) and y=2..15 (14px = 0.875u).
+            // The previous explicit (2.25, 0.98) footprint overshot height by ~12%,
+            // producing a thin strip of invisible padding above/below the container.
+            col.size = new Vector2(2.25f, 0.875f);
+            col.offset = new Vector2(0f, 0.329f);
         }
 
         private void SpawnFuelTank(Transform parent, Vector3 pos)
@@ -562,7 +567,10 @@ namespace Deadlight.Level.MapBuilders
 
             var sr = door.AddComponent<SpriteRenderer>();
             sr.sprite = CreateDoorSprite();
-            sr.sortingOrder = parent.GetComponent<SpriteRenderer>().sortingOrder + 1;
+            // Use world-position depth sorting so front-face doors render above and roof/back
+            // details render below, matching top-down physical depth.
+            int depthOffset = localPos.y <= 0f ? 2 : -1;
+            sr.sortingOrder = LandmarkSpriteUtility.ResolveSortingOrder(parent, localPos, depthOffset);
             door.transform.localScale = Vector3.one * scale;
         }
 
@@ -574,7 +582,13 @@ namespace Deadlight.Level.MapBuilders
 
             var sr = vent.AddComponent<SpriteRenderer>();
             sr.sprite = CreateVentSprite();
-            sr.sortingOrder = parent.GetComponent<SpriteRenderer>().sortingOrder + 1;
+            // Ground/roof vents are flat decorations that must never obscure characters.
+            // The player uses feet-based y-sorting, so when they walk "north" of the vent
+            // their sort drops below the vent's — with a small offset, the player appears
+            // behind the vent (looks like sinking into the background). Use a large
+            // negative offset so the vent reliably sorts behind every character regardless
+            // of relative position on the map.
+            sr.sortingOrder = LandmarkSpriteUtility.ResolveSortingOrder(parent, localPos, -200);
         }
 
         private void SpawnStreetPost(Transform parent, Vector3 pos)

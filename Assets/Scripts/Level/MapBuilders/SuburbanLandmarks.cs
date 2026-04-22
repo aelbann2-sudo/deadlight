@@ -36,6 +36,8 @@ namespace Deadlight.Level.MapBuilders
 
             var ammo = CreateSpriteObject(checkpoint, "AmmoCase", ProceduralSpriteGenerator.CreateCrateSprite(), new Vector3(-2.5f, -1.1f, 0f), 4);
             ammo.GetComponent<SpriteRenderer>().color = new Color(0.38f, 0.48f, 0.3f);
+            var ammoCollider = ammo.AddComponent<BoxCollider2D>();
+            MapFootprintCollider.ApplySpriteFootprint(ammoCollider, ammo.GetComponent<SpriteRenderer>().sprite, Vector3.one, 1f, 1f);
 
             CreateSpriteObject(checkpoint, "CheckpointLight", CreateStreetlightSprite(), new Vector3(2.6f, 0.7f, 0f), 4);
         }

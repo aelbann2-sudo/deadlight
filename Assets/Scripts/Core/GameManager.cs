@@ -92,7 +92,6 @@ private const float DefaultFixedDeltaTime = 0.02f;
             !startNewRunAfterGameSceneLoad &&
             !autoStartWhenGameSceneLoads &&
             (!startupIntroShown || startupIntroInProgress);
-        public bool CraftingEnabled => false;
         public float RunStartTime { get; private set; }
         public float InterLevelPointCarryRatio => interLevelPointCarryRatio;
         public bool WillRetryCurrentStepOnAdvance => repeatCurrentNightOnAdvance;
@@ -1003,12 +1002,6 @@ private const float DefaultFixedDeltaTime = 0.02f;
             if (FindFirstObjectByType<RunModifierSystem>() == null)
             {
                 new GameObject("RunModifierSystem").AddComponent<RunModifierSystem>();
-            }
-
-            var crafting = FindFirstObjectByType<CraftingSystem>();
-            if (crafting != null)
-            {
-                Destroy(crafting.gameObject);
             }
 
             var narrativeManager = FindFirstObjectByType<NarrativeManager>();

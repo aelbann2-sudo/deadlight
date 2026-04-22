@@ -36,7 +36,6 @@ namespace Deadlight.Level.MapBuilders
 
             CreateCrashedHelicopter(root, CrashSitePosition);
             CreateMilitaryCheckpoint(root, MilitaryCheckpointPosition);
-            CreateGasStation(root, GasStationPosition);
             CreateDiner(root, DinerPosition);
             CreateSchool(root, SchoolPosition);
             CreateHospital(root, HospitalPosition);
@@ -77,6 +76,8 @@ namespace Deadlight.Level.MapBuilders
 
             var crate = CreateSpriteObject(crashSite, "SupplyCrate", ProceduralSpriteGenerator.CreateCrateSprite(), new Vector3(2f, -0.5f, 0f), 5);
             crate.GetComponent<SpriteRenderer>().color = new Color(0.4f, 0.5f, 0.3f);
+            var crateCollider = crate.AddComponent<BoxCollider2D>();
+            MapFootprintCollider.ApplySpriteFootprint(crateCollider, crate.GetComponent<SpriteRenderer>().sprite, Vector3.one, 1f, 1f);
         }
 
         private static void CreateMilitaryCheckpoint(Transform parent, Vector3 position)
@@ -88,7 +89,11 @@ namespace Deadlight.Level.MapBuilders
             var booth = CreateSpriteObject(checkpoint, "GuardBooth", ProceduralSpriteGenerator.CreateGarageSprite(0), new Vector3(-2.3f, 0.3f, 0f), 5);
             booth.transform.localScale = new Vector3(0.95f, 0.9f, 1f);
             var boothCollider = booth.AddComponent<BoxCollider2D>();
-            MapFootprintCollider.ApplySpriteFootprint(boothCollider, booth.GetComponent<SpriteRenderer>().sprite, booth.transform.localScale, 0.9f, 0.9f);
+            // Collider sits on the scaled booth transform — pass Vector3.one so the helper
+            // keeps sizes in sprite-local units. Unity then multiplies by booth.localScale
+            // exactly once, matching the visible sprite. Passing localScale here would
+            // double-scale the collider and produce ~10% phantom padding around the booth.
+            MapFootprintCollider.ApplySpriteFootprint(boothCollider, booth.GetComponent<SpriteRenderer>().sprite, Vector3.one, 0.9f, 0.9f);
 
             var searchlight = new GameObject("Searchlight");
             searchlight.transform.SetParent(checkpoint);
@@ -97,9 +102,17 @@ namespace Deadlight.Level.MapBuilders
 
             var ammo = CreateSpriteObject(checkpoint, "AmmoCase", ProceduralSpriteGenerator.CreateCrateSprite(), new Vector3(-2f, -1f, 0f), 4);
             ammo.GetComponent<SpriteRenderer>().color = new Color(0.38f, 0.48f, 0.3f);
+            var ammoCollider = ammo.AddComponent<BoxCollider2D>();
+            MapFootprintCollider.ApplySpriteFootprint(ammoCollider, ammo.GetComponent<SpriteRenderer>().sprite, Vector3.one, 1f, 1f);
 
             var barrier = CreateSpriteObject(checkpoint, "Barrier", ProceduralSpriteGenerator.CreateCrateSprite(), new Vector3(0.2f, -0.7f, 0f), 4);
             barrier.transform.localScale = new Vector3(1.25f, 0.45f, 1f);
+            // Barriers are solid physical objects (knee-high concrete blocks) — the player
+            // should bump into them, not walk through. Use Vector3.one so the collider stays
+            // in sprite-local units and Unity scales it with the flattened barrier transform,
+            // matching the visible body exactly.
+            var barrierCollider = barrier.AddComponent<BoxCollider2D>();
+            MapFootprintCollider.ApplySpriteFootprint(barrierCollider, barrier.GetComponent<SpriteRenderer>().sprite, Vector3.one, 1f, 1f);
 
             CreateSpriteObject(checkpoint, "CheckpointPost", CreateCheckpointPostSprite(), new Vector3(2.4f, -0.2f, 0f), 4);
         }
@@ -115,11 +128,20 @@ namespace Deadlight.Level.MapBuilders
             var canopyCollider = canopy.AddComponent<BoxCollider2D>();
             MapFootprintCollider.ApplyCenteredFootprint(canopyCollider, new Vector2(3f, 1.5f), 0.82f, 0.22f, 0.02f, 0.28f);
 
-            var sign = CreateSpriteObject(station, "NeonSign", CreateNeonSignSprite(), new Vector3(-2.9f, 0.8f, 0f), 7);
+            var sign = CreateSpriteObject(station, "PricePylon", CreateNeonSignSprite(), new Vector3(-3.2f, 1.1f, 0f), 7);
             sign.AddComponent<FlickeringLight>();
 
-            CreateSpriteObject(station, "FuelPump", CreateFuelPumpSprite(), new Vector3(-1.3f, -0.8f, 0f), 5);
-            CreateSpriteObject(station, "FuelPump", CreateFuelPumpSprite(), new Vector3(-0.1f, -0.8f, 0f), 5);
+            // Two pumps under the canopy, each with a distinct fuel-grade color
+            // so the player can tell them apart. Each pump gets its own collider
+            // so they block movement instead of being walked through.
+            var pumpRegular = CreateSpriteObject(station, "FuelPump_Regular", ProceduralSpriteGenerator.CreateFuelPumpSprite(0), new Vector3(-1.3f, -0.8f, 0f), 5);
+            var pumpRegularCollider = pumpRegular.AddComponent<BoxCollider2D>();
+            MapFootprintCollider.ApplySpriteFootprint(pumpRegularCollider, pumpRegular.GetComponent<SpriteRenderer>().sprite, Vector3.one, 1f, 1f);
+
+            var pumpPremium = CreateSpriteObject(station, "FuelPump_Premium", ProceduralSpriteGenerator.CreateFuelPumpSprite(2), new Vector3(-0.1f, -0.8f, 0f), 5);
+            var pumpPremiumCollider = pumpPremium.AddComponent<BoxCollider2D>();
+            MapFootprintCollider.ApplySpriteFootprint(pumpPremiumCollider, pumpPremium.GetComponent<SpriteRenderer>().sprite, Vector3.one, 1f, 1f);
+
             CreateSpriteObject(station, "ParkedCar", ProceduralSpriteGenerator.CreateCarSprite(1), new Vector3(2.1f, 0.9f, 0f), 5);
         }
 
@@ -149,8 +171,13 @@ namespace Deadlight.Level.MapBuilders
 
             var bus = CreateSpriteObject(school, "SchoolBus", CreateSchoolBusSprite(), new Vector3(-2.2f, -1.1f, 0f), 4);
             bus.transform.localScale = new Vector3(0.6f, 0.6f, 1f);
+            var busCollider = bus.AddComponent<BoxCollider2D>();
+            MapFootprintCollider.ApplySpriteFootprint(busCollider, bus.GetComponent<SpriteRenderer>().sprite, bus.transform.localScale, 0.95f, 0.9f);
 
-            CreateSpriteObject(school, "SchoolSign", CreateSchoolSignSprite(), new Vector3(2.4f, -1f, 0f), 5);
+            var flag = CreateSpriteObject(school, "FlagPole", CreateSchoolFlagPoleSprite(), new Vector3(3.2f, -1.3f, 0f), 6);
+            var flagCollider = flag.AddComponent<BoxCollider2D>();
+            flagCollider.size = new Vector2(0.18f, 0.35f);
+            flagCollider.offset = new Vector2(0f, 0.12f);
         }
 
         private static void CreateHospital(Transform parent, Vector3 position)
@@ -163,8 +190,14 @@ namespace Deadlight.Level.MapBuilders
             var buildingCollider = building.AddComponent<BoxCollider2D>();
             MapFootprintCollider.ApplySpriteFootprint(buildingCollider, building.GetComponent<SpriteRenderer>().sprite, building.transform.localScale, 0.92f, 0.9f);
 
-            CreateSpriteObject(hospital, "Ambulance", CreateAmbulanceSprite(), new Vector3(-2.2f, -1.1f, 0f), 4);
-            CreateSpriteObject(hospital, "EmergencySign", CreateHospitalSignSprite(), new Vector3(2.5f, -1f, 0f), 5);
+            var ambulance = CreateSpriteObject(hospital, "Ambulance", CreateAmbulanceSprite(), new Vector3(-2.2f, -1.1f, 0f), 4);
+            var ambulanceCollider = ambulance.AddComponent<BoxCollider2D>();
+            MapFootprintCollider.ApplySpriteFootprint(ambulanceCollider, ambulance.GetComponent<SpriteRenderer>().sprite, ambulance.transform.localScale, 0.95f, 0.9f);
+
+            var flag = CreateSpriteObject(hospital, "FlagPole", CreateHospitalFlagPoleSprite(), new Vector3(3.2f, -1.3f, 0f), 6);
+            var flagCollider = flag.AddComponent<BoxCollider2D>();
+            flagCollider.size = new Vector2(0.18f, 0.35f);
+            flagCollider.offset = new Vector2(0f, 0.12f);
         }
 
         private static void CreateStreetlights(Transform parent, Vector3[] positions)
@@ -429,6 +462,106 @@ namespace Deadlight.Level.MapBuilders
             tex.Apply();
             tex.filterMode = FilterMode.Point;
             return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.15f), 16f);
+        }
+
+        private static Sprite CreateSchoolFlagPoleSprite()
+        {
+            const int w = 14;
+            const int h = 40;
+            var tex = new Texture2D(w, h);
+            var pixels = new Color[w * h];
+
+            Color poleBase = new Color(0.62f, 0.64f, 0.68f);
+            Color poleHighlight = new Color(0.82f, 0.84f, 0.88f);
+            Color poleShadow = new Color(0.34f, 0.36f, 0.4f);
+            Color baseColor = new Color(0.22f, 0.22f, 0.26f);
+            Color finial = new Color(0.95f, 0.82f, 0.22f);
+            Color flagYellow = new Color(0.98f, 0.84f, 0.22f);
+            Color flagBlue = new Color(0.15f, 0.32f, 0.68f);
+            Color flagShadow = new Color(0.72f, 0.6f, 0.14f);
+            Color flagOutline = new Color(0.1f, 0.2f, 0.44f);
+
+            FillRectPx(pixels, w, 5, 2, 4, 2, baseColor);
+            FillRectPx(pixels, w, 4, 0, 6, 2, baseColor);
+
+            FillRectPx(pixels, w, 6, 4, 2, h - 8, poleBase);
+            FillRectPx(pixels, w, 6, 4, 1, h - 8, poleShadow);
+            FillRectPx(pixels, w, 7, 4, 1, h - 8, poleHighlight);
+
+            FillRectPx(pixels, w, 6, h - 4, 2, 2, finial);
+            pixels[(h - 3) * w + 6] = finial;
+            pixels[(h - 3) * w + 7] = finial;
+
+            int flagBottom = h - 16;
+            int flagTop = h - 6;
+            int flagLeft = 8;
+            int flagRight = w;
+            FillRectPx(pixels, w, flagLeft, flagBottom, flagRight - flagLeft, flagTop - flagBottom, flagYellow);
+            FillRectPx(pixels, w, flagLeft, flagBottom, flagRight - flagLeft, 1, flagShadow);
+            FillRectPx(pixels, w, flagRight - 1, flagBottom, 1, flagTop - flagBottom, flagShadow);
+
+            int stripeY = (flagBottom + flagTop) / 2;
+            FillRectPx(pixels, w, flagLeft + 1, stripeY - 1, flagRight - flagLeft - 2, 1, flagBlue);
+            FillRectPx(pixels, w, flagLeft + 1, stripeY, flagRight - flagLeft - 2, 1, flagOutline);
+
+            int letterX = flagLeft + 2;
+            int letterY = flagTop - 4;
+            pixels[(letterY) * w + letterX] = flagBlue;
+            pixels[(letterY) * w + letterX + 1] = flagBlue;
+            pixels[(letterY - 1) * w + letterX] = flagBlue;
+            pixels[(letterY - 2) * w + letterX] = flagBlue;
+            pixels[(letterY - 2) * w + letterX + 1] = flagBlue;
+
+            tex.SetPixels(pixels);
+            tex.Apply();
+            tex.filterMode = FilterMode.Point;
+            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.1f), 16f);
+        }
+
+        private static Sprite CreateHospitalFlagPoleSprite()
+        {
+            const int w = 14;
+            const int h = 40;
+            var tex = new Texture2D(w, h);
+            var pixels = new Color[w * h];
+
+            Color poleBase = new Color(0.62f, 0.64f, 0.68f);
+            Color poleHighlight = new Color(0.82f, 0.84f, 0.88f);
+            Color poleShadow = new Color(0.34f, 0.36f, 0.4f);
+            Color baseColor = new Color(0.22f, 0.22f, 0.26f);
+            Color finial = new Color(0.95f, 0.82f, 0.22f);
+            Color flagWhite = new Color(0.96f, 0.96f, 0.96f);
+            Color flagCross = new Color(0.86f, 0.14f, 0.14f);
+            Color flagShadow = new Color(0.76f, 0.76f, 0.78f);
+
+            FillRectPx(pixels, w, 5, 2, 4, 2, baseColor);
+            FillRectPx(pixels, w, 4, 0, 6, 2, baseColor);
+
+            FillRectPx(pixels, w, 6, 4, 2, h - 8, poleBase);
+            FillRectPx(pixels, w, 6, 4, 1, h - 8, poleShadow);
+            FillRectPx(pixels, w, 7, 4, 1, h - 8, poleHighlight);
+
+            FillRectPx(pixels, w, 6, h - 4, 2, 2, finial);
+            pixels[(h - 3) * w + 6] = finial;
+            pixels[(h - 3) * w + 7] = finial;
+
+            int flagBottom = h - 16;
+            int flagTop = h - 6;
+            int flagLeft = 8;
+            int flagRight = w;
+            FillRectPx(pixels, w, flagLeft, flagBottom, flagRight - flagLeft, flagTop - flagBottom, flagWhite);
+            FillRectPx(pixels, w, flagLeft, flagBottom, flagRight - flagLeft, 1, flagShadow);
+            FillRectPx(pixels, w, flagRight - 1, flagBottom, 1, flagTop - flagBottom, flagShadow);
+
+            int crossCenterY = (flagBottom + flagTop) / 2;
+            int crossCenterX = (flagLeft + flagRight) / 2;
+            FillRectPx(pixels, w, flagLeft + 1, crossCenterY - 1, flagRight - flagLeft - 2, 2, flagCross);
+            FillRectPx(pixels, w, crossCenterX - 1, flagBottom + 1, 2, flagTop - flagBottom - 2, flagCross);
+
+            tex.SetPixels(pixels);
+            tex.Apply();
+            tex.filterMode = FilterMode.Point;
+            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.1f), 16f);
         }
 
         private static Sprite CreateHospitalSignSprite()
@@ -696,26 +829,63 @@ namespace Deadlight.Level.MapBuilders
             const int h = 24;
             var tex = new Texture2D(w, h);
             var pixels = new Color[w * h];
-            Color roofColor = new Color(0.6f, 0.1f, 0.1f);
 
-            for (int y = 0; y < h; y++)
+            Color roofRed = new Color(0.58f, 0.15f, 0.12f);
+            Color roofLight = new Color(0.72f, 0.22f, 0.18f);
+            Color roofDark = new Color(0.34f, 0.08f, 0.06f);
+            Color beam = new Color(0.22f, 0.05f, 0.04f);
+            Color support = new Color(0.22f, 0.22f, 0.26f);
+            Color supportHighlight = new Color(0.42f, 0.42f, 0.48f);
+            Color supportShadow = new Color(0.1f, 0.1f, 0.12f);
+            Color light = new Color(1f, 0.92f, 0.55f);
+            Color lightGlow = new Color(1f, 0.82f, 0.4f);
+            Color brandBand = new Color(0.94f, 0.9f, 0.82f);
+
+            FillRectPx(pixels, w, 0, 0, w, h, roofRed);
+
+            FillRectPx(pixels, w, 2, h - 2, w - 4, 1, roofLight);
+            FillRectPx(pixels, w, 2, 1, w - 4, 1, roofDark);
+
+            FillRectPx(pixels, w, 0, 0, w, 1, roofDark);
+            FillRectPx(pixels, w, 0, h - 1, w, 1, roofDark);
+            FillRectPx(pixels, w, 0, 0, 1, h, roofDark);
+            FillRectPx(pixels, w, w - 1, 0, 1, h, roofDark);
+
+            int midX = w / 2;
+            int midY = h / 2;
+            FillRectPx(pixels, w, midX - 1, 2, 2, h - 4, beam);
+            FillRectPx(pixels, w, 2, midY - 1, w - 4, 2, beam);
+
+            FillRectPx(pixels, w, 3, midY + 1, midX - 4, midY - 4, roofLight);
+            FillRectPx(pixels, w, midX + 1, midY + 1, midX - 4, midY - 4, roofLight);
+            FillRectPx(pixels, w, 3, 3, midX - 4, midY - 4, roofLight);
+            FillRectPx(pixels, w, midX + 1, 3, midX - 4, midY - 4, roofLight);
+
+            FillRectPx(pixels, w, 4, midY - 1, w - 8, 2, brandBand);
+            FillRectPx(pixels, w, 4, midY, w - 8, 1, Color.Lerp(brandBand, Color.black, 0.2f));
+
+            FillRectPx(pixels, w, 2, 2, 4, 4, support);
+            FillRectPx(pixels, w, w - 6, 2, 4, 4, support);
+            FillRectPx(pixels, w, 2, h - 6, 4, 4, support);
+            FillRectPx(pixels, w, w - 6, h - 6, 4, 4, support);
+            FillRectPx(pixels, w, 2, 5, 4, 1, supportHighlight);
+            FillRectPx(pixels, w, w - 6, 5, 4, 1, supportHighlight);
+            FillRectPx(pixels, w, 2, h - 3, 4, 1, supportHighlight);
+            FillRectPx(pixels, w, w - 6, h - 3, 4, 1, supportHighlight);
+            FillRectPx(pixels, w, 2, 2, 4, 1, supportShadow);
+            FillRectPx(pixels, w, w - 6, 2, 4, 1, supportShadow);
+
+            int[] lightRows = { midY - 3, midY + 2 };
+            int[] lightCols = { 8, w - 9 };
+            foreach (int lr in lightRows)
             {
-                for (int x = 0; x < w; x++)
+                foreach (int lc in lightCols)
                 {
-                    pixels[y * w + x] = roofColor;
-                }
-            }
-
-            for (int y = 0; y < 4; y++)
-            {
-                for (int x = 4; x < 8; x++)
-                {
-                    pixels[y * w + x] = new Color(0.3f, 0.3f, 0.3f);
-                }
-
-                for (int x = w - 8; x < w - 4; x++)
-                {
-                    pixels[y * w + x] = new Color(0.3f, 0.3f, 0.3f);
+                    pixels[lr * w + lc] = light;
+                    pixels[lr * w + lc - 1] = lightGlow;
+                    pixels[lr * w + lc + 1] = lightGlow;
+                    pixels[(lr - 1) * w + lc] = lightGlow;
+                    pixels[(lr + 1) * w + lc] = lightGlow;
                 }
             }
 
@@ -727,46 +897,64 @@ namespace Deadlight.Level.MapBuilders
 
         private static Sprite CreateNeonSignSprite()
         {
-            const int w = 32;
-            const int h = 16;
+            const int w = 20;
+            const int h = 32;
             var tex = new Texture2D(w, h);
             var pixels = new Color[w * h];
 
-            for (int y = 2; y < h - 2; y++)
-            {
-                for (int x = 2; x < w - 2; x++)
-                {
-                    pixels[y * w + x] = new Color(0.1f, 0.1f, 0.15f);
-                }
-            }
+            Color pole = new Color(0.32f, 0.32f, 0.36f);
+            Color poleShadow = new Color(0.18f, 0.18f, 0.22f);
+            Color frame = new Color(0.14f, 0.14f, 0.18f);
+            Color frameTrim = new Color(0.36f, 0.36f, 0.42f);
+            Color brandRed = new Color(0.84f, 0.18f, 0.18f);
+            Color brandRedDark = new Color(0.54f, 0.1f, 0.08f);
+            Color priceBg = new Color(0.05f, 0.05f, 0.08f);
+            Color lcdGreen = new Color(0.35f, 0.96f, 0.45f);
+            Color lcdAmber = new Color(0.98f, 0.78f, 0.25f);
+            Color glow = new Color(1f, 0.45f, 0.4f);
 
-            Color neonColor = new Color(1f, 0.3f, 0.3f);
-            for (int i = 4; i < 12; i++)
-            {
-                pixels[8 * w + i] = neonColor;
-                pixels[8 * w + (w - i)] = neonColor;
-            }
+            FillRectPx(pixels, w, 8, 0, 4, 10, pole);
+            FillRectPx(pixels, w, 8, 0, 1, 10, poleShadow);
+            FillRectPx(pixels, w, 6, 1, 8, 1, poleShadow);
 
-            tex.SetPixels(pixels);
-            tex.Apply();
-            tex.filterMode = FilterMode.Point;
-            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 16f);
-        }
+            FillRectPx(pixels, w, 1, 10, w - 2, 22, frame);
+            FillRectPx(pixels, w, 2, 11, w - 4, 20, frameTrim);
+            FillRectPx(pixels, w, 3, 12, w - 6, 18, frame);
 
-        private static Sprite CreateFuelPumpSprite()
-        {
-            const int w = 12;
-            const int h = 24;
-            var tex = new Texture2D(w, h);
-            var pixels = new Color[w * h];
+            FillRectPx(pixels, w, 3, 24, w - 6, 6, brandRed);
+            FillRectPx(pixels, w, 3, 24, w - 6, 1, brandRedDark);
+            FillRectPx(pixels, w, 3, 29, w - 6, 1, brandRedDark);
 
-            for (int y = 0; y < h; y++)
-            {
-                for (int x = 2; x < w - 2; x++)
-                {
-                    pixels[y * w + x] = new Color(0.8f, 0.2f, 0.2f);
-                }
-            }
+            pixels[26 * w + 5] = glow;
+            pixels[26 * w + 7] = glow;
+            pixels[27 * w + 5] = glow;
+            pixels[27 * w + 7] = glow;
+            pixels[26 * w + 9] = glow;
+            pixels[26 * w + 10] = glow;
+            pixels[26 * w + 11] = glow;
+            pixels[27 * w + 9] = glow;
+            pixels[27 * w + 11] = glow;
+            pixels[26 * w + 13] = glow;
+            pixels[26 * w + 14] = glow;
+            pixels[27 * w + 13] = glow;
+            pixels[27 * w + 14] = glow;
+            pixels[26 * w + 15] = glow;
+
+            FillRectPx(pixels, w, 3, 20, w - 6, 3, priceBg);
+            FillRectPx(pixels, w, 4, 21, 2, 1, lcdGreen);
+            FillRectPx(pixels, w, 7, 21, 1, 1, lcdGreen);
+            FillRectPx(pixels, w, 9, 21, 1, 1, lcdGreen);
+            FillRectPx(pixels, w, 11, 21, 2, 1, lcdGreen);
+            FillRectPx(pixels, w, 14, 21, 1, 1, lcdGreen);
+            FillRectPx(pixels, w, 16, 21, 1, 1, lcdGreen);
+
+            FillRectPx(pixels, w, 3, 15, w - 6, 3, priceBg);
+            FillRectPx(pixels, w, 4, 16, 2, 1, lcdAmber);
+            FillRectPx(pixels, w, 7, 16, 1, 1, lcdAmber);
+            FillRectPx(pixels, w, 9, 16, 1, 1, lcdAmber);
+            FillRectPx(pixels, w, 11, 16, 2, 1, lcdAmber);
+            FillRectPx(pixels, w, 14, 16, 1, 1, lcdAmber);
+            FillRectPx(pixels, w, 16, 16, 1, 1, lcdAmber);
 
             tex.SetPixels(pixels);
             tex.Apply();
@@ -825,6 +1013,20 @@ namespace Deadlight.Level.MapBuilders
             tex.Apply();
             tex.filterMode = FilterMode.Bilinear;
             return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 16f);
+        }
+
+        private static void FillRectPx(Color[] pixels, int textureWidth, int x, int y, int rectWidth, int rectHeight, Color color)
+        {
+            int endX = Mathf.Min(x + rectWidth, textureWidth);
+            int endY = Mathf.Min(y + rectHeight, pixels.Length / textureWidth);
+            for (int py = Mathf.Max(0, y); py < endY; py++)
+            {
+                int rowStart = py * textureWidth;
+                for (int px = Mathf.Max(0, x); px < endX; px++)
+                {
+                    pixels[rowStart + px] = color;
+                }
+            }
         }
     }
 }
