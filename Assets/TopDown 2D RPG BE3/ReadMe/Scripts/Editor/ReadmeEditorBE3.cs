@@ -2,63 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using System;
-using System.IO;
-using System.Reflection;
 
 [CustomEditor(typeof(ReadmeBE3))]
-[InitializeOnLoad]
 public class ReadmeEditorBE3 : Editor {
-	
-	static string kShowedReadmeSessionStateName = "ReadmeEditor.showedReadme";
-	
+
 	static float kSpace = 16f;
-	
-	static ReadmeEditorBE3()
-	{
-		EditorApplication.delayCall += SelectReadmeAutomatically;
-	}
-	
-	static void SelectReadmeAutomatically()
-	{
-		if (!SessionState.GetBool(kShowedReadmeSessionStateName, false ))
-		{
-			var readme = SelectReadme();
-			SessionState.SetBool(kShowedReadmeSessionStateName, true);
-			
-			if (readme && !readme.loadedLayout)
-			{
-				LoadLayout();
-				readme.loadedLayout = true;
-			}
-		} 
-	}
-	
-	static void LoadLayout()
-	{
-		var assembly = typeof(EditorApplication).Assembly; 
-		var windowLayoutType = assembly.GetType("UnityEditor.WindowLayout", true);
-		var method = windowLayoutType.GetMethod("LoadWindowLayout", BindingFlags.Public | BindingFlags.Static);
-		method.Invoke(null, new object[]{Path.Combine(Application.dataPath, "TutorialInfo/Layout.wlt"), false});
-	}
-	
-	static ReadmeBE3 SelectReadme() 
-	{
-		var ids = AssetDatabase.FindAssets("Readme t:ReadmeBE3");
-		if (ids.Length == 1)
-		{
-			var readmeObject = AssetDatabase.LoadMainAssetAtPath(AssetDatabase.GUIDToAssetPath(ids[0]));
-			
-			Selection.objects = new UnityEngine.Object[]{readmeObject};
-			
-			return (ReadmeBE3)readmeObject;
-		}
-		else
-		{
-			Debug.Log("Couldn't find a readme");
-			return null;
-		}
-	}
 	
 	protected override void OnHeaderGUI()
 	{
@@ -154,4 +102,3 @@ public class ReadmeEditorBE3 : Editor {
 		return GUI.Button (position, label, LinkStyle);
 	}
 }
-

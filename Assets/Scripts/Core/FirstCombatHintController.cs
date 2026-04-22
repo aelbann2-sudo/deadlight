@@ -28,6 +28,7 @@ namespace Deadlight.Core
         [SerializeField] private float visibleZombieHintCooldownSeconds = 5.2f;
         [SerializeField] private float unhintedEnemyFallbackDelaySeconds = 1.4f;
         [SerializeField] [Range(0f, 0.2f)] private float visibleViewportPadding = 0.06f;
+        [SerializeField] private bool tutorialNightCommsEnabled = false;
 
         private const string ReminderLine =
             "RADIO: Keep your cursor on the target and press the left mouse button to fire.";
@@ -475,9 +476,32 @@ namespace Deadlight.Core
             hud?.ShowTransientStatus(MovementControlsStatus, 4f);
             yield return new WaitForSeconds(4.5f);
 
-            // After movement, remind about the loot mechanic before enemies swarm.
-            hud?.ShowTransientStatus(LootControlsStatus, 3.5f);
+            // Only show loot follow-up when we're actually in daytime with active crates.
+            // Otherwise, skip the second status line to avoid misleading night-combat prompts.
+            if (ShouldShowLootHintNow())
+            {
+                hud?.ShowTransientStatus(LootControlsStatus, 3.5f);
+            }
             movementHintCoroutine = null;
+        }
+
+        private static bool ShouldShowLootHintNow()
+        {
+            if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameState.DayPhase)
+            {
+                return false;
+            }
+
+            var crates = FindObjectsByType<Systems.SupplyCrate>(FindObjectsSortMode.None);
+            for (int i = 0; i < crates.Length; i++)
+            {
+                if (crates[i] != null && crates[i].gameObject.activeInHierarchy)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void StopAllGuidanceCoroutines()
@@ -517,6 +541,11 @@ namespace Deadlight.Core
 
         private void SendPriorityHint(string line, float durationSeconds)
         {
+            if (!tutorialNightCommsEnabled)
+            {
+                return;
+            }
+
             if (Time.time - lastCommsHintAt < Mathf.Max(0.5f, commsSpacingSeconds))
             {
                 return;

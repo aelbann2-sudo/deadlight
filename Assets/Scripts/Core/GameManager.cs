@@ -54,6 +54,7 @@ namespace Deadlight.Core
         public const int TotalLevels = 4;
         private const string UnlockedLevelKey = "Deadlight_UnlockedLevel";
         private const string HighestCompletedLevelKey = "Deadlight_HighestCompletedLevel";
+        private const bool ForceAllLevelsUnlockedForEvaluation = true;
 
         [Header("Campaign Progression")]
         [SerializeField] private MapType[] campaignMapOrder =
@@ -86,6 +87,7 @@ private const float DefaultFixedDeltaTime = 0.02f;
         public CampaignBalanceProfile CurrentBalance => campaignBalanceProfile;
         public bool IsPaused => isPaused;
         public bool IsGameplayState => IsGameplayStateValue(currentState);
+        public bool IsEvaluationUnlockModeEnabled => ForceAllLevelsUnlockedForEvaluation;
         public bool ShouldSetupGameplayScene => startNewRunAfterGameSceneLoad || currentState != GameState.MainMenu || autoStartWhenGameSceneLoads;
         public bool ShouldSuppressMainMenuPresentation =>
             currentState == GameState.MainMenu &&
@@ -744,7 +746,9 @@ private const float DefaultFixedDeltaTime = 0.02f;
 
         public bool IsLevelUnlocked(int level)
         {
-            if (level > GetPlayableLevelCap()) return false;
+            int playableCap = GetPlayableLevelCap();
+            if (level < 1 || level > playableCap) return false;
+            if (ForceAllLevelsUnlockedForEvaluation) return true;
             if (level <= 1) return true;
 
             int highestCompleted = GetHighestCompletedLevel();
@@ -757,6 +761,8 @@ private const float DefaultFixedDeltaTime = 0.02f;
         {
             get
             {
+                if (ForceAllLevelsUnlockedForEvaluation) return GetPlayableLevelCap();
+
                 int highestCompleted = GetHighestCompletedLevel();
                 int storedUnlocked = GetStoredHighestUnlockedLevel();
                 return Mathf.Clamp(Mathf.Min(storedUnlocked, highestCompleted + 1), 1, GetPlayableLevelCap());

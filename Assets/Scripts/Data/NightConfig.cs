@@ -64,7 +64,7 @@ namespace Deadlight.Core
             var config = CreateInstance<NightConfig>();
             config.nightNumber = 1;
             config.nightTitle = "First Light";
-            config.description = "Tutorial night. Small waves of basic zombies only.";
+            config.description = "Small waves of basic zombies only.";
             config.waveCount = 2;
             config.baseEnemyCount = 3;
             config.timeBetweenWaves = 6f;
@@ -157,7 +157,7 @@ namespace Deadlight.Core
                     return new NightNarrativePreset
                     {
                         title = "First Light",
-                        description = "Tutorial night. Keep the street clear, learn the basics, and hold your first line.",
+                        description = "Keep the street clear, learn the basics, and hold your first line.",
                         radioMessage = "Hold your position, medic. The zone is still quiet, but that will not last long.",
                         warningMessage = "Warning: sparse contacts are approaching."
                     };

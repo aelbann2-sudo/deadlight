@@ -29,6 +29,10 @@ namespace Deadlight.Systems
         private Image progressFill;
         private Text promptText;
         private Canvas worldCanvas;
+        private Transform fallbackBarRoot;
+        private SpriteRenderer fallbackBarBg;
+        private SpriteRenderer fallbackBarFill;
+        private static Sprite fallbackUnitSprite;
 
         private float pulseTimer;
         private float interactRange = 1.8f;
@@ -110,6 +114,7 @@ namespace Deadlight.Systems
 
             CreateGlow();
             CreateWorldUI();
+            CreateFallbackProgressBar();
             DetermineContents();
             CreateContentsIcon();
         }
@@ -386,19 +391,22 @@ namespace Deadlight.Systems
                 promptText.gameObject.SetActive(inRange && !isLooting);
             }
 
-            // Show the empty bar as soon as the player is in range so the hold requirement is obvious.
-            if (progressBarRoot != null && !isLooted)
+            // Keep a single visible hold bar to avoid duplicate UI.
+            if (progressBarRoot != null)
             {
-                progressBarRoot.SetActive(inRange);
+                progressBarRoot.SetActive(false);
             }
+            SetFallbackBarVisible(inRange && !isLooted);
 
             if (inRange && Input.GetKey(KeyCode.F) && !isLooted)
             {
                 isLooting = true;
                 interactProgress += Time.deltaTime;
+                float normalized = Mathf.Clamp01(interactProgress / interactionTime);
 
                 if (progressFill != null)
-                    progressFill.fillAmount = interactProgress / interactionTime;
+                    progressFill.fillAmount = normalized;
+                UpdateFallbackFill(normalized);
 
                 if (interactProgress >= interactionTime)
                     CompleteLoot();
@@ -411,6 +419,7 @@ namespace Deadlight.Systems
                     interactProgress = 0f;
                     if (progressFill != null)
                         progressFill.fillAmount = 0f;
+                    UpdateFallbackFill(0f);
                 }
             }
         }
@@ -420,6 +429,7 @@ namespace Deadlight.Systems
             isLooted = true;
             contestedResolved = true;
             if (progressBarRoot != null) progressBarRoot.SetActive(false);
+            SetFallbackBarVisible(false);
             if (promptText != null) promptText.gameObject.SetActive(false);
             if (glowSr != null) glowSr.gameObject.SetActive(false);
             if (contentsIconSr != null) contentsIconSr.gameObject.SetActive(false);
@@ -774,6 +784,7 @@ namespace Deadlight.Systems
             interactProgress = 0f;
 
             if (progressBarRoot != null) progressBarRoot.SetActive(false);
+            SetFallbackBarVisible(false);
             if (promptText != null) promptText.gameObject.SetActive(false);
             if (glowSr != null) glowSr.gameObject.SetActive(false);
             if (contentsIconSr != null) contentsIconSr.gameObject.SetActive(false);
@@ -831,6 +842,7 @@ namespace Deadlight.Systems
 
             worldCanvas = canvasObj.AddComponent<Canvas>();
             worldCanvas.renderMode = RenderMode.WorldSpace;
+            worldCanvas.overrideSorting = true;
             worldCanvas.sortingOrder = 100;
 
             var rt = canvasObj.GetComponent<RectTransform>();
@@ -889,6 +901,85 @@ namespace Deadlight.Systems
             progressFill.fillAmount = 0f;
 
             progressBarRoot.SetActive(false);
+        }
+
+        private void CreateFallbackProgressBar()
+        {
+            var root = new GameObject("FallbackProgressBar");
+            root.transform.SetParent(transform, false);
+            root.transform.localPosition = new Vector3(0f, 1.35f, 0f);
+            fallbackBarRoot = root.transform;
+
+            fallbackBarBg = CreateFallbackBarPart(
+                fallbackBarRoot,
+                "BG",
+                new Color(0f, 0f, 0f, 0.8f),
+                14);
+            fallbackBarFill = CreateFallbackBarPart(
+                fallbackBarRoot,
+                "Fill",
+                new Color(1f, 0.84f, 0.32f, 0.98f),
+                15);
+
+            fallbackBarBg.transform.localScale = new Vector3(1.15f, 0.12f, 1f);
+            UpdateFallbackFill(0f);
+            SetFallbackBarVisible(false);
+        }
+
+        private SpriteRenderer CreateFallbackBarPart(Transform parent, string name, Color color, int sortingOrder)
+        {
+            var obj = new GameObject(name);
+            obj.transform.SetParent(parent, false);
+            var renderer = obj.AddComponent<SpriteRenderer>();
+            renderer.sprite = GetFallbackUnitSprite();
+            renderer.color = color;
+            renderer.sortingOrder = sortingOrder;
+            return renderer;
+        }
+
+        private void UpdateFallbackFill(float normalized)
+        {
+            if (fallbackBarFill == null)
+            {
+                return;
+            }
+
+            float clamped = Mathf.Clamp01(normalized);
+            float maxWidth = 1.11f;
+            float fillWidth = Mathf.Max(0.02f, maxWidth * clamped);
+            fallbackBarFill.transform.localScale = new Vector3(fillWidth, 0.08f, 1f);
+            fallbackBarFill.transform.localPosition = new Vector3((-maxWidth * 0.5f) + (fillWidth * 0.5f), 0f, -0.01f);
+        }
+
+        private void SetFallbackBarVisible(bool visible)
+        {
+            if (fallbackBarRoot == null)
+            {
+                return;
+            }
+
+            fallbackBarRoot.gameObject.SetActive(visible);
+        }
+
+        private static Sprite GetFallbackUnitSprite()
+        {
+            if (fallbackUnitSprite != null)
+            {
+                return fallbackUnitSprite;
+            }
+
+            var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+            tex.filterMode = FilterMode.Point;
+            tex.wrapMode = TextureWrapMode.Clamp;
+            tex.SetPixels(new[]
+            {
+                Color.white, Color.white,
+                Color.white, Color.white
+            });
+            tex.Apply();
+
+            fallbackUnitSprite = Sprite.Create(tex, new Rect(0f, 0f, 2f, 2f), new Vector2(0.5f, 0.5f), 2f);
+            return fallbackUnitSprite;
         }
 
         // Enhanced crate visuals based on tier and content

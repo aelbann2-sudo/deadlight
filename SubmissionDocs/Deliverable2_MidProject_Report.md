@@ -95,6 +95,7 @@ The latest iteration also addressed message clarity and timing:
 - **COMMS reliability:** `NarrativeManager` queue processing and interrupt protection were revised to reduce premature message overrides.
 - **Economy:** `PointsSystem`, pickups, `SupplyCrate`, waves.
 - **Crafting:** Hooks exist, but **`enableCrafting = false`** in this build.
+- **TA evaluation shortcut:** All playable levels are unlocked in the evaluation build so the TA can jump directly to any included level.
 - **Package:** Unity project (`Assets`, `Packages`, `ProjectSettings`) + Windows executable per course instructions + this report PDF.
 
 ## Deliverable 3 (planned)
