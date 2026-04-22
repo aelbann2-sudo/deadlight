@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Night_1
   m_EditorClassIdentifier: Deadlight::Deadlight.Core.NightConfig
   nightNumber: 1
-  description: Tutorial night. Small waves of basic zombies.
+  description: Small waves of basic zombies.
   nightTitle: First Night
   waveCount: 2
   baseEnemyCount: 5

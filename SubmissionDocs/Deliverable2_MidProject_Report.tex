@@ -497,11 +497,12 @@ The prototype relies on these Unity systems:
     \item \textbf{Balance and preparation systems:} \texttt{SupplyCrate}, \texttt{Pickup}, \texttt{PointsSystem}, and the wave balancing path connect day preparation to night pressure; contested and helicopter drops use map-scattered spawn placement.
     \item \textbf{Weapon loadout:} \texttt{PlayerShooting} supports four weapon slots with hotkey switching; the shop fills empty slots rather than selling duplicate types already carried.
     \item \textbf{Feature scope:} crafting hooks exist in code but are disabled in this Deliverable 2 build (\texttt{enableCrafting = false}) to keep the prototype loop clean and readable.
+    \item \textbf{TA evaluation shortcut:} all playable levels are unlocked in the evaluation build so the TA can jump directly to any included level without replaying the full campaign path first.
     \item \textbf{Submission structure:} the Deliverable 2 package is organized around the Unity project, the standalone build output used for evaluation, and this written PDF report.
 \end{itemize}
 
 \paragraph{Build notes and limits.}
-Before submission, the team rechecked phase transitions, unlock flow, and HUD readability in Unity Play Mode. The final package also requires the standalone Windows build described in the course brief. Crafting remains off (\texttt{enableCrafting = false}) to keep this milestone focused. Levels~3 and~4 are \textbf{not} completed yet and are \textbf{not} playable in Deliverable~2; they are planned for Deliverable~3 (menu previews may exist, but there is no finished campaign for those districts in this submission).
+Before submission, the team rechecked phase transitions, unlock flow, and HUD readability in Unity Play Mode. The final package also requires the standalone Windows build described in the course brief. Crafting remains off (\texttt{enableCrafting = false}) to keep this milestone focused. For TA convenience during evaluation, all levels that are part of this deliverable remain selectable from the map menu. Levels~3 and~4 are \textbf{not} completed yet and are \textbf{not} playable in Deliverable~2; they are planned for Deliverable~3 (menu previews may exist, but there is no finished campaign for those districts in this submission).
 
 \paragraph{In-engine figures.}
 These screenshots come from the current Deliverable~2 evaluation build. They show the four-slot HUD, daytime scavenging, night combat, the dawn shop, and level-to-level flow.

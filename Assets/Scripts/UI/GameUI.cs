@@ -459,7 +459,9 @@ namespace Deadlight.UI
                 TextAnchor.UpperLeft, FontStyle.Bold);
 
             UIFactory.CreateTextAt(_mapSelectPanel.transform, "Desc",
-                "Select any unlocked level. Clear the active sector to unlock the next deployment.",
+                GameManager.Instance != null && GameManager.Instance.IsEvaluationUnlockModeEnabled
+                    ? "All playable levels are unlocked in this evaluation build. Select any level to test."
+                    : "Select any unlocked level. Clear the active sector to unlock the next deployment.",
                 UITheme.FontBody, UITheme.TextSecondary,
                 new Vector2(0f, 1f), new Vector2(54f, -158f), new Vector2(720f, 48f),
                 TextAnchor.UpperLeft);
@@ -1255,7 +1257,11 @@ namespace Deadlight.UI
                 _mainMenuProgressText.text = $"Level {highest:00} ready: {levelObjectiveSummaries[highest - 1]}";
 
             if (_mapSelectProgressText != null)
-                _mapSelectProgressText.text = $"Highest unlocked level: {highest:00}. Clear the active sector to unlock the next.";
+            {
+                _mapSelectProgressText.text = GameManager.Instance != null && GameManager.Instance.IsEvaluationUnlockModeEnabled
+                    ? $"All playable levels unlocked for evaluation. Highest level available: {highest:00}."
+                    : $"Highest unlocked level: {highest:00}. Clear the active sector to unlock the next.";
+            }
 
             foreach (var row in _campaignRouteRows)
             {
