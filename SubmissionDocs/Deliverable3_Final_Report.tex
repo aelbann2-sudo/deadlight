@@ -119,7 +119,7 @@ Each map has its own colour palette so that the four levels are easy to tell apa
 
 Accent colours are kept consistent across all maps and only used where they carry gameplay meaning: gold for objectives and supply drops, red for danger, and blue for interactive objects. A player can read colour as information without having to re-learn what it means on each new level.
 
-\textbf{Procedural sprites.} Character and environment sprites are generated at runtime by \texttt{ProceduralSpriteGenerator}. Enemy sprites share a base zombie shape with per-type colour tints and scale variation handled by \texttt{ZombieAnimator}. Subject~23 scales to 2x at encounter start, making it visually distinct from standard enemies without a separate art asset. Supply crates use three colour codes: \textbf{Common} (brown), \textbf{Rare} (blue), and \textbf{Legendary} (gold), allowing the player to assess value from a distance.
+\textbf{Procedural sprites.} \texttt{ProceduralSpriteGenerator} builds the character and environment sprites at runtime. Enemies share a base zombie shape, and \texttt{ZombieAnimator} handles the per-type colour tint and scale differences. Subject~23 scales up to 2x as the encounter starts, so it reads as different from standard enemies without needing a separate art asset. Supply crates are colour-coded by tier (Common brown, Rare blue, Legendary gold) so the player can tell value at a glance.
 
 \textbf{Bullet trail.} Each bullet uses an 8-pixel sprite with a bright centre fading to orange at the edge, combined with a \texttt{TrailRenderer} set to fade over 55~ms. This makes shot direction and weapon fire rate readable during combat.
 
@@ -150,7 +150,7 @@ The HUD is divided into five fixed areas on screen. These positions remain consi
   \item \textbf{Bottom-left:} Score.
 \end{itemize}
 
-\texttt{UITheme} stores shared fonts, colours, and panel sizes so that all runtime-created panels use the same style. The Dawn shop uses three tabs (Weapons, Upgrades, Armour) with a consumable row above them. The consistent dark-background and coloured-button scheme is used in the HUD, the Dawn shop, the Level Complete panel, and the Victory screen.
+Shared fonts, colours, and panel sizes live in \texttt{UITheme}, which all runtime-built panels pull from. The Dawn shop is split into three tabs (Weapons, Upgrades, Armour) with a consumable row above them. The dark-background, coloured-button style is reused across the HUD, the Dawn shop, the Level Complete panel, and the Victory screen, so the interface feels like one thing and not four separate screens.
 
 \subsection{Sound Design}
 
@@ -193,7 +193,7 @@ The campaign follows a containment story across four levels. Each level advances
 
 \subsection{Narrative Delivery}
 
-The player can complete every night without reading any story content. All narrative is optional or ambient, delivered through these systems.
+A player who ignores the story can still finish every night. All of the narrative content is optional or ambient, and it reaches the player through these systems:
 
 \textbf{Radio / COMMS.} \texttt{RadioTransmissions} queues messages from EVAC Command, Dr.~Chen, and survivor voices. A 1.2-second protection window in \texttt{NarrativeManager} prevents new messages from cutting off the one currently playing. Messages appear in a panel above the objective display with a channel label so the source is clear.
 
@@ -211,7 +211,7 @@ The game uses three enemy AI types that become more common in later levels.
 
 \textbf{Spitter enemies} (\texttt{SpitterAI}) keep their distance and fire projectiles at the player. They appear in Level 2 and become more common in Levels 3 and 4. They force the player to watch positioning instead of just kiting in a circle.
 
-\textbf{Subject~23} (\texttt{BossController}) is the three-phase boss encounter described in Section~\ref{sec:boss}. On Level 4 Night 3 the player has to deal with standard enemies, ranged spitters, and the boss all at once, which is where these subsystems come together the most.
+\textbf{Subject~23} (\texttt{BossController}) is the three-phase boss encounter described in Section~\ref{sec:boss}. On Level 4 Night 3 the player has to deal with standard enemies, ranged spitters, and the boss all at once. This is the only fight where all three of these AI systems are pushing on the player at the same time.
 
 \subsection{Narrative Consequences in Gameplay}
 
@@ -248,7 +248,7 @@ Failing a story objective has mechanical effects. A missed \texttt{StoryObjectiv
 
 \subsection{Campaign Structure}
 
-The campaign has four levels, each containing three nights. Level access is stored in \texttt{PlayerPrefs} using two keys (\texttt{Deadlight\_UnlockedLevel} and \texttt{Deadlight\_HighestCompletedLevel}). A player can return to any completed level between sessions but cannot skip ahead. Each level starts with a full reset of points, inventory, weapon loadout (pistol only), armour, throwables, and medkits. Within a level, the player builds up resources across three nights and spends them at the Dawn shop.
+The campaign has four levels, each containing three nights. Baseline progression data is still tracked in \texttt{PlayerPrefs} using two keys (\texttt{Deadlight\_UnlockedLevel} and \texttt{Deadlight\_HighestCompletedLevel}). For the submitted evaluation build, \texttt{GameManager} enables an all-levels-unlocked mode so any level can be selected directly from the deploy screen for TA testing. Each level still starts with a full reset of points, inventory, weapon loadout (pistol only), armour, throwables, and medkits. Within a level, the player builds up resources across three nights and spends them at the Dawn shop.
 
 \subsection{Night Pacing}
 
@@ -268,7 +268,7 @@ Level 4 (N10--12) & 75, 65, 55 & 80, 100, 140 \\
 \end{tabular}
 \end{center}
 
-Day phases become shorter in later levels, giving less preparation time. Night phases become longer, increasing the time the player must survive. Enemy statistics are not changed between levels; difficulty is managed through phase duration and resource availability.
+Day phases shorten as the campaign moves forward, which cuts the amount of preparation time. Night phases get longer, which stretches the survival window. We deliberately kept the baseline enemy stats the same between levels and let the difficulty curve come from phase length and resource availability instead.
 
 \subsection{Adaptive Resource Scaling}
 
@@ -291,7 +291,7 @@ Reserve $\geq 320$: no pickups. \quad Reserve $\geq 240$: 25\% of base. \\
 Reserve $\geq 160$: 50\% of base. \quad Below 160: full count.
 \end{tcolorbox}
 
-Pickups are placed using a 100-attempt scatter algorithm. It biases positions toward the outer 40\% of the map, enforces a minimum 6-unit gap between pickups, rejects positions within 10 units of the player spawn point, and checks all registered obstacle colliders to avoid placing pickups inside buildings.
+The pickup spawner uses a simple scatter algorithm with up to 100 attempts per pickup. Each attempt biases toward the outer 40\% of the map, keeps at least 6 units of space between pickups, rejects anything within 10 units of the player's spawn point, and checks registered obstacle colliders so pickups do not end up inside buildings.
 
 \subsection{Supply Crate Tiers and Helicopter Drops}
 
@@ -323,12 +323,12 @@ Night helicopter drops have a 65\% base spawn chance, reduced when the player's 
 
 \subsection{Feedback Sources and Protocol}
 
-Feedback was gathered from three channels during the Deliverable~2 to Deliverable~3 development period:
+Between Deliverable~2 and Deliverable~3 we pulled feedback from three places:
 
 \begin{itemize}[noitemsep]
-  \item \textbf{Internal team sessions.} All four team members played the build on a rotating schedule. Each member played a fresh run from Night~1 without advance knowledge of the most recent changes, and wrote down issues in a shared iteration log.
-  \item \textbf{Teaching assistant feedback.} The Deliverable~2 submission received written feedback from the course TA on onboarding clarity (see Section~\ref{sec:d2-peer-fb} below). This feedback directly drove interaction-prompt changes that shipped in Deliverable~3.
-  \item \textbf{External tester session.} One session was held with a peer who had never seen the game, to observe first-contact reactions without coaching. The tester was asked to talk through decisions aloud, and the session was logged by a team member sitting out of view.
+  \item \textbf{Internal team sessions.} The four of us rotated through the build. Whoever was playing that day started a fresh run from Night~1 without being told what had just changed, and wrote anything odd into a shared iteration log.
+  \item \textbf{Teaching assistant feedback.} The Deliverable~2 submission came back with written TA comments on onboarding clarity (see Section~\ref{sec:d2-peer-fb}). Those comments are what drove the interaction-prompt changes in Deliverable~3.
+  \item \textbf{External tester session.} We ran one session with a peer who had never seen the game to watch first-contact reactions without coaching. The tester was asked to think out loud, and one of us sat out of view taking notes.
 \end{itemize}
 
 Each session followed the same protocol:
@@ -340,7 +340,7 @@ Each session followed the same protocol:
   \item Address one category of issues before the next session to avoid interference between fixes.
 \end{enumerate}
 
-A PlayMode regression suite covering the critical flows is maintained in the \texttt{Assets/Tests/PlayMode} folder. It includes \texttt{EdgeFlowSmokeRuntimeTests} (retry, forced-advance, and penalty carry-over behaviour), \texttt{WeaponLoadoutRuntimeTests} (weapon slot and ammo reserve handling), and \texttt{LevelTransitionResetRuntimeTests} (level-transition state reset). A full smoke pass was run and passed before submission so that the changes described in this section did not reintroduce regressions.
+The \texttt{Assets/Tests/PlayMode} folder holds a PlayMode regression suite with three test files: \texttt{EdgeFlowSmokeRuntimeTests} (retry, forced-advance, and penalty carry-over), \texttt{WeaponLoadoutRuntimeTests} (weapon slots and ammo reserves), and \texttt{LevelTransitionResetRuntimeTests} (level-transition state reset). We ran the full suite before submission and everything passed, so the changes above did not break anything that was already working.
 
 \subsection{Teaching Assistant Feedback on Deliverable 2}
 \label{sec:d2-peer-fb}
@@ -361,7 +361,7 @@ Both points were fair: the loot interaction is a hold, not a tap, and Space trig
 
 \subsection{Changes from Deliverable 2 to Deliverable 3}
 
-The table below lists the main mechanic, level-design, and progression-balance changes made in response to observed problems. Boss and performance changes have their own subsections below.
+The table below lists the main mechanic and balance changes we made in response to specific problems we saw during playtesting. Boss and performance changes are covered in their own subsections.
 
 \begin{tcolorbox}[tableframe]
 \small
@@ -379,7 +379,7 @@ Players stockpiled crates and arrived at Level 4 under-equipped & Crate spawn co
 \addlinespace
 Day phase felt short at higher levels & The contested drop now triggers at 68\% through the day phase instead of 60\%, giving more time to explore before the timed event starts. \\
 \addlinespace
-Crafting system was confusing and rarely used & \texttt{GameManager.CraftingEnabled} returns false at runtime. Legacy crafting pickups were removed from the day spawn flow and replaced with direct health and ammo drops. \\
+Crafting system was confusing and rarely used & Legacy crafting interactions were removed from the active campaign loop. Day spawning now focuses on combat-relevant pickups (health and ammo) and drop events instead of crafting pickups. \\
 \addlinespace
 COMMS messages interrupted each other & A 1.2-second protection window was added to the \texttt{NarrativeManager} queue so the current message always finishes before the next one plays. \\
 \addlinespace
@@ -415,7 +415,7 @@ A few supporting changes made the outcome feel earned. A red screen flash and a 
 
 \subsection{Debugging and Performance Optimizations}
 
-Several stability and responsiveness issues surfaced during testing and were fixed before submission.
+A handful of stability and responsiveness issues came up during testing. They were all fixed before submission:
 
 \begin{itemize}[noitemsep]
   \item \textbf{Duplicate player on scene reload.} Returning to the main menu and starting a new run occasionally produced two \texttt{PlayerController} instances in the scene (one from the persistent managers, one from the new scene). \texttt{GameManager.EnsurePlayerExists()} now checks for multiple instances on load and disables any extras before gameplay resumes.
@@ -427,7 +427,7 @@ Several stability and responsiveness issues surfaced during testing and were fix
   \item \textbf{Night-start warning easy to miss.} The 15-second warning before night was audio-only. A low-amplitude screen shake now plays with it, giving a second signal channel for players focused on looting.
 \end{itemize}
 
-A PlayMode smoke pass covering the retry/forced-advance flow, penalty carry-over, weapon loadout handling, and level-transition state reset was run after each change to confirm that nothing regressed.
+We also re-ran the PlayMode suite after each of the changes listed above to catch regressions early, and it stayed green the whole time.
 
 \begin{figure}[H]
   \centering
@@ -541,6 +541,6 @@ When the boss spawns, a coroutine plays a red screen flash, a 0.8-second screen 
 
 The main additions in Deliverable~3 over Deliverable~2 are Levels 3 and 4 with their maps, story beats, and enemy configurations, the three-phase boss fight, the resource balance changes driven by playtest sessions, and the audio and visual polish pass. Every change in this deliverable came from a specific problem observed during testing rather than a speculative design tweak.
 
-The Windows build runs without the Unity Editor and was confirmed to complete a full twelve-night campaign without critical errors. All the systems described in this report are active in the submitted build. The recorded showcase video covers the game premise, a walkthrough of the day--night--dawn loop, the contested drop system, and the boss encounter.
+The Windows build runs without the Unity Editor, and we played through a full twelve-night campaign on it before submitting to confirm there were no critical errors. Every system described in this report is active in that build. The showcase video walks through the game premise, the day--night--dawn loop, the contested drop system, and the boss encounter.
 
 \end{document}
