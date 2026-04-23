@@ -16,9 +16,12 @@
 \usepackage{multicol}
 \usepackage{tcolorbox}
 \tcbuselibrary{skins}
+\usepackage{amsmath}
 
 \setlength{\parskip}{6pt}
 \setlength{\parindent}{0pt}
+\sloppy
+\emergencystretch=2em
 
 \definecolor{deadred}{HTML}{C0392B}
 \definecolor{deadgold}{HTML}{D4AC0D}
@@ -51,12 +54,8 @@
   }
 }
 
-% ===================================================================
 \begin{document}
 
-% ===================================================================
-%  TITLE PAGE
-% ===================================================================
 \begin{titlepage}
   \pagecolor{deaddark}
   \color{white}
@@ -84,15 +83,9 @@
 \end{titlepage}
 \nopagecolor
 
-% ===================================================================
-%  TABLE OF CONTENTS
-% ===================================================================
 \tableofcontents
 \newpage
 
-% ===================================================================
-%  1. PROJECT OVERVIEW
-% ===================================================================
 \section{Project Overview}
 
 \textit{Deadlight: Survival After Dark} is a top-down 2D zombie survival game built in Unity. The player controls a lone survivor moving through four environments (Town Center, Suburban, Industrial, and Research Facility), each containing three campaign nights, for a total of twelve nights across four levels.
@@ -101,7 +94,9 @@ Each session cycles through three phases. The \textbf{Day Phase} involves explor
 
 \textbf{Deliverable 3 scope.} Deliverable 2 covered Levels 1 and 2. For Deliverable 3, the team completed Levels 3 and 4 with new maps and story content, added a three-phase boss fight against Subject~23, introduced a run modifier system for replay variation, implemented dynamic audio mixing, added a run-grading and leaderboard system, and performed a full playtesting and balance pass across all twelve nights.
 
-\textbf{Submission contents.} The submission package contains: the Unity project folder (Assets, Packages, and ProjectSettings directories only), a Windows executable build (.exe and Data folder) verified to run without the Unity Editor, this PDF report, and a recorded showcase video (3--5 minutes) covering the game premise, a walkthrough of key systems, and the final boss encounter.
+\textbf{Submission contents.} The submission package contains: the Unity project folder (Assets, Packages, and ProjectSettings directories only), a Windows executable build (.exe and Data folder) verified to run without the Unity Editor, this PDF report, and a recorded showcase video (3--5 minutes) covering the game premise, a walkthrough of key systems, and the final boss encounter. For TA evaluation convenience, the submitted Deliverable~3 build keeps all four playable levels selectable from the level-deploy menu so testing can jump directly to any level without replaying the full campaign route each time.
+
+\textbf{Presentation video link.} \href{https://drive.google.com/file/d/1WA_cZrnyQHgtU95GMOYNf0tVF4cD8GfU/view?usp=drive_link}{Google Drive presentation video}
 
 \begin{figure}[H]
   \centering
@@ -116,16 +111,13 @@ Each session cycles through three phases. The \textbf{Day Phase} involves explor
   \end{subfigure}
 \end{figure}
 
-% ===================================================================
-%  2. ART, AESTHETICS & SOUND DESIGN
-% ===================================================================
 \section{Art, Aesthetics \& Sound Design}
 
 \subsection{Visual Direction and Colour Schemes}
 
-Each map uses a distinct colour palette to give each level a different visual identity. Town Center uses grey road tiles and beige building facades. Suburban adds green vegetation patches and lighter ground tones. Industrial uses a brown earth and dark warehouse palette with coloured storage units as landmarks. Research Facility uses a uniform mid-grey tile scheme with red-roofed institutional buildings at the centre, producing a more enclosed and clinical look. These differences make each level visually recognisable and reinforce the narrative setting of each environment.
+Each map has its own colour palette so that the four levels are easy to tell apart at a glance. Town Center uses grey road tiles and beige building facades. Suburban adds green vegetation and lighter ground tones. Industrial uses a brown earth and dark warehouse palette with coloured storage units as landmarks. Research Facility uses a uniform mid-grey tile scheme with red-roofed institutional buildings at the centre, which produces a more enclosed, clinical look.
 
-Across all maps, accent colours are used only where they carry gameplay meaning: gold for objectives and supply drops, red for danger, and blue for interactive objects. This consistency means players can interpret colour as information regardless of which level they are in.
+Accent colours are kept consistent across all maps and only used where they carry gameplay meaning: gold for objectives and supply drops, red for danger, and blue for interactive objects. A player can read colour as information without having to re-learn what it means on each new level.
 
 \textbf{Procedural sprites.} Character and environment sprites are generated at runtime by \texttt{ProceduralSpriteGenerator}. Enemy sprites share a base zombie shape with per-type colour tints and scale variation handled by \texttt{ZombieAnimator}. Subject~23 scales to 2x at encounter start, making it visually distinct from standard enemies without a separate art asset. Supply crates use three colour codes: \textbf{Common} (brown), \textbf{Rare} (blue), and \textbf{Legendary} (gold), allowing the player to assess value from a distance.
 
@@ -162,9 +154,9 @@ The HUD is divided into five fixed areas on screen. These positions remain consi
 
 \subsection{Sound Design}
 
-\texttt{AudioManager} handles five music tracks (menu, day, night, boss, dawn) and crossfades between them over 3.2 seconds when the game state changes. A tension value is computed at runtime based on the current phase: 0.05 at day, 0.28 at night, and 0.80 during the boss fight. This value adjusts music volume, pitch, and ambient level, so the audio mix responds to what is happening in the game rather than switching abruptly between fixed tracks.
+\texttt{AudioManager} handles five music tracks (menu, day, night, boss, dawn) and crossfades between them over 3.2 seconds on each state change. A tension value is also computed at runtime from the current phase: 0.05 during the day, 0.28 at night, and 0.80 during the boss fight. This value drives music volume, pitch, and ambient level, so the mix shifts with the game instead of cutting between fixed tracks.
 
-A pool of ten \texttt{AudioSource} components handles spatial sound effects (gunfire, enemy sounds, explosions) with a 20-metre range. The spatial audio lets the player hear threats from off-screen before seeing them, which supports situational awareness. \texttt{ProceduralAudioGenerator} produces pickup and interaction sounds at runtime. When COMMS messages play, the music volume is reduced by approximately 24\% so the speech is audible. High-priority transmissions apply stronger ducking.
+A pool of ten \texttt{AudioSource} components handles spatial sound effects (gunfire, enemy sounds, explosions) with a 20-metre range. This lets the player hear threats off-screen before seeing them. \texttt{ProceduralAudioGenerator} produces pickup and interaction sounds at runtime. When a COMMS message plays, the music volume drops by about 24\% so the speech is audible, with stronger ducking for high-priority transmissions.
 
 \begin{figure}[H]
   \centering
@@ -179,9 +171,6 @@ A pool of ten \texttt{AudioSource} components handles spatial sound effects (gun
   \end{subfigure}
 \end{figure}
 
-% ===================================================================
-%  3. NARRATIVE & SYSTEMS INTEGRATION
-% ===================================================================
 \section{Narrative \& Systems Integration}
 
 \subsection{Story Arc}
@@ -220,9 +209,9 @@ The game uses three enemy AI types that become more common in later levels.
 
 \textbf{Standard enemies} (\texttt{EnemyAI}) use a direct pursuit behaviour with aggression-phase scaling. \texttt{EnemyAggressionPhase} increases enemy movement speed and attack frequency as the night progresses, so early waves in a night are easier than later ones within the same wave set. \texttt{EnemyAffix} attaches per-enemy modifiers (such as armoured, fast, or explosive death) that are activated by the run modifier system in higher-difficulty nights.
 
-\textbf{Spitter enemies} (\texttt{SpitterAI}) maintain distance and fire projectiles at the player. They are introduced in Level 2 and become more common in Levels 3 and 4. Their presence forces the player to manage positioning rather than simply kiting in a circle.
+\textbf{Spitter enemies} (\texttt{SpitterAI}) keep their distance and fire projectiles at the player. They appear in Level 2 and become more common in Levels 3 and 4. They force the player to watch positioning instead of just kiting in a circle.
 
-\textbf{Subject~23} (\texttt{BossController}) is a three-phase encounter described in Section~\ref{sec:boss}. The combination of standard enemies, ranged spitters, and the boss in Level 4 Night 3 requires the player to manage multiple threat types simultaneously, which is where the subsystems come together most directly.
+\textbf{Subject~23} (\texttt{BossController}) is the three-phase boss encounter described in Section~\ref{sec:boss}. On Level 4 Night 3 the player has to deal with standard enemies, ranged spitters, and the boss all at once, which is where these subsystems come together the most.
 
 \subsection{Narrative Consequences in Gameplay}
 
@@ -255,9 +244,6 @@ Failing a story objective has mechanical effects. A missed \texttt{StoryObjectiv
   \end{subfigure}
 \end{figure}
 
-% ===================================================================
-%  4. PROGRESSION & BALANCE
-% ===================================================================
 \section{Progression \& Balance}
 
 \subsection{Campaign Structure}
@@ -311,10 +297,10 @@ Pickups are placed using a 100-attempt scatter algorithm. It biases positions to
 
 Crates use the same three-tier system as visual design: Common (brown), Rare (blue), Legendary (gold). Tier probability increases with night number.
 
-\[
-P(\mathrm{Legendary}) = \min(0.12,\ 0.01 + 0.01 \times \mathrm{night}), \quad
-P(\mathrm{Rare}) = \min(0.35,\ 0.08 + 0.02 \times \mathrm{night})
-\]
+\begin{align*}
+P(\mathrm{Legendary}) &= \min(0.12,\ 0.01 + 0.01 \times \mathrm{night}) \\
+P(\mathrm{Rare}) &= \min(0.35,\ 0.08 + 0.02 \times \mathrm{night})
+\end{align*}
 
 Night helicopter drops have a 65\% base spawn chance, reduced when the player's reserve ammo is high. The drop arrives after a 55-second delay with up to 8 seconds of random variation. Contested day drops trigger at 68\% through the day phase with a 60\% base chance.
 
@@ -333,9 +319,6 @@ Night helicopter drops have a 65\% base spawn chance, reduced when the player's 
 
 \texttt{RunGradingSystem} produces a letter grade based on kills, accuracy, and points at the end of a run. The grade and a leaderboard rank from \texttt{LeaderboardManager} are shown on the victory screen.
 
-% ===================================================================
-%  5. PLAYTESTING & ITERATION
-% ===================================================================
 \section{Playtesting \& Iteration}
 
 \subsection{Feedback Sources and Protocol}
@@ -357,7 +340,7 @@ Each session followed the same protocol:
   \item Address one category of issues before the next session to avoid interference between fixes.
 \end{enumerate}
 
-A PlayMode regression suite in \texttt{DaytimePrepRuntimeTests.cs} covers contested drop secure and expiry flows, pickup behaviour, penalty propagation, and day/night/dawn state transitions. A full smoke test was run and passed before submission so that the changes described in this section did not reintroduce regressions.
+A PlayMode regression suite covering the critical flows is maintained in the \texttt{Assets/Tests/PlayMode} folder. It includes \texttt{EdgeFlowSmokeRuntimeTests} (retry, forced-advance, and penalty carry-over behaviour), \texttt{WeaponLoadoutRuntimeTests} (weapon slot and ammo reserve handling), and \texttt{LevelTransitionResetRuntimeTests} (level-transition state reset). A full smoke pass was run and passed before submission so that the changes described in this section did not reintroduce regressions.
 
 \subsection{Teaching Assistant Feedback on Deliverable 2}
 \label{sec:d2-peer-fb}
@@ -369,11 +352,11 @@ The written feedback on the Deliverable~2 build was positive on overall feel but
 \textit{``One thing that can be improved is when press F to loot object, player needs to have a long press. But this is not instructed clearly. As well as press space to accelerate.''}
 \end{tcolorbox}
 
-The team took both points as valid: the loot interaction is a held action (not a tap), and the Space key triggers a dodge roll, not an ``accelerate.'' Both were failures of communication, not of mechanics. The response, carried into Deliverable~3, was:
+Both points were fair: the loot interaction is a hold, not a tap, and Space triggers a dodge roll, not an ``accelerate.'' Both were communication problems, not mechanical ones. The response in Deliverable~3 was:
 
 \begin{itemize}[noitemsep]
   \item \textbf{Hold-to-loot clarity (\texttt{SupplyCrate.cs}).} The progress bar now becomes visible as soon as the player enters loot range, rather than only appearing once F is pressed. An empty bar sitting next to the prompt makes the hold requirement self-evident: tapping F no longer looks like it did nothing. The prompt text reads \texttt{Hold F to Loot} or \texttt{Hold F to Secure} for contested drops.
-  \item \textbf{Movement-control hint card (\texttt{FirstCombatHintController.cs}).} At the start of Night~1, before enemies appear, the HUD displays a transient status line: \texttt{WASD: Move \quad Shift: Sprint \quad Space: Dodge Roll}, followed by \texttt{Walk up to a crate and hold F to loot it}. This introduces the two controls flagged in the TA feedback (Space and F) in the player's own vocabulary, before combat begins.
+  \item \textbf{Movement-control hint card (\texttt{FirstCombatHintController.cs}).} At the start of Night~1, before enemies appear, the HUD displays a transient status line reading \textit{WASD: Move \;--\; Shift: Sprint \;--\; Space: Dodge Roll}, followed by \textit{Walk up to a crate and hold F to loot it}. This introduces the two controls flagged in the TA feedback (Space and F) in the player's own vocabulary, before combat begins.
 \end{itemize}
 
 \subsection{Changes from Deliverable 2 to Deliverable 3}
@@ -409,9 +392,9 @@ Levels 3 and 4 had no story content (D2 scope) & Story objective beats for night
 
 \subsection{Boss Encounter Iteration: Fairness, Tension, Accomplishment}
 
-The Subject~23 encounter was the single most-iterated piece of the game. The first playable version used a single stat block with high health and contact damage. Testers reported two problems: the fight felt random on first contact (one-shot deaths without warning), and once the player learned to kite the boss in circles, the tension disappeared completely. The encounter was failing on both \textit{fairness} and \textit{tension}, and there was no resulting sense of accomplishment because the result felt arbitrary.
+The Subject~23 encounter went through more iteration than any other part of the game. The first playable version was a single stat block with high health and contact damage. Testers flagged two problems: the fight felt random on first contact (one-shot deaths with no warning), and once the player worked out to kite the boss in circles the tension vanished. The encounter was failing both on \textit{fairness} and on \textit{tension}, and winning did not feel earned because the outcome felt arbitrary.
 
-The team reworked the encounter in three passes, each driven by a specific playtest observation.
+The team reworked the fight in three passes. Each pass came from a specific playtest observation.
 
 \begin{tcolorbox}[tableframe]
 \small
@@ -428,7 +411,7 @@ Pass 3 (accomplishment) & The final stretch felt anticlimactic once the boss was
 \end{tabularx}
 \end{tcolorbox}
 
-Supporting changes made the outcome feel earned rather than random: a red screen flash and 0.8-second screen shake on boss spawn signal a state change, the music switches to the boss track over a crossfade instead of cutting, and the victory state is gated on \texttt{WaveManager.\-IsFinalBossDefeatedForCurrentNight()} so the night cannot end while the boss is still alive. The progression system awards a stipend at Night~12 that guarantees the player enters the fight with at least a baseline loadout, removing the run-ruining cases where a bad Night~11 left the player with no ammo against the boss. The result, confirmed across the final round of playtests, is a fight that kills the player on first attempts but is winnable on the second or third, which is the fairness-plus-accomplishment curve the team was targeting.
+A few supporting changes made the outcome feel earned. A red screen flash and a 0.8-second screen shake on boss spawn signal a clear state change, the music switches to the boss track over a crossfade instead of cutting, and the victory state is gated on \texttt{WaveManager.\-IsFinalBossDefeatedForCurrentNight()} so the night cannot end while the boss is still alive. A ``Final approach bonus'' milestone awarded by \texttt{ProgressionManager} after Night~11 adds points to the Dawn shop before Night~12, so the player can top up ammo and armour before the fight even after a rough Night~11. In the final round of playtests, the fight killed players on the first attempt but was winnable on the second or third, which is the fairness-and-accomplishment curve the team was aiming for.
 
 \subsection{Debugging and Performance Optimizations}
 
@@ -444,7 +427,7 @@ Several stability and responsiveness issues surfaced during testing and were fix
   \item \textbf{Night-start warning easy to miss.} The 15-second warning before night was audio-only. A low-amplitude screen shake now plays with it, giving a second signal channel for players focused on looting.
 \end{itemize}
 
-A PlayMode smoke pass covering contested drop secure and expiry, pickup placement, penalty propagation, and day/night/dawn transitions was run after each change to confirm that nothing regressed.
+A PlayMode smoke pass covering the retry/forced-advance flow, penalty carry-over, weapon loadout handling, and level-transition state reset was run after each change to confirm that nothing regressed.
 
 \begin{figure}[H]
   \centering
@@ -459,9 +442,6 @@ A PlayMode smoke pass covering contested drop secure and expiry, pickup placemen
   \end{subfigure}
 \end{figure}
 
-% ===================================================================
-%  6. TECHNICAL IMPLEMENTATION
-% ===================================================================
 \section{Technical Implementation}
 
 \subsection{Build and Project Structure}
@@ -475,7 +455,7 @@ Key performance measures implemented in the build:
   \item Bullet objects are created and destroyed normally; the small per-frame count does not require a full pool, and this was confirmed acceptable during stress testing on Night 12.
   \item Pickup placement uses early-exit collision checks so the 100-attempt scatter loop exits as soon as a valid position is found rather than always iterating to the maximum.
   \item \texttt{Time.fixedDeltaTime} is clamped when pausing to prevent physics accumulation on unpause.
-  \item The procedural map rebuild (level transition) happens in a single frame using synchronous instantiation rather than a coroutine, keeping the transition seamless.
+  \item The procedural map rebuild (level transition) runs in a single frame with synchronous instantiation instead of a coroutine, so the transition does not visibly stutter.
 \end{itemize}
 
 \subsection{Architecture}
@@ -509,7 +489,9 @@ The project uses a set of singleton manager objects that communicate through C\#
 \texttt{GameManager.GameState} defines seven states covering the full session flow.
 
 \begin{center}
-\texttt{MainMenu} $\to$ \texttt{DayPhase} $\to$ \texttt{NightPhase} $\to$ \texttt{DawnPhase} $\to$ \texttt{LevelComplete} $\to$ \texttt{Victory} \,/\, \texttt{GameOver}
+\small
+\texttt{MainMenu} $\to$ \texttt{DayPhase} $\to$ \texttt{NightPhase} $\to$ \texttt{DawnPhase} \\[2pt]
+$\to$ \texttt{LevelComplete} $\to$ \texttt{Victory} \,/\, \texttt{GameOver}
 \end{center}
 
 Each state change fires the \texttt{OnGameStateChanged} C\# event. \texttt{AudioManager}, \texttt{AtmosphereController}, UI panels, and \texttt{GameFlowController} each subscribe independently. Adding a new system that needs to respond to state changes does not require editing \texttt{GameManager}.
@@ -553,15 +535,12 @@ When the boss spawns, a coroutine plays a red screen flash, a 0.8-second screen 
   \item \textbf{Singleton scope:} \texttt{DontDestroyOnLoad} is applied only to managers. All gameplay objects are created and destroyed normally during play, keeping memory usage predictable across level transitions.
 \end{itemize}
 
-% ===================================================================
-%  7. CONCLUSION
-% ===================================================================
 \section{Conclusion}
 
-\textit{Deadlight: Survival After Dark} is a complete four-level survival game built on the design principles covered in the course. The MDA framework applies throughout: the mechanics are the wave and economy loop; the dynamics are the risk and reward decisions during day and night phases; and the intended aesthetic includes tension, exploration, and narrative engagement. The design addresses different player priorities through adaptive resource scaling, optional lore collection, spatial audio for situational awareness, and a radio-based story arc.
+\textit{Deadlight: Survival After Dark} is a complete four-level survival game built around the design principles covered in the course. The MDA framework fits the finished project: the mechanics are the wave and economy loop, the dynamics are the risk-and-reward decisions the player makes during day and night, and the intended aesthetics are tension, exploration, and narrative engagement. Adaptive resource scaling, optional lore, spatial audio, and a radio-based story arc let the game support players with different priorities without forcing a single playstyle.
 
-The main additions in Deliverable 3 compared to Deliverable 2 are the completion of Levels 3 and 4 (including their maps, story beats, and enemy configurations), the three-phase boss fight, adaptive resource balancing informed by playtest sessions, and the audio and visual polish pass. Each change in this deliverable was made in response to a specific problem observed during testing.
+The main additions in Deliverable~3 over Deliverable~2 are Levels 3 and 4 with their maps, story beats, and enemy configurations, the three-phase boss fight, the resource balance changes driven by playtest sessions, and the audio and visual polish pass. Every change in this deliverable came from a specific problem observed during testing rather than a speculative design tweak.
 
-The Windows build runs without the Unity Editor and was verified to complete a full twelve-night campaign without critical errors. All systems described in this report are active in the submitted build. The recorded showcase video included in the submission covers the game premise, a walkthrough of the day--night--dawn loop, the contested drop system, and the boss encounter.
+The Windows build runs without the Unity Editor and was confirmed to complete a full twelve-night campaign without critical errors. All the systems described in this report are active in the submitted build. The recorded showcase video covers the game premise, a walkthrough of the day--night--dawn loop, the contested drop system, and the boss encounter.
 
 \end{document}

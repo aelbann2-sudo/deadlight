@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.12.11)  21 APR 2026 18:18
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.12.11)  22 APR 2026 21:45
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -561,32 +561,96 @@ File: tikzlibraryfill.image.code.tex 2023/08/08 v1.0.1 Image filling library
 \l__tikzfill_img_box=\box125
 )) (/Users/simar/Library/TinyTeX/texmf-dist/tex/latex/tcolorbox/tcbskinsjigsaw.code.tex
 Library (tcolorbox): 'tcbskinsjigsaw.code.tex' version '6.9.0'
-))
-Package hyperref Info: Option `colorlinks' set `true' on input line 41.
+)) (/Users/simar/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amsmath.sty
+Package: amsmath 2025/07/09 v2.17z AMS math features
+\@mathmargin=\skip73
+
+For additional information on amsmath, use the `?' option.
+(/Users/simar/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amstext.sty
+Package: amstext 2024/11/17 v2.01 AMS text
+ (/Users/simar/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amsgen.sty
+File: amsgen.sty 1999/11/30 v2.0 generic functions
+\@emptytoks=\toks41
+\ex@=\dimen313
+)) (/Users/simar/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amsbsy.sty
+Package: amsbsy 1999/11/29 v1.2d Bold Symbols
+\pmbraise@=\dimen314
+) (/Users/simar/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amsopn.sty
+Package: amsopn 2022/04/08 v2.04 operator names
+)
+\inf@bad=\count345
+LaTeX Info: Redefining \frac on input line 233.
+\uproot@=\count346
+\leftroot@=\count347
+LaTeX Info: Redefining \overline on input line 398.
+LaTeX Info: Redefining \colon on input line 409.
+\classnum@=\count348
+\DOTSCASE@=\count349
+LaTeX Info: Redefining \ldots on input line 495.
+LaTeX Info: Redefining \dots on input line 498.
+LaTeX Info: Redefining \cdots on input line 619.
+\Mathstrutbox@=\box126
+\strutbox@=\box127
+LaTeX Info: Redefining \big on input line 721.
+LaTeX Info: Redefining \Big on input line 722.
+LaTeX Info: Redefining \bigg on input line 723.
+LaTeX Info: Redefining \Bigg on input line 724.
+\big@size=\dimen315
+LaTeX Font Info:    Redeclaring font encoding OML on input line 742.
+LaTeX Font Info:    Redeclaring font encoding OMS on input line 743.
+\macc@depth=\count350
+LaTeX Info: Redefining \bmod on input line 904.
+LaTeX Info: Redefining \pmod on input line 909.
+LaTeX Info: Redefining \smash on input line 939.
+LaTeX Info: Redefining \relbar on input line 969.
+LaTeX Info: Redefining \Relbar on input line 970.
+\c@MaxMatrixCols=\count351
+\dotsspace@=\muskip18
+\c@parentequation=\count352
+\dspbrk@lvl=\count353
+\tag@help=\toks42
+\row@=\count354
+\column@=\count355
+\maxfields@=\count356
+\andhelp@=\toks43
+\eqnshift@=\dimen316
+\alignsep@=\dimen317
+\tagshift@=\dimen318
+\tagwidth@=\dimen319
+\totwidth@=\dimen320
+\lineht@=\dimen321
+\@envbody=\toks44
+\multlinegap=\skip74
+\multlinetaggap=\skip75
+\mathdisplay@stack=\toks45
+LaTeX Info: Redefining \[ on input line 2950.
+LaTeX Info: Redefining \] on input line 2951.
+)
+Package hyperref Info: Option `colorlinks' set `true' on input line 44.
  (/Users/simar/Library/TinyTeX/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
 File: l3backend-pdftex.def 2025-10-09 L3 backend support: PDF output (pdfTeX)
-\l__color_backend_stack_int=\count345
+\l__color_backend_stack_int=\count357
 ) (./Deliverable3_Final_Report.aux)
 \openout1 = `Deliverable3_Final_Report.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 55.
-LaTeX Font Info:    ... okay on input line 55.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 55.
-LaTeX Font Info:    ... okay on input line 55.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 55.
-LaTeX Font Info:    ... okay on input line 55.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 55.
-LaTeX Font Info:    ... okay on input line 55.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 55.
-LaTeX Font Info:    ... okay on input line 55.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 55.
-LaTeX Font Info:    ... okay on input line 55.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 55.
-LaTeX Font Info:    ... okay on input line 55.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 55.
-LaTeX Font Info:    ... okay on input line 55.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 55.
-LaTeX Font Info:    ... okay on input line 55.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 57.
+LaTeX Font Info:    ... okay on input line 57.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 57.
+LaTeX Font Info:    ... okay on input line 57.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 57.
+LaTeX Font Info:    ... okay on input line 57.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 57.
+LaTeX Font Info:    ... okay on input line 57.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 57.
+LaTeX Font Info:    ... okay on input line 57.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 57.
+LaTeX Font Info:    ... okay on input line 57.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 57.
+LaTeX Font Info:    ... okay on input line 57.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 57.
+LaTeX Font Info:    ... okay on input line 57.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 57.
+LaTeX Font Info:    ... okay on input line 57.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -624,7 +688,13 @@ LaTeX Font Info:    ... okay on input line 55.
 
 (/Users/simar/Library/TinyTeX/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
+ (/Users/simar/Library/TinyTeX/texmf-dist/tex/latex/grfext/grfext.sty
+Package: grfext 2019/12/03 v1.3 Manage graphics extensions (HO)
+)
 Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 485.
+Package grfext Info: Graphics extension search list:
+(grfext)             [.pdf,.png,.jpg,.mps,.jpeg,.jbig2,.jb2,.PDF,.PNG,.JPG,.JPEG,.JBIG2,.JB2,.eps]
+(grfext)             \AppendGraphicsExtensions on input line 504.
  (/Users/simar/Library/TinyTeX/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
 ))
@@ -632,7 +702,7 @@ Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: float package is loaded.
 Package caption Info: hyperref package is loaded.
 Package caption Info: End \AtBeginDocument code.
-Package hyperref Info: Link coloring ON on input line 55.
+Package hyperref Info: Link coloring ON on input line 57.
  (./Deliverable3_Final_Report.out) (./Deliverable3_Final_Report.out)
 \@outlinefile=\write4
 \openout4 = `Deliverable3_Final_Report.out'.
@@ -640,22 +710,15 @@ Package hyperref Info: Link coloring ON on input line 55.
 
 
 LaTeX Font Warning: Font shape `OT1/cmr/m/n' in size <38> not available
-(Font)              size <24.88> substituted on input line 65.
+(Font)              size <24.88> substituted on input line 64.
 
 
 LaTeX Font Warning: Font shape `OT1/cmr/bx/n' in size <38> not available
-(Font)              size <24.88> substituted on input line 65.
+(Font)              size <24.88> substituted on input line 64.
 
 [1
 
-{/Users/simar/Library/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] (./Deliverable3_Final_Report.toc
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <10.95> on input line 3.
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 3.
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 3.
-)
+{/Users/simar/Library/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] (./Deliverable3_Final_Report.toc)
 \tf@toc=\write5
 \openout5 = `Deliverable3_Final_Report.toc'.
 
@@ -663,177 +726,167 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.91 \newpage
+l.87 \newpage
               [1]
-<d2_fig_hud.png, id=175, 1512.65125pt x 858.20625pt>
+<d2_fig_hud.png, id=176, 1512.65125pt x 858.20625pt>
 File: d2_fig_hud.png Graphic file (type png)
 <use d2_fig_hud.png>
-Package pdftex.def Info: d2_fig_hud.png  used on input line 109.
+Package pdftex.def Info: d2_fig_hud.png  used on input line 104.
 (pdftex.def)             Requested size: 218.51521pt x 123.97183pt.
-<d2_fig_combat.png, id=177, 1512.65125pt x 858.20625pt>
+<d2_fig_combat.png, id=178, 1512.65125pt x 858.20625pt>
 File: d2_fig_combat.png Graphic file (type png)
 <use d2_fig_combat.png>
-Package pdftex.def Info: d2_fig_combat.png  used on input line 114.
+Package pdftex.def Info: d2_fig_combat.png  used on input line 109.
 (pdftex.def)             Requested size: 218.51521pt x 123.97183pt.
-
-Overfull \hbox (96.51288pt too wide) in paragraph at lines 130--131
-[]\OT1/cmr/bx/n/10.95 Procedural sprites. \OT1/cmr/m/n/10.95 Char-ac-ter and en-vi-ron-ment sprites are gen-er-ated at run-time by \OT1/cmtt/m/n/10.95 ProceduralSpriteGenerator\OT1/cmr/m/n/10.95 .
- []
-
-[2 <./d2_fig_hud.png> <./d2_fig_combat.png>]
-<d3_fig_industrial_overview.png, id=188, 2409.0pt x 2409.0pt>
+ [2 <./d2_fig_hud.png> <./d2_fig_combat.png>]
+<d3_fig_industrial_overview.png, id=189, 2409.0pt x 2409.0pt>
 File: d3_fig_industrial_overview.png Graphic file (type png)
 <use d3_fig_industrial_overview.png>
-Package pdftex.def Info: d3_fig_industrial_overview.png  used on input line 139.
+Package pdftex.def Info: d3_fig_industrial_overview.png  used on input line 131.
 (pdftex.def)             Requested size: 218.51521pt x 218.49153pt.
-<d3_fig_research_overview.png, id=189, 2409.0pt x 2409.0pt>
+<d3_fig_research_overview.png, id=190, 2409.0pt x 2409.0pt>
 File: d3_fig_research_overview.png Graphic file (type png)
 <use d3_fig_research_overview.png>
-Package pdftex.def Info: d3_fig_research_overview.png  used on input line 144.
+Package pdftex.def Info: d3_fig_research_overview.png  used on input line 136.
 (pdftex.def)             Requested size: 218.51521pt x 218.49153pt.
  [3 <./d3_fig_industrial_overview.png> <./d3_fig_research_overview.png>]
-<d2_fig_level2_briefing.png, id=199, 1512.65125pt x 858.20625pt>
+<d2_fig_level2_briefing.png, id=200, 1512.65125pt x 858.20625pt>
 File: d2_fig_level2_briefing.png Graphic file (type png)
 <use d2_fig_level2_briefing.png>
-Package pdftex.def Info: d2_fig_level2_briefing.png  used on input line 172.
+Package pdftex.def Info: d2_fig_level2_briefing.png  used on input line 164.
 (pdftex.def)             Requested size: 218.51521pt x 123.97183pt.
-<d2_fig_dawn_shop_v2.png, id=200, 1597.97pt x 738.76pt>
+<d2_fig_dawn_shop_v2.png, id=201, 1597.97pt x 738.76pt>
 File: d2_fig_dawn_shop_v2.png Graphic file (type png)
 <use d2_fig_dawn_shop_v2.png>
-Package pdftex.def Info: d2_fig_dawn_shop_v2.png  used on input line 177.
+Package pdftex.def Info: d2_fig_dawn_shop_v2.png  used on input line 169.
 (pdftex.def)             Requested size: 218.51521pt x 101.01337pt.
  [4 <./d2_fig_level2_briefing.png> <./d2_fig_dawn_shop_v2.png>]
-<d3_fig_industrial_lab.png, id=209, 1606.0pt x 903.375pt>
+<d3_fig_industrial_lab.png, id=210, 1606.0pt x 903.375pt>
 File: d3_fig_industrial_lab.png Graphic file (type png)
 <use d3_fig_industrial_lab.png>
-Package pdftex.def Info: d3_fig_industrial_lab.png  used on input line 234.
+Package pdftex.def Info: d3_fig_industrial_lab.png  used on input line 223.
 (pdftex.def)             Requested size: 218.51521pt x 122.91527pt.
-<d3_fig_research_reactor_yard.png, id=210, 1606.0pt x 903.375pt>
+<d3_fig_research_reactor_yard.png, id=211, 1606.0pt x 903.375pt>
 File: d3_fig_research_reactor_yard.png Graphic file (type png)
 <use d3_fig_research_reactor_yard.png>
-Package pdftex.def Info: d3_fig_research_reactor_yard.png  used on input line 239.
+Package pdftex.def Info: d3_fig_research_reactor_yard.png  used on input line 228.
 (pdftex.def)             Requested size: 218.51521pt x 122.91527pt.
  [5]
-<d2_fig_level1_complete.png, id=215, 1512.65125pt x 858.20625pt>
+<d2_fig_level1_complete.png, id=216, 1512.65125pt x 858.20625pt>
 File: d2_fig_level1_complete.png Graphic file (type png)
 <use d2_fig_level1_complete.png>
-Package pdftex.def Info: d2_fig_level1_complete.png  used on input line 247.
+Package pdftex.def Info: d2_fig_level1_complete.png  used on input line 236.
 (pdftex.def)             Requested size: 218.51521pt x 123.97183pt.
-<d2_fig_victory.png, id=216, 1927.2pt x 1084.05pt>
+<d2_fig_victory.png, id=217, 1927.2pt x 1084.05pt>
 File: d2_fig_victory.png Graphic file (type png)
 <use d2_fig_victory.png>
-Package pdftex.def Info: d2_fig_victory.png  used on input line 253.
+Package pdftex.def Info: d2_fig_victory.png  used on input line 242.
 (pdftex.def)             Requested size: 218.51521pt x 122.90147pt.
  [6 <./d3_fig_industrial_lab.png> <./d3_fig_research_reactor_yard.png> <./d2_fig_level1_complete.png> <./d2_fig_victory.png>] [7]
+Underfull \hbox (badness 10000) in paragraph at lines 343--344
+[]\OT1/cmr/m/n/10.95 A Play-Mode re-gres-sion suite cov-er-ing the crit-i-cal flows is main-tained in the
+ []
+
 LaTeX Font Info:    Font shape `OT1/cmtt/bx/n' in size <10.95> not available
-(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 375.
- [8]
-Underfull \hbox (badness 1616) in paragraph at lines 407--407
+(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 358.
+[8]
+Underfull \hbox (badness 1616) in paragraph at lines 390--390
 []|\OT1/cmr/m/n/10 TA feed-back: Space
  []
 
 
-Underfull \hbox (badness 7397) in paragraph at lines 407--407
+Underfull \hbox (badness 7397) in paragraph at lines 390--390
 []|\OT1/cmr/m/n/10 Players ran out of
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 407--407
+Underfull \hbox (badness 10000) in paragraph at lines 390--390
 []|\OT1/cmr/m/n/10 Players stock-piled
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 407--407
+Underfull \hbox (badness 10000) in paragraph at lines 390--390
 \OT1/cmr/m/n/10 crates and ar-rived
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 407--407
+Underfull \hbox (badness 10000) in paragraph at lines 390--390
 \OT1/cmr/m/n/10 at Level 4 under-
  []
 
 
-Underfull \hbox (badness 3375) in paragraph at lines 407--407
+Underfull \hbox (badness 3375) in paragraph at lines 390--390
 []|\OT1/cmr/m/n/10 Crafting sys-tem was
  []
 
 
-Underfull \hbox (badness 3199) in paragraph at lines 407--407
+Underfull \hbox (badness 3199) in paragraph at lines 390--390
 \OT1/cmr/m/n/10 con-fus-ing and rarely
  []
 
 
-Underfull \hbox (badness 1701) in paragraph at lines 407--407
+Underfull \hbox (badness 1701) in paragraph at lines 390--390
 []|\OT1/cmr/m/n/10 Levels 3 and 4 had
  []
 
 
-Underfull \hbox (badness 5119) in paragraph at lines 428--428
+Underfull \hbox (badness 5119) in paragraph at lines 411--411
 []|\OT1/cmr/m/n/10 Pass 1 (fair-
  []
 
 
-Underfull \hbox (badness 1789) in paragraph at lines 428--428
+Underfull \hbox (badness 1789) in paragraph at lines 411--411
 \OT1/cmr/m/n/10 out un-der-stand-ing what
  []
 
 
-Underfull \hbox (badness 6268) in paragraph at lines 428--428
+Underfull \hbox (badness 6268) in paragraph at lines 411--411
 []|\OT1/cmr/m/n/10 Pass 2 (ten-
  []
 
 [9]
-Overfull \hbox (27.15237pt too wide) in paragraph at lines 439--440
-\OT1/cmr/m/n/10.95 a ve-loc-ity spike be-cause \OT1/cmtt/m/n/10.95 Time.deltaTime \OT1/cmr/m/n/10.95 had ac-cu-mu-lated while paused. \OT1/cmtt/m/n/10.95 Time.fixedDeltaTime
+Underfull \hbox (badness 1337) in paragraph at lines 422--423
+\OT1/cmr/m/n/10.95 showed a ve-loc-ity spike be-cause \OT1/cmtt/m/n/10.95 Time.deltaTime \OT1/cmr/m/n/10.95 had ac-cu-mu-lated while paused.
  []
 
 [10]
-<d2_fig_daytime.png, id=255, 1512.65125pt x 858.20625pt>
+<d2_fig_daytime.png, id=256, 1512.65125pt x 858.20625pt>
 File: d2_fig_daytime.png Graphic file (type png)
 <use d2_fig_daytime.png>
-Package pdftex.def Info: d2_fig_daytime.png  used on input line 452.
+Package pdftex.def Info: d2_fig_daytime.png  used on input line 435.
 (pdftex.def)             Requested size: 218.51521pt x 123.97183pt.
-<d3_user_boss_start.png, id=256, 1515.6625pt x 886.31125pt>
+<d3_user_boss_start.png, id=257, 1515.6625pt x 886.31125pt>
 File: d3_user_boss_start.png Graphic file (type png)
 <use d3_user_boss_start.png>
-Package pdftex.def Info: d3_user_boss_start.png  used on input line 457.
+Package pdftex.def Info: d3_user_boss_start.png  used on input line 440.
 (pdftex.def)             Requested size: 218.51521pt x 127.77478pt.
 
-Overfull \hbox (99.51189pt too wide) in paragraph at lines 483--484
-\OT1/cmr/m/n/10.95 man-agers per-sist across scene loads via \OT1/cmtt/m/n/10.95 DontDestroyOnLoad\OT1/cmr/m/n/10.95 . \OT1/cmtt/m/n/10.95 GameManager \OT1/cmr/m/n/10.95 uses \OT1/cmtt/m/n/10.95 [RuntimeInitializeOnLoadMethod]
+Underfull \hbox (badness 1701) in paragraph at lines 463--464
+[]\OT1/cmr/m/n/10.95 The project uses a set of sin-gle-ton man-ager ob-jects that com-mu-ni-cate through C#
  []
 
 [11 <./d2_fig_daytime.png> <./d3_user_boss_start.png>]
-Overfull \hbox (21.82822pt too wide) in paragraph at lines 515--516
-[]\OT1/cmr/m/n/10.95 Each state change fires the \OT1/cmtt/m/n/10.95 OnGameStateChanged \OT1/cmr/m/n/10.95 C# event. \OT1/cmtt/m/n/10.95 AudioManager\OT1/cmr/m/n/10.95 , \OT1/cmtt/m/n/10.95 AtmosphereController\OT1/cmr/m/n/10.95 ,
+Underfull \hbox (badness 10000) in paragraph at lines 497--498
+[]\OT1/cmr/m/n/10.95 Each state change fires the \OT1/cmtt/m/n/10.95 OnGameStateChanged \OT1/cmr/m/n/10.95 C# event. \OT1/cmtt/m/n/10.95 AudioManager\OT1/cmr/m/n/10.95 ,
  []
 
 
-Overfull \hbox (29.5643pt too wide) in paragraph at lines 519--520
-[]\OT1/cmr/m/n/10.95 Each level has a ded-i-cated builder class (\OT1/cmtt/m/n/10.95 TownCenterBuilder\OT1/cmr/m/n/10.95 , \OT1/cmtt/m/n/10.95 SuburbanBuilder\OT1/cmr/m/n/10.95 , \OT1/cmtt/m/n/10.95 IndustrialBuilder\OT1/cmr/m/n/10.95 ,
+Underfull \hbox (badness 7814) in paragraph at lines 501--502
+[]\OT1/cmr/m/n/10.95 Each level has a ded-i-cated builder class (\OT1/cmtt/m/n/10.95 TownCenterBuilder\OT1/cmr/m/n/10.95 , \OT1/cmtt/m/n/10.95 SuburbanBuilder\OT1/cmr/m/n/10.95 ,
  []
 
-
-Overfull \hbox (128.49976pt too wide) in paragraph at lines 532--533
-\OT1/cmr/m/n/10.95 switches the mu-sic to the boss track. The night does not end un-til \OT1/cmtt/m/n/10.95 WaveManager.-IsFinalBossDefeatedForCurrentNight()
- []
-
-<d3_user_boss_phase_push.png, id=264, 1515.6625pt x 886.31125pt>
+[12]
+<d3_user_boss_phase_push.png, id=270, 1515.6625pt x 886.31125pt>
 File: d3_user_boss_phase_push.png Graphic file (type png)
 <use d3_user_boss_phase_push.png>
-Package pdftex.def Info: d3_user_boss_phase_push.png  used on input line 537.
+Package pdftex.def Info: d3_user_boss_phase_push.png  used on input line 519.
 (pdftex.def)             Requested size: 218.51521pt x 127.77478pt.
-<d3_user_boss_collapse.png, id=265, 1515.6625pt x 886.31125pt>
+<d3_user_boss_collapse.png, id=271, 1515.6625pt x 886.31125pt>
 File: d3_user_boss_collapse.png Graphic file (type png)
 <use d3_user_boss_collapse.png>
-Package pdftex.def Info: d3_user_boss_collapse.png  used on input line 542.
+Package pdftex.def Info: d3_user_boss_collapse.png  used on input line 524.
 (pdftex.def)             Requested size: 218.51521pt x 127.77478pt.
-[12]
-Overfull \hbox (3.55676pt too wide) in paragraph at lines 550--551
-\OT1/cmtt/m/n/10.95 Changed\OT1/cmr/m/n/10.95 , \OT1/cmtt/m/n/10.95 OnContestedDropState-Changed\OT1/cmr/m/n/10.95 , \OT1/cmtt/m/n/10.95 OnDayTimerUpdate\OT1/cmr/m/n/10.95 , \OT1/cmtt/m/n/10.95 OnDawnPhaseStarted\OT1/cmr/m/n/10.95 , and
- []
-
-[13 <./d3_user_boss_phase_push.png> <./d3_user_boss_collapse.png>] (./Deliverable3_Final_Report.aux)
+ [13 <./d3_user_boss_phase_push.png> <./d3_user_boss_collapse.png>] (./Deliverable3_Final_Report.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2025-11-14>
@@ -843,31 +896,22 @@ L3 programming layer <2025-11-14>
 LaTeX Font Warning: Size substitutions with differences
 (Font)              up to 13.12pt have occurred.
 
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
-
-Package rerunfilecheck Warning: File `Deliverable3_Final_Report.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `Deliverable3_Final_Report.out':
-(rerunfilecheck)             Before: A2C1220AB86BDFE0BCA3B1DAF07C4B56;5560
-(rerunfilecheck)             After:  E50A1A381DFC1FF9CEF21472EE883CE4;5600.
+Package rerunfilecheck Info: File `Deliverable3_Final_Report.out' has not changed.
+(rerunfilecheck)             Checksum: E50A1A381DFC1FF9CEF21472EE883CE4;5600.
  ) 
 Here is how much of TeX's memory you used:
- 25302 strings out of 469519
- 507972 string characters out of 5469170
- 934556 words of memory out of 5000000
- 53545 multiletter control sequences out of 15000+600000
- 635074 words of font info for 65 fonts, out of 8000000 for 9000
+ 26037 strings out of 469519
+ 518119 string characters out of 5469170
+ 947549 words of memory out of 5000000
+ 54257 multiletter control sequences out of 15000+600000
+ 636202 words of font info for 70 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 98i,13n,108p,885b,614s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 98i,13n,108p,845b,615s stack positions out of 10000i,1000n,20000p,200000b,200000s
  </Users/simar/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1095.600pk></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmitt10.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></Users/simar/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on Deliverable3_Final_Report.pdf (14 pages, 12266871 bytes).
+Output written on Deliverable3_Final_Report.pdf (14 pages, 12268223 bytes).
 PDF statistics:
- 345 PDF objects out of 1000 (max. 8388607)
- 273 compressed objects within 3 object streams
+ 346 PDF objects out of 1000 (max. 8388607)
+ 274 compressed objects within 3 object streams
  56 named destinations out of 1000 (max. 500000)
  331 words of extra memory for PDF output out of 10000 (max. 10000000)
 

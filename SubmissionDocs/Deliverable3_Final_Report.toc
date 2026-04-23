@@ -15,7 +15,7 @@
 \contentsline {subsection}{\numberline {4.4}Supply Crate Tiers and Helicopter Drops}{7}{subsection.4.4}%
 \contentsline {subsection}{\numberline {4.5}Run Modifier System}{7}{subsection.4.5}%
 \contentsline {subsection}{\numberline {4.6}Points Economy}{7}{subsection.4.6}%
-\contentsline {section}{\numberline {5}Playtesting \& Iteration}{7}{section.5}%
+\contentsline {section}{\numberline {5}Playtesting \& Iteration}{8}{section.5}%
 \contentsline {subsection}{\numberline {5.1}Feedback Sources and Protocol}{8}{subsection.5.1}%
 \contentsline {subsection}{\numberline {5.2}Teaching Assistant Feedback on Deliverable 2}{8}{subsection.5.2}%
 \contentsline {subsection}{\numberline {5.3}Changes from Deliverable 2 to Deliverable 3}{9}{subsection.5.3}%
@@ -23,7 +23,7 @@
 \contentsline {subsection}{\numberline {5.5}Debugging and Performance Optimizations}{10}{subsection.5.5}%
 \contentsline {section}{\numberline {6}Technical Implementation}{11}{section.6}%
 \contentsline {subsection}{\numberline {6.1}Build and Project Structure}{11}{subsection.6.1}%
-\contentsline {subsection}{\numberline {6.2}Architecture}{11}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.2}Architecture}{12}{subsection.6.2}%
 \contentsline {subsection}{\numberline {6.3}Game State Machine}{12}{subsection.6.3}%
 \contentsline {subsection}{\numberline {6.4}Procedural Map System}{12}{subsection.6.4}%
 \contentsline {subsection}{\numberline {6.5}Boss Fight}{12}{subsection.6.5}%
